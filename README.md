@@ -31,6 +31,10 @@ LLM строит программу обучения — набор тем с м
 
 Подробнее — [docs/architecture.md](docs/architecture.md).
 
+Сборок планируется две: `tolearn` и `tolearn-with-speech`. Вторая принимает
+зачёт голосом, распознавая речь локально, и весит заметно больше за счёт модели
+([ADR-010](docs/adr/010-speech-distribution.md)).
+
 ## Формат программы
 
 Приложение читает бандлы семейства `learning-roadmap`: `roadmap.yaml`
@@ -42,7 +46,7 @@ LLM строит программу обучения — набор тем с м
 
 ## Документация
 
-- [Архитектура и решения](docs/architecture.md)
+- [Архитектура: ограничения, бюджеты, структура](docs/architecture.md) · [Решения (ADR)](docs/adr/)
 - [Спецификации](docs/specs/README.md)
 - [Протокол зачёта](docs/protocol.md)
 - [Конспекты](docs/notes.md)

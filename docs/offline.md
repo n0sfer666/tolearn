@@ -87,7 +87,7 @@ Readability — лишний движок), `readability-rust`.
 
 ## Видео
 
-`yt-dlp` не бандлим — см. [ADR-004](architecture.md#adr-004-видео-не-качаем-сами).
+`yt-dlp` не бандлим — см. [ADR-004](adr/004-video-external.md).
 Ищем `yt-dlp` и `ffmpeg` в `PATH`:
 
 - нет — кнопка неактивна, рядом объяснение и команда установки для текущей ОС;
