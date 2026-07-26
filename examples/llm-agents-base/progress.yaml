@@ -1,0 +1,45 @@
+schema: learning-roadmap/progress/v1
+roadmap_id: llm-agents-base
+topics:
+  local-runtime:
+    status: todo
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []
+  openai-compatible-api:
+    status: todo
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []
+  tokens-context-cost:
+    status: todo
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []
+  structured-output:
+    status: todo
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []
+  model-selection:
+    status: todo
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []
+  provider-routing:
+    status: todo
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []
+  cp-gateway:
+    status: todo
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []

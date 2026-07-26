@@ -1,0 +1,16 @@
+/target
+**/target
+Cargo.lock.orig
+
+node_modules/
+dist/
+.astro/
+.output/
+
+.DS_Store
+*.swp
+*~
+
+.claude/.verify-state.json
+.claude/.review-state.json
+.context/notes/

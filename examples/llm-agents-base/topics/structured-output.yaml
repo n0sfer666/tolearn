@@ -1,0 +1,555 @@
+schema: learning-roadmap/topic/v1
+id: structured-output
+title: Машиночитаемый вывод — схемы и грамматики вместо надежды
+stage: 1
+depends_on:
+  - openai-compatible-api
+est_hours: [3, 5]
+volatility: volatile
+revalidate_after_days: 90
+verified_at: "2026-07-26"
+confidence: medium
+retention: by_use
+version_context:
+  - llama_cpp
+  - ollama
+  - anthropic_api_version
+
+outcomes:
+  - |-
+    может провести одну и ту же JSON-схему через два разных механизма принуждения — GBNF-грамматику
+    llama-server локально и strict-схему на облачном эндпоинте — не редактируя схему под рантайм
+  - |-
+    может заранее сказать, сконвертится ли конкретная JSON Schema в GBNF, и назвать ключ, из-за
+    которого конвертация не пройдёт или тихо потеряет ограничение
+  - |-
+    может отделить снижение частоты поломки от устранения класса ошибки и назвать канал, по
+    которому ответ приходит мимо схемы, оставляя парсер без данных
+
+misconceptions:
+  - |
+    temperature=0 гарантирует валидный JSON — на деле это воздействие на выбор токена, а не на
+    множество допустимых продолжений. Частота поломки падает, класс ошибки остаётся: сломанный
+    JSON по-прежнему выразим, просто выпадает реже. Схема или грамматика убирает сам класс,
+    вычёркивая недопустимые токены на шаге сэмплинга.
+  - |
+    Достаточно написать в системном промпте «отвечай только валидным JSON, без markdown» — на деле
+    промпт это просьба к модели, а не ограничение декодера. Механизмы принуждения живут в другом
+    месте: grammar / json_schema / response_format у llama-server, параметр format у нативного
+    Ollama API, strict: true у OpenAI-совместимых схем и у определений инструментов Anthropic.
+  - |
+    Любая валидная JSON Schema превращается в грамматику — на деле llama.cpp поддерживает лишь
+    ПОДМНОЖЕСТВО JSON Schema: uniqueItems, contains, if/then/else в GBNF не выражаются. Схема,
+    штатно работающая в облаке, может не доехать до локальной грамматики.
+  - |
+    Отсутствие additionalProperties в схеме означает одинаковое поведение везде — на деле
+    в конвертере json_schema_to_grammar.py у llama.cpp additionalProperties по умолчанию false,
+    то есть локально лишние поля будут запрещены там, где облачный валидатор их пропустил бы.
+    Расхождение идёт в сторону лишней строгости, и его так же надо замечать.
+  - |
+    Раз схема применена, в ответе всегда лежат данные по схеме — на деле отказ по безопасности
+    приходит отдельным каналом, полем refusal, а не объектом по схеме. Код обязан ветвиться на
+    refusal ДО разбора полезной нагрузки.
+  - |
+    Опциональные повторы в GBNF пишутся как x? x? x? — на деле такая конструкция даёт
+    катастрофическое замедление; правильная форма x{0,N}. Грамматика влияет на скорость
+    декодирования, а не только на форму результата.
+
+materials:
+  - url: |-
+      https://raw.githubusercontent.com/ggml-org/llama.cpp/master/grammars/README.md
+    title: GBNF Guide — llama.cpp grammars
+    type: docs
+    tier: T1
+    published: null
+    covers_version: "b10107"
+    checked_at: "2026-07-26"
+    lang: en
+    liveness: ok
+    stale: false
+    delta: null
+    note: |-
+      Первоисточник по синтаксису грамматик, по конвертеру json_schema_to_grammar.py и по
+      явному перечню неподдерживаемых ключей JSON Schema.
+  - url: |-
+      https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md
+    title: llama.cpp HTTP Server (llama-server) README
+    type: docs
+    tier: T1
+    published: null
+    covers_version: "b10107"
+    checked_at: "2026-07-26"
+    lang: en
+    liveness: ok
+    stale: false
+    delta: null
+    note: |-
+      Где именно грамматика подаётся в рантайм: поля grammar, json_schema и response_format
+      в запросе, флаги --grammar и --grammar-file в CLI.
+  - url: |-
+      https://raw.githubusercontent.com/ollama/ollama/main/docs/api.md
+    title: Ollama API reference
+    type: docs
+    tier: T1
+    published: null
+    covers_version: "v0.32.4"
+    checked_at: "2026-07-26"
+    lang: en
+    liveness: ok
+    stale: false
+    delta: null
+    note: |-
+      Второй механизм: параметр format принимает JSON-схему на /api/generate и /api/chat —
+      важно, что это нативный путь Ollama, а не OpenAI-совместимый.
+  - url: |-
+      https://raw.githubusercontent.com/openai/openai-cookbook/main/examples/Structured_Outputs_Intro.ipynb
+    title: Structured Outputs Intro (OpenAI Cookbook)
+    type: article
+    tier: T2
+    published: 2024-08
+    covers_version: "gpt-4o-2024-08-06"
+    checked_at: "2026-07-26"
+    lang: en
+    liveness: ok
+    stale: true
+    delta: |-
+      В материале перечислены только gpt-4o-mini и gpt-4o-2024-08-06, а примеры текущего
+      официального SDK используют gpt-5.5
+      (https://raw.githubusercontent.com/openai/openai-python/main/README.md, проверено 2026-07-26).
+      Механику strict: true, response_format с type json_schema и полями name / schema / strict,
+      хелпер .parse() с Pydantic и поле refusal читать можно; перечень моделей — нет.
+    note: |-
+      Единственный проверенный источник по облачному strict-режиму и по тому, что отказ приходит
+      полем refusal, а не по схеме; перечень моделей в нём устарел.
+  - url: |-
+      https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview
+    title: Tool use with Claude
+    type: docs
+    tier: T1
+    published: null
+    covers_version: "2023-06-01"
+    checked_at: "2026-07-26"
+    lang: en
+    liveness: ok
+    stale: false
+    delta: null
+    note: |-
+      Тот же приём в третьем контракте: strict: true у определений инструментов, плюс прямое
+      предупреждение, что без него модель может додумать недостающий обязательный параметр.
+  - url: |-
+      https://raw.githubusercontent.com/openai/openai-python/main/README.md
+    title: openai-python README
+    type: docs
+    tier: T1
+    published: null
+    covers_version: null
+    checked_at: "2026-07-26"
+    lang: en
+    liveness: ok
+    stale: false
+    delta: null
+    note: |-
+      Официальный клиент, которым делается облачная половина практики, и актуальная опора по
+      именам моделей взамен устаревшего перечня из cookbook.
+
+practice:
+  kind: code
+  tier: P1
+  time_box_min: 75
+  task: |
+    Одна JSON-схема прогоняется через ДВА разных механизма принуждения на восьми входах,
+    и все шестнадцать выходов обязаны пройти валидацию этой же схемой без единого падения.
+
+    Подготовка:
+      1. schema.json — рабочая схема извлечения. Минимум: объект с обязательными полями,
+         вложенным объектом, массивом объектов и одним enum. Никаких uniqueItems, contains,
+         if/then/else в ней быть не должно.
+      2. schema-unsupported.json — копия schema.json, в которой к массиву добавлен
+         "uniqueItems": true. Больше ничего не менять.
+      3. inputs.jsonl — ровно 8 разных входных текстов, из которых надо извлечь данные.
+         Хотя бы один вход должен быть заведомо бедным (нужных данных в нём почти нет),
+         чтобы проверить поведение механизма, а не удачу.
+
+    Скрипт run_structured.py делает следующее.
+
+    Цель «local»: llama-server, принуждение на уровне декодирования — поле grammar (грамматика
+    получена конвертером json_schema_to_grammar.py из schema.json) либо json_schema /
+    response_format напрямую. Механизм в отчёте помечается как "gbnf".
+
+    Цель «cloud»: облачный OpenAI-совместимый эндпоинт, response_format с type json_schema и
+    strict: true. base_url и ключ берутся ТОЛЬКО из переменных окружения (например
+    SO_CLOUD_BASE_URL и SO_CLOUD_API_KEY). Механизм в отчёте помечается как "strict".
+
+    Выходы пишутся построчно в out/local.jsonl и out/cloud.jsonl — по 8 строк в каждом,
+    по одному JSON-объекту на строку, ровно то, что вернул рантайм. Ремонтировать, дочищать,
+    вырезать регекспом и переспрашивать при неудачном разборе ЗАПРЕЩЕНО: если строка не
+    получилась, задание не выполнено, а не «надо добавить ретрай».
+
+    Отдельный кейс с неподдерживаемым ключом. Запустить json_schema_to_grammar.py на
+    schema-unsupported.json, сохранив ВЕСЬ stderr в out/grammar-stderr.txt и код возврата.
+    Дальше два исхода, оба засчитываются, но должны быть предъявлены разными доказательствами:
+      - конвертер упал — доказательство это непустой out/grammar-stderr.txt;
+      - конвертер отработал молча — значит ограничение потеряно, и надо это показать:
+        получить под этой грамматикой выход, в котором массив содержит повторяющиеся элементы,
+        и положить его в out/uniq-violation.json.
+
+    out/report.json собирает: targets (по одному объекту на цель с полями name, base_url,
+    mechanism), n_inputs и блок unsupported_schema с полями key, converter_exit_code и
+    evidence (непустая строка с наблюдаемым исходом своими словами).
+
+    notes.md — короткий разбор на полстраницы: почему temperature=0 без схемы даёт другой
+    результат по КЛАССУ ошибки, а не по её частоте, и что происходит с полем refusal, когда
+    модель отказывается отвечать по схеме.
+  deliverable: |
+    schema.json, schema-unsupported.json, inputs.jsonl, run_structured.py, notes.md и каталог
+    out/ с local.jsonl, cloud.jsonl, report.json, grammar-stderr.txt (и uniq-violation.json,
+    если конвертер отработал молча). На зачёте — показать, что валидация всех шестнадцати
+    выходов проходит внешней командой, и объяснить исход по неподдерживаемой схеме.
+  starting_point: null
+  constraints:
+    - id: c1
+      claim: |-
+        нет пост-обработки текста ради валидности: ни регекспов, ни ремонта JSON, ни срезания
+        markdown-заборов
+      check: |
+        bash -c 'grep -Eic "re\.(search|findall|sub|match)|json_repair|demjson|```" run_structured.py || true'
+      expect: "0"
+    - id: c2
+      claim: |-
+        нет ретраев «повторяй, пока не распарсится» — механизм обязан давать результат с первого
+        раза
+      check: |
+        bash -c 'grep -Eic "retry|retries|max_attempts|while True" run_structured.py || true'
+      expect: "0"
+    - id: c3
+      claim: |-
+        ключи и облачный base_url не зашиты в файлы, берутся из окружения
+      check: |
+        bash -c 'cat run_structured.py notes.md out/report.json | grep -Ec "sk-[A-Za-z0-9_-]{8}" || true'
+      expect: "0"
+    - id: c4
+      claim: |-
+        локальная цель принуждается на уровне декодирования, а не текстом промпта
+      check: |
+        bash -c 'grep -Eiq "grammar|json_schema" run_structured.py && echo OK || echo MISSING'
+      expect: "OK"
+    - id: c5
+      claim: |-
+        выходы порождаются запуском скрипта, а не пишутся руками
+      check: |
+        bash -c 'rm -f out/local.jsonl out/cloud.jsonl && python3 run_structured.py >/dev/null 2>&1; test -s out/local.jsonl && test -s out/cloud.jsonl && echo OK || echo FAIL'
+      expect: "OK"
+  acceptance:
+    - id: a1
+      claim: |-
+        обе цели отработали все восемь входов, ни один не пропущен
+      check: |
+        bash -c 'python3 -c "
+        print(sum(1 for l in open(\"out/local.jsonl\") if l.strip()), sum(1 for l in open(\"out/cloud.jsonl\") if l.strip()))
+        "'
+      expect: "8 8"
+    - id: a2
+      claim: |-
+        все шестнадцать выходов валидны по ОДНОЙ И ТОЙ ЖЕ схеме, падений ноль
+      check: |
+        bash -c 'python3 -c "
+        import json
+        from jsonschema import Draft202012Validator as V
+        v = V(json.load(open(\"schema.json\")))
+        objs = [json.loads(l) for f in (\"out/local.jsonl\", \"out/cloud.jsonl\") for l in open(f) if l.strip()]
+        print(sum(1 for o in objs if list(v.iter_errors(o))), len(objs))
+        "'
+      expect: "0 16"
+    - id: a3
+      claim: |-
+        использованы два РАЗНЫХ механизма принуждения, а не один и тот же дважды
+      check: |
+        bash -c 'python3 -c "
+        import json
+        d = json.load(open(\"out/report.json\"))
+        print(sorted(t[\"mechanism\"] for t in d[\"targets\"]))
+        "'
+      expect: "['gbnf', 'strict']"
+    - id: a4
+      claim: |-
+        неподдерживаемый ключ отработан явно: зафиксированы сам ключ, код возврата конвертера
+        и наблюдаемый исход
+      check: |
+        bash -c 'python3 -c "
+        import json
+        u = json.load(open(\"out/report.json\"))[\"unsupported_schema\"]
+        print(u[\"key\"], type(u[\"converter_exit_code\"]).__name__, bool(u[\"evidence\"].strip()))
+        "'
+      expect: "uniqueItems int True"
+    - id: a5
+      claim: |-
+        предъявлено доказательство, что ограничение uniqueItems до грамматики не доехало:
+        либо падение конвертера с непустым stderr, либо выход, нарушающий схему
+      check: |
+        bash -c 'python3 -c "
+        import json, os
+        from jsonschema import Draft202012Validator as V
+        u = json.load(open(\"out/report.json\"))[\"unsupported_schema\"]
+        if u[\"converter_exit_code\"] != 0:
+            ok = os.path.getsize(\"out/grammar-stderr.txt\") > 0
+        else:
+            ok = bool(list(V(json.load(open(\"schema-unsupported.json\"))).iter_errors(json.load(open(\"out/uniq-violation.json\")))))
+        print(\"OK\" if ok else \"FAIL\")
+        "'
+      expect: "OK"
+    - id: a6
+      claim: |-
+        схема для обеих целей одна: schema-unsupported.json отличается от schema.json ровно
+        добавленным uniqueItems
+      check: |
+        bash -c 'python3 -c "
+        import json
+        a = json.dumps(json.load(open(\"schema.json\")), sort_keys=True)
+        b = json.dumps(json.load(open(\"schema-unsupported.json\")), sort_keys=True)
+        print(a != b, \"uniqueItems\" in b, \"uniqueItems\" in a)
+        "'
+      expect: "True True False"
+    - id: a7
+      claim: |-
+        разбор в notes.md касается обоих стержней темы: частота против класса и канал refusal
+      check: |
+        bash -c 'grep -qi "refusal" notes.md && grep -qi "temperature" notes.md && echo OK || echo MISSING'
+      expect: "OK"
+  smoke_checked: false
+  fallback: null
+
+questions:
+  - id: q1
+    type: tradeoff
+    text: |
+      Две конфигурации одного и того же извлечения, обе рабочие, замер на 200 запросах.
+
+      Вариант A — без схемы, принуждение промптом:
+
+          messages = [
+              {"role": "system", "content": "Отвечай ТОЛЬКО валидным JSON, без markdown."},
+              {"role": "user", "content": text},
+          ]
+          r = client.chat.completions.create(model=M, messages=messages, temperature=0)
+
+          итог: 197 из 200 разобрались, 3 упали на json.JSONDecodeError
+
+      Вариант B — схема, temperature при этом 0.7:
+
+          r = client.chat.completions.create(
+              model=M,
+              messages=messages,
+              temperature=0.7,
+              response_format={"type": "json_schema", "json_schema": {
+                  "name": "extract", "schema": SCHEMA, "strict": True}},
+          )
+
+          итог: 200 из 200 разобрались
+
+      Тимлид говорит: 98.5% это приемлемо, схему не тащим — она лишний код и жёсткая связка.
+      Скажи, чем эти два числа различаются качественно, а не количественно, и назови условие,
+      при котором ты выберешь именно вариант A.
+    expected_signals:
+      - |-
+        temperature=0 действует на выбор токена внутри того же множества допустимых продолжений:
+        сломанный JSON остаётся выразимым и просто выпадает реже — падает частота
+      - |-
+        схема или грамматика вычёркивает недопустимые токены на шаге сэмплинга, поэтому
+        невалидный JSON перестаёт быть достижимым — исчезает класс ошибки, и 200 из 200 это не
+        удача выборки
+      - |-
+        3 из 200 не масштабируются линейно: при батче в десятки тысяч и при агентном цикле, где
+        выход одного шага это вход следующего, редкая поломка становится регулярной
+      - |-
+        ответ переворачивается, когда механизма принуждения физически нет: цель не принимает
+        grammar / json_schema / format, либо схема не выражается в GBNF — тогда остаётся A плюс
+        внешняя валидация с явной отбраковкой, а не с ремонтом
+    red_flags:
+      - |-
+        «temperature=0 делает вывод детерминированным, значит валидным» — детерминированно
+        сломанный ответ ломается каждый раз одинаково, это не аргумент
+      - |-
+        «схема просто лучше, потому что 200 больше 197» — сравнение по числу, тогда как разница
+        в том, откуда берётся число
+      - |-
+        «добавим try/except и переспрос, эффект тот же» — ретрай маскирует класс ошибки, а цена
+        уходит в латентность и токены
+    follow_up: |
+      Контрфакт: тимлид соглашается на схему, но требует оставить temperature=0 «на всякий
+      случай». На что после включения схемы влияет temperature — на валидность, на содержание,
+      ни на что — и как ты это проверишь одним прогоном, не рассуждая?
+
+  - id: q2
+    type: boundary
+    text: |
+      Схема годами работает в облаке со strict: true. Её отдают локальному llama-server через
+      конвертер json_schema_to_grammar.py.
+
+          {
+            "type": "object",
+            "properties": {
+              "tags": {
+                "type": "array",
+                "items": {"type": "string"},
+                "uniqueItems": true
+              },
+              "meta": {
+                "type": "object",
+                "properties": {"source": {"type": "string"}}
+              }
+            },
+            "required": ["tags"]
+          }
+
+      Разработчик ожидает: «схема валидная, значит грамматика получится, а дальше та же
+      гарантия». Назови, что здесь не переживёт конвертацию, что переживёт с ИЗМЕНЁННЫМ
+      смыслом, и какой вывод это даёт про место валидатора в пайплайне.
+    expected_signals:
+      - |-
+        uniqueItems в GBNF не выражается: грамматика описывает форму порождаемой строки локальными
+        правилами, а «все элементы массива различны» это условие на уже порождённый набор
+      - |-
+        в тот же список невыразимого попадают contains и if/then/else — llama.cpp поддерживает
+        подмножество JSON Schema, и «валидная схема» не равно «конвертируемая схема»
+      - |-
+        meta переживёт, но со смещённым смыслом: additionalProperties по умолчанию false, поэтому
+        локально лишние поля будут запрещены там, где облако их пропустило бы — расхождение идёт
+        в сторону лишней строгости и ловится только сравнением выходов
+      - |-
+        вывод: грамматика не заменяет валидатор; проверка полной схемой обязана остаться снаружи
+        вторым рубежом, иначе часть ограничений исчезает молча
+    red_flags:
+      - |-
+        «uniqueItems просто проигнорируется, ничего страшного» — молча потерянное ограничение
+        и есть страшное: пайплайн считает, что гарантия есть
+      - |-
+        «конвертер поправит схему сам» — конвертер переводит, а не досочиняет недостающие
+        выразительные средства
+      - |-
+        «раз в облаке работало, локально тоже гарантия» — гарантии разной силы, и разница
+        обнаруживается только замером, а не чтением схемы
+    follow_up: |
+      Контрфакт: uniqueItems из схемы убрали, конвертация прошла, локальные выходы формально
+      валидны. Где теперь живёт требование уникальности тегов и в какой момент пайплайна ты
+      узнаешь, что оно нарушено — до записи в хранилище или после?
+
+  - id: q3
+    type: diagnose
+    text: |
+      Облачный вызов, strict: true, схема не менялась месяц. Раз в несколько сотен запросов
+      падает разбор.
+
+          resp = client.chat.completions.create(
+              model=M,
+              messages=[{"role": "user", "content": user_text}],
+              response_format={"type": "json_schema", "json_schema": {
+                  "name": "extract", "schema": SCHEMA, "strict": True}},
+          )
+          data = json.loads(resp.choices[0].message.content)
+
+      Трейс упавшего запроса:
+
+          TypeError: the JSON object must be str, bytes or bytearray, not NoneType
+          message.content = None
+          message.refusal = "I'm sorry, I can't help with that."
+
+      Схема применена и не нарушена. Объясни, что именно произошло, почему strict тут не
+      помогает по устройству, и как должен выглядеть корректный порядок разбора ответа.
+    expected_signals:
+      - |-
+        отказ приходит отдельным каналом — полем refusal, а не объектом по схеме; схема
+        не нарушена, потому что модель вообще не отвечала по схеме
+      - |-
+        strict описывает форму ответа ПРИ УСЛОВИИ, что ответ по схеме будет: это гарантия
+        соответствия, а не гарантия наличия полезной нагрузки
+      - |-
+        порядок разбора: сначала проверить refusal и признак остановки, и только потом трогать
+        content; ветвление на отказ обязано стоять до json.loads
+      - |-
+        входы, на которых это выпадает, надо собирать отдельно: раз в несколько сотен это не
+        случайность, а класс входов, и его либо фильтруют до вызова, либо обрабатывают явно
+    red_flags:
+      - |-
+        «схема невалидна или сломалась» — при нарушении схемы был бы другой симптом, а не
+        пустой content при заполненном refusal
+      - |-
+        «обернуть в try/except и переспросить» как объяснение причины: на том же входе
+        повторится, потому что причина в содержании запроса, а не в удаче
+      - |-
+        «поднять strict ещё строже» или «добавить в схему поле refusal» — канал внешний по
+        отношению к схеме, внутрь схемы он не втягивается
+    follow_up: |
+      Контрфакт: тот же вход уходит на локальную цель, где вывод зажат GBNF-грамматикой.
+      Отказаться формой там невозможно — грамматика всё равно допишет объект по схеме.
+      Что ты получишь на выходе, почему это ХУЖЕ явного refusal, и по какому признаку
+      локальный отказ вообще можно поймать?
+
+  - id: q4
+    type: misconception
+    text: |
+      Комментарий в ревью:
+
+          Убрал response_format — он только тормозит и ограничивает модель. Вместо него
+          поставил temperature=0 и дописал в системный промпт: «Отвечай строго валидным JSON
+          по схеме ниже, без пояснений и без markdown». Вывод теперь детерминированный, значит
+          парсер не упадёт. Прогнал 50 раз — ни одного падения.
+
+      Разбери по частям: что здесь факт, что вывод из факта, и что просто неверно. Отдельно
+      скажи, что доказывают эти 50 прогонов.
+    expected_signals:
+      - |-
+        промпт это просьба к модели, а не ограничение декодера: множество допустимых
+        продолжений он не сужает, поэтому невалидный JSON остаётся достижимым
+      - |-
+        принуждение живёт в другом месте — grammar / json_schema / response_format у llama-server,
+        параметр format у нативного Ollama API, strict: true у схем и у определений инструментов
+        Anthropic; именно там вычёркиваются недопустимые токены
+      - |-
+        «детерминированный» не влечёт «валидный»: если конкретный вход детерминированно даёт
+        сломанный ответ, он будет ломаться на каждом прогоне одинаково
+      - |-
+        50 прогонов на одном наборе входов оценивают частоту, а не наличие класса; отсутствие
+        события в маленькой выборке не отменяет достижимости состояния
+    red_flags:
+      - |-
+        «50 из 50 значит работает» — подмена доказательства невозможности статистикой наблюдений
+      - |-
+        «схема ограничивает модель и портит качество» без разделения ограничения ФОРМЫ и
+        ограничения СОДЕРЖАНИЯ
+      - |-
+        «response_format тормозит» как достаточный аргумент, без замера и без учёта цены разбора
+        и ретраев на стороне потребителя
+    follow_up: |
+      Контрфакт: коллега соглашается вернуть схему, но в ответ требует «раз уж схема есть,
+      убрать внешнюю валидацию jsonschema, она теперь дублирует». Где он прав, где нет, и какой
+      конкретный ключ схемы ты приведёшь как контрпример на локальной цели?
+
+exam:
+  focus: |
+    Проверяем, что человек различает три уровня воздействия на вывод — промпт, параметры
+    сэмплинга и принуждение на уровне декодирования — и понимает, что первые два меняют частоту
+    поломки, а третий убирает класс ошибки. Дальше: умеет ли предъявить одну схему, прошедшую
+    и через GBNF локально, и через strict в облаке, с внешней валидацией всех выходов; знает ли
+    границу поддержки JSON Schema в llama.cpp по конкретным ключам; помнит ли, что отказ идёт
+    полем refusal мимо схемы и ловится ДО разбора content.
+  traps:
+    - |-
+      предложить «мы же поставили temperature=0, схема избыточна» и посмотреть, заговорит ли
+      человек про класс ошибки или начнёт торговаться процентами валидности
+    - |-
+      дать облачную схему с uniqueItems и попросить «просто прогнать локально», проверив,
+      предупредит ли он до запуска или обнаружит расхождение постфактум
+    - |-
+      согласиться, что грамматика делает внешнюю валидацию ненужной, и ждать контрпримера
+      про потерянные ключи и про additionalProperties по умолчанию false
+    - |-
+      показать трейс с пустым content и заполненным refusal и посмотреть, полезет ли человек
+      чинить схему или назовёт отдельный канал отказа
+    - |-
+      предложить «добавим ретрай на невалидный JSON, эффект тот же» и проверить, назовёт ли
+      цену в латентности и токенах и разницу между маскировкой и устранением
+    - |-
+      сослаться на перечень моделей из cookbook 2024 года как на актуальный и посмотреть,
+      отделит ли человек живую механику strict от устаревшего списка
+  artifact_required: true
+  max_exchanges: 9

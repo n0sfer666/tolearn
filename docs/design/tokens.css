@@ -1,0 +1,92 @@
+:root {
+  color-scheme: light dark;
+
+  --font-family-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-family-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --font-size-sm: 0.8125rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.75rem;
+
+  --line-height-tight: 1.25;
+  --line-height-body: 1.6;
+  --measure: 68ch;
+
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-12: 3rem;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+
+  --z-base: 0;
+  --z-sticky: 100;
+  --z-overlay: 200;
+  --z-popover: 300;
+  --z-toast: 400;
+
+  --duration: 160ms;
+  --easing: cubic-bezier(0.2, 0, 0, 1);
+
+  --tap-target: 44px;
+
+  --breakpoint-md: 640px;
+  --breakpoint-lg: 1024px;
+
+  --color-bg:            light-dark(#f7f8f9, #14171a);
+  --color-bg-subtle:     light-dark(#eef0f2, #1b1f23);
+  --color-bg-raised:     light-dark(#ffffff, #21262b);
+
+  --color-border:        light-dark(#d7dbe0, #333a41);
+  --color-border-strong: light-dark(#828a91, #69747e);
+
+  --color-fg:            light-dark(#16191d, #e8eaed);
+  --color-fg-muted:      light-dark(#565f6a, #9aa4b0);
+
+  --color-neutral:       light-dark(#646c78, #8b94a0);
+  --color-accent:        light-dark(#1f5fd0, #6fa8ff);
+  --color-warning:       light-dark(#8f5a00, #e0a44a);
+  --color-critical:      light-dark(#b82a1e, #ff7b6e);
+
+  --color-accent-bg:     light-dark(#e3ecfb, #16233a);
+  --color-warning-bg:    light-dark(#f8eeda, #302510);
+  --color-critical-bg:   light-dark(#fae7e5, #351c19);
+
+  --color-focus:         light-dark(#1f5fd0, #6fa8ff);
+}
+
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"]  { color-scheme: dark; }
+
+.status-todo,
+.status-passed,
+.status-passed_out {
+  --color-status: var(--color-neutral);
+  --color-status-bg: var(--color-bg-subtle);
+}
+
+.status-in_progress,
+.status-exam_pending {
+  --color-status: var(--color-accent);
+  --color-status-bg: var(--color-accent-bg);
+}
+
+.status-stale_passed,
+.status-blocked {
+  --color-status: var(--color-warning);
+  --color-status-bg: var(--color-warning-bg);
+}
+
+.status-failed {
+  --color-status: var(--color-critical);
+  --color-status-bg: var(--color-critical-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --duration: 1ms; }
+}
