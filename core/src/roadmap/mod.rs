@@ -3,6 +3,6 @@ mod types;
 
 pub use parse::parse;
 pub use types::{
-    Calibration, CalibrationMethod, Defaults, Hours, Priority, RevalidateAfterDays, Roadmap, Stage,
+    Calibration, CalibrationMethod, Defaults, Priority, RevalidateAfterDays, Roadmap, Stage,
     TopicEntry,
 };

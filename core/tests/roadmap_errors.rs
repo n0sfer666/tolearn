@@ -9,17 +9,9 @@ mod support;
 use tolearn_core::roadmap::parse;
 use tolearn_core::yaml::ParseFailure;
 
-use support::read;
+use support::{line_of, read};
 
 const MINIMAL: &str = "fixtures/valid/roadmap/minimal.yaml";
-
-fn line_of(source: &str, needle: &str) -> usize {
-    source
-        .lines()
-        .position(|line| line.contains(needle))
-        .unwrap_or_else(|| panic!("`{needle}` is not in the source"))
-        + 1
-}
 
 #[test]
 fn a_syntax_error_carries_the_place_it_broke() {

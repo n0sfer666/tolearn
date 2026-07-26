@@ -1,9 +1,10 @@
 use std::collections::BTreeMap;
 
 use super::types::{
-    Calibration, CalibrationMethod, Defaults, Hours, Priority, RevalidateAfterDays, Roadmap, Stage,
+    Calibration, CalibrationMethod, Defaults, Priority, RevalidateAfterDays, Roadmap, Stage,
     TopicEntry,
 };
+use crate::hours::hours;
 use crate::yaml::{ParseError, Reader, read};
 
 pub fn parse(source: &str) -> Result<Roadmap, ParseError> {
@@ -21,30 +22,27 @@ fn roadmap(node: &Reader<'_>) -> Result<Roadmap, ParseError> {
         generated_by: node.field("generated_by")?.text()?,
         locale: node.field("locale")?.text()?,
         weekly_hours: node.field("weekly_hours")?.number(1)?,
-        env_constraints: texts(&node.field("env_constraints")?)?,
+        env_constraints: node.field("env_constraints")?.texts()?,
         version_pins: pins(&node.field("version_pins")?)?,
         calibration: calibration(&node.field("calibration")?)?,
         defaults: defaults(&node.field("defaults")?)?,
-        stages: node
-            .field("stages")?
-            .items()?
-            .iter()
-            .map(stage)
-            .collect::<Result<_, _>>()?,
-        topics: node
-            .field("topics")?
-            .items()?
-            .iter()
-            .map(topic)
-            .collect::<Result<_, _>>()?,
+        stages: node.field("stages")?.list(stage)?,
+        topics: node.field("topics")?.list(topic)?,
     })
 }
 
 fn calibration(node: &Reader<'_>) -> Result<Calibration, ParseError> {
     Ok(Calibration {
-        method: method(&node.field("method")?)?,
+        method: node.field("method")?.choice(
+            "calibration method",
+            &[
+                ("diagnostic-probe", CalibrationMethod::DiagnosticProbe),
+                ("self-report", CalibrationMethod::SelfReport),
+                ("none", CalibrationMethod::None),
+            ],
+        )?,
         probed: node.field("probed")?.number(0)?,
-        passed_out: texts(&node.field("passed_out")?)?,
+        passed_out: node.field("passed_out")?.texts()?,
         interrupted: node.field("interrupted")?.flag()?,
     })
 }
@@ -76,41 +74,15 @@ fn topic(node: &Reader<'_>) -> Result<TopicEntry, ParseError> {
         stage: node.field("stage")?.number(1)?,
         file: node.field("file")?.text()?,
         est_hours: hours(&node.field("est_hours")?)?,
-        priority: priority(&node.field("priority")?)?,
+        priority: node.field("priority")?.choice(
+            "priority",
+            &[
+                ("core", Priority::Core),
+                ("recommended", Priority::Recommended),
+                ("optional", Priority::Optional),
+            ],
+        )?,
     })
-}
-
-fn hours(node: &Reader<'_>) -> Result<Hours, ParseError> {
-    let items = node.items()?;
-    let [min, max] = items.as_slice() else {
-        return Err(node.malformed("expected a list of exactly two numbers"));
-    };
-    Ok(Hours {
-        min: min.number(1)?,
-        max: max.number(1)?,
-    })
-}
-
-fn method(node: &Reader<'_>) -> Result<CalibrationMethod, ParseError> {
-    match node.text()?.as_str() {
-        "diagnostic-probe" => Ok(CalibrationMethod::DiagnosticProbe),
-        "self-report" => Ok(CalibrationMethod::SelfReport),
-        "none" => Ok(CalibrationMethod::None),
-        other => Err(node.unknown(format!("unknown calibration method `{other}`"))),
-    }
-}
-
-fn priority(node: &Reader<'_>) -> Result<Priority, ParseError> {
-    match node.text()?.as_str() {
-        "core" => Ok(Priority::Core),
-        "recommended" => Ok(Priority::Recommended),
-        "optional" => Ok(Priority::Optional),
-        other => Err(node.unknown(format!("unknown priority `{other}`"))),
-    }
-}
-
-fn texts(node: &Reader<'_>) -> Result<Vec<String>, ParseError> {
-    node.items()?.iter().map(Reader::text).collect()
 }
 
 fn pins(node: &Reader<'_>) -> Result<BTreeMap<String, String>, ParseError> {

@@ -6,12 +6,13 @@
 
 mod support;
 
+use tolearn_core::Hours;
 use tolearn_core::roadmap::{
-    Calibration, CalibrationMethod, Defaults, Hours, Priority, RevalidateAfterDays, Roadmap, Stage,
+    Calibration, CalibrationMethod, Defaults, Priority, RevalidateAfterDays, Roadmap, Stage,
     TopicEntry, parse,
 };
 
-use support::{read, root};
+use support::{every_fixture_parses, read};
 
 const REFERENCE: &str = "examples/llm-agents-base/roadmap.yaml";
 const VALID: &str = "fixtures/valid/roadmap";
@@ -123,14 +124,7 @@ fn count(topics: &[TopicEntry], priority: Priority) -> usize {
 
 #[test]
 fn every_valid_fixture_parses() {
-    let mut seen = 0;
-    for entry in std::fs::read_dir(root().join(VALID)).unwrap() {
-        let name = entry.unwrap().file_name().to_string_lossy().into_owned();
-        let relative = format!("{VALID}/{name}");
-        parse(&read(&relative)).unwrap_or_else(|e| panic!("{relative}: {e}"));
-        seen += 1;
-    }
-    assert!(seen >= 2, "the valid corpus lost its fixtures");
+    every_fixture_parses(VALID, parse, 2);
 }
 
 #[test]

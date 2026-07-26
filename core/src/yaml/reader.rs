@@ -43,6 +43,22 @@ impl<'a> Reader<'a> {
             .ok_or_else(|| self.fail(ParseFailure::WrongType, "expected a string"))
     }
 
+    pub fn optional_text(&self) -> Result<Option<String>, ParseError> {
+        if self.node.data.is_null() {
+            return Ok(None);
+        }
+        self.text().map(Some)
+    }
+
+    pub fn choice<T: Copy>(&self, what: &str, options: &[(&str, T)]) -> Result<T, ParseError> {
+        let text = self.text()?;
+        options
+            .iter()
+            .find(|(name, _)| *name == text)
+            .map(|(_, value)| *value)
+            .ok_or_else(|| self.unknown(format!("unknown {what} `{text}`")))
+    }
+
     pub fn number(&self, minimum: u32) -> Result<u32, ParseError> {
         let integer = self
             .node
@@ -85,6 +101,17 @@ impl<'a> Reader<'a> {
                 path: format!("{}[{index}]", self.path),
             })
             .collect())
+    }
+
+    pub fn list<T>(
+        &self,
+        each: impl Fn(&Self) -> Result<T, ParseError>,
+    ) -> Result<Vec<T>, ParseError> {
+        self.items()?.iter().map(each).collect()
+    }
+
+    pub fn texts(&self) -> Result<Vec<String>, ParseError> {
+        self.list(Self::text)
     }
 
     pub fn entries(&self) -> Result<Vec<(String, Self)>, ParseError> {

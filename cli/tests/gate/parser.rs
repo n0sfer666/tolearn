@@ -1,32 +1,48 @@
 use serde_json::Value;
-use tolearn_core::roadmap;
+use tolearn_core::{roadmap, topic};
 
 use crate::repo::read;
 use crate::schema::paths::described_fields;
 use crate::schema::{schema, yaml};
 
-const REFERENCE: &str = "examples/llm-agents-base/roadmap.yaml";
+const ROADMAP: &str = "examples/llm-agents-base/roadmap.yaml";
+const TOPIC: &str = "examples/llm-agents-base/topics/local-runtime.yaml";
 
 #[test]
 fn the_roadmap_parser_reads_every_field_the_schema_describes() {
-    let source = read(REFERENCE);
-    roadmap::parse(&source).unwrap_or_else(|e| panic!("{REFERENCE}: {e}"));
-    let reference = yaml::load(&source, REFERENCE);
+    every_described_field_is_read("roadmap", ROADMAP, &|source| {
+        roadmap::parse(source).map(drop).map_err(|e| e.to_string())
+    });
+}
+
+#[test]
+fn the_topic_parser_reads_every_field_the_schema_describes() {
+    every_described_field_is_read("topic", TOPIC, &|source| {
+        topic::parse(source).map(drop).map_err(|e| e.to_string())
+    });
+}
+
+type Parse<'a> = &'a dyn Fn(&str) -> Result<(), String>;
+
+fn every_described_field_is_read(name: &str, path: &str, parse: Parse<'_>) {
+    let source = read(path);
+    parse(&source).unwrap_or_else(|e| panic!("{path}: {e}"));
+    let reference = yaml::load(&source, path);
     let transported = serde_json::to_string(&reference).unwrap();
-    roadmap::parse(&transported).unwrap_or_else(|e| {
+    parse(&transported).unwrap_or_else(|e| {
         panic!(
-            "{REFERENCE} stops parsing after the round trip through JSON, \
+            "{path} stops parsing after the round trip through JSON, \
              so dropping a field proves nothing: {e}"
         )
     });
 
-    for path in described_fields(&schema("roadmap")) {
+    for field in described_fields(&schema(name)) {
         let mut pruned = reference.clone();
-        prune(&mut pruned, &path, &path);
+        prune(&mut pruned, &field, &field);
 
         assert!(
-            roadmap::parse(&serde_json::to_string(&pruned).unwrap()).is_err(),
-            "`{path}` can be dropped from the reference and the parse still succeeds, \
+            parse(&serde_json::to_string(&pruned).unwrap()).is_err(),
+            "`{field}` can be dropped from {path} and the parse still succeeds, \
              so the parser never reads the field"
         );
     }

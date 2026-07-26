@@ -1,5 +1,7 @@
 use std::collections::BTreeMap;
 
+use crate::Hours;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Roadmap {
     pub schema: String,
@@ -62,12 +64,6 @@ pub struct TopicEntry {
     pub file: String,
     pub est_hours: Hours,
     pub priority: Priority,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Hours {
-    pub min: u32,
-    pub max: u32,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
