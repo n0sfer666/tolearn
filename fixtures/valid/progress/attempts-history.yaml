@@ -1,0 +1,162 @@
+schema: learning-roadmap/progress/v1
+roadmap_id: llm-agents-base
+topics:
+  local-runtime:
+    status: passed
+    attempts:
+      - at: "2026-07-20T11:05:00Z"
+        source: exam
+        verdict: partial
+        model: claude-opus-5
+        hinted: false
+        practice_accepted: false
+        failed_checks:
+          - a2
+        per_question:
+          - id: q1
+            result: ok
+            quote: |
+              Память съедает не сама модель, а её вес плюс кэш контекста.
+            missed: []
+            signal_extension: false
+          - id: q2
+            result: partial
+            quote: |
+              Кванты уменьшают вес, но качество падает — не сказал, где именно.
+            missed:
+              - |
+                Не назвал, что деградация неравномерна по задачам.
+            signal_extension: false
+          - id: q3
+            result: miss
+            quote: null
+            missed:
+              - |
+                Не различил размер веса и размер кэша контекста при оценке памяти.
+            signal_extension: false
+        gaps:
+          - |
+            Не различает вклад веса модели и кэша контекста в потребление памяти.
+        calibration: |
+          Уверенность выше фактического уровня: отвечал быстро и без оговорок.
+        notes: []
+        next_action: retry_failed
+        retry_after_days: 2
+        raw: |
+          Модель занимает столько, сколько весит файл, плюс немного на контекст.
+          Квантование делает файл меньше, значит и памяти надо меньше. Насколько
+          хуже становится — зависит от кванта, точнее не скажу.
+      - at: "2026-07-23T19:40:00Z"
+        source: exam
+        verdict: pass
+        model: claude-opus-5
+        hinted: true
+        practice_accepted: true
+        failed_checks: []
+        per_question:
+          - id: q2
+            result: ok
+            quote: |
+              Кванты режут вес неравномерно: арифметика ломается раньше пересказа.
+            missed: []
+            signal_extension: true
+          - id: q3
+            result: ok
+            quote: |
+              При длинном контексте кэш может обогнать сам вес.
+            missed: []
+            signal_extension: false
+        gaps: []
+        calibration: |
+          Оценка совпала с результатом: сам назвал, где раньше ошибался.
+        notes:
+          - |
+            Понадобилась одна подсказка про то, что кэш зависит от длины контекста.
+        next_action: proceed
+        raw: |
+          В прошлый раз я считал память по весу файла. Это неверно: вес — только
+          одна часть, вторая — кэш контекста, и он растёт вместе с длиной запроса.
+          На длинном контексте кэш может занять больше, чем сама модель. Про
+          квантование: деградация неравномерна — счёт и точные факты ломаются
+          раньше, чем свободный пересказ.
+    passed_at: "2026-07-23"
+    next_review_at: "2026-10-24"
+    gaps: []
+  openai-compatible-api:
+    status: in_progress
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []
+  tokens-context-cost:
+    status: exam_pending
+    attempts:
+      - at: "2026-07-25T08:12:00Z"
+        source: manual
+        verdict: partial
+        model: null
+        hinted: false
+        practice_accepted: false
+        per_question: []
+        gaps:
+          - |
+            Практика сделана, но приёмка не проверялась: артефакта нет.
+        calibration: null
+        notes:
+          - |
+            Отмечено руками: практику прошёл, экзамен не начинал.
+        next_action: redo_practice
+        raw: ""
+    passed_at: null
+    next_review_at: null
+    gaps:
+      - |
+        Считает стоимость запроса по числу слов, а не по токенам.
+  structured-output:
+    status: failed
+    attempts:
+      - at: "2026-07-26T14:00:00Z"
+        source: exam
+        verdict: fail
+        model: claude-opus-5
+        hinted: true
+        practice_accepted: false
+        failed_checks:
+          - c1
+          - a1
+        per_question:
+          - id: q1
+            result: miss
+            quote: null
+            missed:
+              - |
+                Считает, что схема в запросе гарантирует валидный ответ.
+            signal_extension: false
+          - id: q2
+            result: miss
+            quote: |
+              Если ответ не по схеме, значит модель плохая.
+            missed:
+              - |
+                Не назвал ни одной причины отказа, кроме «модель плохая».
+            signal_extension: false
+        gaps:
+          - |
+            Не отличает «схема передана» от «ответ провалидирован».
+          - |
+            Не знает, что делать с ответом, который схему не прошёл.
+        calibration: |
+          Уверенность заметно выше уровня: ошибки назывались как очевидности.
+        notes:
+          - |
+            Две подсказки не помогли, тему стоит разбить.
+        next_action: split_topic
+        retry_after_days: 7
+        raw: |
+          Передаёшь схему — получаешь ответ по схеме. Если ответ не по схеме,
+          значит модель слабая, надо взять другую.
+    passed_at: null
+    next_review_at: null
+    gaps:
+      - |
+        Не отличает «схема передана» от «ответ провалидирован».

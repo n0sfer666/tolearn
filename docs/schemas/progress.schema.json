@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/n0sfer666/tolearn/blob/master/docs/schemas/progress.schema.json",
+  "title": "learning-roadmap/progress/v1",
+  "description": "Прогресс по программе: единственный файл бандла, в который пишет приложение.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "roadmap_id", "topics"],
+  "properties": {
+    "schema": { "const": "learning-roadmap/progress/v1" },
+    "roadmap_id": { "$ref": "#/$defs/slug" },
+    "topics": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/slug" },
+      "additionalProperties": { "$ref": "#/$defs/state" }
+    }
+  },
+  "$defs": {
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "text": { "type": "string", "minLength": 1 },
+    "date": { "type": ["string", "null"], "format": "date" },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "attempts", "passed_at", "next_review_at", "gaps"],
+      "properties": {
+        "status": {
+          "enum": [
+            "todo",
+            "in_progress",
+            "exam_pending",
+            "passed",
+            "passed_out",
+            "stale_passed",
+            "blocked",
+            "failed"
+          ]
+        },
+        "attempts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/attempt" }
+        },
+        "passed_at": { "$ref": "#/$defs/date" },
+        "next_review_at": { "$ref": "#/$defs/date" },
+        "gaps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/text" }
+        }
+      }
+    },
+    "attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["at", "source", "verdict", "per_question", "raw"],
+      "dependentRequired": { "retry_after_days": ["next_action"] },
+      "properties": {
+        "at": { "type": "string", "format": "date-time" },
+        "source": { "enum": ["exam", "manual"] },
+        "verdict": { "enum": ["pass", "partial", "fail", "blocked"] },
+        "model": { "type": ["string", "null"], "minLength": 1 },
+        "hinted": { "type": "boolean" },
+        "practice_accepted": { "type": "boolean" },
+        "failed_checks": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[ac][0-9]+$" }
+        },
+        "per_question": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/answer" }
+        },
+        "gaps": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/text" }
+        },
+        "calibration": { "type": ["string", "null"], "minLength": 1 },
+        "notes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/text" }
+        },
+        "next_action": {
+          "enum": ["proceed", "retry_failed", "redo_practice", "split_topic"]
+        },
+        "retry_after_days": { "type": "integer", "minimum": 0 },
+        "raw": { "type": "string" }
+      }
+    },
+    "answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "result"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^q[0-9]+$" },
+        "result": { "enum": ["ok", "partial", "miss"] },
+        "quote": { "type": ["string", "null"], "minLength": 1 },
+        "missed": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/text" }
+        },
+        "signal_extension": { "type": "boolean" }
+      }
+    }
+  }
+}

@@ -1,3 +1,10 @@
+#![allow(
+    clippy::unwrap_used,
+    clippy::panic,
+    reason = "repository gate: a panic here is the report"
+)]
+
+mod repo;
 mod sources;
 
 use std::collections::BTreeSet;
@@ -14,7 +21,7 @@ struct Layer {
 }
 
 const SHELL_MARKERS: &[&str] = &["tauri", "wry", "webkit", "objc"];
-const NON_CRATE_DIRS: &[&str] = &["ui", "docs", "examples"];
+const NON_CRATE_DIRS: &[&str] = &["ui", "docs", "examples", "fixtures"];
 const INHERITED_FIELDS: &[&str] = &[
     "version",
     "edition",

@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use super::read;
+use crate::repo::read;
 
 pub fn documented_tree() -> BTreeSet<String> {
     let text = read("docs/architecture.md");

@@ -1,0 +1,46 @@
+schema: learning-roadmap/topic/v1
+id: cycle-b
+title: Тема, которая ждёт первую
+stage: 1
+depends_on:
+  - cycle-a
+est_hours: [1, 2]
+volatility: stable
+revalidate_after_days: 730
+verified_at: "2026-07-27"
+confidence: medium
+retention: by_use
+version_context: []
+outcomes:
+  - |
+    Может показать на этой же паре, что порядок обхода графа не спасает: цикл
+    ломает любой топологический порядок.
+misconceptions: []
+materials: []
+practice:
+  kind: analysis
+  tier: P1
+  time_box_min: 20
+  task: |
+    Попробуй построить топологический порядок для пары и объясни, где он рвётся.
+  deliverable: |
+    Файл order.md с попыткой порядка и точкой разрыва.
+  starting_point: null
+  fallback: null
+  smoke_checked: true
+  constraints: []
+  acceptance:
+    - id: a1
+      claim: |
+        Точка разрыва названа явно.
+      check: |
+        bash -c 'grep -ci "цикл" order.md'
+      expect: |
+        Число не меньше 1.
+questions: []
+exam:
+  focus: |
+    Понимает ли человек, что цикл — свойство пары, а не одной темы.
+  traps: []
+  artifact_required: false
+  max_exchanges: 2

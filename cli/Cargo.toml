@@ -18,6 +18,9 @@ tolearn-offline.workspace = true
 tolearn-runner.workspace = true
 
 [dev-dependencies]
+jsonschema.workspace = true
+saphyr.workspace = true
+serde_json.workspace = true
 toml.workspace = true
 
 [lints]
