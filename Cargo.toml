@@ -1,0 +1,30 @@
+[workspace]
+resolver = "3"
+members = ["core", "runner", "offline", "cli", "app"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/n0sfer666/tolearn"
+publish = false
+
+[workspace.dependencies]
+tolearn-core = { path = "core" }
+tolearn-runner = { path = "runner" }
+tolearn-offline = { path = "offline" }
+toml = "0.9"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_debug_implementations = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+dbg_macro = "warn"
+expect_used = "warn"
+panic = "warn"
+todo = "warn"
+unwrap_used = "warn"

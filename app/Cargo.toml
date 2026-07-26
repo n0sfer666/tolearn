@@ -1,0 +1,17 @@
+[package]
+name = "tolearn-app"
+description = "Tauri shell: IPC, windows, prerenderer"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+tolearn-core.workspace = true
+tolearn-offline.workspace = true
+tolearn-runner.workspace = true
+
+[lints]
+workspace = true

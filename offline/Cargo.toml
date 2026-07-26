@@ -1,0 +1,15 @@
+[package]
+name = "tolearn-offline"
+description = "Downloading, archiving and content-addressed cache of materials"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+tolearn-core.workspace = true
+
+[lints]
+workspace = true
