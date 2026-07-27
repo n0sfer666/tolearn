@@ -70,9 +70,10 @@ test("отсутствующая форма множественного чис�
   assert.throws(() => pluralize("ru", 5, { one: "{n} тема", other: "{n} темы" }), /many/);
 });
 
-test("страница показывает счётчик в форме своего языка", () => {
-  assert.match(page("ru/program"), /8 тем</);
-  assert.match(page("en/program"), /8 topics/);
+test("экрану уезжают формы множественного числа его языка", () => {
+  assert.match(page("ru/program"), /\{n\} тем&quot;/);
+  assert.match(page("en/program"), /\{n\} topics&quot;/);
+  assert.doesNotMatch(page("en/program"), /\{n\} тем/);
 });
 
 test("словари покрывают друг друга ключ в ключ", () => {

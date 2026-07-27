@@ -1,25 +1,16 @@
 import assert from "node:assert/strict";
 import test, { before } from "node:test";
 
-import { Window } from "happy-dom";
-
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
+import { browser, settled } from "./support/dom.mjs";
 
 let Programs;
 let render;
 let document;
 
 before(async () => {
-  const window = new Window({ url: "https://tolearn.local/" });
-  document = window.document;
-  globalThis.window = window;
-  globalThis.document = document;
-  globalThis.Node = window.Node;
-  globalThis.Element = window.Element;
-  globalThis.HTMLElement = window.HTMLElement;
-  globalThis.Event = window.Event;
-  globalThis.CustomEvent = window.CustomEvent;
+  ({ document } = browser());
   ({ default: Programs } = await island("Programs"));
   ({ render } = await import("solid-js/web"));
 }, { timeout: 300_000 });
@@ -67,8 +58,6 @@ function mount(options = {}) {
   );
   return { host, calls, dispose, drop: (paths) => drop(paths) };
 }
-
-const settled = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 test("список показывает программу и её прогресс", async () => {
   const { host } = mount();

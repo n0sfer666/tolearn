@@ -1,7 +1,6 @@
 ---
-import StatusGlyph from "../../../components/StatusGlyph.astro";
-import { STATUSES } from "../../../components/status";
-import { LOCALES, localeOf, plural, strings } from "../../../i18n";
+import { LOCALES, localeOf, strings } from "../../../i18n";
+import Program from "../../../islands/Program";
 import Base from "../../../layouts/Base.astro";
 
 export function getStaticPaths() {
@@ -10,23 +9,12 @@ export function getStaticPaths() {
 
 const locale = localeOf(Astro.params.locale);
 const text = strings(locale);
-const statuses = STATUSES;
 ---
 
 <Base locale={locale} title={text.nav.program} back={{ href: "/", text: text.nav.programs }}>
   <section id="stages">
     <h2>{text.program.stages}</h2>
     <p>{text.program.lead}</p>
-    <p id="tally">{plural(locale, statuses.length, text.counts.topics)}</p>
-    <ul>
-      {
-        statuses.map((status) => (
-          <li>
-            <StatusGlyph status={status} label={text.status[status]} />
-            {text.status[status]}
-          </li>
-        ))
-      }
-    </ul>
+    <Program text={text} locale={locale} client:load />
   </section>
 </Base>

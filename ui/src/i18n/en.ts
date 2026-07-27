@@ -29,7 +29,13 @@ export const en: Dictionary = {
     orphaned: "orphaned",
     progress: "done",
   },
-  program: { stages: "Stages", lead: "Stages with their topics and checkpoints." },
+  program: {
+    stages: "Stages",
+    lead: "Stages with their topics and checkpoints.",
+    checkpoint: "checkpoint",
+    blockedBy: "unlocked by",
+    hours: "h",
+  },
   exam: {
     prompt: "Prompt",
     promptLead: "The prompt is copied in one action and pasted into any chat.",

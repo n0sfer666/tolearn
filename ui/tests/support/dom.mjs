@@ -1,0 +1,15 @@
+import { Window } from "happy-dom";
+
+export function browser(url = "https://tolearn.local/") {
+  const window = new Window({ url });
+  globalThis.window = window;
+  globalThis.document = window.document;
+  globalThis.Node = window.Node;
+  globalThis.Element = window.Element;
+  globalThis.HTMLElement = window.HTMLElement;
+  globalThis.Event = window.Event;
+  globalThis.CustomEvent = window.CustomEvent;
+  return window;
+}
+
+export const settled = () => new Promise((resolve) => setTimeout(resolve, 0));

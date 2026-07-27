@@ -56,6 +56,7 @@ export type ProgramOut = {
 export type Stage = {
   n: number;
   title: string;
+  checkpoint: string;
   tally: Tally;
 };
 
@@ -75,7 +76,17 @@ export type Span = {
 
 export type TopicStatus = {
   id: string;
+  title: string;
+  stage: number;
+  checkpoint: boolean;
   status: string;
+  hours: Span;
+  blocked_by: Link[];
+};
+
+export type Link = {
+  id: string;
+  title: string;
 };
 
 export type ProgramsIn = {

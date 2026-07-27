@@ -43,6 +43,7 @@ dto!(ProgramOut {
 dto!(Stage {
     n: u32,
     title: String,
+    checkpoint: String,
     tally: Tally,
 });
 dto!(Tally {
@@ -56,7 +57,16 @@ dto!(Tally {
 dto!(Span { min: u32, max: u32 });
 dto!(TopicStatus {
     id: String,
+    title: String,
+    stage: u32,
+    checkpoint: bool,
     status: String,
+    hours: Span,
+    blocked_by: Vec<Link>,
+});
+dto!(Link {
+    id: String,
+    title: String
 });
 
 dto!(ProgramsIn { today: String });
@@ -113,6 +123,7 @@ pub fn shapes() -> Vec<Shape> {
         Tally::shape(),
         Span::shape(),
         TopicStatus::shape(),
+        Link::shape(),
         ProgramsIn::shape(),
         ProgramsOut::shape(),
         Card::shape(),
