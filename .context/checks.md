@@ -10,6 +10,8 @@
 | типы / компиляция | `cargo check --workspace --all-targets` |
 | форматирование + линт | `cargo fmt --all -- --check; cargo clippy --workspace --all-targets -- -D warnings` |
 | тесты | `cargo test --workspace` |
+| UI: типы и разметка | `pnpm -C ui lint` |
+| UI: сборка, маршруты, вес JS | `pnpm -C ui test` |
 
 Nushell: `and` между командами не работает как в bash — команды разделяются `;`,
 проваленная прерывает конвейер сама.
@@ -52,11 +54,18 @@ cargo test --workspace --no-fail-fast --test <a> --test <b>
 | T3 | сборка и запуск приложения, скриншот, проверка клавиатуры |
 | T4 | регрессионный тест, пиннящий дефект |
 
+## Вес JS
+
+Бюджеты из [architecture.md](../docs/architecture.md#бюджеты) держит
+`ui/scripts/budget.mjs`: он считает gzip всего JS страницы — встроенного,
+подключённого и подтянутого транзитивно (чанки острова видны только по
+атрибутам `<astro-island>`, в `<script src>` их нет). Отдельно посмотреть —
+`pnpm -C ui budget`, гейтом это гоняется внутри `pnpm -C ui test`.
+
 ## Появятся позже
 
 | Когда | Что добавится в `checks.json` |
 |---|---|
-| S26 (`ui/`) | `pnpm -C ui lint`, `pnpm -C ui build`, гейт веса JS |
 | S27 | линт токенов и контраста |
 | S57 | гейт веса установщика |
 
@@ -75,5 +84,5 @@ cargo test --workspace --no-fail-fast --test <a> --test <b>
   и `cargo test --workspace --locked` на матрице ubuntu / macos / windows.
 
 `--locked` обязателен: `Cargo.lock` в репозитории, и молча разъехавшийся lock —
-это уже не та сборка, которую проверяли. Гейты веса установщика и JS добавляются
-в S57 и S26.
+это уже не та сборка, которую проверяли. Гейт веса JS живёт в `ui/` (job `ui`: `pnpm -C ui lint` и `pnpm -C ui test`,
+последний сам собирает `dist/`); гейт веса установщика добавляется в S57.

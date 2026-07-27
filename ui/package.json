@@ -1,0 +1,24 @@
+{
+  "name": "tolearn-ui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "astro build",
+    "dev": "astro dev",
+    "lint": "astro check",
+    "budget": "node scripts/budget.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@astrojs/solid-js": "^5.0.0",
+    "astro": "^5.0.0",
+    "solid-js": "^1.9.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "sharp"]
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.0",
+    "typescript": "^5.7.0"
+  }
+}

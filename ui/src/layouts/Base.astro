@@ -1,0 +1,26 @@
+---
+interface Props {
+  title: string;
+  back?: { href: string; text: string };
+}
+
+const { title, back } = Astro.props;
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} — tolearn</title>
+  </head>
+  <body>
+    <header>
+      {back && <a href={back.href}>{back.text}</a>}
+      <h1>{title}</h1>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>

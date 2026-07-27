@@ -1,5 +1,7 @@
 {
   "types": "cargo check --workspace --all-targets",
   "lint": "cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings",
-  "test": "cargo test --workspace"
+  "test": "cargo test --workspace",
+  "ui-lint": "pnpm -C ui lint",
+  "ui-test": "pnpm -C ui test"
 }
