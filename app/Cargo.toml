@@ -12,6 +12,8 @@ publish.workspace = true
 tolearn-core.workspace = true
 tolearn-offline.workspace = true
 tolearn-runner.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 
 [lints]
 workspace = true
