@@ -35,6 +35,16 @@ impl<'a> Reader<'a> {
         })
     }
 
+    pub fn optional_field(&self, name: &str) -> Result<Option<Self>, ParseError> {
+        if !self.node.data.is_mapping() {
+            return Err(self.fail(ParseFailure::WrongType, "expected a mapping"));
+        }
+        Ok(self.node.data.as_mapping_get(name).map(|value| Self {
+            node: value,
+            path: nested(&self.path, name),
+        }))
+    }
+
     pub fn text(&self) -> Result<String, ParseError> {
         self.node
             .data
