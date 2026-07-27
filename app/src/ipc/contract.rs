@@ -47,3 +47,8 @@ commands! {
     programs(types::ProgramsIn) -> types::ProgramsOut,
     import(types::ImportIn) -> types::ImportOut,
 }
+
+#[tauri::command]
+pub fn command(app: tauri::AppHandle, name: String, payload: Value) -> Result<Value, IpcError> {
+    call(&super::context::of(&app)?, &name, &payload)
+}

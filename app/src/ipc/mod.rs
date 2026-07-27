@@ -1,5 +1,5 @@
 mod context;
-mod contract;
+pub mod contract;
 mod dto;
 mod error;
 mod handlers;

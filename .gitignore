@@ -5,6 +5,7 @@ Cargo.lock.orig
 node_modules/
 dist/
 .astro/
+app/gen/
 .output/
 
 .DS_Store

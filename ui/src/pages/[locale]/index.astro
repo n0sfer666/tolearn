@@ -1,5 +1,6 @@
 ---
 import { LOCALES, localeOf, strings } from "../../i18n";
+import Programs from "../../islands/Programs";
 import Base from "../../layouts/Base.astro";
 
 export function getStaticPaths() {
@@ -15,8 +16,7 @@ const text = strings(locale);
     <h2>{text.programs.import}</h2>
     <p>{text.programs.importLead}</p>
   </section>
-  <section id="programs">
-    <h2>{text.programs.list}</h2>
-    <p>{text.programs.listLead}</p>
-  </section>
+  <div id="programs">
+    <Programs text={text.programs} client:load />
+  </div>
 </Base>
