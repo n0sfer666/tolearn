@@ -31,6 +31,16 @@ pub fn attempt(attempt: &Attempt) -> Yaml<'static> {
     mapping(fields)
 }
 
+pub(super) fn fresh() -> Yaml<'static> {
+    mapping(vec![
+        ("status", text("todo")),
+        ("attempts", Yaml::Sequence(Vec::new())),
+        ("passed_at", maybe_text(None)),
+        ("next_review_at", maybe_text(None)),
+        ("gaps", Yaml::Sequence(Vec::new())),
+    ])
+}
+
 fn answer(answer: &Answer) -> Yaml<'static> {
     mapping(vec![
         ("id", text(&answer.id)),

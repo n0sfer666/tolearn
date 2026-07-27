@@ -1,5 +1,6 @@
 use saphyr::{LoadableYamlNode, Yaml};
 
+use super::enums::Status;
 use super::error::DocumentError;
 use super::mark::{self, Mark};
 use super::node;
@@ -61,6 +62,49 @@ impl Document {
         self.progress = parse(&text)?;
         self.text = text;
         Ok(())
+    }
+
+    pub fn restate(&mut self, topic: &str, status: Status) -> Result<(), DocumentError> {
+        self.edit(|root, format| {
+            set(root, topic, "status", Some(status.label()))?;
+            render(root, format)
+        })
+    }
+
+    pub fn start(&mut self, topic: &str) -> Result<(), DocumentError> {
+        if self.progress.state(topic).is_some() {
+            return Ok(());
+        }
+        self.edit(|root, format| {
+            add(root, topic)?;
+            render(root, format)
+        })
+    }
+
+    fn edit(
+        &mut self,
+        act: impl FnOnce(&mut Yaml<'_>, Format) -> Result<String, DocumentError>,
+    ) -> Result<(), DocumentError> {
+        let format = self.format;
+        let text = with_root(&self.text, |root| act(root, format))?;
+        self.progress = parse(&text)?;
+        self.text = text;
+        Ok(())
+    }
+}
+
+fn add(root: &mut Yaml<'_>, topic: &str) -> Result<(), DocumentError> {
+    let topics = root
+        .as_mapping_get_mut("topics")
+        .ok_or_else(|| DocumentError::Malformed("it holds no topics".to_owned()))?;
+    match topics {
+        Yaml::Mapping(map) => {
+            map.insert(node::text(topic), node::fresh());
+            Ok(())
+        }
+        other => Err(DocumentError::Malformed(format!(
+            "the topics are {other:?}, not a mapping"
+        ))),
     }
 }
 

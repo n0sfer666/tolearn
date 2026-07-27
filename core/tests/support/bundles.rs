@@ -1,5 +1,5 @@
 use tolearn_core::roadmap::{Roadmap, parse as roadmap};
-use tolearn_core::topic::{Topic, parse as topic};
+use tolearn_core::topic::{Question, QuestionType, Topic, parse as topic};
 
 use super::read;
 
@@ -64,4 +64,15 @@ pub fn document(topics: &[Topic], id: &str) -> usize {
         .iter()
         .position(|document| document.id == id)
         .unwrap_or_else(|| panic!("`{id}` is not loaded"))
+}
+
+pub fn a_question() -> Question {
+    Question {
+        id: "q1".to_owned(),
+        kind: QuestionType::Boundary,
+        text: "Чем цикл в графе отличается от заблокированной темы?".to_owned(),
+        expected_signals: vec!["Цикл нельзя разорвать порядком".to_owned()],
+        red_flags: Vec::new(),
+        follow_up: None,
+    }
 }

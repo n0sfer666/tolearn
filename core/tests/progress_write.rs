@@ -184,3 +184,13 @@ fn a_document_rendered_in_either_format_holds_the_same_progress() {
 
     assert_eq!(parse(json.text()).unwrap(), parse(yaml.text()).unwrap());
 }
+
+#[test]
+fn starting_a_topic_that_is_already_in_the_file_leaves_it_alone() {
+    let mut document = Document::read(&read(HISTORY), Format::Yaml).unwrap();
+    let before = document.text().to_owned();
+
+    document.start("local-runtime").unwrap();
+
+    assert_eq!(document.text(), before);
+}

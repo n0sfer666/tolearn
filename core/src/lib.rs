@@ -2,6 +2,7 @@ mod date;
 mod hours;
 
 pub mod bundle;
+pub mod merge;
 pub mod progress;
 pub mod roadmap;
 pub mod scan;
