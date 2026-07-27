@@ -1,7 +1,9 @@
 mod attempt;
+mod record;
 mod streak;
 mod types;
 
+pub use record::record;
 pub use streak::{counted, failing_streak};
 pub use types::Applied;
 

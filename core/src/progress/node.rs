@@ -67,7 +67,7 @@ pub(super) fn maybe_text(value: Option<&str>) -> Yaml<'static> {
     value.map_or_else(|| Yaml::Value(Scalar::Null), text)
 }
 
-fn texts(values: &[String]) -> Yaml<'static> {
+pub(super) fn texts(values: &[String]) -> Yaml<'static> {
     Yaml::Sequence(values.iter().map(|value| text(value)).collect())
 }
 

@@ -21,3 +21,16 @@ pub enum Part {
     Questions,
     Exam,
 }
+
+impl Part {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::DependsOn => "depends_on",
+            Self::Outcomes => "outcomes",
+            Self::Misconceptions => "misconceptions",
+            Self::Practice => "practice",
+            Self::Questions => "questions",
+            Self::Exam => "exam",
+        }
+    }
+}

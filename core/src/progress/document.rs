@@ -6,7 +6,7 @@ use super::mark::{self, Mark};
 use super::node;
 use super::parse::parse;
 use super::render::{Format, render};
-use super::types::{Attempt, Progress};
+use super::types::{Attempt, Progress, TopicState};
 
 #[derive(Debug, Clone)]
 pub struct Document {
@@ -64,6 +64,21 @@ impl Document {
         Ok(())
     }
 
+    pub fn settle(&mut self, topic: &str, state: &TopicState) -> Result<(), DocumentError> {
+        self.edit(|root, format| {
+            set(root, topic, "status", Some(state.status.label()))?;
+            set(root, topic, "passed_at", state.passed_at.as_deref())?;
+            set(
+                root,
+                topic,
+                "next_review_at",
+                state.next_review_at.as_deref(),
+            )?;
+            put(root, topic, "gaps", node::texts(&state.gaps))?;
+            render(root, format)
+        })
+    }
+
     pub fn restate(&mut self, topic: &str, status: Status) -> Result<(), DocumentError> {
         self.edit(|root, format| {
             set(root, topic, "status", Some(status.label()))?;
@@ -114,11 +129,19 @@ fn set(
     key: &str,
     value: Option<&str>,
 ) -> Result<(), DocumentError> {
+    put(root, topic, key, node::maybe_text(value))
+}
+
+fn put(
+    root: &mut Yaml<'_>,
+    topic: &str,
+    key: &str,
+    written: Yaml<'static>,
+) -> Result<(), DocumentError> {
     let state = root
         .as_mapping_get_mut("topics")
         .and_then(|topics| topics.as_mapping_get_mut(topic))
         .ok_or_else(|| DocumentError::UnknownTopic(topic.to_owned()))?;
-    let written = node::maybe_text(value);
     match state.as_mapping_get_mut(key) {
         Some(slot) => *slot = written,
         None => match state {

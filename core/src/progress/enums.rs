@@ -40,7 +40,7 @@ pub enum NextAction {
 }
 
 impl Status {
-    pub(super) fn label(self) -> &'static str {
+    pub fn label(self) -> &'static str {
         STATUS
             .iter()
             .find(|(_, status)| *status == self)
