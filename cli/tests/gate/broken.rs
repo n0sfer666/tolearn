@@ -34,3 +34,18 @@ fn the_broken_corpus_covers_distinct_codes() {
         codes.len()
     );
 }
+
+#[test]
+fn every_strict_fixture_is_accepted_by_the_schema() {
+    for kind in KINDS {
+        let validator = validator(kind);
+        for path in fixtures("strict", kind) {
+            assert_eq!(
+                codes(&validator, &document(&path)),
+                Vec::<String>::new(),
+                "{path} lives in `strict` because the schema cannot catch it, \
+                 and this one the schema catches"
+            );
+        }
+    }
+}

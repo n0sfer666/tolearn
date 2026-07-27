@@ -10,7 +10,12 @@ pub fn document(path: &str) -> Value {
 }
 
 pub fn fixtures(set: &str, kind: &str) -> Vec<String> {
-    files(&format!("fixtures/{set}/{kind}"), ".yaml")
+    let relative = format!("fixtures/{set}/{kind}");
+    if root().join(&relative).is_dir() {
+        files(&relative, ".yaml")
+    } else {
+        Vec::new()
+    }
 }
 
 fn reference(kind: &str) -> Vec<String> {

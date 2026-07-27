@@ -1,3 +1,5 @@
+mod dates;
+mod duplicates;
 mod error;
 mod failure;
 mod reader;
@@ -15,6 +17,7 @@ pub fn read<T>(
     parse: impl FnOnce(&Reader<'_>) -> Result<T, ParseError>,
 ) -> Result<T, ParseError> {
     let source = source.strip_prefix('\u{feff}').unwrap_or(source);
+    duplicates::check(source)?;
     let documents = MarkedYaml::load_from_str(source).map_err(ParseError::from_scan)?;
     match documents.as_slice() {
         [root] => parse(&Reader::root(root)),

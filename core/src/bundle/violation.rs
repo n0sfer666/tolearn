@@ -30,6 +30,11 @@ pub enum Violation {
         roadmap: u32,
         found: u32,
     },
+    HoursReversed {
+        topic: String,
+        min: u32,
+        max: u32,
+    },
     UnknownDependency {
         topic: String,
         depends_on: String,
@@ -50,6 +55,7 @@ impl Violation {
             Self::CheckpointOutsideStage { .. } => "bundle.checkpoint-outside-stage",
             Self::MissingTopicFile { .. } => "bundle.missing-topic-file",
             Self::SchemaMajorMismatch { .. } => "bundle.schema-major-mismatch",
+            Self::HoursReversed { .. } => "bundle.hours-reversed",
             Self::UnknownDependency { .. } => "bundle.unknown-dependency",
             Self::DependencyCycle { .. } => "bundle.cycle",
         }
@@ -92,6 +98,10 @@ impl fmt::Display for Violation {
             } => write!(
                 formatter,
                 "`{topic}` is written against schema major {found}, and the program against {roadmap}"
+            ),
+            Self::HoursReversed { topic, min, max } => write!(
+                formatter,
+                "`{topic}` is estimated at {min} hours at the least and {max} at the most"
             ),
             Self::UnknownDependency { topic, depends_on } => write!(
                 formatter,

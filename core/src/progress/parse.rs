@@ -23,15 +23,15 @@ fn state(node: &Reader<'_>) -> Result<TopicState, ParseError> {
     Ok(TopicState {
         status: node.field("status")?.choice("status", &STATUS)?,
         attempts: node.field("attempts")?.list(attempt)?,
-        passed_at: node.field("passed_at")?.optional_text()?,
-        next_review_at: node.field("next_review_at")?.optional_text()?,
+        passed_at: node.field("passed_at")?.optional_date()?,
+        next_review_at: node.field("next_review_at")?.optional_date()?,
         gaps: node.field("gaps")?.texts()?,
     })
 }
 
 fn attempt(node: &Reader<'_>) -> Result<Attempt, ParseError> {
     Ok(Attempt {
-        at: node.field("at")?.text()?,
+        at: node.field("at")?.moment()?,
         source: node.field("source")?.choice("attempt source", &SOURCE)?,
         verdict: node.field("verdict")?.choice("verdict", &VERDICT)?,
         model: text_or_none(node, "model")?,
@@ -50,7 +50,7 @@ fn attempt(node: &Reader<'_>) -> Result<Attempt, ParseError> {
             .optional_field("retry_after_days")?
             .map(|value| value.number(0))
             .transpose()?,
-        raw: node.field("raw")?.text()?,
+        raw: node.field("raw")?.any_text()?,
     })
 }
 

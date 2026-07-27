@@ -16,6 +16,7 @@ pub fn check(roadmap: &Roadmap, topics: &[Topic], found: &mut Vec<Violation>) {
     checkpoints(roadmap, found);
     documents(roadmap, topics, found);
     versions(roadmap, topics, found);
+    hours(roadmap, topics, found);
 }
 
 fn duplicates(roadmap: &Roadmap, found: &mut Vec<Violation>) {
@@ -60,6 +61,23 @@ fn checkpoints(roadmap: &Roadmap, found: &mut Vec<Violation>) {
                 found: placed,
             }),
             Some(_) => {}
+        }
+    }
+}
+
+fn hours(roadmap: &Roadmap, topics: &[Topic], found: &mut Vec<Violation>) {
+    let entries = roadmap
+        .topics
+        .iter()
+        .map(|entry| (&entry.id, entry.est_hours));
+    let documents = topics.iter().map(|topic| (&topic.id, topic.est_hours));
+    for (id, hours) in entries.chain(documents) {
+        if hours.min > hours.max {
+            found.push(Violation::HoursReversed {
+                topic: id.clone(),
+                min: hours.min,
+                max: hours.max,
+            });
         }
     }
 }

@@ -22,7 +22,7 @@ fn topic(node: &Reader<'_>) -> Result<Topic, ParseError> {
             .field("volatility")?
             .choice("volatility", &VOLATILITY)?,
         revalidate_after_days: node.field("revalidate_after_days")?.number(1)?,
-        verified_at: node.field("verified_at")?.text()?,
+        verified_at: node.field("verified_at")?.date()?,
         confidence: node
             .field("confidence")?
             .choice("confidence", &CONFIDENCE)?,
@@ -51,7 +51,7 @@ fn material(node: &Reader<'_>) -> Result<Material, ParseError> {
         liveness: node.field("liveness")?.choice("liveness", &LIVENESS)?,
         published: node.field("published")?.optional_text()?,
         covers_version: node.field("covers_version")?.optional_text()?,
-        checked_at: node.field("checked_at")?.text()?,
+        checked_at: node.field("checked_at")?.date()?,
         stale: node.field("stale")?.flag()?,
         delta: node.field("delta")?.optional_text()?,
         note: node.field("note")?.text()?,

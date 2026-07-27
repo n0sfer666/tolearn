@@ -149,3 +149,47 @@ fn every_violation_is_collected_in_one_pass() {
     let found = validate(&map, &topics);
     assert_eq!(found.len(), 3, "one pass stopped early: {found:?}");
 }
+
+#[test]
+fn hours_that_run_backwards_are_reported() {
+    let (mut map, topics) = reference();
+    let index = entry(&map, "model-selection");
+    map.topics[index].est_hours.min = 9;
+    map.topics[index].est_hours.max = 4;
+
+    assert_eq!(
+        validate(&map, &topics),
+        [Violation::HoursReversed {
+            topic: "model-selection".to_owned(),
+            min: 9,
+            max: 4,
+        }]
+    );
+}
+
+#[test]
+fn hours_that_run_backwards_in_the_topic_file_are_reported_too() {
+    let (map, mut topics) = reference();
+    let index = document(&topics, "local-runtime");
+    topics[index].est_hours.min = 5;
+    topics[index].est_hours.max = 1;
+
+    assert_eq!(
+        validate(&map, &topics),
+        [Violation::HoursReversed {
+            topic: "local-runtime".to_owned(),
+            min: 5,
+            max: 1,
+        }]
+    );
+}
+
+#[test]
+fn hours_that_name_one_and_the_same_number_are_no_violation() {
+    let (mut map, topics) = reference();
+    let index = entry(&map, "model-selection");
+    map.topics[index].est_hours.min = 4;
+    map.topics[index].est_hours.max = 4;
+
+    assert_eq!(validate(&map, &topics), []);
+}

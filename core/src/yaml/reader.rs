@@ -2,6 +2,7 @@ use std::fmt;
 
 use saphyr::MarkedYaml;
 
+use super::dates;
 use super::error::ParseError;
 use super::failure::ParseFailure;
 
@@ -46,11 +47,51 @@ impl<'a> Reader<'a> {
     }
 
     pub fn text(&self) -> Result<String, ParseError> {
+        let text = self.any_text()?;
+        if text.trim().is_empty() {
+            return Err(self.fail(
+                ParseFailure::Empty,
+                "expected a string with something in it",
+            ));
+        }
+        Ok(text)
+    }
+
+    pub fn any_text(&self) -> Result<String, ParseError> {
         self.node
             .data
             .as_str()
             .map(str::to_owned)
             .ok_or_else(|| self.fail(ParseFailure::WrongType, "expected a string"))
+    }
+
+    pub fn date(&self) -> Result<String, ParseError> {
+        let text = self.text()?;
+        if !dates::is_date(&text) {
+            return Err(self.fail(
+                ParseFailure::BadDate,
+                format!("`{text}` is no date of the form YYYY-MM-DD"),
+            ));
+        }
+        Ok(text)
+    }
+
+    pub fn optional_date(&self) -> Result<Option<String>, ParseError> {
+        if self.node.data.is_null() {
+            return Ok(None);
+        }
+        self.date().map(Some)
+    }
+
+    pub fn moment(&self) -> Result<String, ParseError> {
+        let text = self.text()?;
+        if !dates::is_moment(&text) {
+            return Err(self.fail(
+                ParseFailure::BadDate,
+                format!("`{text}` is no moment in time by RFC 3339"),
+            ));
+        }
+        Ok(text)
     }
 
     pub fn optional_text(&self) -> Result<Option<String>, ParseError> {

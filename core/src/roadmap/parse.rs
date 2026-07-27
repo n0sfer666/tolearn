@@ -18,7 +18,7 @@ fn roadmap(node: &Reader<'_>) -> Result<Roadmap, ParseError> {
         title: node.field("title")?.text()?,
         subject: node.field("subject")?.text()?,
         goal: node.field("goal")?.text()?,
-        generated_at: node.field("generated_at")?.text()?,
+        generated_at: node.field("generated_at")?.date()?,
         generated_by: node.field("generated_by")?.text()?,
         locale: node.field("locale")?.text()?,
         weekly_hours: node.field("weekly_hours")?.number(1)?,

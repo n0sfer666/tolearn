@@ -29,6 +29,21 @@ impl ParseError {
         }
     }
 
+    pub(crate) fn at_line(
+        failure: ParseFailure,
+        line: usize,
+        path: &str,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            failure,
+            line,
+            column: 1,
+            path: path.to_owned(),
+            message: message.into(),
+        }
+    }
+
     pub(crate) fn at_start(failure: ParseFailure, message: impl Into<String>) -> Self {
         Self {
             failure,

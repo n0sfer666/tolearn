@@ -873,6 +873,7 @@ name = "tolearn-core"
 version = "0.1.0"
 dependencies = [
  "saphyr",
+ "saphyr-parser",
 ]
 
 [[package]]
