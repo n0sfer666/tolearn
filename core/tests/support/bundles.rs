@@ -26,6 +26,23 @@ pub fn reference() -> (Roadmap, Vec<Topic>) {
     (map, topics)
 }
 
+const CORPUS_ALL: [&str; 5] = [
+    "cycle-a",
+    "cycle-b",
+    "stale-knowledge",
+    "offline-edge",
+    "question-shapes",
+];
+
+pub fn corpus_whole() -> (Roadmap, Vec<Topic>) {
+    let map = roadmap(&read(CORPUS)).unwrap();
+    let topics = CORPUS_ALL
+        .iter()
+        .map(|name| topic(&read(&format!("fixtures/valid/topic/{name}.yaml"))).unwrap())
+        .collect();
+    (map, topics)
+}
+
 pub fn corpus() -> (Roadmap, Vec<Topic>) {
     let map = roadmap(&read(CORPUS)).unwrap();
     let topics = CORPUS_TOPICS
