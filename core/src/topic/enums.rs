@@ -123,6 +123,16 @@ pub(super) const PRACTICE_TIER: [(&str, PracticeTier); 3] = [
     ("P3", PracticeTier::P3),
 ];
 
+impl QuestionType {
+    pub fn label(self) -> &'static str {
+        QUESTION_TYPE
+            .iter()
+            .find(|(_, kind)| *kind == self)
+            .map(|(label, _)| *label)
+            .unwrap_or("unknown")
+    }
+}
+
 pub(super) const QUESTION_TYPE: [(&str, QuestionType); 5] = [
     ("misconception", QuestionType::Misconception),
     ("diagnose", QuestionType::Diagnose),

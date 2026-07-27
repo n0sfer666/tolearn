@@ -4,6 +4,7 @@ mod hours;
 pub mod bundle;
 pub mod merge;
 pub mod progress;
+pub mod prompt;
 pub mod roadmap;
 pub mod scan;
 pub mod status;
