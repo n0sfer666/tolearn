@@ -1,10 +1,11 @@
 use tolearn_core::bundle::validate;
 
+use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
 use crate::ipc::open;
 use crate::ipc::types::{ValidateIn, ValidateOut, Violation};
 
-pub fn run(input: &ValidateIn) -> Result<ValidateOut, IpcError> {
+pub fn run(_context: &Context, input: &ValidateIn) -> Result<ValidateOut, IpcError> {
     let scan = open::read(&input.bundle)?;
     let violations = validate(&scan.roadmap, &scan.topics);
     Ok(ValidateOut {

@@ -78,6 +78,48 @@ export type TopicStatus = {
   status: string;
 };
 
+export type ProgramsIn = {
+  today: string;
+};
+
+export type ProgramsOut = {
+  programs: Card[];
+};
+
+export type Card = {
+  id: string;
+  title: string;
+  path: string;
+  reachable: boolean;
+  opened_at: string | null;
+  tally: Tally | null;
+};
+
+export type ImportIn = {
+  path: string;
+  today: string;
+};
+
+export type ImportOut = {
+  ok: boolean;
+  id: string | null;
+  title: string | null;
+  violations: Violation[];
+  report: Merged | null;
+};
+
+export type Merged = {
+  kept: string[];
+  added: string[];
+  orphaned: string[];
+  stale: StaleTopic[];
+};
+
+export type StaleTopic = {
+  id: string;
+  changed: string[];
+};
+
 export type PromptIn = {
   bundle: string;
   topic: string;
@@ -92,6 +134,8 @@ export type Commands = {
   scan: { input: ScanIn; output: ScanOut };
   program: { input: ProgramIn; output: ProgramOut };
   prompt: { input: PromptIn; output: PromptOut };
+  programs: { input: ProgramsIn; output: ProgramsOut };
+  import: { input: ImportIn; output: ImportOut };
 };
 
 export type CommandName = keyof Commands;

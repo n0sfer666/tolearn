@@ -50,6 +50,7 @@ fn copy(from: &Path, to: &Path) {
     }
 }
 
+#[allow(dead_code, reason = "нужна не каждому тест-бинарнику")]
 pub fn sources(directory: &Path, found: &mut Vec<PathBuf>) {
     for entry in std::fs::read_dir(directory).unwrap() {
         let path = entry.unwrap().path();

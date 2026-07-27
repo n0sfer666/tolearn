@@ -1,10 +1,11 @@
 use tolearn_core::progress::Format;
 
+use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
 use crate::ipc::open;
 use crate::ipc::types::{Absent, Broken, ScanIn, ScanOut};
 
-pub fn run(input: &ScanIn) -> Result<ScanOut, IpcError> {
+pub fn run(_context: &Context, input: &ScanIn) -> Result<ScanOut, IpcError> {
     let scan = open::read(&input.bundle)?;
     Ok(ScanOut {
         root: scan.root.display().to_string(),

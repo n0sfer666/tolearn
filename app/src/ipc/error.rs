@@ -2,6 +2,7 @@ use std::fmt;
 
 use tolearn_core::progress::DocumentError;
 use tolearn_core::prompt::RenderError;
+use tolearn_core::registry::RegistryError;
 use tolearn_core::scan::ScanError;
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
@@ -35,6 +36,13 @@ impl IpcError {
 
     pub fn malformed_date(value: &str) -> Self {
         Self::new("date.malformed", format!("`{value}` — не дата"))
+    }
+
+    pub fn unwritable(path: &std::path::Path, reason: &str) -> Self {
+        Self::new(
+            "file.unwritable",
+            format!("`{}` не записывается: {reason}", path.display()),
+        )
     }
 
     pub fn unreadable(path: &str, reason: &str) -> Self {
@@ -74,6 +82,17 @@ impl From<RenderError> for IpcError {
             RenderError::NoPrompt => "prompt.no-prompt",
             RenderError::Unknown { .. } => "prompt.unknown-placeholder",
             RenderError::Unclosed { .. } => "prompt.unclosed-placeholder",
+        };
+        Self::new(code, error.to_string())
+    }
+}
+
+impl From<RegistryError> for IpcError {
+    fn from(error: RegistryError) -> Self {
+        let code = match error {
+            RegistryError::Unreadable(_) => "registry.unreadable",
+            RegistryError::Malformed(_) => "registry.malformed",
+            RegistryError::Unwritable(_) => "registry.unwritable",
         };
         Self::new(code, error.to_string())
     }

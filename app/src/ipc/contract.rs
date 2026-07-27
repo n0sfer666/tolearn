@@ -1,5 +1,6 @@
 use serde_json::Value;
 
+use super::context::Context;
 use super::error::IpcError;
 use super::handlers;
 use super::shape::Shape;
@@ -24,12 +25,12 @@ macro_rules! commands {
             }),*]
         }
 
-        pub fn call(name: &str, payload: &Value) -> Result<Value, IpcError> {
+        pub fn call(context: &Context, name: &str, payload: &Value) -> Result<Value, IpcError> {
             $(
                 if name == stringify!($name) {
                     let input: $input =
                         serde_json::from_value(payload.clone()).map_err(|error| IpcError::payload(&error))?;
-                    let output: $output = handlers::$name::run(&input)?;
+                    let output: $output = handlers::$name::run(context, &input)?;
                     return serde_json::to_value(output).map_err(|error| IpcError::payload(&error));
                 }
             )*
@@ -43,4 +44,6 @@ commands! {
     scan(types::ScanIn) -> types::ScanOut,
     program(types::ProgramIn) -> types::ProgramOut,
     prompt(types::PromptIn) -> types::PromptOut,
+    programs(types::ProgramsIn) -> types::ProgramsOut,
+    import(types::ImportIn) -> types::ImportOut,
 }

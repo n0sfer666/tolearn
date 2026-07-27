@@ -7,12 +7,16 @@
 
 mod support;
 
+fn context() -> Context {
+    Context::new(&std::env::temp_dir().join(format!("tolearn-contract-{}", std::process::id())))
+}
+
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 use serde_json::json;
 use support::{copied, repository, sources};
-use tolearn_app::ipc::{NAMES, call, descriptors, typescript};
+use tolearn_app::ipc::{Context, NAMES, call, descriptors, typescript};
 
 #[test]
 fn таблица_перечисляет_ровно_обработчики_из_каталога() {
@@ -94,7 +98,7 @@ fn каждый_тип_поля_объявлен() {
 
 #[test]
 fn неизвестная_команда_отвечает_кодом() {
-    let error = call("fly", &json!({})).unwrap_err();
+    let error = call(&context(), "fly", &json!({})).unwrap_err();
 
     assert_eq!(error.code, "ipc.unknown-command");
     assert!(error.message.contains("fly"), "{}", error.message);
@@ -102,7 +106,7 @@ fn неизвестная_команда_отвечает_кодом() {
 
 #[test]
 fn битый_ввод_отвечает_кодом_а_не_паникой() {
-    let error = call("validate", &json!({})).unwrap_err();
+    let error = call(&context(), "validate", &json!({})).unwrap_err();
 
     assert_eq!(error.code, "ipc.malformed-payload");
     assert!(!error.message.is_empty());
@@ -110,7 +114,12 @@ fn битый_ввод_отвечает_кодом_а_не_паникой() {
 
 #[test]
 fn ошибка_ядра_доезжает_кодом_и_сообщением() {
-    let error = call("validate", &json!({ "bundle": "/nowhere-at-all" })).unwrap_err();
+    let error = call(
+        &context(),
+        "validate",
+        &json!({ "bundle": "/nowhere-at-all" }),
+    )
+    .unwrap_err();
 
     assert_eq!(error.code, "scan.no-roadmap");
     assert!(
@@ -123,7 +132,7 @@ fn ошибка_ядра_доезжает_кодом_и_сообщением() {
 #[test]
 fn два_формата_в_бандле_отличаются_кодом() {
     let root = repository().join("examples/llm-agents-base");
-    let error = call("validate", &json!({ "bundle": root })).unwrap_err();
+    let error = call(&context(), "validate", &json!({ "bundle": root })).unwrap_err();
 
     assert_eq!(error.code, "scan.ambiguous-format");
 }
@@ -131,7 +140,7 @@ fn два_формата_в_бандле_отличаются_кодом() {
 #[test]
 fn эталонный_бандл_проходит_валидацию() {
     let root = copied("validate");
-    let out = call("validate", &json!({ "bundle": root })).unwrap();
+    let out = call(&context(), "validate", &json!({ "bundle": root })).unwrap();
 
     assert_eq!(out["ok"], json!(true), "{out:#}");
     assert_eq!(out["violations"], json!([]));
@@ -148,7 +157,7 @@ fn бандл_с_нарушением_отвечает_нет_и_перечис�
     )
     .unwrap();
 
-    let out = call("validate", &json!({ "bundle": root })).unwrap();
+    let out = call(&context(), "validate", &json!({ "bundle": root })).unwrap();
 
     assert_eq!(out["ok"], json!(false), "{out:#}");
     assert_eq!(out["violations"][0]["code"], json!("bundle.hours-reversed"));
@@ -158,7 +167,7 @@ fn бандл_с_нарушением_отвечает_нет_и_перечис�
 #[test]
 fn обзор_бандла_называет_формат_и_темы() {
     let root = copied("scan");
-    let out = call("scan", &json!({ "bundle": root })).unwrap();
+    let out = call(&context(), "scan", &json!({ "bundle": root })).unwrap();
 
     assert_eq!(out["format"], json!("yaml"));
     assert!(!out["topics"].as_array().unwrap().is_empty());
@@ -168,7 +177,12 @@ fn обзор_бандла_называет_формат_и_темы() {
 #[test]
 fn сводка_считает_этапы_и_статусы() {
     let root = copied("program");
-    let out = call("program", &json!({ "bundle": root, "today": "2026-07-27" })).unwrap();
+    let out = call(
+        &context(),
+        "program",
+        &json!({ "bundle": root, "today": "2026-07-27" }),
+    )
+    .unwrap();
 
     assert!(out["program"]["total"].as_u64().unwrap() > 0, "{out:#}");
     assert!(!out["stages"].as_array().unwrap().is_empty());
@@ -178,7 +192,12 @@ fn сводка_считает_этапы_и_статусы() {
 #[test]
 fn кривая_дата_отвечает_кодом() {
     let root = copied("bad-date");
-    let error = call("program", &json!({ "bundle": root, "today": "вчера" })).unwrap_err();
+    let error = call(
+        &context(),
+        "program",
+        &json!({ "bundle": root, "today": "вчера" }),
+    )
+    .unwrap_err();
 
     assert_eq!(error.code, "date.malformed");
 }
@@ -186,10 +205,15 @@ fn кривая_дата_отвечает_кодом() {
 #[test]
 fn промпт_темы_собирается_из_шаблона() {
     let root = copied("prompt");
-    let topics = call("scan", &json!({ "bundle": &root })).unwrap();
+    let topics = call(&context(), "scan", &json!({ "bundle": &root })).unwrap();
     let first = topics["topics"][0].as_str().unwrap().to_owned();
 
-    let out = call("prompt", &json!({ "bundle": root, "topic": first })).unwrap();
+    let out = call(
+        &context(),
+        "prompt",
+        &json!({ "bundle": root, "topic": first }),
+    )
+    .unwrap();
 
     assert!(!out["text"].as_str().unwrap().is_empty());
 }
@@ -197,7 +221,12 @@ fn промпт_темы_собирается_из_шаблона() {
 #[test]
 fn неизвестная_тема_отвечает_кодом() {
     let root = copied("unknown-topic");
-    let error = call("prompt", &json!({ "bundle": root, "topic": "нет-такой" })).unwrap_err();
+    let error = call(
+        &context(),
+        "prompt",
+        &json!({ "bundle": root, "topic": "нет-такой" }),
+    )
+    .unwrap_err();
 
     assert_eq!(error.code, "topic.unknown");
 }

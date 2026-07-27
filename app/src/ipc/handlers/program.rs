@@ -2,11 +2,12 @@ use tolearn_core::Date;
 use tolearn_core::status::effective;
 use tolearn_core::summary::{self, Summary};
 
+use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
 use crate::ipc::open;
 use crate::ipc::types::{ProgramIn, ProgramOut, Span, Stage, Tally, TopicStatus};
 
-pub fn run(input: &ProgramIn) -> Result<ProgramOut, IpcError> {
+pub fn run(_context: &Context, input: &ProgramIn) -> Result<ProgramOut, IpcError> {
     let opened = open::open(&input.bundle)?;
     let day = Date::parse(&input.today).ok_or_else(|| IpcError::malformed_date(&input.today))?;
     let statuses = effective(

@@ -1,10 +1,11 @@
 use tolearn_core::prompt::render;
 
+use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
 use crate::ipc::open;
 use crate::ipc::types::{PromptIn, PromptOut};
 
-pub fn run(input: &PromptIn) -> Result<PromptOut, IpcError> {
+pub fn run(_context: &Context, input: &PromptIn) -> Result<PromptOut, IpcError> {
     let scan = open::read(&input.bundle)?;
     let topic = scan
         .topics
