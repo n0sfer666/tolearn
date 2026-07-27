@@ -89,6 +89,85 @@ export type Link = {
   title: string;
 };
 
+export type TopicIn = {
+  bundle: string;
+  topic: string;
+  today: string;
+};
+
+export type TopicOut = {
+  id: string;
+  title: string;
+  stage: number;
+  checkpoint: boolean;
+  status: string;
+  hours: Span;
+  blocked_by: Link[];
+  verified_at: string;
+  outdated: boolean;
+  outcomes: string[];
+  misconceptions: string[];
+  materials: MaterialView[];
+  practice: PracticeView;
+  questions: QuestionView[];
+  exam: ExamView;
+};
+
+export type MaterialView = {
+  title: string;
+  url: string;
+  kind: string;
+  tier: string;
+  lang: string;
+  stale: boolean;
+  delta: string | null;
+  offline: string;
+  note: string;
+};
+
+export type PracticeView = {
+  kind: string;
+  tier: string;
+  task: string;
+  deliverable: string;
+  starting_point: string | null;
+  fallback: string | null;
+  time_box_min: number;
+  smoke_checked: boolean;
+  constraints: CheckView[];
+  acceptance: CheckView[];
+};
+
+export type CheckView = {
+  id: string;
+  claim: string;
+  check: string;
+  expect: string;
+};
+
+export type QuestionView = {
+  id: string;
+  kind: string;
+  text: string;
+};
+
+export type ExamView = {
+  focus: string;
+  artifact_required: boolean;
+  max_exchanges: number;
+};
+
+export type SetStatusIn = {
+  bundle: string;
+  topic: string;
+  status: string;
+  today: string;
+};
+
+export type SetStatusOut = {
+  status: string;
+};
+
 export type ProgramsIn = {
   today: string;
 };
@@ -144,6 +223,8 @@ export type Commands = {
   validate: { input: ValidateIn; output: ValidateOut };
   scan: { input: ScanIn; output: ScanOut };
   program: { input: ProgramIn; output: ProgramOut };
+  topic: { input: TopicIn; output: TopicOut };
+  set_status: { input: SetStatusIn; output: SetStatusOut };
   prompt: { input: PromptIn; output: PromptOut };
   programs: { input: ProgramsIn; output: ProgramsOut };
   import: { input: ImportIn; output: ImportOut };

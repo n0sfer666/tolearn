@@ -69,6 +69,76 @@ dto!(Link {
     title: String
 });
 
+dto!(TopicIn {
+    bundle: String,
+    topic: String,
+    today: String,
+});
+dto!(TopicOut {
+    id: String,
+    title: String,
+    stage: u32,
+    checkpoint: bool,
+    status: String,
+    hours: Span,
+    blocked_by: Vec<Link>,
+    verified_at: String,
+    outdated: bool,
+    outcomes: Vec<String>,
+    misconceptions: Vec<String>,
+    materials: Vec<MaterialView>,
+    practice: PracticeView,
+    questions: Vec<QuestionView>,
+    exam: ExamView,
+});
+dto!(MaterialView {
+    title: String,
+    url: String,
+    kind: String,
+    tier: String,
+    lang: String,
+    stale: bool,
+    delta: Option<String>,
+    offline: String,
+    note: String,
+});
+dto!(PracticeView {
+    kind: String,
+    tier: String,
+    task: String,
+    deliverable: String,
+    starting_point: Option<String>,
+    fallback: Option<String>,
+    time_box_min: u32,
+    smoke_checked: bool,
+    constraints: Vec<CheckView>,
+    acceptance: Vec<CheckView>,
+});
+dto!(CheckView {
+    id: String,
+    claim: String,
+    check: String,
+    expect: String,
+});
+dto!(QuestionView {
+    id: String,
+    kind: String,
+    text: String,
+});
+dto!(ExamView {
+    focus: String,
+    artifact_required: bool,
+    max_exchanges: u32,
+});
+
+dto!(SetStatusIn {
+    bundle: String,
+    topic: String,
+    status: String,
+    today: String,
+});
+dto!(SetStatusOut { status: String });
+
 dto!(ProgramsIn { today: String });
 dto!(ProgramsOut { programs: Vec<Card> });
 dto!(Card {
@@ -124,6 +194,15 @@ pub fn shapes() -> Vec<Shape> {
         Span::shape(),
         TopicStatus::shape(),
         Link::shape(),
+        TopicIn::shape(),
+        TopicOut::shape(),
+        MaterialView::shape(),
+        PracticeView::shape(),
+        CheckView::shape(),
+        QuestionView::shape(),
+        ExamView::shape(),
+        SetStatusIn::shape(),
+        SetStatusOut::shape(),
         ProgramsIn::shape(),
         ProgramsOut::shape(),
         Card::shape(),

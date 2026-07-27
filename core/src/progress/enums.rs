@@ -40,6 +40,13 @@ pub enum NextAction {
 }
 
 impl Status {
+    pub fn parse(label: &str) -> Option<Self> {
+        STATUS
+            .iter()
+            .find(|(known, _)| *known == label)
+            .map(|(_, status)| *status)
+    }
+
     pub fn label(self) -> &'static str {
         STATUS
             .iter()

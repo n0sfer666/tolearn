@@ -123,13 +123,47 @@ pub(super) const PRACTICE_TIER: [(&str, PracticeTier); 3] = [
     ("P3", PracticeTier::P3),
 ];
 
+fn label_of<T: PartialEq>(table: &[(&'static str, T)], value: T) -> &'static str {
+    table
+        .iter()
+        .find(|(_, known)| *known == value)
+        .map(|(label, _)| *label)
+        .unwrap_or("unknown")
+}
+
 impl QuestionType {
     pub fn label(self) -> &'static str {
-        QUESTION_TYPE
-            .iter()
-            .find(|(_, kind)| *kind == self)
-            .map(|(label, _)| *label)
-            .unwrap_or("unknown")
+        label_of(&QUESTION_TYPE, self)
+    }
+}
+
+impl MaterialType {
+    pub fn label(self) -> &'static str {
+        label_of(&MATERIAL_TYPE, self)
+    }
+}
+
+impl MaterialTier {
+    pub fn label(self) -> &'static str {
+        label_of(&MATERIAL_TIER, self)
+    }
+}
+
+impl Liveness {
+    pub fn label(self) -> &'static str {
+        label_of(&LIVENESS, self)
+    }
+}
+
+impl PracticeKind {
+    pub fn label(self) -> &'static str {
+        label_of(&PRACTICE_KIND, self)
+    }
+}
+
+impl PracticeTier {
+    pub fn label(self) -> &'static str {
+        label_of(&PRACTICE_TIER, self)
     }
 }
 

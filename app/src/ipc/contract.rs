@@ -43,6 +43,8 @@ commands! {
     validate(types::ValidateIn) -> types::ValidateOut,
     scan(types::ScanIn) -> types::ScanOut,
     program(types::ProgramIn) -> types::ProgramOut,
+    topic(types::TopicIn) -> types::TopicOut,
+    set_status(types::SetStatusIn) -> types::SetStatusOut,
     prompt(types::PromptIn) -> types::PromptOut,
     programs(types::ProgramsIn) -> types::ProgramsOut,
     import(types::ImportIn) -> types::ImportOut,
