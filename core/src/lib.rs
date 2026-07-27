@@ -4,6 +4,7 @@ mod hours;
 pub mod bundle;
 pub mod progress;
 pub mod roadmap;
+pub mod scan;
 pub mod status;
 pub mod topic;
 pub mod yaml;
