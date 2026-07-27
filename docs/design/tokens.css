@@ -24,6 +24,9 @@
   --radius-sm: 4px;
   --radius-md: 8px;
 
+  --border-width: 1px;
+  --focus-ring: 2px;
+
   --z-base: 0;
   --z-sticky: 100;
   --z-overlay: 200;

@@ -62,4 +62,5 @@ jobs:
           cache-dependency-path: ui/pnpm-lock.yaml
       - run: pnpm -C ui install --frozen-lockfile
       - run: pnpm -C ui lint
+      - run: pnpm -C ui tokens
       - run: pnpm -C ui test
