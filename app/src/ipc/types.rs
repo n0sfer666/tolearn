@@ -188,6 +188,33 @@ dto!(StaleTopic {
     changed: Vec<String>,
 });
 
+dto!(StampView {
+    modified_nanos: String,
+    size: u64
+});
+dto!(NoteIn {
+    bundle: String,
+    topic: String,
+    directory: Option<String>
+});
+dto!(NoteOut {
+    body: String,
+    path: Option<String>,
+    stamp: Option<StampView>
+});
+dto!(SaveNoteIn {
+    bundle: String,
+    topic: String,
+    body: String,
+    directory: Option<String>,
+    stamp: Option<StampView>
+});
+dto!(SaveNoteOut {
+    saved: bool,
+    stamp: Option<StampView>,
+    theirs: Option<String>
+});
+
 dto!(PromptIn {
     bundle: String,
     topic: String,
@@ -228,6 +255,11 @@ pub fn shapes() -> Vec<Shape> {
         ImportOut::shape(),
         Merged::shape(),
         StaleTopic::shape(),
+        StampView::shape(),
+        NoteIn::shape(),
+        NoteOut::shape(),
+        SaveNoteIn::shape(),
+        SaveNoteOut::shape(),
         PromptIn::shape(),
         PromptOut::shape(),
     ]

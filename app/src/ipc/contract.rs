@@ -46,6 +46,8 @@ commands! {
     topic(types::TopicIn) -> types::TopicOut,
     run_check(types::RunCheckIn) -> types::RunCheckOut,
     set_status(types::SetStatusIn) -> types::SetStatusOut,
+    note(types::NoteIn) -> types::NoteOut,
+    save_note(types::SaveNoteIn) -> types::SaveNoteOut,
     prompt(types::PromptIn) -> types::PromptOut,
     programs(types::ProgramsIn) -> types::ProgramsOut,
     import(types::ImportIn) -> types::ImportOut,

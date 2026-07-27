@@ -78,6 +78,16 @@ export const en: Dictionary = {
     done: "Done",
     open: "Open the topic",
   },
+  notes: {
+    lead: "A note is a file next to you, editable by any editor. Frontmatter holds the binding.",
+    save: "Save",
+    saved: "saved",
+    reread: "Re-read",
+    conflict: "The note was edited outside",
+    conflictLead: "Versions are not merged. Both are below — carry over what you need and re-read.",
+    theirs: "Version on disk",
+    ours: "Version in the window",
+  },
   status: {
     todo: "not started",
     in_progress: "in progress",

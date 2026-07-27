@@ -1,8 +1,10 @@
 pub mod import;
+pub mod note;
 pub mod program;
 pub mod programs;
 pub mod prompt;
 pub mod run_check;
+pub mod save_note;
 pub mod scan;
 pub mod set_status;
 pub mod topic;

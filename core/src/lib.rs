@@ -4,6 +4,7 @@ mod hours;
 
 pub mod bundle;
 pub mod merge;
+pub mod notes;
 pub mod progress;
 pub mod prompt;
 pub mod protocol;

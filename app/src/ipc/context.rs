@@ -16,6 +16,10 @@ impl Context {
         }
     }
 
+    pub fn notes(&self) -> PathBuf {
+        self.data.join("notes")
+    }
+
     pub fn registry(&self) -> PathBuf {
         self.data.join("registry.yaml")
     }

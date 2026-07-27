@@ -227,6 +227,37 @@ export type StaleTopic = {
   changed: string[];
 };
 
+export type StampView = {
+  modified_nanos: string;
+  size: number;
+};
+
+export type NoteIn = {
+  bundle: string;
+  topic: string;
+  directory: string | null;
+};
+
+export type NoteOut = {
+  body: string;
+  path: string | null;
+  stamp: StampView | null;
+};
+
+export type SaveNoteIn = {
+  bundle: string;
+  topic: string;
+  body: string;
+  directory: string | null;
+  stamp: StampView | null;
+};
+
+export type SaveNoteOut = {
+  saved: boolean;
+  stamp: StampView | null;
+  theirs: string | null;
+};
+
 export type PromptIn = {
   bundle: string;
   topic: string;
@@ -243,6 +274,8 @@ export type Commands = {
   topic: { input: TopicIn; output: TopicOut };
   run_check: { input: RunCheckIn; output: RunCheckOut };
   set_status: { input: SetStatusIn; output: SetStatusOut };
+  note: { input: NoteIn; output: NoteOut };
+  save_note: { input: SaveNoteIn; output: SaveNoteOut };
   prompt: { input: PromptIn; output: PromptOut };
   programs: { input: ProgramsIn; output: ProgramsOut };
   import: { input: ImportIn; output: ImportOut };
