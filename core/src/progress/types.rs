@@ -25,6 +25,12 @@ pub struct TopicState {
     pub gaps: Vec<String>,
 }
 
+impl TopicState {
+    pub fn marked_by(&self) -> Option<Source> {
+        self.attempts.last().map(|attempt| attempt.source)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Attempt {
     pub at: String,

@@ -1,6 +1,7 @@
 use saphyr::{LoadableYamlNode, Yaml};
 
 use super::error::DocumentError;
+use super::mark::{self, Mark};
 use super::node;
 use super::parse::parse;
 use super::render::{Format, render};
@@ -42,6 +43,52 @@ impl Document {
         self.text = text;
         Ok(())
     }
+
+    pub fn mark(&mut self, topic: &str, mark: &Mark) -> Result<(), DocumentError> {
+        let node = node::attempt(&mark::attempt(mark));
+        let text = with_root(&self.text, |root| {
+            append(root, topic, node)?;
+            set(root, topic, "status", Some(mark.status.label()))?;
+            set(root, topic, "passed_at", mark.passed_at.as_deref())?;
+            set(
+                root,
+                topic,
+                "next_review_at",
+                mark.next_review_at.as_deref(),
+            )?;
+            render(root, self.format)
+        })?;
+        self.progress = parse(&text)?;
+        self.text = text;
+        Ok(())
+    }
+}
+
+fn set(
+    root: &mut Yaml<'_>,
+    topic: &str,
+    key: &str,
+    value: Option<&str>,
+) -> Result<(), DocumentError> {
+    let state = root
+        .as_mapping_get_mut("topics")
+        .and_then(|topics| topics.as_mapping_get_mut(topic))
+        .ok_or_else(|| DocumentError::UnknownTopic(topic.to_owned()))?;
+    let written = node::maybe_text(value);
+    match state.as_mapping_get_mut(key) {
+        Some(slot) => *slot = written,
+        None => match state {
+            Yaml::Mapping(map) => {
+                map.insert(node::text(key), written);
+            }
+            other => {
+                return Err(DocumentError::Malformed(format!(
+                    "`{topic}` is {other:?}, not a mapping"
+                )));
+            }
+        },
+    }
+    Ok(())
 }
 
 fn append(root: &mut Yaml<'_>, topic: &str, attempt: Yaml<'static>) -> Result<(), DocumentError> {

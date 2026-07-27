@@ -49,11 +49,11 @@ fn mapping(fields: Vec<(&str, Yaml<'static>)>) -> Yaml<'static> {
     Yaml::Mapping(map)
 }
 
-fn text(value: &str) -> Yaml<'static> {
+pub(super) fn text(value: &str) -> Yaml<'static> {
     Yaml::Value(Scalar::String(Cow::Owned(value.to_owned())))
 }
 
-fn maybe_text(value: Option<&str>) -> Yaml<'static> {
+pub(super) fn maybe_text(value: Option<&str>) -> Yaml<'static> {
     value.map_or_else(|| Yaml::Value(Scalar::Null), text)
 }
 

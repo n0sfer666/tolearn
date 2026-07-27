@@ -39,6 +39,15 @@ pub enum NextAction {
     SplitTopic,
 }
 
+impl Status {
+    pub(super) fn label(self) -> &'static str {
+        STATUS
+            .iter()
+            .find(|(_, status)| *status == self)
+            .map_or("todo", |(label, _)| label)
+    }
+}
+
 impl Source {
     pub(super) fn label(self) -> &'static str {
         match self {
