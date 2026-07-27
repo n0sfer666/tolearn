@@ -54,7 +54,7 @@ fn attempt(node: &Reader<'_>) -> Result<Attempt, ParseError> {
     })
 }
 
-fn answer(node: &Reader<'_>) -> Result<Answer, ParseError> {
+pub(crate) fn answer(node: &Reader<'_>) -> Result<Answer, ParseError> {
     Ok(Answer {
         id: node.field("id")?.text()?,
         outcome: node.field("result")?.choice("answer result", &OUTCOME)?,
@@ -64,14 +64,14 @@ fn answer(node: &Reader<'_>) -> Result<Answer, ParseError> {
     })
 }
 
-fn text_or_none(node: &Reader<'_>, name: &str) -> Result<Option<String>, ParseError> {
+pub(crate) fn text_or_none(node: &Reader<'_>, name: &str) -> Result<Option<String>, ParseError> {
     node.optional_field(name)?
         .map(|value| value.optional_text())
         .transpose()
         .map(Option::flatten)
 }
 
-fn texts_or_empty(node: &Reader<'_>, name: &str) -> Result<Vec<String>, ParseError> {
+pub(crate) fn texts_or_empty(node: &Reader<'_>, name: &str) -> Result<Vec<String>, ParseError> {
     Ok(node
         .optional_field(name)?
         .map(|value| value.texts())
@@ -79,7 +79,7 @@ fn texts_or_empty(node: &Reader<'_>, name: &str) -> Result<Vec<String>, ParseErr
         .unwrap_or_default())
 }
 
-fn flag_or_false(node: &Reader<'_>, name: &str) -> Result<bool, ParseError> {
+pub(crate) fn flag_or_false(node: &Reader<'_>, name: &str) -> Result<bool, ParseError> {
     Ok(node
         .optional_field(name)?
         .map(|value| value.flag())

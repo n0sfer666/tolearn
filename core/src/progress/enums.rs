@@ -102,20 +102,20 @@ pub(super) const STATUS: [(&str, Status); 8] = [
 
 pub(super) const SOURCE: [(&str, Source); 2] = [("exam", Source::Exam), ("manual", Source::Manual)];
 
-pub(super) const VERDICT: [(&str, Verdict); 4] = [
+pub(crate) const VERDICT: [(&str, Verdict); 4] = [
     ("pass", Verdict::Pass),
     ("partial", Verdict::Partial),
     ("fail", Verdict::Fail),
     ("blocked", Verdict::Blocked),
 ];
 
-pub(super) const OUTCOME: [(&str, Outcome); 3] = [
+pub(crate) const OUTCOME: [(&str, Outcome); 3] = [
     ("ok", Outcome::Ok),
     ("partial", Outcome::Partial),
     ("miss", Outcome::Miss),
 ];
 
-pub(super) const NEXT_ACTION: [(&str, NextAction); 4] = [
+pub(crate) const NEXT_ACTION: [(&str, NextAction); 4] = [
     ("proceed", NextAction::Proceed),
     ("retry_failed", NextAction::RetryFailed),
     ("redo_practice", NextAction::RedoPractice),

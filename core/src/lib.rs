@@ -10,6 +10,7 @@ pub mod scan;
 pub mod status;
 pub mod summary;
 pub mod topic;
+pub mod verdict;
 pub mod yaml;
 
 pub use date::Date;
