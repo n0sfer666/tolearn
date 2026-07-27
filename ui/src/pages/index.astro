@@ -2,7 +2,9 @@
 import "@design/tokens.css";
 import "../styles/base.css";
 
+import EarlyTheme from "../components/EarlyTheme.astro";
 import RememberLocale from "../components/RememberLocale.astro";
+import ThemeSwitch from "../components/ThemeSwitch.astro";
 import { LOCALES, strings } from "../i18n";
 ---
 
@@ -12,6 +14,7 @@ import { LOCALES, strings } from "../i18n";
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>tolearn</title>
+    <EarlyTheme />
     <script is:inline>
       const stored = localStorage.getItem("tolearn.locale");
       const known = ["ru", "en"];
@@ -22,6 +25,7 @@ import { LOCALES, strings } from "../i18n";
   <body>
     <header>
       <h1>tolearn</h1>
+      <ThemeSwitch locale="ru" />
     </header>
     <main>
       <section id="language">

@@ -3,6 +3,7 @@ import type { Dictionary } from "./ru.ts";
 export const en: Dictionary = {
   app: "tolearn",
   language: { ru: "Русский", en: "English", switch: "Language" },
+  theme: { switch: "Theme", system: "System", light: "Light", dark: "Dark" },
   nav: {
     programs: "Programs",
     program: "Program",

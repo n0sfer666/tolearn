@@ -1,6 +1,7 @@
 export const ru = {
   app: "tolearn",
   language: { ru: "Русский", en: "English", switch: "Язык" },
+  theme: { switch: "Тема", system: "Системная", light: "Светлая", dark: "Тёмная" },
   nav: {
     programs: "Программы",
     program: "Программа",

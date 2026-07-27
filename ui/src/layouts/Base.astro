@@ -2,7 +2,9 @@
 import "@design/tokens.css";
 import "../styles/base.css";
 
+import EarlyTheme from "../components/EarlyTheme.astro";
 import RememberLocale from "../components/RememberLocale.astro";
+import ThemeSwitch from "../components/ThemeSwitch.astro";
 import { LOCALES, type Locale, localized, strings } from "../i18n";
 
 interface Props {
@@ -22,6 +24,7 @@ const here = Astro.url.pathname;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title} — {text.app}</title>
+    <EarlyTheme />
   </head>
   <body>
     <header>
@@ -36,6 +39,7 @@ const here = Astro.url.pathname;
           ))
         }
       </nav>
+      <ThemeSwitch locale={locale} />
     </header>
     <main>
       <slot />
