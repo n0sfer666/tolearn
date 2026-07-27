@@ -49,6 +49,8 @@ export default function Topic(props: Props) {
     })();
   };
 
+  const practice = () => `/${props.locale}/practice/?program=${encodeURIComponent(program())}&topic=${encodeURIComponent(id())}`;
+
   const notes = () => `/${props.locale}/notes/?program=${encodeURIComponent(program())}&topic=${encodeURIComponent(id())}`;
 
   return (
@@ -83,6 +85,9 @@ export default function Topic(props: Props) {
           <section data-section="practice">
             <h2>{props.text.topic.practice}</h2>
             <Practice text={props.text} practice={view().practice} />
+            <a href={practice()} data-practice-link>
+              {props.text.practice.open}
+            </a>
           </section>
 
           <Show when={view().questions.length > 0}>

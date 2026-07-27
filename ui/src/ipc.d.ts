@@ -157,6 +157,23 @@ export type ExamView = {
   max_exchanges: number;
 };
 
+export type RunCheckIn = {
+  bundle: string;
+  topic: string;
+  check: string;
+};
+
+export type RunCheckOut = {
+  id: string;
+  command: string;
+  expect: string;
+  code: number | null;
+  timed_out: boolean;
+  stdout: string;
+  stderr: string;
+  truncated: boolean;
+};
+
 export type SetStatusIn = {
   bundle: string;
   topic: string;
@@ -224,6 +241,7 @@ export type Commands = {
   scan: { input: ScanIn; output: ScanOut };
   program: { input: ProgramIn; output: ProgramOut };
   topic: { input: TopicIn; output: TopicOut };
+  run_check: { input: RunCheckIn; output: RunCheckOut };
   set_status: { input: SetStatusIn; output: SetStatusOut };
   prompt: { input: PromptIn; output: PromptOut };
   programs: { input: ProgramsIn; output: ProgramsOut };

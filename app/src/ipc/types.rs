@@ -131,6 +131,22 @@ dto!(ExamView {
     max_exchanges: u32,
 });
 
+dto!(RunCheckIn {
+    bundle: String,
+    topic: String,
+    check: String
+});
+dto!(RunCheckOut {
+    id: String,
+    command: String,
+    expect: String,
+    code: Option<i32>,
+    timed_out: bool,
+    stdout: String,
+    stderr: String,
+    truncated: bool
+});
+
 dto!(SetStatusIn {
     bundle: String,
     topic: String,
@@ -201,6 +217,8 @@ pub fn shapes() -> Vec<Shape> {
         CheckView::shape(),
         QuestionView::shape(),
         ExamView::shape(),
+        RunCheckIn::shape(),
+        RunCheckOut::shape(),
         SetStatusIn::shape(),
         SetStatusOut::shape(),
         ProgramsIn::shape(),

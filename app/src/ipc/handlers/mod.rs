@@ -2,6 +2,7 @@ pub mod import;
 pub mod program;
 pub mod programs;
 pub mod prompt;
+pub mod run_check;
 pub mod scan;
 pub mod set_status;
 pub mod topic;

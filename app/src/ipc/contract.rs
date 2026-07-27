@@ -44,6 +44,7 @@ commands! {
     scan(types::ScanIn) -> types::ScanOut,
     program(types::ProgramIn) -> types::ProgramOut,
     topic(types::TopicIn) -> types::TopicOut,
+    run_check(types::RunCheckIn) -> types::RunCheckOut,
     set_status(types::SetStatusIn) -> types::SetStatusOut,
     prompt(types::PromptIn) -> types::PromptOut,
     programs(types::ProgramsIn) -> types::ProgramsOut,

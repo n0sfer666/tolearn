@@ -27,6 +27,7 @@ macro_rules! scalar {
 scalar!(String => "string");
 scalar!(bool => "boolean");
 scalar!(u32 => "number");
+scalar!(i32 => "number");
 scalar!(f64 => "number");
 
 impl<T: Ts> Ts for Vec<T> {

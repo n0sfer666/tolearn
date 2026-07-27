@@ -225,3 +225,12 @@ test("статус ставится вручную и экран обновля�
   assert.equal(calls[2].payload.status, "failed");
   assert.equal(host.querySelector("[data-status]").textContent, ru.status.failed);
 });
+
+test("с темы есть ход на экран практики", async () => {
+  const { host } = mount();
+  await settled();
+
+  const link = section(host, "practice").querySelector("[data-practice-link]");
+  assert.match(link.getAttribute("href"), /\/ru\/practice\/\?program=/);
+  assert.match(link.getAttribute("href"), /topic=local-runtime/);
+});
