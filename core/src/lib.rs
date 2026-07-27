@@ -7,6 +7,7 @@ pub mod progress;
 pub mod roadmap;
 pub mod scan;
 pub mod status;
+pub mod summary;
 pub mod topic;
 pub mod yaml;
 

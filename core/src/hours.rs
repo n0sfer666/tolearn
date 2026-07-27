@@ -1,6 +1,6 @@
 use crate::yaml::{ParseError, Reader};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct Hours {
     pub min: u32,
     pub max: u32,

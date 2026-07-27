@@ -91,7 +91,7 @@ fn went_stale(topic: &Topic, today: Date) -> bool {
         .unwrap_or(false)
 }
 
-pub(super) fn is_done(status: Status) -> bool {
+pub fn is_done(status: Status) -> bool {
     matches!(
         status,
         Status::Passed | Status::PassedOut | Status::StalePassed

@@ -1,3 +1,4 @@
+use tolearn_core::progress::{Progress, parse as progress};
 use tolearn_core::roadmap::{Roadmap, parse as roadmap};
 use tolearn_core::topic::{Question, QuestionType, Topic, parse as topic};
 
@@ -75,4 +76,15 @@ pub fn a_question() -> Question {
         red_flags: Vec::new(),
         follow_up: None,
     }
+}
+
+pub fn recorded(pairs: &[(&str, &str)]) -> Progress {
+    let head = "schema: learning-roadmap/progress/v1\nroadmap_id: corpus-program\ntopics:";
+    let mut source = format!("{head}{}\n", if pairs.is_empty() { " {}" } else { "" });
+    for (id, status) in pairs {
+        source.push_str(&format!(
+            "  {id}:\n    status: {status}\n    attempts: []\n    passed_at: null\n    next_review_at: null\n    gaps: []\n"
+        ));
+    }
+    progress(&source).unwrap()
 }
