@@ -89,7 +89,7 @@ fn a_material_of_the_reference_lands_field_in_field() {
 
     assert_eq!(
         title,
-        "Why does llama.cpp use so much VRAM (and RAM)? · Discussion"
+        "Why does llama.cpp use so much VRAM (and RAM)? · Discussion #9784"
     );
     assert_eq!(
         url,

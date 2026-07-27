@@ -99,7 +99,7 @@ materials:
       Точные дефолты флагов, из-за которых ломается бюджет памяти — `-c` со значением 0,
       auto у `-ngl`, и отдельная квантизация KV через `-ctk` и `-ctv`.
   - url: https://github.com/ggml-org/llama.cpp/discussions/9784
-    title: Why does llama.cpp use so much VRAM (and RAM)? · Discussion #9784
+    title: "Why does llama.cpp use so much VRAM (and RAM)? · Discussion #9784"
     type: article
     tier: T2
     published: "2024-10"
