@@ -10,3 +10,14 @@ export const GLYPHS = {
 } as const;
 
 export type Status = keyof typeof GLYPHS;
+
+export const STATUSES: readonly Status[] = [
+  "todo",
+  "in_progress",
+  "exam_pending",
+  "blocked",
+  "passed",
+  "passed_out",
+  "stale_passed",
+  "failed",
+];

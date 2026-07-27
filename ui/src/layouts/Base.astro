@@ -2,28 +2,44 @@
 import "@design/tokens.css";
 import "../styles/base.css";
 
+import RememberLocale from "../components/RememberLocale.astro";
+import { LOCALES, type Locale, localized, strings } from "../i18n";
+
 interface Props {
+  locale: Locale;
   title: string;
   back?: { href: string; text: string };
 }
 
-const { title, back } = Astro.props;
+const { locale, title, back } = Astro.props;
+const text = strings(locale);
+const here = Astro.url.pathname;
 ---
 
 <!doctype html>
-<html lang="ru">
+<html lang={locale}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title} — tolearn</title>
+    <title>{title} — {text.app}</title>
   </head>
   <body>
     <header>
-      {back && <a href={back.href}>{back.text}</a>}
+      {back && <a href={localized(back.href, locale)}>{back.text}</a>}
       <h1>{title}</h1>
+      <nav aria-label={text.language.switch}>
+        {
+          LOCALES.map((other) => (
+            <a href={localized(here, other)} data-locale={other} hreflang={other} lang={other}>
+              {text.language[other]}
+            </a>
+          ))
+        }
+      </nav>
     </header>
     <main>
       <slot />
     </main>
+    <RememberLocale />
   </body>
 </html>

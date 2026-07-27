@@ -1,0 +1,7 @@
+<script is:inline>
+  document.querySelectorAll("[data-locale]").forEach((link) => {
+    link.addEventListener("click", () => {
+      localStorage.setItem("tolearn.locale", link.dataset.locale);
+    });
+  });
+</script>

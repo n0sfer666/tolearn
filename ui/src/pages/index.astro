@@ -1,14 +1,44 @@
 ---
-import Base from "../layouts/Base.astro";
+import "@design/tokens.css";
+import "../styles/base.css";
+
+import RememberLocale from "../components/RememberLocale.astro";
+import { LOCALES, strings } from "../i18n";
 ---
 
-<Base title="Программы">
-  <section id="import">
-    <h2>Импорт</h2>
-    <p>Перетащите папку программы сюда или выберите её кнопкой.</p>
-  </section>
-  <section id="programs">
-    <h2>Список</h2>
-    <p>Программы появятся здесь после импорта.</p>
-  </section>
-</Base>
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>tolearn</title>
+    <script is:inline>
+      const stored = localStorage.getItem("tolearn.locale");
+      const known = ["ru", "en"];
+      const wanted = known.includes(stored) ? stored : navigator.language.slice(0, 2);
+      location.replace(`/${known.includes(wanted) ? wanted : "ru"}/`);
+    </script>
+  </head>
+  <body>
+    <header>
+      <h1>tolearn</h1>
+    </header>
+    <main>
+      <section id="language">
+        <h2>{strings("ru").language.switch}</h2>
+        <ul>
+          {
+            LOCALES.map((locale) => (
+              <li>
+                <a href={`/${locale}/`} data-locale={locale} hreflang={locale} lang={locale}>
+                  {strings(locale).language[locale]}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </main>
+    <RememberLocale />
+  </body>
+</html>

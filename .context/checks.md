@@ -63,6 +63,12 @@ cargo test --workspace --no-fail-fast --test <a> --test <b>
 атрибутам `<astro-island>`, в `<script src>` их нет). Отдельно посмотреть —
 `pnpm -C ui budget`, гейтом это гоняется внутри `pnpm -C ui test`.
 
+## Тесты UI
+
+`pnpm -C ui test` гоняет `node --test` с `--test-concurrency=1`. Последовательно —
+не для красоты: тест-файлы поднимают `astro build` в общий `dist/`, и два
+параллельных прогона роняют сборку друг другу.
+
 ## Токены
 
 `ui/scripts/tokens.mjs` читает `docs/design/tokens.css` напрямую (копии в `ui/`

@@ -14,8 +14,14 @@ const LIMITS = [
 
 const OTHERS = 20 * 1024;
 
+export const LOCALES = ["ru", "en"];
+
+export function screen(route) {
+  return route.replace(new RegExp(`^/(?:${LOCALES.join("|")})(?=/)`), "") || "/";
+}
+
 export function limit(route) {
-  const found = LIMITS.find(([known]) => known === route);
+  const found = LIMITS.find(([known]) => known === screen(route));
   return found ? found[1] : OTHERS;
 }
 

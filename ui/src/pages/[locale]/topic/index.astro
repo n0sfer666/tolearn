@@ -1,0 +1,32 @@
+---
+import { LOCALES, localeOf, strings } from "../../../i18n";
+import Acceptance from "../../../islands/Acceptance";
+import Base from "../../../layouts/Base.astro";
+
+export function getStaticPaths() {
+  return LOCALES.map((locale) => ({ params: { locale } }));
+}
+
+const locale = localeOf(Astro.params.locale);
+const text = strings(locale);
+const sections = [
+  "outcomes",
+  "misconceptions",
+  "materials",
+  "practice",
+  "questions",
+  "exam",
+  "notes",
+] as const;
+---
+
+<Base locale={locale} title={text.nav.topic} back={{ href: "/program/", text: text.nav.program }}>
+  {
+    sections.map((id) => (
+      <section id={id}>
+        <h2>{text.topic[id]}</h2>
+        {id === "practice" && <Acceptance client:load items={[]} />}
+      </section>
+    ))
+  }
+</Base>

@@ -12,7 +12,8 @@ import { fileURLToPath } from "node:url";
 import { DIST, measure, pages, route, scripts } from "../scripts/budget.mjs";
 
 const UI = fileURLToPath(new URL("..", import.meta.url));
-const ROUTES = ["/", "/program/", "/topic/", "/exam/", "/review/"];
+const SCREENS = ["/", "/program/", "/topic/", "/exam/", "/review/"];
+const ROUTES = ["/", ...["ru", "en"].flatMap((locale) => SCREENS.map((screen) => `/${locale}${screen}`))];
 
 before(() => {
   execFileSync("pnpm", ["exec", "astro", "build"], { cwd: UI, stdio: "inherit" });
@@ -87,7 +88,7 @@ test("гейт краснеет, когда страница выходит за
 });
 
 test("остров с состоянием собран и подключён к странице темы", async () => {
-  const topic = (await measure()).find(({ route: where }) => where === "/topic/");
+  const topic = (await measure()).find(({ route: where }) => where === "/ru/topic/");
 
   assert.ok(topic.files.length > 0, "чанки острова не попали в счёт веса");
   assert.ok(topic.bytes > 4096, `остров весит ${topic.bytes} байт — столько не весит даже Solid`);
