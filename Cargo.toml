@@ -15,6 +15,8 @@ tolearn-core = { path = "core" }
 tolearn-runner = { path = "runner" }
 tolearn-offline = { path = "offline" }
 jsonschema = { version = "0.49", default-features = false }
+rusqlite = { version = "0.37", features = ["bundled"] }
+sha2 = "0.10"
 saphyr = "0.0.11"
 saphyr-parser = "0.0.11"
 serde = { version = "1", features = ["derive"] }

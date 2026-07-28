@@ -10,6 +10,8 @@ publish.workspace = true
 
 [dependencies]
 tolearn-core.workspace = true
+rusqlite.workspace = true
+sha2.workspace = true
 
 [lints]
 workspace = true
