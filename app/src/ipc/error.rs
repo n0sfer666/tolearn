@@ -65,6 +65,12 @@ impl fmt::Display for IpcError {
 
 impl std::error::Error for IpcError {}
 
+impl From<tolearn_core::archive::ArchiveError> for IpcError {
+    fn from(error: tolearn_core::archive::ArchiveError) -> Self {
+        Self::new(error.code(), error.to_string())
+    }
+}
+
 impl From<ScanError> for IpcError {
     fn from(error: ScanError) -> Self {
         let code = match error {

@@ -2,6 +2,7 @@ mod date;
 mod hours;
 mod moment;
 
+pub mod archive;
 pub mod atomic;
 pub mod bundle;
 pub mod graph;

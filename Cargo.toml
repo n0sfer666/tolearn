@@ -24,6 +24,9 @@ monolith = { version = "2.10", default-features = false, features = ["vendored-o
 url = "2"
 markup5ever_rcdom = "=0.4.0-unofficial"
 gix = { version = "0.86.0", default-features = false, features = ["blocking-network-client", "max-performance-safe", "worktree-mutation", "sha1"] }
+zip = { version = "8.6", default-features = false, features = ["deflate"] }
+tar = { version = "0.4", default-features = false }
+flate2 = { version = "1.1", default-features = false, features = ["rust_backend"] }
 saphyr = "0.0.11"
 saphyr-parser = "0.0.11"
 serde = { version = "1", features = ["derive"] }

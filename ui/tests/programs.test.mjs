@@ -50,6 +50,7 @@ function mount(options = {}) {
         text: ru.programs,
         call,
         pick: options.pick ?? (() => Promise.resolve("/dropped/bundle")),
+        pickArchive: options.pickArchive ?? (() => Promise.resolve("/dropped/bundle.zip")),
         drops: (handler) => {
           drop = handler;
         },
@@ -170,4 +171,26 @@ test("фильтр оставляет в списке только совпав�
 
   assert.equal(host.querySelector('[data-program="llm-agents-base"]'), null);
   assert.ok(host.querySelector('[data-program="rust-core"]'), "совпавшая программа пропала");
+});
+
+test("архив выбирается своей кнопкой и уходит в тот же импорт", async () => {
+  const { host, calls } = mount();
+  await settled();
+
+  host.querySelector("[data-pick-archive]").click();
+  await settled();
+
+  const imports = calls.filter(({ name }) => name === "import");
+  assert.equal(imports.length, 1);
+  assert.equal(imports[0].payload.path, "/dropped/bundle.zip");
+});
+
+test("отменённый выбор архива импорт не запускает", async () => {
+  const { host, calls } = mount({ pickArchive: () => Promise.resolve(null) });
+  await settled();
+
+  host.querySelector("[data-pick-archive]").click();
+  await settled();
+
+  assert.equal(calls.filter(({ name }) => name === "import").length, 0);
 });

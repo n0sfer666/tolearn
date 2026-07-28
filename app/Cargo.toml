@@ -18,6 +18,11 @@ serde_json.workspace = true
 tauri.workspace = true
 tauri-plugin-dialog.workspace = true
 
+[dev-dependencies]
+flate2.workspace = true
+tar.workspace = true
+zip.workspace = true
+
 [build-dependencies]
 tauri-build.workspace = true
 

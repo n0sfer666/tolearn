@@ -77,6 +77,41 @@ fn length(head: &str) -> usize {
         .unwrap_or(0)
 }
 
+pub fn zipped(bundle: &Path) -> PathBuf {
+    let path = bundle.with_extension("zip");
+    let mut writer = zip::ZipWriter::new(std::fs::File::create(&path).unwrap());
+    pack(bundle, bundle, &mut writer);
+    writer.finish().unwrap();
+    path
+}
+
+fn pack(root: &Path, room: &Path, writer: &mut zip::ZipWriter<std::fs::File>) {
+    for entry in std::fs::read_dir(room).unwrap() {
+        let path = entry.unwrap().path();
+        if path.is_dir() {
+            pack(root, &path, writer);
+            continue;
+        }
+        let name = path.strip_prefix(root).unwrap().display().to_string();
+        writer
+            .start_file(name, zip::write::SimpleFileOptions::default())
+            .unwrap();
+        writer.write_all(&std::fs::read(&path).unwrap()).unwrap();
+    }
+}
+
+pub fn gzipped(bundle: &Path) -> PathBuf {
+    let path = bundle.with_extension("tar.gz");
+    let file = std::fs::File::create(&path).unwrap();
+    let mut builder = tar::Builder::new(flate2::write::GzEncoder::new(
+        file,
+        flate2::Compression::default(),
+    ));
+    builder.append_dir_all("выгрузка/bundle", bundle).unwrap();
+    builder.into_inner().unwrap().finish().unwrap();
+    path
+}
+
 pub fn repository() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()

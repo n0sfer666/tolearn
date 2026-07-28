@@ -3,6 +3,7 @@
     reason = "every test binary takes its own part of the shared support module"
 )]
 
+pub mod archives;
 pub mod bundles;
 
 use std::fmt::Display;

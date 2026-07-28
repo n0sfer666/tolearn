@@ -10,10 +10,20 @@ use tolearn_core::topic::Topic;
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
 use crate::ipc::types::{ImportIn, ImportOut, Merged, StaleTopic, Violation};
+use crate::ipc::unpack::{self, Taken};
 use crate::ipc::{history, open, settings};
 
 pub fn run(context: &Context, input: &ImportIn) -> Result<ImportOut, IpcError> {
-    let scan = match open::read(&input.path) {
+    let taken = unpack::taken(context, &input.path)?;
+    let outcome = merged_in(context, input, &taken);
+    if !matches!(&outcome, Ok(out) if out.ok) {
+        unpack::discard(&taken);
+    }
+    outcome
+}
+
+fn merged_in(context: &Context, input: &ImportIn, taken: &Taken) -> Result<ImportOut, IpcError> {
+    let scan = match open::read(&taken.root.display().to_string()) {
         Ok(scan) => scan,
         Err(error) => return Ok(refused(vec![violation(&error)])),
     };
@@ -52,10 +62,11 @@ pub fn run(context: &Context, input: &ImportIn) -> Result<ImportOut, IpcError> {
     save(&open::progress_file(&scan), &document)
         .map_err(|error| IpcError::unwritable(&scan.root, &error.to_string()))?;
 
+    let home = unpack::settle(taken, &context.unpacked().join(&scan.roadmap.id))?;
     registry.add(Program {
         id: scan.roadmap.id.clone(),
         title: scan.roadmap.title.clone(),
-        path: scan.root.clone(),
+        path: home,
         opened_at: Some(input.today.clone()),
     });
     registry.save(&file)?;

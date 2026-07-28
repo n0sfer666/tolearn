@@ -2,7 +2,7 @@ import { For, Show, createSignal, onMount } from "solid-js";
 
 import type { Card, ImportOut, Merged } from "../ipc";
 import { matches } from "../lib/filter";
-import { drops as listen, pick as choose, transport } from "../lib/ipc";
+import { drops as listen, pick as choose, pickArchive as chooseArchive, transport } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
     list: string;
     listLead: string;
     choose: string;
+    chooseArchive: string;
     drop: string;
     importing: string;
     unreachable: string;
@@ -25,6 +26,7 @@ interface Props {
   today?: string;
   call?: Transport;
   pick?: () => Promise<string | null>;
+  pickArchive?: () => Promise<string | null>;
   drops?: (handler: (paths: string[]) => void) => void;
 }
 
@@ -71,8 +73,8 @@ export default function Programs(props: Props) {
 
   const shown = () => cards().filter((card) => matches(card.title, needle()));
 
-  const take = async () => {
-    const chosen = await (props.pick ?? choose)();
+  const take = async (open: () => Promise<string | null>) => {
+    const chosen = await open();
     if (chosen !== null) await accept(chosen);
   };
 
@@ -80,8 +82,21 @@ export default function Programs(props: Props) {
     <section>
       <div class="intake">
         <p>{props.text.drop}</p>
-        <button type="button" data-pick onClick={() => void take()} disabled={busy()}>
+        <button
+          type="button"
+          data-pick
+          onClick={() => void take(props.pick ?? choose)}
+          disabled={busy()}
+        >
           {busy() ? props.text.importing : props.text.choose}
+        </button>
+        <button
+          type="button"
+          data-pick-archive
+          onClick={() => void take(props.pickArchive ?? chooseArchive)}
+          disabled={busy()}
+        >
+          {props.text.chooseArchive}
         </button>
       </div>
 

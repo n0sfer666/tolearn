@@ -84,6 +84,8 @@ headless-окружении без GUI.
 | `progress.yaml` | приложение | папка бандла + зеркало в app-data |
 | конспекты | человек | `<app-data>/notes/` или внешний каталог |
 | офлайн-кэш | приложение | `<app-data>/cache/` |
+| снимки прошлых версий | приложение | `<app-data>/history/<roadmap-id>/<n>/` |
+| бандл, приехавший архивом | приложение | `<app-data>/unpacked/<roadmap-id>/` |
 
 Приложение **не пишет** в файлы бандла, кроме `progress.yaml`
 ([ADR-009](../docs/adr/009-user-data-outside-bundle.md)). Перегенерация бандла —

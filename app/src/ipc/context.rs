@@ -51,6 +51,10 @@ impl Context {
         self.data.join("history").join(roadmap)
     }
 
+    pub fn unpacked(&self) -> PathBuf {
+        self.data.join("unpacked")
+    }
+
     pub fn registry(&self) -> PathBuf {
         self.data.join("registry.yaml")
     }
