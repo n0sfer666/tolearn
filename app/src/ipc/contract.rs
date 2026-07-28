@@ -50,6 +50,7 @@ commands! {
     save_note(types::SaveNoteIn) -> types::SaveNoteOut,
     parse_verdict(types::ParseVerdictIn) -> types::VerdictView,
     apply_verdict(types::ApplyVerdictIn) -> types::ApplyVerdictOut,
+    review(types::ReviewIn) -> types::ReviewOut,
     prompt(types::PromptIn) -> types::PromptOut,
     programs(types::ProgramsIn) -> types::ProgramsOut,
     import(types::ImportIn) -> types::ImportOut,

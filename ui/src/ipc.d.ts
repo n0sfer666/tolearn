@@ -299,6 +299,35 @@ export type ApplyVerdictOut = {
   split_suggested: boolean;
 };
 
+export type ReviewedView = {
+  id: string;
+  kind: string;
+  text: string;
+  outcome: string | null;
+  missed: string[];
+};
+
+export type PastView = {
+  at: string;
+  verdict: string;
+};
+
+export type ReviewIn = {
+  bundle: string;
+  topic: string;
+};
+
+export type ReviewOut = {
+  id: string;
+  title: string;
+  questions: ReviewedView[];
+  loose: string[];
+  last: PastView | null;
+  history: PastView[];
+  split_suggested: boolean;
+  split_request: string;
+};
+
 export type PromptIn = {
   bundle: string;
   topic: string;
@@ -319,6 +348,7 @@ export type Commands = {
   save_note: { input: SaveNoteIn; output: SaveNoteOut };
   parse_verdict: { input: ParseVerdictIn; output: VerdictView };
   apply_verdict: { input: ApplyVerdictIn; output: ApplyVerdictOut };
+  review: { input: ReviewIn; output: ReviewOut };
   prompt: { input: PromptIn; output: PromptOut };
   programs: { input: ProgramsIn; output: ProgramsOut };
   import: { input: ImportIn; output: ImportOut };

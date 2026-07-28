@@ -4,7 +4,7 @@ mod streak;
 mod types;
 
 pub use record::record;
-pub use streak::{counted, failing_streak};
+pub use streak::{ENOUGH_FAILURES, counted, failing_streak};
 pub use types::Applied;
 
 use crate::date::Date;
@@ -52,7 +52,7 @@ pub fn apply(
     };
 
     Applied {
-        split_suggested: failing_streak(&state.attempts) >= streak::ENOUGH_FAILURES,
+        split_suggested: failing_streak(&state.attempts) >= ENOUGH_FAILURES,
         retry: retry(verdict),
         state,
     }

@@ -252,6 +252,32 @@ dto!(ApplyVerdictOut {
     split_suggested: bool
 });
 
+dto!(ReviewedView {
+    id: String,
+    kind: String,
+    text: String,
+    outcome: Option<String>,
+    missed: Vec<String>,
+});
+dto!(PastView {
+    at: String,
+    verdict: String
+});
+dto!(ReviewIn {
+    bundle: String,
+    topic: String,
+});
+dto!(ReviewOut {
+    id: String,
+    title: String,
+    questions: Vec<ReviewedView>,
+    loose: Vec<String>,
+    last: Option<PastView>,
+    history: Vec<PastView>,
+    split_suggested: bool,
+    split_request: String,
+});
+
 dto!(PromptIn {
     bundle: String,
     topic: String,
@@ -302,6 +328,10 @@ pub fn shapes() -> Vec<Shape> {
         ParseVerdictIn::shape(),
         ApplyVerdictIn::shape(),
         ApplyVerdictOut::shape(),
+        ReviewedView::shape(),
+        PastView::shape(),
+        ReviewIn::shape(),
+        ReviewOut::shape(),
         PromptIn::shape(),
         PromptOut::shape(),
     ]
