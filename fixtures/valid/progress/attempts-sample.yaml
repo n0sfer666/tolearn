@@ -1,0 +1,219 @@
+schema: learning-roadmap/progress/v1
+roadmap_id: llm-agents-base
+topics:
+  local-runtime:
+    status: passed
+    attempts:
+      - at: "2026-07-10T10:00:00Z"
+        source: exam
+        verdict: fail
+        model: claude-opus-5
+        hinted: true
+        practice_accepted: false
+        failed_checks:
+          - a1
+        per_question:
+          - id: q1
+            result: miss
+            quote: null
+            missed:
+              - |
+                Не назвал ни одной причины, по которой модель не влезает в память.
+            signal_extension: false
+          - id: q2
+            result: partial
+            quote: |
+              Сказал, что контекст тоже занимает память, но не оценил сколько.
+            missed: []
+            signal_extension: false
+        gaps:
+          - |
+            Считает, что память съедает только вес модели.
+        calibration: |
+          Уверенность выше уровня: отвечал без оговорок.
+        notes: []
+        next_action: retry_failed
+        retry_after_days: 2
+        raw: |
+          Модель занимает столько, сколько весит файл.
+      - at: "2026-07-13T10:00:00Z"
+        source: exam
+        verdict: fail
+        model: claude-opus-5
+        hinted: false
+        practice_accepted: false
+        failed_checks: []
+        per_question:
+          - id: q1
+            result: partial
+            quote: |
+              Назвал вес и кэш, но перепутал, что из них растёт с контекстом.
+            missed: []
+            signal_extension: false
+          - id: q3
+            result: miss
+            quote: null
+            missed:
+              - |
+                Не назвал границу, за которой кэш обгоняет вес.
+            signal_extension: false
+        gaps:
+          - |
+            Не различает вклад веса и кэша контекста.
+        calibration: null
+        notes: []
+        next_action: retry_failed
+        retry_after_days: 3
+        raw: |
+          Память — это вес плюс что-то ещё, точнее не скажу.
+      - at: "2026-07-20T10:00:00Z"
+        source: exam
+        verdict: pass
+        model: claude-opus-5
+        hinted: true
+        practice_accepted: true
+        failed_checks: []
+        per_question:
+          - id: q1
+            result: ok
+            quote: |
+              Вес модели и кэш контекста считаются отдельно.
+            missed: []
+            signal_extension: false
+          - id: q3
+            result: ok
+            quote: |
+              На длинном контексте кэш обгоняет вес.
+            missed: []
+            signal_extension: true
+        gaps: []
+        calibration: |
+          Оценка совпала с результатом: сам назвал прошлую ошибку.
+        notes: []
+        next_action: proceed
+        raw: |
+          Вес — одна часть, кэш контекста — вторая, и он растёт с длиной запроса.
+    passed_at: "2026-07-20"
+    next_review_at: "2026-10-20"
+    gaps: []
+  structured-output:
+    status: failed
+    attempts:
+      - at: "2026-07-11T09:00:00Z"
+        source: exam
+        verdict: fail
+        model: claude-opus-5
+        hinted: false
+        practice_accepted: false
+        failed_checks:
+          - c1
+        per_question:
+          - id: q1
+            result: miss
+            quote: null
+            missed:
+              - |
+                Считает, что схема в запросе гарантирует валидный ответ.
+            signal_extension: false
+        gaps:
+          - |
+            Не отличает «схема передана» от «ответ провалидирован».
+        calibration: null
+        notes: []
+        next_action: retry_failed
+        retry_after_days: 2
+        raw: |
+          Передал схему — получил ответ по схеме.
+      - at: "2026-07-15T09:00:00Z"
+        source: exam
+        verdict: fail
+        model: claude-opus-5
+        hinted: true
+        practice_accepted: false
+        failed_checks:
+          - c1
+          - a1
+        per_question:
+          - id: q1
+            result: miss
+            quote: null
+            missed:
+              - |
+                Снова назвал схему гарантией.
+            signal_extension: false
+          - id: q2
+            result: partial
+            quote: |
+              Назвал одну причину отказа из трёх.
+            missed: []
+            signal_extension: false
+        gaps:
+          - |
+            Не знает, что делать с ответом, который схему не прошёл.
+        calibration: |
+          Уверенность выше уровня: ошибки назывались как очевидности.
+        notes: []
+        next_action: retry_failed
+        retry_after_days: 3
+        raw: |
+          Если ответ не по схеме, значит модель слабая.
+      - at: "2026-07-19T09:00:00Z"
+        source: exam
+        verdict: fail
+        model: claude-opus-5
+        hinted: false
+        practice_accepted: false
+        failed_checks:
+          - c1
+        per_question:
+          - id: q2
+            result: miss
+            quote: null
+            missed:
+              - |
+                Причин отказа не назвал вовсе.
+            signal_extension: false
+        gaps:
+          - |
+            Не отличает «схема передана» от «ответ провалидирован».
+        calibration: null
+        notes: []
+        next_action: split_topic
+        retry_after_days: 7
+        raw: |
+          Схему передал, дальше должно работать само.
+    passed_at: null
+    next_review_at: null
+    gaps:
+      - |
+        Не отличает «схема передана» от «ответ провалидирован».
+  tokens-context-cost:
+    status: exam_pending
+    attempts:
+      - at: "2026-07-25T08:12:00Z"
+        source: manual
+        verdict: partial
+        model: null
+        hinted: false
+        practice_accepted: false
+        per_question: []
+        gaps:
+          - |
+            Практика сделана, но приёмка не проверялась.
+        calibration: null
+        notes:
+          - |
+            Отмечено руками: практику прошёл, экзамен не начинал.
+        next_action: redo_practice
+        raw: ""
+    passed_at: null
+    next_review_at: null
+    gaps:
+      - |
+        Считает стоимость запроса по числу слов, а не по токенам.
+  openai-compatible-api:
+    status: todo
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []

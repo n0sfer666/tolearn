@@ -72,6 +72,15 @@ export const en: Dictionary = {
     unknownLead: "their hours stay out of the forecast",
     done: "Every required topic is passed — nothing left to count.",
   },
+  stats: {
+    title: "Attempt statistics",
+    lead: "Counted from what attempts record: hints, answers by question type, the next action, failure streaks.",
+    attempts: "Attempts",
+    hinted: "With a hint",
+    streak: "Longest failure streak",
+    calibration: "Self-assessment, as written",
+    scarce: "Fewer than five attempts: too little data to conclude anything.",
+  },
   stale: {
     title: "Aging",
     lead: "What to re-read: topics past their check date, materials that drifted from the current version.",

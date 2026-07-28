@@ -55,6 +55,9 @@ export default function Program(props: Props) {
         <a data-stale href={`/${props.locale}/stale/?program=${encodeURIComponent(program())}`}>
           {props.text.stale.title}
         </a>
+        <a data-stats href={`/${props.locale}/stats/?program=${encodeURIComponent(program())}`}>
+          {props.text.stats.title}
+        </a>
       </Show>
       <input
         type="search"

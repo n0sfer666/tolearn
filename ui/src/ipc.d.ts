@@ -249,6 +249,38 @@ export type AgingView = {
   pin: string;
 };
 
+export type StatsIn = {
+  bundle: string;
+};
+
+export type StatsOut = {
+  attempts: number;
+  enough: boolean;
+  hinted: number;
+  hinted_share: number;
+  kinds: KindView[];
+  actions: ActionView[];
+  streak: StreakView;
+  calibration: string[];
+};
+
+export type KindView = {
+  kind: string;
+  ok: number;
+  partial: number;
+  miss: number;
+};
+
+export type ActionView = {
+  action: string;
+  count: number;
+};
+
+export type StreakView = {
+  longest: number;
+  topic: string;
+};
+
 export type QueueIn = {
   today: string;
 };
@@ -493,6 +525,7 @@ export type Commands = {
   programs: { input: ProgramsIn; output: ProgramsOut };
   plan: { input: PlanIn; output: PlanOut };
   stale: { input: StaleIn; output: StaleOut };
+  stats: { input: StatsIn; output: StatsOut };
   queue: { input: QueueIn; output: QueueOut };
   repeat: { input: RepeatIn; output: RepeatOut };
   import: { input: ImportIn; output: ImportOut };

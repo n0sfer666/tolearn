@@ -17,6 +17,7 @@ pub mod scan;
 pub mod search;
 pub mod settings;
 pub mod stale;
+pub mod stats;
 pub mod status;
 pub mod summary;
 pub mod topic;

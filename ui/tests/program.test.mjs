@@ -223,3 +223,12 @@ test("из программы есть ход в её дайджест уста�
   assert.ok(link, host.innerHTML);
   assert.equal(link.getAttribute("href"), "/ru/stale/?program=%2Fprograms%2Fother");
 });
+
+test("из программы есть ход в её статистику попыток", async () => {
+  const { host } = mount({ path: "/programs/other" });
+  await settled();
+
+  const link = host.querySelector("[data-stats]");
+  assert.ok(link, host.innerHTML);
+  assert.equal(link.getAttribute("href"), "/ru/stats/?program=%2Fprograms%2Fother");
+});

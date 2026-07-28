@@ -18,5 +18,6 @@ pub mod search;
 pub mod set_status;
 pub mod settings;
 pub mod stale;
+pub mod stats;
 pub mod topic;
 pub mod validate;
