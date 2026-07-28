@@ -66,8 +66,9 @@ S55 назначает число.
 core/       Rust: типы, парсинг, валидация, прогресс, статусы, протокол
 runner/     Rust: исполнение check-команд       (зависит от core)
 offline/    Rust: загрузка, архивация, кэш      (зависит от core)
+provider/   Rust: настройки LLM, ключ, проверка (зависит от core)
 cli/        Rust: tolearn validate|scan|exam    (зависит от core, runner, offline)
-app/        Tauri 2: IPC, окна, пререндер       (зависит от core, runner, offline)
+app/        Tauri 2: IPC, окна, пререндер       (зависит от нижних слоёв)
 ui/         Astro + Solid                       (общается только через IPC)
 docs/       решения, спецификации, контракты
 examples/   эталонные бандлы, они же фикстуры

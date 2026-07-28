@@ -310,6 +310,25 @@ dto!(HitView {
     snippet: String,
 });
 
+dto!(ProviderIn {
+    save: Option<ProviderView>,
+    key: Option<String>,
+    forget: bool,
+    check: bool,
+});
+dto!(ProviderOut {
+    provider: ProviderView,
+    has_key: bool,
+    checked: Option<CheckedView>,
+});
+dto!(ProviderView {
+    enabled: bool,
+    flavor: String,
+    endpoint: String,
+    model: String,
+});
+dto!(CheckedView { models: Vec<String> });
+
 pub fn shapes() -> Vec<Shape> {
     vec![
         ValidateIn::shape(),
@@ -365,5 +384,9 @@ pub fn shapes() -> Vec<Shape> {
         SearchIn::shape(),
         SearchOut::shape(),
         HitView::shape(),
+        ProviderIn::shape(),
+        ProviderOut::shape(),
+        ProviderView::shape(),
+        CheckedView::shape(),
     ]
 }

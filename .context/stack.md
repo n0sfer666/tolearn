@@ -6,7 +6,7 @@
 
 | Работаю в | Справочник правил | Инструкция по тестам |
 |---|---|---|
-| `core/`, `runner/`, `offline/`, `cli/`, `app/` (Rust) | `~/.claude/rules/domains/systems.md` | `~/wiki/knowledge/testing/systems.md` |
+| `core/`, `runner/`, `offline/`, `provider/`, `cli/`, `app/` (Rust) | `~/.claude/rules/domains/systems.md` | `~/wiki/knowledge/testing/systems.md` |
 | `ui/` (Astro, Solid, CSS) | `~/.claude/rules/domains/web.md`, `~/.claude/rules/topics/styles.md`, `topics/typescript.md` | `~/wiki/knowledge/testing/web.md` |
 | `cli/` как пользовательский интерфейс | — | `~/wiki/knowledge/testing/cli.md` |
 | GitHub Actions | `~/.claude/rules/topics/ci.md` | — |
@@ -36,6 +36,8 @@
 | индекс кэша | SQLite | — | `offline/` | [005](../docs/adr/005-cache-outside-bundle.md) |
 | шифрование конспектов | `rage` (age) | MIT/Apache-2.0 | S53 | — |
 | распознавание речи | whisper.cpp | MIT | S55, отдельная сборка | [010](../docs/adr/010-speech-distribution.md) |
+| ключ провайдера в системном хранилище | `keyring` 4 | MIT/Apache-2.0 | `provider/` (S41) | — |
+| запрос к провайдеру | `reqwest` 0.12 (blocking, default-tls) | MIT/Apache-2.0 | `provider/` (S41) | — |
 
 Лицензия проекта — GPL-3.0 ([ADR-008](../docs/adr/008-license-gpl.md)). Любая
 новая зависимость обязана быть с ней совместима; несовместимую не тащим, а

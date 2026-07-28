@@ -368,6 +368,30 @@ export type HitView = {
   snippet: string;
 };
 
+export type ProviderIn = {
+  save: ProviderView | null;
+  key: string | null;
+  forget: boolean;
+  check: boolean;
+};
+
+export type ProviderOut = {
+  provider: ProviderView;
+  has_key: boolean;
+  checked: CheckedView | null;
+};
+
+export type ProviderView = {
+  enabled: boolean;
+  flavor: string;
+  endpoint: string;
+  model: string;
+};
+
+export type CheckedView = {
+  models: string[];
+};
+
 export type Commands = {
   validate: { input: ValidateIn; output: ValidateOut };
   scan: { input: ScanIn; output: ScanOut };
@@ -385,6 +409,7 @@ export type Commands = {
   import: { input: ImportIn; output: ImportOut };
   settings: { input: SettingsIn; output: SettingsView };
   search: { input: SearchIn; output: SearchOut };
+  provider: { input: ProviderIn; output: ProviderOut };
 };
 
 export type CommandName = keyof Commands;

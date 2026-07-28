@@ -9,8 +9,9 @@
 core/       Rust: типы, парсинг, валидация, прогресс, статусы, протокол
 runner/     Rust: исполнение check-команд       (зависит от core)
 offline/    Rust: загрузка, архивация, кэш      (зависит от core)
+provider/   Rust: настройки LLM, ключ, проверка (зависит от core)
 cli/        Rust: tolearn validate|scan|exam    (зависит от core, runner, offline)
-app/        Tauri 2: IPC, окна, пререндер       (зависит от core, runner, offline)
+app/        Tauri 2: IPC, окна, пререндер       (зависит от нижних слоёв)
 ui/         Astro + Solid                       (общается только через IPC)
 docs/       решения, спецификации, контракты
 examples/   эталонные бандлы, они же фикстуры
@@ -27,6 +28,7 @@ headless-окружении без GUI.
 | `core` | Tauri, файловый диалог, UI, сеть, ФС-специфику приложения |
 | `offline` | Tauri, WebView, UI |
 | `runner` | Tauri, UI |
+| `provider` | Tauri, UI, бандл и его файлы |
 | `ui` | что угодно, кроме IPC-контракта |
 
 Правило закреплено гейтом `cli/tests/layering.rs` (S01). Он падает на:
@@ -34,7 +36,7 @@ headless-окружении без GUI.
 - зависимости вверх или вбок по дереву — включая объявленные в
   `[target.'cfg(...)'.dependencies]` и переименованные через `package = "..."`;
 - имя оболочки (`tauri`, `wry`, `webkit`, `objc`) в зависимостях `core`,
-  `runner`, `offline`, `cli` — прямых **и** транзитивных, по `Cargo.lock`;
+  `runner`, `offline`, `provider`, `cli` — прямых **и** транзитивных, по `Cargo.lock`;
 - расхождение списка крейтов с блоком «Структура» в
   [docs/architecture.md](../docs/architecture.md#структура) — документ читается
   тестом, а не пересказывается в нём;

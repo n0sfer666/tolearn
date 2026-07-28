@@ -2,7 +2,7 @@ use std::fs::{File, rename};
 use std::io::{Error, ErrorKind, Write};
 use std::path::Path;
 
-pub(crate) fn write(path: &Path, text: &str) -> Result<(), Error> {
+pub fn write(path: &Path, text: &str) -> Result<(), Error> {
     let name = path
         .file_name()
         .ok_or_else(|| Error::new(ErrorKind::InvalidInput, "the path names no file"))?;

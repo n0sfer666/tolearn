@@ -51,6 +51,12 @@ const LAYERS: &[Layer] = &[
         forbidden_markers: SHELL_MARKERS,
     },
     Layer {
+        dir: "provider",
+        package: "tolearn-provider",
+        allowed_internal: &["tolearn-core"],
+        forbidden_markers: SHELL_MARKERS,
+    },
+    Layer {
         dir: "cli",
         package: "tolearn-cli",
         allowed_internal: &["tolearn-core", "tolearn-runner", "tolearn-offline"],
@@ -59,7 +65,12 @@ const LAYERS: &[Layer] = &[
     Layer {
         dir: "app",
         package: "tolearn-app",
-        allowed_internal: &["tolearn-core", "tolearn-runner", "tolearn-offline"],
+        allowed_internal: &[
+            "tolearn-core",
+            "tolearn-runner",
+            "tolearn-offline",
+            "tolearn-provider",
+        ],
         forbidden_markers: &[],
     },
 ];

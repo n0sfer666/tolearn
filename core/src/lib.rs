@@ -1,7 +1,7 @@
-mod atomic;
 mod date;
 mod hours;
 
+pub mod atomic;
 pub mod bundle;
 pub mod merge;
 pub mod notes;

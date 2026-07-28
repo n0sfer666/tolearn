@@ -5,6 +5,7 @@ mod error;
 mod handlers;
 mod notes;
 mod open;
+mod provider;
 mod settings;
 mod shape;
 pub mod types;
