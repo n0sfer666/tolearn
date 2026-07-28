@@ -4,6 +4,7 @@ mod moment;
 
 pub mod atomic;
 pub mod bundle;
+pub mod graph;
 pub mod merge;
 pub mod notes;
 pub mod plan;

@@ -1,0 +1,19 @@
+---
+import { LOCALES, localeOf, strings } from "../../../i18n";
+import Base from "../../../layouts/Base.astro";
+import Graph from "../../../islands/Graph";
+
+export function getStaticPaths() {
+  return LOCALES.map((locale) => ({ params: { locale } }));
+}
+
+const locale = localeOf(Astro.params.locale);
+const text = strings(locale);
+---
+
+<Base locale={locale} title={text.graph.title} back={{ href: "/", text: text.nav.programs }}>
+  <section id="graph">
+    <p>{text.graph.lead}</p>
+    <Graph text={text} locale={locale} client:load />
+  </section>
+</Base>

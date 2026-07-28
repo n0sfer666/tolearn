@@ -222,6 +222,22 @@ dto!(AgingView {
     pin: String,
 });
 
+dto!(GraphIn {
+    bundle: String,
+    today: String,
+});
+dto!(GraphOut {
+    nodes: Vec<NodeView>,
+});
+dto!(NodeView {
+    id: String,
+    title: String,
+    status: String,
+    layer: u32,
+    depends_on: Vec<String>,
+    blocked_by: Vec<String>,
+    unlocks: Vec<String>,
+});
 dto!(StatsIn { bundle: String });
 dto!(StatsOut {
     attempts: u32,
@@ -475,6 +491,9 @@ pub fn shapes() -> Vec<Shape> {
         StaleOut::shape(),
         ExpiredView::shape(),
         AgingView::shape(),
+        GraphIn::shape(),
+        GraphOut::shape(),
+        NodeView::shape(),
         StatsIn::shape(),
         StatsOut::shape(),
         KindView::shape(),

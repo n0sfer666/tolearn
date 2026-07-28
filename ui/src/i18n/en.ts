@@ -81,6 +81,16 @@ export const en: Dictionary = {
     calibration: "Self-assessment, as written",
     scarce: "Fewer than five attempts: too little data to conclude anything.",
   },
+  graph: {
+    title: "Dependency graph",
+    lead: "Layers come from depends_on: a topic sits to the right of everything it needs.",
+    layer: "Layer",
+    unlocks: "Unlocks",
+    waiting: "Waiting for",
+    free: "Waits for nothing",
+    leaf: "Unlocks nothing",
+    empty: "The program has no topics.",
+  },
   stale: {
     title: "Aging",
     lead: "What to re-read: topics past their check date, materials that drifted from the current version.",

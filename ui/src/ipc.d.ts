@@ -264,6 +264,25 @@ export type AgingView = {
   pin: string;
 };
 
+export type GraphIn = {
+  bundle: string;
+  today: string;
+};
+
+export type GraphOut = {
+  nodes: NodeView[];
+};
+
+export type NodeView = {
+  id: string;
+  title: string;
+  status: string;
+  layer: number;
+  depends_on: string[];
+  blocked_by: string[];
+  unlocks: string[];
+};
+
 export type StatsIn = {
   bundle: string;
 };
@@ -541,6 +560,7 @@ export type Commands = {
   programs: { input: ProgramsIn; output: ProgramsOut };
   plan: { input: PlanIn; output: PlanOut };
   stale: { input: StaleIn; output: StaleOut };
+  graph: { input: GraphIn; output: GraphOut };
   stats: { input: StatsIn; output: StatsOut };
   queue: { input: QueueIn; output: QueueOut };
   repeat: { input: RepeatIn; output: RepeatOut };
