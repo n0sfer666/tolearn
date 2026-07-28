@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { DIST, measure, pages, route, scripts } from "../scripts/budget.mjs";
 
 const UI = fileURLToPath(new URL("..", import.meta.url));
-const SCREENS = ["/", "/program/", "/topic/", "/practice/", "/notes/", "/exam/", "/review/", "/queue/", "/search/", "/settings/"];
+const SCREENS = ["/", "/program/", "/topic/", "/practice/", "/notes/", "/exam/", "/review/", "/queue/", "/stale/", "/search/", "/settings/"];
 const ROUTES = ["/", ...["ru", "en"].flatMap((locale) => SCREENS.map((screen) => `/${locale}${screen}`))];
 
 before(() => {

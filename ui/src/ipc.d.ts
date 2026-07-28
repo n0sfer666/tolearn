@@ -221,6 +221,34 @@ export type AheadView = {
   date: string;
 };
 
+export type StaleIn = {
+  bundle: string;
+  today: string;
+};
+
+export type StaleOut = {
+  topics: ExpiredView[];
+  materials: AgingView[];
+};
+
+export type ExpiredView = {
+  topic: string;
+  title: string;
+  verified_at: string;
+  expired_at: string;
+};
+
+export type AgingView = {
+  topic: string;
+  topic_title: string;
+  title: string;
+  url: string;
+  stale: boolean;
+  delta: string | null;
+  covers_version: string | null;
+  pin: string;
+};
+
 export type QueueIn = {
   today: string;
 };
@@ -464,6 +492,7 @@ export type Commands = {
   examine: { input: ExamineIn; output: ExamineOut };
   programs: { input: ProgramsIn; output: ProgramsOut };
   plan: { input: PlanIn; output: PlanOut };
+  stale: { input: StaleIn; output: StaleOut };
   queue: { input: QueueIn; output: QueueOut };
   repeat: { input: RepeatIn; output: RepeatOut };
   import: { input: ImportIn; output: ImportOut };

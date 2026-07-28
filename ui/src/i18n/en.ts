@@ -72,6 +72,17 @@ export const en: Dictionary = {
     unknownLead: "their hours stay out of the forecast",
     done: "Every required topic is passed — nothing left to count.",
   },
+  stale: {
+    title: "Aging",
+    lead: "What to re-read: topics past their check date, materials that drifted from the current version.",
+    topics: "Topics past their date",
+    materials: "Materials in question",
+    verified: "Checked",
+    expired: "Expired",
+    flagged: "flagged as stale",
+    pinUnknown: "pin unknown",
+    empty: "Nothing has aged out.",
+  },
   queue: {
     lead: "Topics whose review date has come — across every program at once.",
     overdue: "Overdue",

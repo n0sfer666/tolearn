@@ -16,6 +16,7 @@ pub mod roadmap;
 pub mod scan;
 pub mod search;
 pub mod settings;
+pub mod stale;
 pub mod status;
 pub mod summary;
 pub mod topic;

@@ -183,6 +183,31 @@ dto!(AheadView {
     date: String
 });
 
+dto!(StaleIn {
+    bundle: String,
+    today: String,
+});
+dto!(StaleOut {
+    topics: Vec<ExpiredView>,
+    materials: Vec<AgingView>,
+});
+dto!(ExpiredView {
+    topic: String,
+    title: String,
+    verified_at: String,
+    expired_at: String,
+});
+dto!(AgingView {
+    topic: String,
+    topic_title: String,
+    title: String,
+    url: String,
+    stale: bool,
+    delta: Option<String>,
+    covers_version: Option<String>,
+    pin: String,
+});
+
 dto!(QueueIn { today: String });
 dto!(QueueOut { due: Vec<DueView> });
 dto!(DueView {
@@ -404,6 +429,10 @@ pub fn shapes() -> Vec<Shape> {
         PlanIn::shape(),
         PlanOut::shape(),
         AheadView::shape(),
+        StaleIn::shape(),
+        StaleOut::shape(),
+        ExpiredView::shape(),
+        AgingView::shape(),
         QueueIn::shape(),
         QueueOut::shape(),
         DueView::shape(),

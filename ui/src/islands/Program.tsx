@@ -32,8 +32,10 @@ export default function Program(props: Props) {
   const [stages, setStages] = createSignal<Stage[]>([]);
   const [topics, setTopics] = createSignal<TopicStatus[]>([]);
   const [needle, setNeedle] = createSignal("");
+  const [program, setProgram] = createSignal("");
 
   onMount(() => {
+    setProgram(path());
     void (async () => {
       const out = await call()("program", { bundle: path(), today: today() });
       setStages(out.stages);
@@ -49,6 +51,11 @@ export default function Program(props: Props) {
 
   return (
     <section>
+      <Show when={program() !== ""}>
+        <a data-stale href={`/${props.locale}/stale/?program=${encodeURIComponent(program())}`}>
+          {props.text.stale.title}
+        </a>
+      </Show>
       <input
         type="search"
         data-filter
