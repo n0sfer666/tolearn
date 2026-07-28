@@ -305,6 +305,31 @@ dto!(StaleTopic {
     changed: Vec<String>,
 });
 
+dto!(HistoryIn { bundle: String });
+dto!(HistoryOut {
+    versions: Vec<VersionView>,
+});
+dto!(VersionView {
+    n: u32,
+    saved_at: String,
+    bytes: u64,
+});
+dto!(HistoryDiffIn {
+    bundle: String,
+    version: u32,
+});
+dto!(HistoryDiffOut {
+    added: Vec<Link>,
+    removed: Vec<Link>,
+    rewritten: Vec<RewrittenView>,
+});
+dto!(RewrittenView {
+    id: String,
+    title: String,
+    changed: Vec<String>,
+    demoted: bool,
+});
+
 dto!(StampView {
     modified_nanos: String,
     size: u64
@@ -413,6 +438,8 @@ dto!(SettingsView {
     notes_directory: Option<String>,
     locale: String,
     theme: String,
+    history_depth: u32,
+    history_share_percent: u32,
 });
 
 dto!(SearchIn {
@@ -508,6 +535,12 @@ pub fn shapes() -> Vec<Shape> {
         ImportOut::shape(),
         Merged::shape(),
         StaleTopic::shape(),
+        HistoryIn::shape(),
+        HistoryOut::shape(),
+        VersionView::shape(),
+        HistoryDiffIn::shape(),
+        HistoryDiffOut::shape(),
+        RewrittenView::shape(),
         StampView::shape(),
         NoteIn::shape(),
         NoteOut::shape(),

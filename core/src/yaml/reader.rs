@@ -118,6 +118,10 @@ impl<'a> Reader<'a> {
     }
 
     pub fn number(&self, minimum: u32) -> Result<u32, ParseError> {
+        self.bounded(minimum, u32::MAX)
+    }
+
+    pub fn bounded(&self, minimum: u32, maximum: u32) -> Result<u32, ParseError> {
         let integer = self
             .node
             .data
@@ -133,6 +137,12 @@ impl<'a> Reader<'a> {
             return Err(self.fail(
                 ParseFailure::OutOfRange,
                 format!("expected an integer not below {minimum}"),
+            ));
+        }
+        if value > maximum {
+            return Err(self.fail(
+                ParseFailure::OutOfRange,
+                format!("expected an integer not above {maximum}"),
             ));
         }
         Ok(value)

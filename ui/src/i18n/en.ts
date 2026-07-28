@@ -196,6 +196,10 @@ export const en: Dictionary = {
   settings: {
     lead: "Changes take effect at once, no restart needed.",
     budget: "Disk budget, MB",
+    history: "Version history",
+    historyLead: "Past versions live outside the bundle and are read-only — there is no rollback.",
+    historyDepth: "How many versions to keep",
+    historyShare: "Share of the disk budget for history, %",
     notes: "Notes directory",
     notesOwn: "own directory inside the application",
     choose: "Choose a directory",

@@ -1,7 +1,7 @@
 use super::report::Part;
 use crate::topic::Topic;
 
-pub(super) fn changed(before: &Topic, after: &Topic) -> Vec<Part> {
+pub(crate) fn changed(before: &Topic, after: &Topic) -> Vec<Part> {
     let mut parts = Vec::new();
     if before.depends_on != after.depends_on {
         parts.push(Part::DependsOn);

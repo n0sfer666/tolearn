@@ -17,12 +17,20 @@ pub fn view(settings: &Settings) -> SettingsView {
             .map(|path| path.display().to_string()),
         locale: settings.locale.label().to_owned(),
         theme: settings.theme.label().to_owned(),
+        history_depth: settings.history_depth,
+        history_share_percent: settings.history_share_percent,
     }
 }
 
 pub fn taken(view: &SettingsView) -> Result<Settings, IpcError> {
     if view.disk_budget_mb == 0 {
         return Err(refused("бюджет диска", "0"));
+    }
+    if view.history_share_percent > 100 {
+        return Err(refused(
+            "доля бюджета под историю",
+            &view.history_share_percent.to_string(),
+        ));
     }
     Ok(Settings {
         disk_budget_mb: view.disk_budget_mb,
@@ -33,6 +41,8 @@ pub fn taken(view: &SettingsView) -> Result<Settings, IpcError> {
             .map(Into::into),
         locale: Locale::parse(&view.locale).ok_or_else(|| refused("язык", &view.locale))?,
         theme: Theme::parse(&view.theme).ok_or_else(|| refused("тема", &view.theme))?,
+        history_depth: view.history_depth,
+        history_share_percent: view.history_share_percent,
     })
 }
 

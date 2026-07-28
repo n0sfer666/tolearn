@@ -12,10 +12,14 @@ pub fn text(settings: &Settings) -> String {
          disk_budget_mb: {}\n\
          notes_directory: {directory}\n\
          locale: {}\n\
-         theme: {}\n",
+         theme: {}\n\
+         history_depth: {}\n\
+         history_share_percent: {}\n",
         settings.disk_budget_mb,
         settings.locale.label(),
         settings.theme.label(),
+        settings.history_depth,
+        settings.history_share_percent,
     )
 }
 

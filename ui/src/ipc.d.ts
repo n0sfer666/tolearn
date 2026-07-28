@@ -368,6 +368,38 @@ export type StaleTopic = {
   changed: string[];
 };
 
+export type HistoryIn = {
+  bundle: string;
+};
+
+export type HistoryOut = {
+  versions: VersionView[];
+};
+
+export type VersionView = {
+  n: number;
+  saved_at: string;
+  bytes: number;
+};
+
+export type HistoryDiffIn = {
+  bundle: string;
+  version: number;
+};
+
+export type HistoryDiffOut = {
+  added: Link[];
+  removed: Link[];
+  rewritten: RewrittenView[];
+};
+
+export type RewrittenView = {
+  id: string;
+  title: string;
+  changed: string[];
+  demoted: boolean;
+};
+
 export type StampView = {
   modified_nanos: string;
   size: number;
@@ -496,6 +528,8 @@ export type SettingsView = {
   notes_directory: string | null;
   locale: string;
   theme: string;
+  history_depth: number;
+  history_share_percent: number;
 };
 
 export type SearchIn = {
@@ -565,6 +599,8 @@ export type Commands = {
   queue: { input: QueueIn; output: QueueOut };
   repeat: { input: RepeatIn; output: RepeatOut };
   import: { input: ImportIn; output: ImportOut };
+  history: { input: HistoryIn; output: HistoryOut };
+  history_diff: { input: HistoryDiffIn; output: HistoryDiffOut };
   settings: { input: SettingsIn; output: SettingsView };
   search: { input: SearchIn; output: SearchOut };
   provider: { input: ProviderIn; output: ProviderOut };

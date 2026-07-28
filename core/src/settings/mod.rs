@@ -4,7 +4,9 @@ mod render;
 mod types;
 
 pub use error::SettingsError;
-pub use types::{DEFAULT_BUDGET_MB, Locale, Settings, Theme};
+pub use types::{
+    DEFAULT_BUDGET_MB, DEFAULT_HISTORY_DEPTH, DEFAULT_HISTORY_SHARE, Locale, Settings, Theme,
+};
 
 use std::io::ErrorKind;
 use std::path::Path;

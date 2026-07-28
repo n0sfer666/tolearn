@@ -56,6 +56,18 @@ export default function Settings(props: Props) {
     store({ disk_budget_mb: budget });
   };
 
+  const onDepth = (value: string) => {
+    const depth = Number.parseInt(value, 10);
+    if (Number.isNaN(depth) || depth < 0) return;
+    store({ history_depth: depth });
+  };
+
+  const onShare = (value: string) => {
+    const share = Number.parseInt(value, 10);
+    if (Number.isNaN(share) || share < 0 || share > 100) return;
+    store({ history_share_percent: share });
+  };
+
   const onChoose = () => {
     void (async () => {
       const chosen = await choose()();
@@ -76,6 +88,28 @@ export default function Settings(props: Props) {
               aria-label={props.text.settings.budget}
               value={current().disk_budget_mb}
               onChange={(event) => onBudget(event.currentTarget.value)}
+            />
+          </section>
+
+          <section>
+            <h2>{props.text.settings.history}</h2>
+            <p>{props.text.settings.historyLead}</p>
+            <input
+              data-history-depth
+              type="number"
+              min="0"
+              aria-label={props.text.settings.historyDepth}
+              value={current().history_depth}
+              onChange={(event) => onDepth(event.currentTarget.value)}
+            />
+            <input
+              data-history-share
+              type="number"
+              min="0"
+              max="100"
+              aria-label={props.text.settings.historyShare}
+              value={current().history_share_percent}
+              onChange={(event) => onShare(event.currentTarget.value)}
             />
           </section>
 

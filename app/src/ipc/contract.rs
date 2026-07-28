@@ -62,6 +62,8 @@ commands! {
     queue(types::QueueIn) -> types::QueueOut,
     repeat(types::RepeatIn) -> types::RepeatOut,
     import(types::ImportIn) -> types::ImportOut,
+    history(types::HistoryIn) -> types::HistoryOut,
+    history_diff(types::HistoryDiffIn) -> types::HistoryDiffOut,
     settings(types::SettingsIn) -> types::SettingsView,
     search(types::SearchIn) -> types::SearchOut,
     provider(types::ProviderIn) -> types::ProviderOut,

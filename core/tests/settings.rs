@@ -50,6 +50,7 @@ fn настройки_переживают_запись_и_чтение() {
         notes_directory: Some(PathBuf::from("/данные/конспекты")),
         locale: Locale::En,
         theme: Theme::Dark,
+        ..Settings::default()
     };
 
     assert_eq!(kept(&directory, &settings), settings);
@@ -134,4 +135,77 @@ fn путь_с_кавычками_переживает_запись() {
     };
 
     assert_eq!(kept(&directory, &settings), settings);
+}
+
+#[test]
+fn история_настраивается_глубиной_и_долей_бюджета() {
+    let directory = scratch("history");
+    let settings = Settings {
+        history_depth: 3,
+        history_share_percent: 25,
+        disk_budget_mb: 8,
+        ..Settings::default()
+    };
+
+    let kept = kept(&directory, &settings);
+
+    assert_eq!(kept, settings);
+    assert_eq!(kept.history_bytes(), 2 * 1024 * 1024);
+}
+
+#[test]
+fn настройки_прошлых_версий_читаются_без_полей_истории() {
+    let directory = scratch("old");
+    let file = written(
+        &directory,
+        "schema: tolearn/settings/v1\n\
+         disk_budget_mb: 128\n\
+         notes_directory: null\n\
+         locale: ru\n\
+         theme: system\n",
+    );
+
+    let settings = Settings::read(&file).unwrap();
+
+    assert_eq!(settings.history_depth, Settings::default().history_depth);
+    assert_eq!(
+        settings.history_share_percent,
+        Settings::default().history_share_percent
+    );
+}
+
+#[test]
+fn выключенная_история_читается_нулём() {
+    let directory = scratch("off");
+    let file = written(
+        &directory,
+        "schema: tolearn/settings/v1\n\
+         disk_budget_mb: 128\n\
+         notes_directory: null\n\
+         locale: ru\n\
+         theme: system\n\
+         history_depth: 0\n\
+         history_share_percent: 0\n",
+    );
+
+    let settings = Settings::read(&file).unwrap();
+
+    assert_eq!(settings.history_depth, 0);
+    assert_eq!(settings.history_bytes(), 0);
+}
+
+#[test]
+fn доля_истории_больше_ста_процентов_не_читается_молча() {
+    let directory = scratch("share");
+    let file = written(
+        &directory,
+        "schema: tolearn/settings/v1\n\
+         disk_budget_mb: 128\n\
+         notes_directory: null\n\
+         locale: ru\n\
+         theme: system\n\
+         history_share_percent: 101\n",
+    );
+
+    assert!(Settings::read(&file).is_err());
 }

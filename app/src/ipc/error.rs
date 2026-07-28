@@ -34,6 +34,13 @@ impl IpcError {
         Self::new("topic.unknown", format!("темы `{topic}` в бандле нет"))
     }
 
+    pub fn unknown_version(version: u32, roadmap: &str) -> Self {
+        Self::new(
+            "history.unknown-version",
+            format!("версии {version} программы `{roadmap}` в истории нет"),
+        )
+    }
+
     pub fn malformed_date(value: &str) -> Self {
         Self::new("date.malformed", format!("`{value}` — не дата"))
     }
