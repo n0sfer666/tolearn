@@ -65,7 +65,7 @@ impl Source {
 }
 
 impl Verdict {
-    pub(super) fn label(self) -> &'static str {
+    pub fn label(self) -> &'static str {
         match self {
             Self::Pass => "pass",
             Self::Partial => "partial",
@@ -76,7 +76,7 @@ impl Verdict {
 }
 
 impl Outcome {
-    pub(super) fn label(self) -> &'static str {
+    pub fn label(self) -> &'static str {
         match self {
             Self::Ok => "ok",
             Self::Partial => "partial",
@@ -86,7 +86,7 @@ impl Outcome {
 }
 
 impl NextAction {
-    pub(super) fn label(self) -> &'static str {
+    pub fn label(self) -> &'static str {
         match self {
             Self::Proceed => "proceed",
             Self::RetryFailed => "retry_failed",

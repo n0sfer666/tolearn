@@ -258,6 +258,47 @@ export type SaveNoteOut = {
   theirs: string | null;
 };
 
+export type AnswerView = {
+  id: string;
+  outcome: string;
+  missed: string[];
+};
+
+export type VerdictView = {
+  result: string;
+  status: string;
+  gaps: string[];
+  notes: string[];
+  missing: string[];
+  unknown_questions: string[];
+  failed_checks: string[];
+  per_question: AnswerView[];
+  hinted: boolean;
+  practice_accepted: boolean;
+  next_action: string | null;
+  retry_after_days: number | null;
+};
+
+export type ParseVerdictIn = {
+  bundle: string;
+  topic: string;
+  text: string;
+};
+
+export type ApplyVerdictIn = {
+  bundle: string;
+  topic: string;
+  text: string;
+  today: string;
+};
+
+export type ApplyVerdictOut = {
+  status: string;
+  gaps: string[];
+  retry: string[];
+  split_suggested: boolean;
+};
+
 export type PromptIn = {
   bundle: string;
   topic: string;
@@ -276,6 +317,8 @@ export type Commands = {
   set_status: { input: SetStatusIn; output: SetStatusOut };
   note: { input: NoteIn; output: NoteOut };
   save_note: { input: SaveNoteIn; output: SaveNoteOut };
+  parse_verdict: { input: ParseVerdictIn; output: VerdictView };
+  apply_verdict: { input: ApplyVerdictIn; output: ApplyVerdictOut };
   prompt: { input: PromptIn; output: PromptOut };
   programs: { input: ProgramsIn; output: ProgramsOut };
   import: { input: ImportIn; output: ImportOut };

@@ -1,6 +1,7 @@
 ---
 import { LOCALES, localeOf, strings } from "../../../i18n";
 import Base from "../../../layouts/Base.astro";
+import Exam from "../../../islands/Exam";
 
 export function getStaticPaths() {
   return LOCALES.map((locale) => ({ params: { locale } }));
@@ -11,12 +12,10 @@ const text = strings(locale);
 ---
 
 <Base locale={locale} title={text.nav.exam} back={{ href: "/topic/", text: text.nav.topic }}>
-  <section id="prompt">
+  <section id="exam">
     <h2>{text.exam.prompt}</h2>
     <p>{text.exam.promptLead}</p>
-  </section>
-  <section id="verdict">
-    <h2>{text.exam.verdict}</h2>
     <p>{text.exam.verdictLead}</p>
+    <Exam text={text} locale={locale} client:load />
   </section>
 </Base>

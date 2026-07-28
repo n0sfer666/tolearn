@@ -48,6 +48,8 @@ commands! {
     set_status(types::SetStatusIn) -> types::SetStatusOut,
     note(types::NoteIn) -> types::NoteOut,
     save_note(types::SaveNoteIn) -> types::SaveNoteOut,
+    parse_verdict(types::ParseVerdictIn) -> types::VerdictView,
+    apply_verdict(types::ApplyVerdictIn) -> types::ApplyVerdictOut,
     prompt(types::PromptIn) -> types::PromptOut,
     programs(types::ProgramsIn) -> types::ProgramsOut,
     import(types::ImportIn) -> types::ImportOut,

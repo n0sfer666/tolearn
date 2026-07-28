@@ -70,6 +70,20 @@ impl From<ScanError> for IpcError {
     }
 }
 
+impl From<tolearn_core::verdict::VerdictError> for IpcError {
+    fn from(error: tolearn_core::verdict::VerdictError) -> Self {
+        use tolearn_core::verdict::VerdictError as Broken;
+        let code = match error {
+            Broken::NoJson => "verdict.no-json",
+            Broken::Malformed { .. } => "verdict.malformed",
+            Broken::Missing { .. } => "verdict.missing-field",
+            Broken::WrongTopic { .. } => "verdict.wrong-topic",
+            Broken::NoAnswers => "verdict.no-answers",
+        };
+        Self::new(code, error.to_string())
+    }
+}
+
 impl From<DocumentError> for IpcError {
     fn from(error: DocumentError) -> Self {
         Self::new("progress.malformed", error.to_string())

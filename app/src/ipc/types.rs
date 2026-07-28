@@ -215,6 +215,43 @@ dto!(SaveNoteOut {
     theirs: Option<String>
 });
 
+dto!(AnswerView {
+    id: String,
+    outcome: String,
+    missed: Vec<String>
+});
+dto!(VerdictView {
+    result: String,
+    status: String,
+    gaps: Vec<String>,
+    notes: Vec<String>,
+    missing: Vec<String>,
+    unknown_questions: Vec<String>,
+    failed_checks: Vec<String>,
+    per_question: Vec<AnswerView>,
+    hinted: bool,
+    practice_accepted: bool,
+    next_action: Option<String>,
+    retry_after_days: Option<u32>
+});
+dto!(ParseVerdictIn {
+    bundle: String,
+    topic: String,
+    text: String
+});
+dto!(ApplyVerdictIn {
+    bundle: String,
+    topic: String,
+    text: String,
+    today: String
+});
+dto!(ApplyVerdictOut {
+    status: String,
+    gaps: Vec<String>,
+    retry: Vec<String>,
+    split_suggested: bool
+});
+
 dto!(PromptIn {
     bundle: String,
     topic: String,
@@ -260,6 +297,11 @@ pub fn shapes() -> Vec<Shape> {
         NoteOut::shape(),
         SaveNoteIn::shape(),
         SaveNoteOut::shape(),
+        AnswerView::shape(),
+        VerdictView::shape(),
+        ParseVerdictIn::shape(),
+        ApplyVerdictIn::shape(),
+        ApplyVerdictOut::shape(),
         PromptIn::shape(),
         PromptOut::shape(),
     ]

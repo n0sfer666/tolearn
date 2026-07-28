@@ -1,5 +1,7 @@
+pub mod apply_verdict;
 pub mod import;
 pub mod note;
+pub mod parse_verdict;
 pub mod program;
 pub mod programs;
 pub mod prompt;

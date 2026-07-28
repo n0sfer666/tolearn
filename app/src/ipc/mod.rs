@@ -8,6 +8,7 @@ mod open;
 mod shape;
 pub mod types;
 pub mod typescript;
+mod verdict;
 
 pub use context::Context;
 pub use contract::{Descriptor, NAMES, call, descriptors};
