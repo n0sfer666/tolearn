@@ -1,5 +1,5 @@
 mod error;
-mod frontmatter;
+pub(crate) mod frontmatter;
 mod index;
 mod store;
 mod types;

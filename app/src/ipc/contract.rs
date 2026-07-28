@@ -55,6 +55,7 @@ commands! {
     programs(types::ProgramsIn) -> types::ProgramsOut,
     import(types::ImportIn) -> types::ImportOut,
     settings(types::SettingsIn) -> types::SettingsView,
+    search(types::SearchIn) -> types::SearchOut,
 }
 
 #[tauri::command]

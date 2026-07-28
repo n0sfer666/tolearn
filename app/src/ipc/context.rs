@@ -24,6 +24,10 @@ impl Context {
         self.data.join("settings.yaml")
     }
 
+    pub fn search(&self, roadmap: &str) -> PathBuf {
+        self.data.join(format!("search-{roadmap}.yaml"))
+    }
+
     pub fn registry(&self) -> PathBuf {
         self.data.join("registry.yaml")
     }

@@ -6,6 +6,9 @@
 )]
 
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+static COPIES: AtomicUsize = AtomicUsize::new(0);
 
 pub fn repository() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -15,7 +18,11 @@ pub fn repository() -> PathBuf {
 }
 
 pub fn copied(name: &str) -> PathBuf {
-    let directory = std::env::temp_dir().join(format!("tolearn-app-{name}-{}", std::process::id()));
+    let directory = std::env::temp_dir().join(format!(
+        "tolearn-app-{name}-{}-{}",
+        std::process::id(),
+        COPIES.fetch_add(1, Ordering::Relaxed)
+    ));
     if directory.exists() {
         std::fs::remove_dir_all(&directory).unwrap();
     }

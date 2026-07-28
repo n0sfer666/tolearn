@@ -9,6 +9,7 @@ pub mod review;
 pub mod run_check;
 pub mod save_note;
 pub mod scan;
+pub mod search;
 pub mod set_status;
 pub mod settings;
 pub mod topic;

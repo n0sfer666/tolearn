@@ -292,6 +292,24 @@ dto!(SettingsView {
     theme: String,
 });
 
+dto!(SearchIn {
+    bundle: String,
+    query: String,
+    directory: Option<String>,
+    limit: u32,
+});
+dto!(SearchOut {
+    hits: Vec<HitView>,
+    indexed: u32,
+});
+dto!(HitView {
+    kind: String,
+    roadmap: String,
+    topic: String,
+    title: String,
+    snippet: String,
+});
+
 pub fn shapes() -> Vec<Shape> {
     vec![
         ValidateIn::shape(),
@@ -344,5 +362,8 @@ pub fn shapes() -> Vec<Shape> {
         PromptOut::shape(),
         SettingsIn::shape(),
         SettingsView::shape(),
+        SearchIn::shape(),
+        SearchOut::shape(),
+        HitView::shape(),
     ]
 }

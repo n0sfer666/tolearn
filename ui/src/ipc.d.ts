@@ -348,6 +348,26 @@ export type SettingsView = {
   theme: string;
 };
 
+export type SearchIn = {
+  bundle: string;
+  query: string;
+  directory: string | null;
+  limit: number;
+};
+
+export type SearchOut = {
+  hits: HitView[];
+  indexed: number;
+};
+
+export type HitView = {
+  kind: string;
+  roadmap: string;
+  topic: string;
+  title: string;
+  snippet: string;
+};
+
 export type Commands = {
   validate: { input: ValidateIn; output: ValidateOut };
   scan: { input: ScanIn; output: ScanOut };
@@ -364,6 +384,7 @@ export type Commands = {
   programs: { input: ProgramsIn; output: ProgramsOut };
   import: { input: ImportIn; output: ImportOut };
   settings: { input: SettingsIn; output: SettingsView };
+  search: { input: SearchIn; output: SearchOut };
 };
 
 export type CommandName = keyof Commands;

@@ -56,7 +56,7 @@ pub fn scan(root: &Path) -> Result<Scan, ScanError> {
     })
 }
 
-fn manifest(root: &Path) -> Result<(Format, PathBuf), ScanError> {
+pub(crate) fn manifest(root: &Path) -> Result<(Format, PathBuf), ScanError> {
     let yaml = root.join("roadmap.yaml");
     let json = root.join("roadmap.json");
     match (yaml.exists(), json.exists()) {

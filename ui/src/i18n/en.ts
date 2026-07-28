@@ -11,6 +11,7 @@ export const en: Dictionary = {
     exam: "Exam",
     review: "Review",
     settings: "Settings",
+    search: "Search",
     back: "Back",
   },
   programs: {
@@ -124,6 +125,16 @@ export const en: Dictionary = {
     conflictLead: "Versions are not merged. Both are below — carry over what you need and re-read.",
     theirs: "Version on disk",
     ours: "Version in the window",
+  },
+  search: {
+    lead: "Searches the topics, materials and notes of the open program.",
+    placeholder: "What to look for",
+    find: "Find",
+    nothing: "Nothing found",
+    failed: "The search failed",
+    topic: "topic",
+    material: "material",
+    note: "note",
   },
   settings: {
     lead: "Changes take effect at once, no restart needed.",
