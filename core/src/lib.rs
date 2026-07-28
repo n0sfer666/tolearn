@@ -12,6 +12,7 @@ pub mod registry;
 pub mod review;
 pub mod roadmap;
 pub mod scan;
+pub mod settings;
 pub mod status;
 pub mod summary;
 pub mod topic;

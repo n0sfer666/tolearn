@@ -337,6 +337,17 @@ export type PromptOut = {
   text: string;
 };
 
+export type SettingsIn = {
+  save: SettingsView | null;
+};
+
+export type SettingsView = {
+  disk_budget_mb: number;
+  notes_directory: string | null;
+  locale: string;
+  theme: string;
+};
+
 export type Commands = {
   validate: { input: ValidateIn; output: ValidateOut };
   scan: { input: ScanIn; output: ScanOut };
@@ -352,6 +363,7 @@ export type Commands = {
   prompt: { input: PromptIn; output: PromptOut };
   programs: { input: ProgramsIn; output: ProgramsOut };
   import: { input: ImportIn; output: ImportOut };
+  settings: { input: SettingsIn; output: SettingsView };
 };
 
 export type CommandName = keyof Commands;

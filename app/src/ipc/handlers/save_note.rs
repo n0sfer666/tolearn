@@ -7,7 +7,7 @@ use crate::ipc::types::{SaveNoteIn, SaveNoteOut};
 
 pub fn run(context: &Context, input: &SaveNoteIn) -> Result<SaveNoteOut, IpcError> {
     let written = save(
-        &root(context, input.directory.as_ref()),
+        &root(context, input.directory.as_ref())?,
         &roadmap(&input.bundle)?,
         &input.topic,
         &input.body,

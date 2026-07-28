@@ -10,8 +10,13 @@ pub fn roadmap(bundle: &str) -> Result<String, IpcError> {
     Ok(crate::ipc::open::read(bundle)?.roadmap.id)
 }
 
-pub fn root(context: &Context, directory: Option<&String>) -> PathBuf {
-    directory.map_or_else(|| context.notes(), PathBuf::from)
+pub fn root(context: &Context, directory: Option<&String>) -> Result<PathBuf, IpcError> {
+    if let Some(asked) = directory {
+        return Ok(PathBuf::from(asked));
+    }
+    Ok(crate::ipc::settings::stored(context)?
+        .notes_directory
+        .unwrap_or_else(|| context.notes()))
 }
 
 pub fn view(stamp: Stamp) -> StampView {

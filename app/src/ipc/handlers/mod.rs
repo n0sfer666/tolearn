@@ -10,5 +10,6 @@ pub mod run_check;
 pub mod save_note;
 pub mod scan;
 pub mod set_status;
+pub mod settings;
 pub mod topic;
 pub mod validate;

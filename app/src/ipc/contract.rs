@@ -54,6 +54,7 @@ commands! {
     prompt(types::PromptIn) -> types::PromptOut,
     programs(types::ProgramsIn) -> types::ProgramsOut,
     import(types::ImportIn) -> types::ImportOut,
+    settings(types::SettingsIn) -> types::SettingsView,
 }
 
 #[tauri::command]

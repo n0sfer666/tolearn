@@ -284,6 +284,14 @@ dto!(PromptIn {
 });
 dto!(PromptOut { text: String });
 
+dto!(SettingsIn { save: Option<SettingsView> });
+dto!(SettingsView {
+    disk_budget_mb: u32,
+    notes_directory: Option<String>,
+    locale: String,
+    theme: String,
+});
+
 pub fn shapes() -> Vec<Shape> {
     vec![
         ValidateIn::shape(),
@@ -334,5 +342,7 @@ pub fn shapes() -> Vec<Shape> {
         ReviewOut::shape(),
         PromptIn::shape(),
         PromptOut::shape(),
+        SettingsIn::shape(),
+        SettingsView::shape(),
     ]
 }

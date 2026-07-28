@@ -5,6 +5,7 @@ mod error;
 mod handlers;
 mod notes;
 mod open;
+mod settings;
 mod shape;
 pub mod types;
 pub mod typescript;

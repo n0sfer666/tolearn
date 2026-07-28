@@ -7,7 +7,7 @@ use crate::ipc::types::{NoteIn, NoteOut};
 
 pub fn run(context: &Context, input: &NoteIn) -> Result<NoteOut, IpcError> {
     let found = read(
-        &root(context, input.directory.as_ref()),
+        &root(context, input.directory.as_ref())?,
         &roadmap(&input.bundle)?,
         &input.topic,
     )

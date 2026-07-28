@@ -10,6 +10,7 @@ export const en: Dictionary = {
     topic: "Topic",
     exam: "Exam",
     review: "Review",
+    settings: "Settings",
     back: "Back",
   },
   programs: {
@@ -123,6 +124,18 @@ export const en: Dictionary = {
     conflictLead: "Versions are not merged. Both are below — carry over what you need and re-read.",
     theirs: "Version on disk",
     ours: "Version in the window",
+  },
+  settings: {
+    lead: "Changes take effect at once, no restart needed.",
+    budget: "Disk budget, MB",
+    notes: "Notes directory",
+    notesOwn: "own directory inside the application",
+    choose: "Choose a directory",
+    reset: "Back to the own directory",
+    language: "Language",
+    theme: "Theme",
+    saved: "saved",
+    failed: "not saved",
   },
   status: {
     todo: "not started",

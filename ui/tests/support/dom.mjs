@@ -9,6 +9,7 @@ export function browser(url = "https://tolearn.local/") {
   globalThis.HTMLElement = window.HTMLElement;
   globalThis.Event = window.Event;
   globalThis.CustomEvent = window.CustomEvent;
+  globalThis.localStorage = window.localStorage;
   return window;
 }
 

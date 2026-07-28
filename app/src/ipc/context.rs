@@ -20,6 +20,10 @@ impl Context {
         self.data.join("notes")
     }
 
+    pub fn settings(&self) -> PathBuf {
+        self.data.join("settings.yaml")
+    }
+
     pub fn registry(&self) -> PathBuf {
         self.data.join("registry.yaml")
     }
