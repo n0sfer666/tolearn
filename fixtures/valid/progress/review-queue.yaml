@@ -1,0 +1,47 @@
+schema: learning-roadmap/progress/v1
+roadmap_id: llm-agents-base
+topics:
+  local-runtime:
+    status: passed
+    attempts: []
+    passed_at: "2026-04-21"
+    next_review_at: "2026-07-20"
+    gaps: []
+  openai-compatible-api:
+    status: passed
+    attempts: []
+    passed_at: "2026-04-29"
+    next_review_at: "2026-07-28"
+    gaps: []
+  tokens-context-cost:
+    status: stale_passed
+    attempts: []
+    passed_at: "2026-04-10"
+    next_review_at: "2026-07-09"
+    gaps:
+      - |
+        Считает стоимость по токенам ответа и забывает про контекст.
+  structured-output:
+    status: passed
+    attempts: []
+    passed_at: "2026-07-26"
+    next_review_at: "2026-10-24"
+    gaps: []
+  model-selection:
+    status: in_progress
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []
+  provider-routing:
+    status: todo
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []
+  cp-gateway:
+    status: todo
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []

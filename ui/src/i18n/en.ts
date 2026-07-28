@@ -12,6 +12,7 @@ export const en: Dictionary = {
     review: "Review",
     settings: "Settings",
     search: "Search",
+    queue: "Review queue",
     back: "Back",
   },
   programs: {
@@ -60,6 +61,15 @@ export const en: Dictionary = {
     review: "Open the review",
     ask: "Ask the model",
     asking: "Asking the model…",
+  },
+  queue: {
+    lead: "Topics whose review date has come — across every program at once.",
+    overdue: "Overdue",
+    today: "Today",
+    repeat: "Reviewed",
+    repeating: "Saving…",
+    empty: "Nothing to review today.",
+    failed: "the review date could not be moved",
   },
   review: {
     gaps: "Gaps",

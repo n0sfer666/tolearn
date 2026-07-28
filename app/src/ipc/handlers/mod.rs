@@ -7,6 +7,8 @@ pub mod program;
 pub mod programs;
 pub mod prompt;
 pub mod provider;
+pub mod queue;
+pub mod repeat;
 pub mod review;
 pub mod run_check;
 pub mod save_note;

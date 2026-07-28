@@ -79,6 +79,13 @@ impl Document {
         })
     }
 
+    pub fn reschedule(&mut self, topic: &str, date: &str) -> Result<(), DocumentError> {
+        self.edit(|root, format| {
+            set(root, topic, "next_review_at", Some(date))?;
+            render(root, format)
+        })
+    }
+
     pub fn restate(&mut self, topic: &str, status: Status) -> Result<(), DocumentError> {
         self.edit(|root, format| {
             set(root, topic, "status", Some(status.label()))?;

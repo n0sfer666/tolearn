@@ -41,7 +41,8 @@ const here = Astro.url.pathname;
         }
       </nav>
       <ThemeSwitch locale={locale} />
-      <a href={localized("/search/", locale)} data-search>{text.nav.search}</a>
+      <a href={localized("/queue/", locale)} data-queue>{text.nav.queue}</a>
+    <a href={localized("/search/", locale)} data-search>{text.nav.search}</a>
       <a href={localized("/settings/", locale)} data-settings>{text.nav.settings}</a>
     </header>
     <main>

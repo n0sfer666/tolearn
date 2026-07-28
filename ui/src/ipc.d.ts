@@ -202,6 +202,34 @@ export type Card = {
   tally: Tally | null;
 };
 
+export type QueueIn = {
+  today: string;
+};
+
+export type QueueOut = {
+  due: DueView[];
+};
+
+export type DueView = {
+  program: string;
+  title: string;
+  bundle: string;
+  topic: string;
+  topic_title: string;
+  due: string;
+  overdue: boolean;
+};
+
+export type RepeatIn = {
+  bundle: string;
+  topic: string;
+  today: string;
+};
+
+export type RepeatOut = {
+  next_review_at: string | null;
+};
+
 export type ImportIn = {
   path: string;
   today: string;
@@ -416,6 +444,8 @@ export type Commands = {
   prompt: { input: PromptIn; output: PromptOut };
   examine: { input: ExamineIn; output: ExamineOut };
   programs: { input: ProgramsIn; output: ProgramsOut };
+  queue: { input: QueueIn; output: QueueOut };
+  repeat: { input: RepeatIn; output: RepeatOut };
   import: { input: ImportIn; output: ImportOut };
   settings: { input: SettingsIn; output: SettingsView };
   search: { input: SearchIn; output: SearchOut };

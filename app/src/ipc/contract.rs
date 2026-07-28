@@ -54,6 +54,8 @@ commands! {
     prompt(types::PromptIn) -> types::PromptOut,
     examine(types::ExamineIn) -> types::ExamineOut,
     programs(types::ProgramsIn) -> types::ProgramsOut,
+    queue(types::QueueIn) -> types::QueueOut,
+    repeat(types::RepeatIn) -> types::RepeatOut,
     import(types::ImportIn) -> types::ImportOut,
     settings(types::SettingsIn) -> types::SettingsView,
     search(types::SearchIn) -> types::SearchOut,

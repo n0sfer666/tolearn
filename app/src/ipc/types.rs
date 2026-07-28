@@ -166,6 +166,25 @@ dto!(Card {
     tally: Option<Tally>,
 });
 
+dto!(QueueIn { today: String });
+dto!(QueueOut { due: Vec<DueView> });
+dto!(DueView {
+    program: String,
+    title: String,
+    bundle: String,
+    topic: String,
+    topic_title: String,
+    due: String,
+    overdue: bool,
+});
+
+dto!(RepeatIn {
+    bundle: String,
+    topic: String,
+    today: String,
+});
+dto!(RepeatOut { next_review_at: Option<String> });
+
 dto!(ImportIn {
     path: String,
     today: String,
@@ -365,6 +384,11 @@ pub fn shapes() -> Vec<Shape> {
         ProgramsIn::shape(),
         ProgramsOut::shape(),
         Card::shape(),
+        QueueIn::shape(),
+        QueueOut::shape(),
+        DueView::shape(),
+        RepeatIn::shape(),
+        RepeatOut::shape(),
         ImportIn::shape(),
         ImportOut::shape(),
         Merged::shape(),
