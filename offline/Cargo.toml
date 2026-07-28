@@ -12,6 +12,9 @@ publish.workspace = true
 tolearn-core.workspace = true
 rusqlite.workspace = true
 sha2.workspace = true
+monolith.workspace = true
+url.workspace = true
+markup5ever_rcdom.workspace = true
 
 [lints]
 workspace = true
