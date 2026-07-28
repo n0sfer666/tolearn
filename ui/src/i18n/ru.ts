@@ -26,8 +26,10 @@ export const ru = {
     stale: "требует ревалидации",
     orphaned: "осиротело",
     progress: "пройдено",
+    filter: "Фильтр (/)",
   },
   program: {
+    filter: "Фильтр (/)",
     stages: "Этапы",
     lead: "Лента этапов с темами и чекпойнтами.",
     checkpoint: "чекпойнт",

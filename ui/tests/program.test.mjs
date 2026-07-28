@@ -201,3 +201,16 @@ test("часы темы показаны интервалом", async () => {
 
   assert.match(at(host, "local-runtime").textContent, /4\D+6/);
 });
+
+test("фильтр оставляет в этапах только совпавшие темы", async () => {
+  const { host } = mount();
+  await settled();
+
+  const field = host.querySelector("[data-filter]");
+  field.value = "шлюз";
+  field.dispatchEvent(new Event("input", { bubbles: true }));
+  await settled();
+
+  assert.equal(host.querySelector('[data-topic="local-runtime"]'), null);
+  assert.ok(host.querySelector('[data-topic="cp-gateway"]'), "совпавшая тема пропала");
+});

@@ -1,6 +1,7 @@
 import { For, Show, createSignal, onMount } from "solid-js";
 
 import type { Card, ImportOut, Merged } from "../ipc";
+import { matches } from "../lib/filter";
 import { drops as listen, pick as choose, transport } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
 
@@ -19,6 +20,7 @@ interface Props {
     stale: string;
     orphaned: string;
     progress: string;
+    filter: string;
   };
   today?: string;
   call?: Transport;
@@ -34,6 +36,7 @@ export default function Programs(props: Props) {
   const [report, setReport] = createSignal<Merged | null>(null);
   const [refused, setRefused] = createSignal<string[]>([]);
   const [busy, setBusy] = createSignal(false);
+  const [needle, setNeedle] = createSignal("");
 
   const list = async () => {
     const { programs } = await call()("programs", { today: today() });
@@ -65,6 +68,8 @@ export default function Programs(props: Props) {
       if (first !== undefined) void accept(first);
     });
   });
+
+  const shown = () => cards().filter((card) => matches(card.title, needle()));
 
   const take = async () => {
     const chosen = await (props.pick ?? choose)();
@@ -120,8 +125,16 @@ export default function Programs(props: Props) {
 
       <h2>{props.text.list}</h2>
       <Show when={cards().length > 0} fallback={<p>{props.text.listLead}</p>}>
+        <input
+          type="search"
+          data-filter
+          aria-label={props.text.filter}
+          placeholder={props.text.filter}
+          value={needle()}
+          onInput={(event) => setNeedle(event.currentTarget.value)}
+        />
         <ul class="cards">
-          <For each={cards()}>
+          <For each={shown()}>
             {(card) => (
               <li data-program={card.id}>
                 <a href={`/program/?program=${encodeURIComponent(card.path)}`}>{card.title}</a>

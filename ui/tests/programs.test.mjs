@@ -157,3 +157,17 @@ test("отменённый выбор папки ничего не импорт�
 
   assert.equal(calls.filter(({ name }) => name === "import").length, 0);
 });
+
+test("фильтр оставляет в списке только совпавшие программы", async () => {
+  const other = { ...CARD, id: "rust-core", title: "Ядро на Rust", path: "/programs/rust-core" };
+  const { host } = mount({ listing: [CARD, other] });
+  await settled();
+
+  const field = host.querySelector("[data-filter]");
+  field.value = "ядро";
+  field.dispatchEvent(new Event("input", { bubbles: true }));
+  await settled();
+
+  assert.equal(host.querySelector('[data-program="llm-agents-base"]'), null);
+  assert.ok(host.querySelector('[data-program="rust-core"]'), "совпавшая программа пропала");
+});

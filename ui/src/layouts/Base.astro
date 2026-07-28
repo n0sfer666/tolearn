@@ -3,6 +3,7 @@ import "@design/tokens.css";
 import "../styles/base.css";
 
 import EarlyTheme from "../components/EarlyTheme.astro";
+import Keyboard from "../components/Keyboard.astro";
 import RememberLocale from "../components/RememberLocale.astro";
 import ThemeSwitch from "../components/ThemeSwitch.astro";
 import { LOCALES, type Locale, localized, strings } from "../i18n";
@@ -28,7 +29,7 @@ const here = Astro.url.pathname;
   </head>
   <body>
     <header>
-      {back && <a href={localized(back.href, locale)}>{back.text}</a>}
+      {back && <a href={localized(back.href, locale)} data-back>{back.text}</a>}
       <h1>{title}</h1>
       <nav aria-label={text.language.switch}>
         {
@@ -45,5 +46,6 @@ const here = Astro.url.pathname;
       <slot />
     </main>
     <RememberLocale />
+    <Keyboard />
   </body>
 </html>

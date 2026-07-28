@@ -4,6 +4,7 @@ import { GLYPHS, type Status } from "../components/status";
 import type { Dictionary } from "../i18n/ru";
 import { type Locale, plural } from "../i18n";
 import type { Stage, TopicStatus } from "../ipc";
+import { matches } from "../lib/filter";
 import { transport } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
 
@@ -30,6 +31,7 @@ export default function Program(props: Props) {
 
   const [stages, setStages] = createSignal<Stage[]>([]);
   const [topics, setTopics] = createSignal<TopicStatus[]>([]);
+  const [needle, setNeedle] = createSignal("");
 
   onMount(() => {
     void (async () => {
@@ -39,13 +41,22 @@ export default function Program(props: Props) {
     })();
   });
 
-  const of = (stage: Stage) => topics().filter((topic) => topic.stage === stage.n);
+  const of = (stage: Stage) =>
+    topics().filter((topic) => topic.stage === stage.n && matches(topic.title, needle()));
   const label = (status: string) => (known(status) ? props.text.status[status] : status);
   const href = (topic: TopicStatus) =>
     `/${props.locale}/topic/?program=${encodeURIComponent(path())}&topic=${encodeURIComponent(topic.id)}`;
 
   return (
     <section>
+      <input
+        type="search"
+        data-filter
+        aria-label={props.text.program.filter}
+        placeholder={props.text.program.filter}
+        value={needle()}
+        onInput={(event) => setNeedle(event.currentTarget.value)}
+      />
       <For each={stages()}>
         {(stage) => (
           <article data-stage={stage.n}>

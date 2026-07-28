@@ -28,8 +28,10 @@ export const en: Dictionary = {
     stale: "needs revalidation",
     orphaned: "orphaned",
     progress: "done",
+    filter: "Filter (/)",
   },
   program: {
+    filter: "Filter (/)",
     stages: "Stages",
     lead: "Stages with their topics and checkpoints.",
     checkpoint: "checkpoint",

@@ -42,12 +42,12 @@ a {
   color: var(--color-accent);
 }
 
-:where(a, button, input, summary, [tabindex]):focus-visible {
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
   outline: var(--focus-ring) solid var(--color-focus);
   outline-offset: var(--focus-ring);
 }
 
-:where(a, button, input, summary) {
+:where(a, button, input, textarea, select, summary) {
   min-height: var(--tap-target);
 }
 
