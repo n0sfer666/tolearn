@@ -47,6 +47,7 @@ impl std::error::Error for VaultError {}
 pub enum CheckError {
     Disabled,
     NoKey,
+    NoModel,
     Unreachable(String),
     Rejected,
     Answered(u16),
@@ -58,6 +59,7 @@ impl CheckError {
         match self {
             Self::Disabled => "provider.disabled",
             Self::NoKey => "provider.no-key",
+            Self::NoModel => "provider.no-model",
             Self::Unreachable(_) => "provider.unreachable",
             Self::Rejected => "provider.rejected",
             Self::Answered(_) => "provider.answered",
@@ -71,10 +73,11 @@ impl fmt::Display for CheckError {
         match self {
             Self::Disabled => write!(out, "провайдер выключен"),
             Self::NoKey => write!(out, "ключ не задан"),
+            Self::NoModel => write!(out, "модель не выбрана"),
             Self::Unreachable(reason) => write!(out, "провайдер не отвечает: {reason}"),
             Self::Rejected => write!(out, "провайдер отверг ключ"),
             Self::Answered(status) => write!(out, "провайдер ответил кодом {status}"),
-            Self::BadAnswer => write!(out, "провайдер ответил не списком моделей"),
+            Self::BadAnswer => write!(out, "провайдер ответил не в том формате, которого ждали"),
         }
     }
 }

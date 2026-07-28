@@ -337,6 +337,15 @@ export type PromptOut = {
   text: string;
 };
 
+export type ExamineIn = {
+  bundle: string;
+  topic: string;
+};
+
+export type ExamineOut = {
+  text: string;
+};
+
 export type SettingsIn = {
   save: SettingsView | null;
 };
@@ -405,6 +414,7 @@ export type Commands = {
   apply_verdict: { input: ApplyVerdictIn; output: ApplyVerdictOut };
   review: { input: ReviewIn; output: ReviewOut };
   prompt: { input: PromptIn; output: PromptOut };
+  examine: { input: ExamineIn; output: ExamineOut };
   programs: { input: ProgramsIn; output: ProgramsOut };
   import: { input: ImportIn; output: ImportOut };
   settings: { input: SettingsIn; output: SettingsView };

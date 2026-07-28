@@ -42,6 +42,22 @@ function mount(options = {}) {
   const call = (name, payload) => {
     calls.push({ name, payload });
     if (name === "prompt") return Promise.resolve({ text: "Текст промпта" });
+    if (name === "provider") {
+      return Promise.resolve({
+        provider: {
+          enabled: options.provider === true,
+          flavor: "ollama",
+          endpoint: "http://127.0.0.1:11434",
+          model: "llama3:8b",
+        },
+        has_key: false,
+        checked: null,
+      });
+    }
+    if (name === "examine") {
+      if (options.refuse !== undefined) return Promise.reject({ code: options.refuse });
+      return Promise.resolve({ text: options.said ?? "ответ модели целиком" });
+    }
     if (name === "parse_verdict") {
       if (options.broken === true) {
         return Promise.reject(new Error("в ответе нет блока JSON с вердиктом"));
@@ -76,7 +92,8 @@ function mount(options = {}) {
       }),
     host,
   );
-  return { host, calls, copied };
+  const only = (name) => calls.filter((made) => made.name === name);
+  return { host, calls, copied, only };
 }
 
 function paste(host, text) {
@@ -86,10 +103,10 @@ function paste(host, text) {
 }
 
 test("промпт готов к копированию одним действием", async () => {
-  const { host, calls, copied } = mount();
+  const { host, only, copied } = mount();
   await settled();
 
-  assert.deepEqual(calls[0], {
+  assert.deepEqual(only("prompt")[0], {
     name: "prompt",
     payload: { bundle: "/programs/llm-agents-base", topic: "local-runtime" },
   });
@@ -112,14 +129,14 @@ test("без буфера обмена промпт всё равно виден
 });
 
 test("разбор идёт по нажатию и ничего не применяет сам", async () => {
-  const { host, calls } = mount();
+  const { host, only } = mount();
   await settled();
 
   paste(host, "ответ модели целиком");
   host.querySelector("[data-parse]").click();
   await settled();
 
-  assert.deepEqual(calls[1], {
+  assert.deepEqual(only("parse_verdict")[0], {
     name: "parse_verdict",
     payload: {
       bundle: "/programs/llm-agents-base",
@@ -127,12 +144,12 @@ test("разбор идёт по нажатию и ничего не приме�
       text: "ответ модели целиком",
     },
   });
-  assert.equal(calls.length, 2, "вердикт применён без человека");
+  assert.equal(only("apply_verdict").length, 0, "вердикт применён без человека");
   assert.match(host.querySelector("[data-parsed]").textContent, new RegExp(ru.status.passed));
 });
 
 test("применение уходит тем же текстом ответа, а не выдранным JSON", async () => {
-  const { host, calls } = mount();
+  const { host, only } = mount();
   await settled();
 
   paste(host, "проза, а внутри ```json {...} ```");
@@ -141,7 +158,7 @@ test("применение уходит тем же текстом ответа,
   host.querySelector("[data-apply]").click();
   await settled();
 
-  assert.deepEqual(calls[2], {
+  assert.deepEqual(only("apply_verdict")[0], {
     name: "apply_verdict",
     payload: {
       bundle: "/programs/llm-agents-base",
@@ -168,7 +185,7 @@ test("пропущенные поля названы, но применение 
 });
 
 test("нераспознанный ответ говорит об этом и не даёт применить", async () => {
-  const { host, calls } = mount({ broken: true });
+  const { host, only } = mount({ broken: true });
   await settled();
 
   paste(host, "проза без json");
@@ -177,7 +194,7 @@ test("нераспознанный ответ говорит об этом и н
 
   assert.match(host.querySelector("[data-broken]").textContent, new RegExp(ru.exam.broken));
   assert.equal(host.querySelector("[data-apply]"), null);
-  assert.equal(calls.length, 2);
+  assert.equal(only("apply_verdict").length, 0);
 });
 
 test("три провала подряд ведут на разбор", async () => {
@@ -192,4 +209,60 @@ test("три провала подряд ведут на разбор", async ()
 
   assert.match(host.querySelector("[data-split]").textContent, new RegExp(ru.exam.split));
   assert.match(host.querySelector("[data-review-link]").getAttribute("href"), /\/ru\/review\/\?program=/);
+});
+
+test("включённый провайдер спрашивает модель прямо здесь", async () => {
+  const { host, only } = mount({ provider: true });
+  await settled();
+
+  host.querySelector("[data-ask]").click();
+  await settled();
+
+  assert.deepEqual(only("examine")[0].payload, {
+    bundle: "/programs/llm-agents-base",
+    topic: "local-runtime",
+  });
+  assert.equal(host.querySelector("[data-verdict-input]").value, "ответ модели целиком");
+  assert.equal(only("parse_verdict")[0].payload.text, "ответ модели целиком");
+  assert.match(host.querySelector("[data-parsed]").textContent, new RegExp(ru.status.passed));
+});
+
+test("ответ модели правится руками до применения", async () => {
+  const { host, only } = mount({ provider: true });
+  await settled();
+
+  host.querySelector("[data-ask]").click();
+  await settled();
+  paste(host, "правленый ответ");
+  host.querySelector("[data-apply]").click();
+  await settled();
+
+  assert.equal(only("apply_verdict")[0].payload.text, "правленый ответ");
+});
+
+test("выключенный провайдер оставляет копипаст-цикл", async () => {
+  const { host, only } = mount();
+  await settled();
+
+  assert.equal(host.querySelector("[data-ask]"), null);
+  paste(host, "ответ вставлен руками");
+  host.querySelector("[data-parse]").click();
+  await settled();
+
+  assert.equal(only("examine").length, 0);
+  assert.equal(only("parse_verdict")[0].payload.text, "ответ вставлен руками");
+  assert.match(host.querySelector("[data-parsed]").textContent, new RegExp(ru.status.passed));
+});
+
+test("отказ провайдера объясняется словами и не стирает вставленное", async () => {
+  const { host, only } = mount({ provider: true, refuse: "provider.unreachable" });
+  await settled();
+
+  paste(host, "вставлено руками");
+  host.querySelector("[data-ask]").click();
+  await settled();
+
+  assert.equal(host.querySelector("[data-ask-failed]").textContent, ru.provider.unreachable);
+  assert.equal(host.querySelector("[data-verdict-input]").value, "вставлено руками");
+  assert.equal(only("parse_verdict").length, 0);
 });

@@ -58,6 +58,8 @@ export const en: Dictionary = {
     unknown: "questions from another topic",
     split: "three failures in a row — the topic is worth splitting",
     review: "Open the review",
+    ask: "Ask the model",
+    asking: "Asking the model…",
   },
   review: {
     gaps: "Gaps",
@@ -168,10 +170,11 @@ export const en: Dictionary = {
     failed: "failed",
     disabled: "The provider is disabled",
     noKey: "No key set",
+    noModel: "No model is chosen",
     unreachable: "The provider does not answer",
     rejected: "The provider refused the key",
     answered: "The provider answered with an error",
-    badAnswer: "The answer is not a list of models",
+    badAnswer: "The provider answered in an unexpected format",
     vault: "The system store did not answer",
   },
   status: {

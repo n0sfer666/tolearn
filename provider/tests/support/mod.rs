@@ -5,7 +5,7 @@
     reason = "provider gate: a panic here is the report"
 )]
 
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpListener;
 use std::sync::{Arc, Mutex, PoisonError};
 
@@ -41,6 +41,9 @@ pub fn stub(status: &'static str, body: &'static str) -> Stub {
                 }
                 head.push_str(&line);
             }
+            let mut sent = vec![0; length(&head)];
+            let _ = reader.read_exact(&mut sent);
+            head.push_str(&String::from_utf8_lossy(&sent));
             seen.lock()
                 .unwrap_or_else(PoisonError::into_inner)
                 .push(head);
@@ -56,6 +59,16 @@ pub fn stub(status: &'static str, body: &'static str) -> Stub {
     });
 
     Stub { endpoint, heard }
+}
+
+fn length(head: &str) -> usize {
+    head.lines()
+        .find_map(|line| {
+            let (name, value) = line.split_once(':')?;
+            name.eq_ignore_ascii_case("content-length")
+                .then(|| value.trim().parse().ok())?
+        })
+        .unwrap_or(0)
 }
 
 pub fn closed() -> String {

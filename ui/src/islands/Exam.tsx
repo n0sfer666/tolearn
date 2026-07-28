@@ -7,6 +7,7 @@ import type { Locale } from "../i18n";
 import { copy as toClipboard } from "../lib/clipboard";
 import { label } from "../components/status";
 import { query } from "../lib/query";
+import { reason } from "../lib/provider";
 import { transport } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
 
@@ -34,11 +35,23 @@ export default function Exam(props: Props) {
   const [parsed, setParsed] = createSignal<VerdictView | null>(null);
   const [broken, setBroken] = createSignal(false);
   const [applied, setApplied] = createSignal<ApplyVerdictOut | null>(null);
+  const [built, setBuilt] = createSignal(false);
+  const [asking, setAsking] = createSignal(false);
+  const [refused, setRefused] = createSignal("");
 
   onMount(() => {
     void (async () => {
       const out = await call()("prompt", { bundle: program(), topic: id() });
       setPrompt(out.text);
+    })();
+    void (async () => {
+      const out = await call()("provider", {
+        save: null,
+        key: null,
+        forget: false,
+        check: false,
+      });
+      setBuilt(out.provider.enabled);
     })();
   });
 
@@ -63,6 +76,21 @@ export default function Exam(props: Props) {
         setParsed(null);
         setBroken(true);
       }
+    })();
+  };
+
+  const onAsk = () => {
+    void (async () => {
+      setAsking(true);
+      setRefused("");
+      try {
+        const out = await call()("examine", { bundle: program(), topic: id() });
+        setAnswer(out.text);
+        onParse();
+      } catch (error) {
+        setRefused(reason(error, props.text));
+      }
+      setAsking(false);
     })();
   };
 
@@ -110,7 +138,15 @@ export default function Exam(props: Props) {
         <button type="button" data-parse onClick={onParse}>
           {props.text.exam.parse}
         </button>
+        <Show when={built()}>
+          <button type="button" data-ask disabled={asking()} onClick={onAsk}>
+            {asking() ? props.text.exam.asking : props.text.exam.ask}
+          </button>
+        </Show>
       </p>
+      <Show when={refused() !== ""}>
+        <p data-ask-failed>{refused()}</p>
+      </Show>
 
       <Show when={broken()}>
         <p data-broken>{props.text.exam.broken}</p>

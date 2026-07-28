@@ -284,6 +284,12 @@ dto!(PromptIn {
 });
 dto!(PromptOut { text: String });
 
+dto!(ExamineIn {
+    bundle: String,
+    topic: String,
+});
+dto!(ExamineOut { text: String });
+
 dto!(SettingsIn { save: Option<SettingsView> });
 dto!(SettingsView {
     disk_budget_mb: u32,
@@ -379,6 +385,8 @@ pub fn shapes() -> Vec<Shape> {
         ReviewOut::shape(),
         PromptIn::shape(),
         PromptOut::shape(),
+        ExamineIn::shape(),
+        ExamineOut::shape(),
         SettingsIn::shape(),
         SettingsView::shape(),
         SearchIn::shape(),

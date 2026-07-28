@@ -52,6 +52,7 @@ commands! {
     apply_verdict(types::ApplyVerdictIn) -> types::ApplyVerdictOut,
     review(types::ReviewIn) -> types::ReviewOut,
     prompt(types::PromptIn) -> types::PromptOut,
+    examine(types::ExamineIn) -> types::ExamineOut,
     programs(types::ProgramsIn) -> types::ProgramsOut,
     import(types::ImportIn) -> types::ImportOut,
     settings(types::SettingsIn) -> types::SettingsView,

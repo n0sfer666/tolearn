@@ -5,13 +5,14 @@
     reason = "app gate: a panic here is the report"
 )]
 
-use std::io::{BufRead, BufReader, Write};
-use std::net::TcpListener;
+mod support;
+
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use serde_json::{Value, json};
+use support::stub;
 use tolearn_app::ipc::{Context, IpcError, call};
 use tolearn_provider::{Remembered, Vault};
 
@@ -62,30 +63,6 @@ fn save(case: &Case, provider: Value, key: Value, check: bool) -> Result<Value, 
 
 fn settings(endpoint: &str, flavor: &str) -> Value {
     json!({ "enabled": true, "flavor": flavor, "endpoint": endpoint, "model": "llama3:8b" })
-}
-
-fn stub(status: &'static str, body: &'static str) -> String {
-    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-    let endpoint = format!("http://{}", listener.local_addr().unwrap());
-    std::thread::spawn(move || {
-        for stream in listener.incoming().flatten() {
-            let mut reader = BufReader::new(&stream);
-            loop {
-                let mut line = String::new();
-                if reader.read_line(&mut line).unwrap_or(0) == 0 || line == "\r\n" {
-                    break;
-                }
-            }
-            let mut answer = &stream;
-            let _ = write!(
-                answer,
-                "HTTP/1.1 {status}\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{body}",
-                body.len()
-            );
-            let _ = answer.flush();
-        }
-    });
-    endpoint
 }
 
 #[test]
@@ -159,9 +136,15 @@ fn забытый_ключ_уходит_из_хранилища() {
 #[test]
 fn проверка_соединения_возвращает_модели() {
     let case = case("check");
-    let endpoint = stub("200 OK", OLLAMA);
+    let heard = stub("200 OK", OLLAMA);
 
-    let answer = save(&case, settings(&endpoint, "ollama"), Value::Null, true).unwrap();
+    let answer = save(
+        &case,
+        settings(&heard.endpoint, "ollama"),
+        Value::Null,
+        true,
+    )
+    .unwrap();
 
     assert_eq!(answer["checked"]["models"], json!(["llama3:8b"]));
 }
@@ -169,11 +152,11 @@ fn проверка_соединения_возвращает_модели() {
 #[test]
 fn отказ_провайдера_приходит_кодом_ошибки() {
     let case = case("rejected");
-    let endpoint = stub("401 Unauthorized", "{}");
+    let heard = stub("401 Unauthorized", "{}");
 
     let failed = save(
         &case,
-        settings(&endpoint, "openai"),
+        settings(&heard.endpoint, "openai"),
         json!("sk-плохой"),
         true,
     )
@@ -185,8 +168,8 @@ fn отказ_провайдера_приходит_кодом_ошибки() {
 #[test]
 fn выключенный_провайдер_не_проверяется() {
     let case = case("disabled");
-    let endpoint = stub("200 OK", OLLAMA);
-    let mut asked = settings(&endpoint, "ollama");
+    let heard = stub("200 OK", OLLAMA);
+    let mut asked = settings(&heard.endpoint, "ollama");
     asked["enabled"] = json!(false);
 
     let failed = save(&case, asked, Value::Null, true).unwrap_err();
