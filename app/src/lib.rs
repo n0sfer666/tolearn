@@ -1,4 +1,5 @@
 pub mod ipc;
+pub mod prerender;
 
 pub fn run() -> Result<(), tauri::Error> {
     tauri::Builder::default()
