@@ -3,6 +3,7 @@ use std::borrow::Cow;
 use saphyr::{Mapping, Scalar, Yaml};
 
 use super::types::{Answer, Attempt};
+use crate::practice::Session;
 
 pub fn attempt(attempt: &Attempt) -> Yaml<'static> {
     let mut fields = vec![
@@ -29,6 +30,14 @@ pub fn attempt(attempt: &Attempt) -> Yaml<'static> {
     }
     fields.push(("raw", text(&attempt.raw)));
     mapping(fields)
+}
+
+pub(super) fn practice(session: &Session) -> Yaml<'static> {
+    mapping(vec![
+        ("started_at", maybe_text(session.started_at.as_deref())),
+        ("spent_sec", number(session.spent_sec)),
+        ("expired", flag(session.expired)),
+    ])
 }
 
 pub(super) fn fresh() -> Yaml<'static> {

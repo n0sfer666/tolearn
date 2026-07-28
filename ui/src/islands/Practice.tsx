@@ -1,6 +1,7 @@
 import { For, Show, createSignal, onMount } from "solid-js";
 
 import CheckItem, { type Ran } from "../components/practice/CheckItem";
+import Timer from "../components/practice/Timer";
 import type { CheckView, TopicOut } from "../ipc";
 import type { Dictionary } from "../i18n/ru";
 import type { Locale } from "../i18n";
@@ -91,6 +92,7 @@ export default function Practice(props: Props) {
               <span data-smoke>{props.text.topic.smoke}</span>
             </Show>
           </p>
+          <Timer text={props.text} program={program()} topic={id()} call={call()} />
           <section data-constraints>
             <h2>{props.text.topic.constraints}</h2>
             {list(view().practice.constraints)}

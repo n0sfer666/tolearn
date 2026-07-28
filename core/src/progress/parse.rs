@@ -1,5 +1,6 @@
 use super::enums::{NEXT_ACTION, OUTCOME, SOURCE, STATUS, VERDICT};
 use super::types::{Answer, Attempt, Progress, TopicState};
+use crate::practice::Session;
 use crate::yaml::{ParseError, Reader, read};
 
 pub fn parse(source: &str) -> Result<Progress, ParseError> {
@@ -26,6 +27,19 @@ fn state(node: &Reader<'_>) -> Result<TopicState, ParseError> {
         passed_at: node.field("passed_at")?.optional_date()?,
         next_review_at: node.field("next_review_at")?.optional_date()?,
         gaps: node.field("gaps")?.texts()?,
+        practice: node
+            .optional_field("practice")?
+            .map(|value| practice(&value))
+            .transpose()?
+            .unwrap_or_default(),
+    })
+}
+
+fn practice(node: &Reader<'_>) -> Result<Session, ParseError> {
+    Ok(Session {
+        started_at: node.field("started_at")?.optional_moment()?,
+        spent_sec: node.field("spent_sec")?.number(0)?,
+        expired: flag_or_false(node, "expired")?,
     })
 }
 

@@ -65,7 +65,7 @@ pub(crate) fn number(value: &str, digits: usize) -> Option<u32> {
     value.parse().ok()
 }
 
-fn days_in(year: u32, month: u32) -> u32 {
+pub(crate) fn days_in(year: u32, month: u32) -> u32 {
     match month {
         2 if is_leap(year) => 29,
         2 => 28,

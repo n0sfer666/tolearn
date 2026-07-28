@@ -157,6 +157,11 @@ export const en: Dictionary = {
     failed: "did not run",
     done: "Done",
     open: "Open the topic",
+    start: "Start the timer",
+    pause: "Pause",
+    reset: "Reset",
+    spent: "Spent",
+    over: "The time box has run out — a measurement, not a ban",
   },
   notes: {
     lead: "A note is a file next to you, editable by any editor. Frontmatter holds the binding.",

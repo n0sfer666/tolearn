@@ -46,7 +46,18 @@
         "gaps": {
           "type": "array",
           "items": { "$ref": "#/$defs/text" }
-        }
+        },
+        "practice": { "$ref": "#/$defs/practice" }
+      }
+    },
+    "practice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["started_at", "spent_sec", "expired"],
+      "properties": {
+        "started_at": { "type": ["string", "null"], "format": "date-time" },
+        "spent_sec": { "type": "integer", "minimum": 0 },
+        "expired": { "type": "boolean" }
       }
     },
     "attempt": {

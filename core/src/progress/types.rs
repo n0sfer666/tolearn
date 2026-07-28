@@ -1,4 +1,5 @@
 use super::enums::{NextAction, Outcome, Source, Status, Verdict};
+use crate::practice::Session;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Progress {
@@ -23,6 +24,7 @@ pub struct TopicState {
     pub passed_at: Option<String>,
     pub next_review_at: Option<String>,
     pub gaps: Vec<String>,
+    pub practice: Session,
 }
 
 impl TopicState {

@@ -155,6 +155,20 @@ dto!(SetStatusIn {
 });
 dto!(SetStatusOut { status: String });
 
+dto!(PracticeIn {
+    bundle: String,
+    topic: String,
+    step: String,
+    now: String,
+});
+dto!(PracticeOut {
+    spent_sec: u32,
+    left_sec: i64,
+    box_min: u32,
+    running: bool,
+    expired: bool,
+});
+
 dto!(ProgramsIn { today: String });
 dto!(ProgramsOut { programs: Vec<Card> });
 dto!(Card {
@@ -449,6 +463,8 @@ pub fn shapes() -> Vec<Shape> {
         RunCheckOut::shape(),
         SetStatusIn::shape(),
         SetStatusOut::shape(),
+        PracticeIn::shape(),
+        PracticeOut::shape(),
         ProgramsIn::shape(),
         ProgramsOut::shape(),
         Card::shape(),

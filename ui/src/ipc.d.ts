@@ -185,6 +185,21 @@ export type SetStatusOut = {
   status: string;
 };
 
+export type PracticeIn = {
+  bundle: string;
+  topic: string;
+  step: string;
+  now: string;
+};
+
+export type PracticeOut = {
+  spent_sec: number;
+  left_sec: number;
+  box_min: number;
+  running: boolean;
+  expired: boolean;
+};
+
 export type ProgramsIn = {
   today: string;
 };
@@ -522,6 +537,7 @@ export type Commands = {
   review: { input: ReviewIn; output: ReviewOut };
   prompt: { input: PromptIn; output: PromptOut };
   examine: { input: ExamineIn; output: ExamineOut };
+  practice: { input: PracticeIn; output: PracticeOut };
   programs: { input: ProgramsIn; output: ProgramsOut };
   plan: { input: PlanIn; output: PlanOut };
   stale: { input: StaleIn; output: StaleOut };

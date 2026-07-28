@@ -49,6 +49,9 @@ pub fn apply(
             verdict.gaps.clone()
         },
         attempts,
+        practice: state
+            .map(|state| state.practice.clone())
+            .unwrap_or_default(),
     };
 
     Applied {

@@ -53,6 +53,7 @@ commands! {
     review(types::ReviewIn) -> types::ReviewOut,
     prompt(types::PromptIn) -> types::PromptOut,
     examine(types::ExamineIn) -> types::ExamineOut,
+    practice(types::PracticeIn) -> types::PracticeOut,
     programs(types::ProgramsIn) -> types::ProgramsOut,
     plan(types::PlanIn) -> types::PlanOut,
     stale(types::StaleIn) -> types::StaleOut,

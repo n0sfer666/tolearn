@@ -94,6 +94,13 @@ impl<'a> Reader<'a> {
         Ok(text)
     }
 
+    pub fn optional_moment(&self) -> Result<Option<String>, ParseError> {
+        if self.node.data.is_null() {
+            return Ok(None);
+        }
+        self.moment().map(Some)
+    }
+
     pub fn optional_text(&self) -> Result<Option<String>, ParseError> {
         if self.node.data.is_null() {
             return Ok(None);

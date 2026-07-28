@@ -28,6 +28,7 @@ scalar!(String => "string");
 scalar!(bool => "boolean");
 scalar!(u32 => "number");
 scalar!(i32 => "number");
+scalar!(i64 => "number");
 scalar!(u64 => "number");
 scalar!(f64 => "number");
 

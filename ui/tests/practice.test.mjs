@@ -1,9 +1,15 @@
 import assert from "node:assert/strict";
-import test, { before } from "node:test";
+import test, { afterEach, before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
 import { browser, settled } from "./support/dom.mjs";
+
+const mounted = [];
+
+afterEach(() => {
+  while (mounted.length > 0) mounted.pop()();
+});
 
 let Practice;
 let render;
@@ -39,6 +45,14 @@ const OUT = {
   },
 };
 
+const TIMER = {
+  spent_sec: 0,
+  left_sec: 90 * 60,
+  box_min: 90,
+  running: false,
+  expired: false,
+};
+
 function mount(options = {}) {
   const host = document.createElement("div");
   document.body.append(host);
@@ -46,6 +60,7 @@ function mount(options = {}) {
   const call = (name, payload) => {
     calls.push({ name, payload });
     if (name === "topic") return Promise.resolve(OUT);
+    if (name === "practice") return Promise.resolve(TIMER);
     if (name === "run_check") {
       if (options.refuse) return Promise.reject(new Error("проверка не запускается"));
       return Promise.resolve({
@@ -61,7 +76,7 @@ function mount(options = {}) {
     }
     throw new Error(`лишняя команда ${name}`);
   };
-  render(
+  mounted.push(render(
     () =>
       Practice({
         text: ru,
@@ -72,7 +87,7 @@ function mount(options = {}) {
         call,
       }),
     host,
-  );
+  ));
   return { host, calls };
 }
 
@@ -82,7 +97,7 @@ test("экран читает тему и показывает задачу до
   const { host, calls } = mount();
   await settled();
 
-  assert.deepEqual(calls.map(({ name }) => name), ["topic"]);
+  assert.deepEqual(calls.map(({ name }) => name).sort(), ["practice", "topic"]);
   assert.match(host.querySelector("[data-task]").textContent, /Подними модель локально/);
   assert.match(host.textContent, new RegExp(ru.topic.smoke));
 });
@@ -93,7 +108,11 @@ test("текст команды виден до запуска, а сам зап
 
   assert.match(item(host, "c1").textContent, /команда c1/);
   assert.equal(item(host, "c1").querySelector("[data-output]"), null);
-  assert.equal(calls.length, 1, "команда бандла запущена без человека");
+  assert.equal(
+    calls.filter(({ name }) => name === "run_check").length,
+    0,
+    "команда бандла запущена без человека",
+  );
 });
 
 test("ограничения и приёмка — две коллекции", async () => {
@@ -115,7 +134,8 @@ test("прогон идёт по нажатию и только у своей п
   item(host, "a1").querySelector("[data-run]").click();
   await settled();
 
-  assert.deepEqual(calls[1], {
+  const ran = calls.filter(({ name }) => name === "run_check");
+  assert.deepEqual(ran[0], {
     name: "run_check",
     payload: { bundle: "/programs/llm-agents-base", topic: "local-runtime", check: "a1" },
   });
@@ -124,7 +144,7 @@ test("прогон идёт по нажатию и только у своей п
   item(host, "c1").querySelector("[data-run]").click();
   await settled();
 
-  assert.equal(calls[2].payload.check, "c1");
+  assert.equal(calls.filter(({ name }) => name === "run_check")[1].payload.check, "c1");
   assert.match(item(host, "c1").querySelector("[data-output]").textContent, /вывод c1/);
 });
 
