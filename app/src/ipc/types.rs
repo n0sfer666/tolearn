@@ -197,6 +197,17 @@ dto!(AheadView {
     date: String
 });
 
+dto!(ExportIn {
+    bundle: String,
+    today: String,
+    path: String,
+    directory: Option<String>,
+});
+dto!(ExportOut {
+    path: String,
+    bytes: u64,
+});
+
 dto!(StaleIn {
     bundle: String,
     today: String,
@@ -514,6 +525,8 @@ pub fn shapes() -> Vec<Shape> {
         PlanIn::shape(),
         PlanOut::shape(),
         AheadView::shape(),
+        ExportIn::shape(),
+        ExportOut::shape(),
         StaleIn::shape(),
         StaleOut::shape(),
         ExpiredView::shape(),

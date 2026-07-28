@@ -1,5 +1,6 @@
 pub mod apply_verdict;
 pub mod examine;
+pub mod export;
 pub mod graph;
 pub mod history;
 pub mod history_diff;

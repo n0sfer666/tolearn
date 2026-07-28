@@ -72,3 +72,13 @@ pub enum Priority {
     Recommended,
     Optional,
 }
+
+impl Priority {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Core => "core",
+            Self::Recommended => "recommended",
+            Self::Optional => "optional",
+        }
+    }
+}

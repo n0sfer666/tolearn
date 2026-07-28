@@ -57,6 +57,7 @@ commands! {
     programs(types::ProgramsIn) -> types::ProgramsOut,
     plan(types::PlanIn) -> types::PlanOut,
     stale(types::StaleIn) -> types::StaleOut,
+    export(types::ExportIn) -> types::ExportOut,
     graph(types::GraphIn) -> types::GraphOut,
     stats(types::StatsIn) -> types::StatsOut,
     queue(types::QueueIn) -> types::QueueOut,

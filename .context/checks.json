@@ -4,5 +4,6 @@
   "test": "cargo test --workspace",
   "ui-lint": "pnpm -C ui lint",
   "ui-tokens": "pnpm -C ui tokens",
-  "ui-test": "pnpm -C ui test"
+  "ui-test": "pnpm -C ui test",
+  "ui-markdown": "pnpm -C ui markdown"
 }

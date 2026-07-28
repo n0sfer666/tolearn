@@ -39,6 +39,10 @@ export const ru = {
     checkpoint: "чекпойнт",
     blockedBy: "разблокируется",
     hours: "ч",
+    export: "Экспорт в Markdown",
+    exporting: "Экспортирую…",
+    exported: "файл записан",
+    exportFailed: "экспорт не удался",
   },
   exam: {
     prompt: "Промпт",

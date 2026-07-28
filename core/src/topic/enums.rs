@@ -131,6 +131,24 @@ fn label_of<T: PartialEq>(table: &[(&'static str, T)], value: T) -> &'static str
         .unwrap_or("unknown")
 }
 
+impl Volatility {
+    pub fn label(self) -> &'static str {
+        label_of(&VOLATILITY, self)
+    }
+}
+
+impl Confidence {
+    pub fn label(self) -> &'static str {
+        label_of(&CONFIDENCE, self)
+    }
+}
+
+impl Retention {
+    pub fn label(self) -> &'static str {
+        label_of(&RETENTION, self)
+    }
+}
+
 impl QuestionType {
     pub fn label(self) -> &'static str {
         label_of(&QUESTION_TYPE, self)

@@ -297,3 +297,40 @@ fn passing_verdict() -> &'static str {
       ]
     }"#
 }
+
+#[test]
+fn an_export_writes_one_markdown_file() {
+    let bundle = copied("export");
+    let out_file = bundle.parent().unwrap().join("program.md");
+
+    let out = tolearn(&[
+        "export",
+        bundle.to_str().unwrap(),
+        "--out",
+        out_file.to_str().unwrap(),
+        "--today",
+        "2026-07-29",
+    ]);
+
+    assert_eq!(code(&out), 0, "{}", stderr(&out));
+    let text = std::fs::read_to_string(&out_file).unwrap();
+    assert!(text.starts_with("# "), "{}", &text[..40.min(text.len())]);
+    assert!(text.contains("## Оглавление"));
+}
+
+#[test]
+fn an_export_into_the_bundle_is_refused() {
+    let bundle = copied("export-inside");
+    let out_file = bundle.join("program.md");
+
+    let out = tolearn(&[
+        "export",
+        bundle.to_str().unwrap(),
+        "--out",
+        out_file.to_str().unwrap(),
+    ]);
+
+    assert_ne!(code(&out), 0);
+    assert!(stderr(&out).contains("бандл"), "{}", stderr(&out));
+    assert!(!out_file.exists(), "файл всё-таки записан в бандл");
+}

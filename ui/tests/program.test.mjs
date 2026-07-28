@@ -73,7 +73,17 @@ function mount(options = {}) {
   const call = (name, payload) => {
     calls.push({ name, payload });
     if (name === "program") return Promise.resolve(options.out ?? OUT);
+    if (name === "export") {
+      return options.fail
+        ? Promise.reject(new Error("не записалось"))
+        : Promise.resolve({ path: payload.path, bytes: 10 });
+    }
     throw new Error(`лишняя команда ${name}`);
+  };
+  const asked = [];
+  const save = (name) => {
+    asked.push(name);
+    return Promise.resolve(options.chosen === undefined ? "/дом/программа.md" : options.chosen);
   };
   render(
     () =>
@@ -83,10 +93,11 @@ function mount(options = {}) {
         path: options.path ?? "/programs/llm-agents-base",
         today: "2026-07-27",
         call,
+        save,
       }),
     host,
   );
-  return { host, calls };
+  return { host, calls, asked };
 }
 
 const at = (host, id) => host.querySelector(`[data-topic="${id}"]`);
@@ -231,4 +242,50 @@ test("из программы есть ход в её статистику по�
   const link = host.querySelector("[data-stats]");
   assert.ok(link, host.innerHTML);
   assert.equal(link.getAttribute("href"), "/ru/stats/?program=%2Fprograms%2Fother");
+});
+
+test("экспорт спрашивает путь и пишет файл по выбранному", async () => {
+  const { host, calls, asked } = mount();
+  await settled();
+
+  host.querySelector("[data-export]").click();
+  await settled();
+
+  assert.deepEqual(asked, ["llm-agents-base.md"]);
+  assert.deepEqual(calls.at(-1), {
+    name: "export",
+    payload: {
+      bundle: "/programs/llm-agents-base",
+      today: "2026-07-27",
+      path: "/дом/программа.md",
+      directory: null,
+    },
+  });
+  assert.match(host.querySelector("[data-exported]").textContent, new RegExp(ru.program.exported));
+});
+
+test("отказ от диалога экспорт не запускает", async () => {
+  const { host, calls } = mount({ chosen: null });
+  await settled();
+
+  host.querySelector("[data-export]").click();
+  await settled();
+
+  assert.deepEqual(
+    calls.map((made) => made.name),
+    ["program"],
+  );
+  assert.equal(host.querySelector("[data-exported]"), null, "отчёт без экспорта");
+});
+
+test("неудача экспорта названа вслух", async () => {
+  const { host } = mount({ fail: true });
+  await settled();
+
+  host.querySelector("[data-export]").click();
+  await settled();
+
+  const said = host.querySelector("[data-exported]");
+  assert.equal(said.getAttribute("role"), "status");
+  assert.match(said.textContent, new RegExp(ru.program.exportFailed));
 });

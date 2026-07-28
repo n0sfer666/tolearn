@@ -236,6 +236,18 @@ export type AheadView = {
   date: string;
 };
 
+export type ExportIn = {
+  bundle: string;
+  today: string;
+  path: string;
+  directory: string | null;
+};
+
+export type ExportOut = {
+  path: string;
+  bytes: number;
+};
+
 export type StaleIn = {
   bundle: string;
   today: string;
@@ -594,6 +606,7 @@ export type Commands = {
   programs: { input: ProgramsIn; output: ProgramsOut };
   plan: { input: PlanIn; output: PlanOut };
   stale: { input: StaleIn; output: StaleOut };
+  export: { input: ExportIn; output: ExportOut };
   graph: { input: GraphIn; output: GraphOut };
   stats: { input: StatsIn; output: StatsOut };
   queue: { input: QueueIn; output: QueueOut };

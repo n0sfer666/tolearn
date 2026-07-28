@@ -25,6 +25,15 @@ export async function pickArchive(): Promise<string | null> {
   return typeof chosen === "string" ? chosen : null;
 }
 
+export async function pickFile(name: string): Promise<string | null> {
+  const { save } = await import("@tauri-apps/plugin-dialog");
+  const chosen = await save({
+    defaultPath: name,
+    filters: [{ name: "markdown", extensions: ["md"] }],
+  });
+  return typeof chosen === "string" ? chosen : null;
+}
+
 export function drops(handler: (paths: string[]) => void): void {
   void (async () => {
     const { getCurrentWebview } = await import("@tauri-apps/api/webview");

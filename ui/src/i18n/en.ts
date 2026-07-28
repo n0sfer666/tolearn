@@ -41,6 +41,10 @@ export const en: Dictionary = {
     checkpoint: "checkpoint",
     blockedBy: "unlocked by",
     hours: "h",
+    export: "Export to Markdown",
+    exporting: "Exporting…",
+    exported: "file written",
+    exportFailed: "export failed",
   },
   exam: {
     prompt: "Prompt",

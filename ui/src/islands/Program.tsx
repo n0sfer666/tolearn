@@ -5,7 +5,7 @@ import type { Dictionary } from "../i18n/ru";
 import { type Locale, plural } from "../i18n";
 import type { Stage, TopicStatus } from "../ipc";
 import { matches } from "../lib/filter";
-import { transport } from "../lib/ipc";
+import { pickFile, transport } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
 
 interface Props {
@@ -14,6 +14,7 @@ interface Props {
   path?: string;
   today?: string;
   call?: Transport;
+  save?: (name: string) => Promise<string | null>;
 }
 
 function known(status: string): status is Status {
@@ -33,6 +34,7 @@ export default function Program(props: Props) {
   const [topics, setTopics] = createSignal<TopicStatus[]>([]);
   const [needle, setNeedle] = createSignal("");
   const [program, setProgram] = createSignal("");
+  const [state, setState] = createSignal<"idle" | "busy" | "done" | "failed">("idle");
 
   onMount(() => {
     setProgram(path());
@@ -42,6 +44,20 @@ export default function Program(props: Props) {
       setTopics(out.topics);
     })();
   });
+
+  const name = () => `${path().split(/[/\\]/).filter(Boolean).at(-1) ?? "program"}.md`;
+
+  const exported = async () => {
+    const chosen = await (props.save ?? pickFile)(name());
+    if (chosen === null) return;
+    setState("busy");
+    try {
+      await call()("export", { bundle: path(), today: today(), path: chosen, directory: null });
+      setState("done");
+    } catch {
+      setState("failed");
+    }
+  };
 
   const of = (stage: Stage) =>
     topics().filter((topic) => topic.stage === stage.n && matches(topic.title, needle()));
@@ -61,6 +77,14 @@ export default function Program(props: Props) {
         <a data-graph href={`/${props.locale}/graph/?program=${encodeURIComponent(program())}`}>
           {props.text.graph.title}
         </a>
+      </Show>
+      <button type="button" data-export onClick={() => void exported()} disabled={state() === "busy"}>
+        {state() === "busy" ? props.text.program.exporting : props.text.program.export}
+      </button>
+      <Show when={state() === "done" || state() === "failed"}>
+        <p data-exported role="status">
+          {state() === "done" ? props.text.program.exported : props.text.program.exportFailed}
+        </p>
       </Show>
       <input
         type="search"
