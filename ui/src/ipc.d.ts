@@ -202,6 +202,25 @@ export type Card = {
   tally: Tally | null;
 };
 
+export type PlanIn = {
+  bundle: string;
+  today: string;
+};
+
+export type PlanOut = {
+  weekly_hours: number;
+  daily_hours: number;
+  left: Span;
+  unknown: number;
+  soonest: AheadView;
+  latest: AheadView;
+};
+
+export type AheadView = {
+  days: number;
+  date: string;
+};
+
 export type QueueIn = {
   today: string;
 };
@@ -444,6 +463,7 @@ export type Commands = {
   prompt: { input: PromptIn; output: PromptOut };
   examine: { input: ExamineIn; output: ExamineOut };
   programs: { input: ProgramsIn; output: ProgramsOut };
+  plan: { input: PlanIn; output: PlanOut };
   queue: { input: QueueIn; output: QueueOut };
   repeat: { input: RepeatIn; output: RepeatOut };
   import: { input: ImportIn; output: ImportOut };

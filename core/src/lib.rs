@@ -5,6 +5,7 @@ pub mod atomic;
 pub mod bundle;
 pub mod merge;
 pub mod notes;
+pub mod plan;
 pub mod progress;
 pub mod prompt;
 pub mod protocol;

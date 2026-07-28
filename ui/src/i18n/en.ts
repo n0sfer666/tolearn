@@ -62,6 +62,16 @@ export const en: Dictionary = {
     ask: "Ask the model",
     asking: "Asking the model…",
   },
+  plan: {
+    title: "Forecast",
+    norm: "Daily budget",
+    weekly: "h per week",
+    days: "days",
+    finish: "The program ends between",
+    unknown: "topics are not written yet",
+    unknownLead: "their hours stay out of the forecast",
+    done: "Every required topic is passed — nothing left to count.",
+  },
   queue: {
     lead: "Topics whose review date has come — across every program at once.",
     overdue: "Overdue",

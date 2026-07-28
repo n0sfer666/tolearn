@@ -166,6 +166,23 @@ dto!(Card {
     tally: Option<Tally>,
 });
 
+dto!(PlanIn {
+    bundle: String,
+    today: String,
+});
+dto!(PlanOut {
+    weekly_hours: u32,
+    daily_hours: f64,
+    left: Span,
+    unknown: u32,
+    soonest: AheadView,
+    latest: AheadView,
+});
+dto!(AheadView {
+    days: u32,
+    date: String
+});
+
 dto!(QueueIn { today: String });
 dto!(QueueOut { due: Vec<DueView> });
 dto!(DueView {
@@ -384,6 +401,9 @@ pub fn shapes() -> Vec<Shape> {
         ProgramsIn::shape(),
         ProgramsOut::shape(),
         Card::shape(),
+        PlanIn::shape(),
+        PlanOut::shape(),
+        AheadView::shape(),
         QueueIn::shape(),
         QueueOut::shape(),
         DueView::shape(),
