@@ -90,13 +90,12 @@ fn a_directory_that_is_not_a_bundle_is_an_error_with_a_reason() {
 }
 
 #[test]
-fn a_bundle_that_lies_in_both_formats_at_once_is_refused_rather_than_guessed() {
+fn a_bundle_that_lies_in_both_formats_at_once_is_read_as_yaml() {
     let bundle = dual("dual");
 
-    let out = tolearn(&["scan", bundle.to_str().unwrap()]);
+    let out = tolearn(&["progress", bundle.to_str().unwrap(), "--json"]);
 
-    assert_ne!(code(&out), 0);
-    assert!(stderr(&out).contains("roadmap.json"), "{}", stderr(&out));
+    assert_eq!(code(&out), 0, "{}", stderr(&out));
 }
 
 #[test]

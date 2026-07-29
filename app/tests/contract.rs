@@ -130,11 +130,11 @@ fn ошибка_ядра_доезжает_кодом_и_сообщением() {
 }
 
 #[test]
-fn два_формата_в_бандле_отличаются_кодом() {
+fn бандл_с_двумя_форматами_читается_как_yaml() {
     let root = repository().join("examples/llm-agents-base");
-    let error = call(&context(), "validate", &json!({ "bundle": root })).unwrap_err();
+    let out = call(&context(), "scan", &json!({ "bundle": root })).unwrap();
 
-    assert_eq!(error.code, "scan.ambiguous-format");
+    assert_eq!(out["format"], json!("yaml"), "{out:#}");
 }
 
 #[test]

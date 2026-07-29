@@ -96,20 +96,17 @@ fn the_same_bundle_reads_the_same_whichever_format_the_roadmap_is_in() {
 }
 
 #[test]
-fn two_roadmaps_side_by_side_are_refused_instead_of_guessed() {
-    let root = bundle("both", Format::Yaml);
+fn two_roadmaps_side_by_side_leave_the_yaml_one_in_charge() {
+    let root = bundle("both", Format::Json);
     put(
         &root,
-        "roadmap.json",
-        &read(&format!("{REFERENCE}/roadmap.json")),
+        "roadmap.yaml",
+        &read(&format!("{REFERENCE}/roadmap.yaml")),
     );
 
-    let error = scan(&root).unwrap_err();
+    let found = done(&root);
 
-    assert!(
-        matches!(&error, ScanError::AmbiguousFormat { root: at } if at == &root),
-        "{error}"
-    );
+    assert_eq!(found.format, Format::Yaml);
 }
 
 #[test]
@@ -239,13 +236,11 @@ fn a_topic_the_roadmap_does_not_name_is_not_picked_up_from_the_directory() {
 }
 
 #[test]
-fn the_example_carries_both_formats_and_is_a_corpus_rather_than_a_bundle() {
-    let error = scan(&root().join(REFERENCE)).unwrap_err();
+fn the_example_carries_both_formats_and_still_scans_as_a_bundle() {
+    let found = done(&root().join(REFERENCE));
 
-    assert!(
-        matches!(&error, ScanError::AmbiguousFormat { .. }),
-        "{error}"
-    );
+    assert_eq!(found.format, Format::Yaml);
+    assert_eq!(ids(&found).len(), 7);
 }
 
 #[test]

@@ -58,17 +58,18 @@ pub fn scan(root: &Path) -> Result<Scan, ScanError> {
 
 pub(crate) fn manifest(root: &Path) -> Result<(Format, PathBuf), ScanError> {
     let yaml = root.join("roadmap.yaml");
-    let json = root.join("roadmap.json");
-    match (yaml.exists(), json.exists()) {
-        (true, true) => Err(ScanError::AmbiguousFormat {
-            root: root.to_owned(),
-        }),
-        (true, false) => Ok((Format::Yaml, yaml)),
-        (false, true) => Ok((Format::Json, json)),
-        (false, false) => Err(ScanError::NoRoadmap {
-            root: root.to_owned(),
-        }),
+    if yaml.exists() {
+        return Ok((Format::Yaml, yaml));
     }
+
+    let json = root.join("roadmap.json");
+    if json.exists() {
+        return Ok((Format::Json, json));
+    }
+
+    Err(ScanError::NoRoadmap {
+        root: root.to_owned(),
+    })
 }
 
 fn parse<T>(

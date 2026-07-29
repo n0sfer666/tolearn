@@ -75,7 +75,6 @@ impl From<ScanError> for IpcError {
     fn from(error: ScanError) -> Self {
         let code = match error {
             ScanError::NoRoadmap { .. } => "scan.no-roadmap",
-            ScanError::AmbiguousFormat { .. } => "scan.ambiguous-format",
             ScanError::Unreadable { .. } => "scan.unreadable",
             ScanError::Malformed { .. } => "scan.malformed",
         };
