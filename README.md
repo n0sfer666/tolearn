@@ -34,6 +34,8 @@ cargo run -p tolearn-app --release --bin tolearn-desktop
 
 Первая сборка занимает несколько минут, дальше — секунды. Готовый бинарник
 остаётся в `target/release/tolearn-desktop`, его можно запускать напрямую.
+Страницы зашиваются внутрь бинарника (фича `custom-protocol`, включена по
+умолчанию); работать против dev-сервера Astro — `--no-default-features`.
 
 Есть и CLI без окна — проверить бандл, посмотреть темы, выгрузить Markdown:
 
@@ -61,7 +63,9 @@ cargo run -p tolearn-app --release --bin tolearn-desktop
 ```
 
 The first build takes a few minutes, later ones take seconds. The binary stays
-at `target/release/tolearn-desktop` and can be started directly.
+at `target/release/tolearn-desktop` and can be started directly. The pages are
+embedded into the binary (the `custom-protocol` feature, on by default); to run
+against the Astro dev server, pass `--no-default-features`.
 
 There is a windowless CLI as well — validate a bundle, list topics, export
 Markdown:
