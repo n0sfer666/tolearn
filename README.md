@@ -8,7 +8,75 @@ LLM строит программу обучения — набор тем с м
 требует ни аккаунта, ни ключа, ни подписки: промпт копируется в любой чат,
 вердикт вставляется обратно.
 
-**Статус: проектирование.** Кода пока нет — только спецификации.
+**Статус: работает из исходников.** Импорт программы, темы, практика с таймером,
+зачёт через копипаст и через провайдера, конспекты с поиском и шифрованием,
+офлайн-архив, граф, история версий, экспорт в Markdown, плагин Obsidian — готовы.
+Не готово: установщики под ОС (S57), варианты дистрибутива (S58) и голосовой
+зачёт (S55–S56). Пока приложение собирается и запускается вручную.
+
+[English below](#installation-from-source) · Руководство пользователя —
+[docs/guide.md](docs/guide.md).
+
+## Установка из исходников
+
+Нужны: [Rust](https://rustup.rs) (версия из `rust-toolchain.toml` ставится сама),
+[pnpm](https://pnpm.io) и Node 22+. На Linux — системные зависимости
+[Tauri 2](https://tauri.app/start/prerequisites/); на macOS достаточно Xcode
+Command Line Tools.
+
+```sh
+git clone <адрес репозитория> tolearn
+cd tolearn
+pnpm -C ui install
+pnpm -C ui build
+cargo run -p tolearn-app --release --bin tolearn-desktop
+```
+
+Первая сборка занимает несколько минут, дальше — секунды. Готовый бинарник
+остаётся в `target/release/tolearn-desktop`, его можно запускать напрямую.
+
+Есть и CLI без окна — проверить бандл, посмотреть темы, выгрузить Markdown:
+
+```sh
+cargo run -p tolearn-cli --release -- validate examples/llm-agents-base
+```
+
+Плагин Obsidian собирается отдельно: `pnpm -C obsidian install && pnpm -C
+obsidian build`, затем каталог `obsidian/` (нужны `main.js` и `manifest.json`)
+копируется в `<хранилище>/.obsidian/plugins/tolearn/`.
+
+## Installation from source
+
+You need [Rust](https://rustup.rs) (the toolchain from `rust-toolchain.toml` is
+installed automatically), [pnpm](https://pnpm.io) and Node 22+. On Linux, also
+the [Tauri 2](https://tauri.app/start/prerequisites/) system dependencies; on
+macOS the Xcode Command Line Tools are enough.
+
+```sh
+git clone <repository url> tolearn
+cd tolearn
+pnpm -C ui install
+pnpm -C ui build
+cargo run -p tolearn-app --release --bin tolearn-desktop
+```
+
+The first build takes a few minutes, later ones take seconds. The binary stays
+at `target/release/tolearn-desktop` and can be started directly.
+
+There is a windowless CLI as well — validate a bundle, list topics, export
+Markdown:
+
+```sh
+cargo run -p tolearn-cli --release -- validate examples/llm-agents-base
+```
+
+The Obsidian plugin is built separately: `pnpm -C obsidian install && pnpm -C
+obsidian build`, then copy the `obsidian/` directory (`main.js` and
+`manifest.json` are required) into `<vault>/.obsidian/plugins/tolearn/`.
+
+Installers for macOS, Windows and Linux are not built yet (S57); until then the
+source build above is the way to run the app. The user guide is in Russian —
+[docs/guide.md](docs/guide.md).
 
 ## Принципы
 
@@ -46,6 +114,7 @@ LLM строит программу обучения — набор тем с м
 
 ## Документация
 
+- [Руководство пользователя](docs/guide.md)
 - [Архитектура: ограничения, бюджеты, структура](docs/architecture.md) · [Решения (ADR)](docs/adr/)
 - [Спецификации](docs/specs/README.md)
 - [Протокол зачёта](docs/protocol.md)
