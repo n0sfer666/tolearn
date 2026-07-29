@@ -8,6 +8,7 @@ pub mod bundle;
 pub mod export;
 pub mod graph;
 pub mod history;
+pub mod link;
 pub mod merge;
 pub mod notes;
 pub mod plan;

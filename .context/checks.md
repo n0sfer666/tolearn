@@ -14,6 +14,8 @@
 | UI: токены, контраст, конвенция имён | `pnpm -C ui tokens` |
 | UI: сборка, маршруты, вес JS | `pnpm -C ui test` |
 | Экспорт: CommonMark и markdownlint | `pnpm -C ui markdown` |
+| Плагин Obsidian: типы | `pnpm -C obsidian lint` |
+| Плагин Obsidian: тесты | `pnpm -C obsidian test` |
 
 Nushell: `and` между командами не работает как в bash — команды разделяются `;`,
 проваленная прерывает конвейер сама.
@@ -79,6 +81,16 @@ cargo test --workspace --no-fail-fast --test <a> --test <b>
 `pnpm -C ui test` гоняет `node --test` с `--test-concurrency=1`. Последовательно —
 не для красоты: тест-файлы поднимают `astro build` в общий `dist/`, и два
 параллельных прогона роняют сборку друг другу.
+
+## Плагин Obsidian
+
+`obsidian/` — отдельный пакет, из воркспейса `ui/` не виден и своей вёрстки не
+имеет. `pnpm -C obsidian lint` — это `tsc --noEmit`; `pnpm -C obsidian test` —
+`node --test tests/*.test.mjs`, где тесты импортируют `.ts`-исходники напрямую:
+Node снимает типы сам, отдельного шага сборки для тестов не нужно.
+`pnpm -C obsidian build` собирает `main.js` через esbuild — артефакт, в git не
+кладётся. Единственный модуль с вводом-выводом — `src/host.ts`; вся остальная
+логика чистая, потому и проверяется без Obsidian.
 
 ## Токены
 

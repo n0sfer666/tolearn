@@ -5,5 +5,7 @@
   "ui-lint": "pnpm -C ui lint",
   "ui-tokens": "pnpm -C ui tokens",
   "ui-test": "pnpm -C ui test",
-  "ui-markdown": "pnpm -C ui markdown"
+  "ui-markdown": "pnpm -C ui markdown",
+  "obsidian-lint": "pnpm -C obsidian lint",
+  "obsidian-test": "pnpm -C obsidian test"
 }

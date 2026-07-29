@@ -1,0 +1,9 @@
+{
+  "id": "tolearn",
+  "name": "tolearn",
+  "version": "0.1.0",
+  "minAppVersion": "1.7.0",
+  "description": "Показывает статус темы tolearn в заметке и открывает тему в приложении.",
+  "author": "tolearn",
+  "isDesktopOnly": true
+}

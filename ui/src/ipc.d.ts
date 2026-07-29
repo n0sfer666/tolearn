@@ -575,6 +575,15 @@ export type EncryptionOut = {
   external: boolean;
 };
 
+export type FollowIn = {
+  url: string;
+};
+
+export type FollowOut = {
+  program: string;
+  topic: string;
+};
+
 export type ProviderIn = {
   save: ProviderView | null;
   key: string | null;
@@ -629,6 +638,7 @@ export type Commands = {
   search: { input: SearchIn; output: SearchOut };
   provider: { input: ProviderIn; output: ProviderOut };
   encryption: { input: EncryptionIn; output: EncryptionOut };
+  follow: { input: FollowIn; output: FollowOut };
 };
 
 export type CommandName = keyof Commands;

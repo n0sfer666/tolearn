@@ -2,6 +2,7 @@ pub mod apply_verdict;
 pub mod encryption;
 pub mod examine;
 pub mod export;
+pub mod follow;
 pub mod graph;
 pub mod history;
 pub mod history_diff;

@@ -4,6 +4,7 @@ Cargo.lock.orig
 
 node_modules/
 dist/
+obsidian/main.js
 .astro/
 app/gen/
 .output/

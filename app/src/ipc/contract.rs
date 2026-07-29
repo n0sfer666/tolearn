@@ -69,6 +69,7 @@ commands! {
     search(types::SearchIn) -> types::SearchOut,
     provider(types::ProviderIn) -> types::ProviderOut,
     encryption(types::EncryptionIn) -> types::EncryptionOut,
+    follow(types::FollowIn) -> types::FollowOut,
 }
 
 #[tauri::command]
