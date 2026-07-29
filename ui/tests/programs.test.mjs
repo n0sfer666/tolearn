@@ -48,6 +48,7 @@ function mount(options = {}) {
     () =>
       Programs({
         text: ru.programs,
+        locale: options.locale ?? "ru",
         call,
         pick: options.pick ?? (() => Promise.resolve("/dropped/bundle")),
         pickArchive: options.pickArchive ?? (() => Promise.resolve("/dropped/bundle.zip")),
@@ -193,4 +194,16 @@ test("отменённый выбор архива импорт не запус�
   await settled();
 
   assert.equal(calls.filter(({ name }) => name === "import").length, 0);
+});
+
+test("ссылка на программу ведёт на страницу текущего языка", async () => {
+  const { host } = mount({ locale: "en" });
+  await settled();
+
+  const link = host.querySelector("li a");
+
+  assert.equal(
+    link.getAttribute("href"),
+    `/en/program/?program=${encodeURIComponent(CARD.path)}`,
+  );
 });

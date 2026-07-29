@@ -23,6 +23,7 @@ interface Props {
     progress: string;
     filter: string;
   };
+  locale: string;
   today?: string;
   call?: Transport;
   pick?: () => Promise<string | null>;
@@ -152,7 +153,9 @@ export default function Programs(props: Props) {
           <For each={shown()}>
             {(card) => (
               <li data-program={card.id}>
-                <a href={`/program/?program=${encodeURIComponent(card.path)}`}>{card.title}</a>
+                <a href={`/${props.locale}/program/?program=${encodeURIComponent(card.path)}`}>
+                  {card.title}
+                </a>
                 <Show when={card.tally} fallback={<p class="unreachable">{props.text.unreachable}</p>}>
                   {(tally) => (
                     <p>

@@ -17,6 +17,6 @@ const text = strings(locale);
     <p>{text.programs.importLead}</p>
   </section>
   <div id="programs">
-    <Programs text={text.programs} client:load />
+    <Programs text={text.programs} locale={locale} client:load />
   </div>
 </Base>
