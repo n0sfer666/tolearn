@@ -2,12 +2,10 @@ use std::path::Path;
 
 use tolearn_core::Date;
 use tolearn_core::export::{inside, markdown};
-use tolearn_core::notes::index;
 use tolearn_core::status::effective;
 
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
-use crate::ipc::notes::{failed, root};
 use crate::ipc::open;
 use crate::ipc::types::{ExportIn, ExportOut};
 
@@ -27,13 +25,15 @@ pub fn run(context: &Context, input: &ExportIn) -> Result<ExportOut, IpcError> {
         opened.document.progress(),
         day,
     );
-    let kept = index(&root(context, input.directory.as_ref())?).map_err(failed)?;
+    let store = crate::ipc::vaulted::store(context, input.directory.as_ref())?;
+    let kept = store.index()?;
     let text = markdown(&opened.scan.roadmap, &opened.scan.topics, &statuses, &kept);
     written(path, &text)?;
 
     Ok(ExportOut {
         path: path.display().to_string(),
         bytes: text.len() as u64,
+        plaintext: store.locked(),
     })
 }
 

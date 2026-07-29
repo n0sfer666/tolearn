@@ -20,6 +20,7 @@ pub mod registry;
 pub mod review;
 pub mod roadmap;
 pub mod scan;
+pub mod sealed;
 pub mod search;
 pub mod settings;
 pub mod stale;

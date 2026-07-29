@@ -1,4 +1,5 @@
 pub mod apply_verdict;
+pub mod encryption;
 pub mod examine;
 pub mod export;
 pub mod graph;

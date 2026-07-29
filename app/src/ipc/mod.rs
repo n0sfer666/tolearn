@@ -12,6 +12,7 @@ mod shape;
 pub mod types;
 pub mod typescript;
 mod unpack;
+mod vaulted;
 mod verdict;
 
 pub use context::Context;

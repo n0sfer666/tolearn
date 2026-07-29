@@ -13,6 +13,7 @@ use std::io::ErrorKind;
 use std::path::Path;
 
 use crate::atomic;
+use crate::notes::Note;
 use types::Source;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -32,15 +33,11 @@ impl Index {
                 });
             }
         };
-        let sources = parse::sources(&source).map_err(|error| SearchError::Malformed {
-            path: path.display().to_string(),
-            error,
-        })?;
-        Ok(Self { sources })
+        Self::parse(&source, path)
     }
 
     pub fn save(&self, path: &Path) -> Result<(), SearchError> {
-        atomic::write(path, &render::text(&self.sources)).map_err(|error| SearchError::Unwritable {
+        atomic::write(path, &self.text()).map_err(|error| SearchError::Unwritable {
             path: path.display().to_string(),
             reason: error.to_string(),
         })
@@ -48,10 +45,35 @@ impl Index {
 
     pub fn refresh(&mut self, bundle: &Path, notes: &Path) -> Result<Refresh, SearchError> {
         let (roadmap, wanted) = collect::plan(bundle, notes)?;
+        self.rebuild(&roadmap, &wanted)
+    }
+
+    pub fn refresh_kept(&mut self, bundle: &Path, notes: &[Note]) -> Result<Refresh, SearchError> {
+        let (roadmap, wanted) = collect::kept(bundle, notes)?;
+        self.rebuild(&roadmap, &wanted)
+    }
+
+    pub fn text(&self) -> String {
+        render::text(&self.sources)
+    }
+
+    pub fn parse(source: &str, path: &Path) -> Result<Self, SearchError> {
+        let sources = parse::sources(source).map_err(|error| SearchError::Malformed {
+            path: path.display().to_string(),
+            error,
+        })?;
+        Ok(Self { sources })
+    }
+
+    fn rebuild(
+        &mut self,
+        roadmap: &str,
+        wanted: &[collect::Wanted],
+    ) -> Result<Refresh, SearchError> {
         let mut report = Refresh::default();
         let mut fresh = Vec::with_capacity(wanted.len());
 
-        for want in &wanted {
+        for want in wanted {
             match self.take(&want.path) {
                 Some(source) if source.stamp == want.stamp => {
                     report.kept += 1;
@@ -59,7 +81,7 @@ impl Index {
                 }
                 _ => {
                     report.indexed += 1;
-                    fresh.push(collect::source(want, &roadmap)?);
+                    fresh.push(collect::source(want, roadmap)?);
                 }
             }
         }

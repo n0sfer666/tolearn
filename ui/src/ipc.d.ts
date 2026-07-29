@@ -246,6 +246,7 @@ export type ExportIn = {
 export type ExportOut = {
   path: string;
   bytes: number;
+  plaintext: boolean;
 };
 
 export type StaleIn = {
@@ -564,6 +565,16 @@ export type HitView = {
   snippet: string;
 };
 
+export type EncryptionIn = {
+  enable: boolean | null;
+  phrase: string | null;
+};
+
+export type EncryptionOut = {
+  enabled: boolean;
+  external: boolean;
+};
+
 export type ProviderIn = {
   save: ProviderView | null;
   key: string | null;
@@ -617,6 +628,7 @@ export type Commands = {
   settings: { input: SettingsIn; output: SettingsView };
   search: { input: SearchIn; output: SearchOut };
   provider: { input: ProviderIn; output: ProviderOut };
+  encryption: { input: EncryptionIn; output: EncryptionOut };
 };
 
 export type CommandName = keyof Commands;

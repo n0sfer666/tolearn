@@ -3,7 +3,7 @@ use std::time::UNIX_EPOCH;
 
 use super::error::SearchError;
 use super::types::{Document, Kind, Source};
-use crate::notes::Stamp;
+use crate::notes::{Note, Stamp};
 use crate::roadmap::{Roadmap, parse as roadmap};
 use crate::topic::{Topic, parse as topic};
 
@@ -18,10 +18,17 @@ pub struct Wanted {
     pub path: PathBuf,
     pub origin: Origin,
     pub stamp: Stamp,
+    pub text: Option<String>,
 }
 
 pub fn plan(bundle: &Path, notes: &Path) -> Result<(String, Vec<Wanted>), SearchError> {
     let map = manifest(bundle)?;
+    let mut wanted = topics(bundle, &map)?;
+    walk(notes, &mut wanted)?;
+    Ok((map.id, wanted))
+}
+
+fn topics(bundle: &Path, map: &Roadmap) -> Result<Vec<Wanted>, SearchError> {
     let mut wanted = Vec::new();
     for entry in &map.topics {
         let path = bundle.join(&entry.file);
@@ -30,10 +37,28 @@ pub fn plan(bundle: &Path, notes: &Path) -> Result<(String, Vec<Wanted>), Search
                 path,
                 origin: Origin::Topic,
                 stamp,
+                text: None,
             });
         }
     }
-    walk(notes, &mut wanted)?;
+    Ok(wanted)
+}
+
+pub fn kept(bundle: &Path, notes: &[Note]) -> Result<(String, Vec<Wanted>), SearchError> {
+    let map = manifest(bundle)?;
+    let mut wanted = topics(bundle, &map)?;
+    for note in notes {
+        wanted.push(Wanted {
+            path: note.path.clone(),
+            origin: Origin::Note,
+            stamp: note.stamp,
+            text: Some(crate::notes::frontmatter::render(
+                &note.roadmap,
+                &note.topic,
+                &note.body,
+            )),
+        });
+    }
     Ok((map.id, wanted))
 }
 
@@ -42,7 +67,10 @@ pub fn roadmap_id(bundle: &Path) -> Result<String, SearchError> {
 }
 
 pub fn source(wanted: &Wanted, roadmap: &str) -> Result<Source, SearchError> {
-    let text = read(&wanted.path)?;
+    let text = match &wanted.text {
+        Some(text) => text.clone(),
+        None => read(&wanted.path)?,
+    };
     let (owner, documents) = match wanted.origin {
         Origin::Topic => (roadmap.to_owned(), from_topic(&text)),
         Origin::Note => from_note(&text, roadmap),
@@ -127,6 +155,7 @@ fn walk(directory: &Path, wanted: &mut Vec<Wanted>) -> Result<(), SearchError> {
                 path,
                 origin: Origin::Note,
                 stamp,
+                text: None,
             });
         }
     }

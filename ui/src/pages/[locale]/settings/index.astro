@@ -3,6 +3,7 @@ import { LOCALES, localeOf, strings } from "../../../i18n";
 import Base from "../../../layouts/Base.astro";
 import Settings from "../../../islands/Settings";
 import Provider from "../../../islands/Provider";
+import Encryption from "../../../islands/Encryption";
 
 export function getStaticPaths() {
   return LOCALES.map((locale) => ({ params: { locale } }));
@@ -16,6 +17,9 @@ const text = strings(locale);
   <section id="settings">
     <p>{text.settings.lead}</p>
     <Settings text={text} locale={locale} client:load />
+  </section>
+  <section id="encryption">
+    <Encryption text={text} client:load />
   </section>
   <section id="provider">
     <Provider text={text} locale={locale} client:load />

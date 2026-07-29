@@ -68,6 +68,7 @@ commands! {
     settings(types::SettingsIn) -> types::SettingsView,
     search(types::SearchIn) -> types::SearchOut,
     provider(types::ProviderIn) -> types::ProviderOut,
+    encryption(types::EncryptionIn) -> types::EncryptionOut,
 }
 
 #[tauri::command]

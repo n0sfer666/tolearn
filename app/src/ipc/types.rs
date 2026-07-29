@@ -206,6 +206,16 @@ dto!(ExportIn {
 dto!(ExportOut {
     path: String,
     bytes: u64,
+    plaintext: bool,
+});
+
+dto!(EncryptionIn {
+    enable: Option<bool>,
+    phrase: Option<String>,
+});
+dto!(EncryptionOut {
+    enabled: bool,
+    external: bool,
 });
 
 dto!(StaleIn {
@@ -577,6 +587,8 @@ pub fn shapes() -> Vec<Shape> {
         SearchIn::shape(),
         SearchOut::shape(),
         HitView::shape(),
+        EncryptionIn::shape(),
+        EncryptionOut::shape(),
         ProviderIn::shape(),
         ProviderOut::shape(),
         ProviderView::shape(),

@@ -1,17 +1,12 @@
-use tolearn_core::notes::read;
-
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
-use crate::ipc::notes::{failed, roadmap, root, view};
+use crate::ipc::notes::{roadmap, view};
 use crate::ipc::types::{NoteIn, NoteOut};
+use crate::ipc::vaulted::store;
 
 pub fn run(context: &Context, input: &NoteIn) -> Result<NoteOut, IpcError> {
-    let found = read(
-        &root(context, input.directory.as_ref())?,
-        &roadmap(&input.bundle)?,
-        &input.topic,
-    )
-    .map_err(failed)?;
+    let found =
+        store(context, input.directory.as_ref())?.read(&roadmap(&input.bundle)?, &input.topic)?;
 
     Ok(match found {
         None => NoteOut {
