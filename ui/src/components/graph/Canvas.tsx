@@ -63,6 +63,7 @@ export default function Canvas(props: Props) {
         },
         palette: inks(),
         lit: lit(),
+        ratio,
       },
       { x: canvas.width, y: canvas.height },
     );

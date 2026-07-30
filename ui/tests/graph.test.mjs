@@ -178,6 +178,27 @@ test("раскладка разводит темы и повторяется о�
   assert.deepEqual([...again.entries()], [...spots.entries()]);
 });
 
+test("раскладка не разлетается: размах соразмерен шагу между темами", () => {
+  const crowd = Array.from({ length: 20 }, (_, index) => ({
+    id: `тема-${index}`,
+    title: `Тема ${index}`,
+    status: "todo",
+    layer: index % 4,
+    depends_on: index % 4 === 0 ? [] : [`тема-${index - 1}`],
+    blocked_by: [],
+    unlocks: [],
+  }));
+  const spots = [...laid(crowd).values()];
+  const xs = spots.map((spot) => spot.x);
+  const ys = spots.map((spot) => spot.y);
+  const size = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+  const gaps = spots.flatMap((here, index) =>
+    spots.slice(index + 1).map((there) => Math.hypot(here.x - there.x, here.y - there.y)),
+  );
+
+  assert.ok(size < Math.min(...gaps) * 12, `размах ${size}, ближайшая пара ${Math.min(...gaps)}`);
+});
+
 test("клик по точке попадает в её тему, а мимо — ни в какую", () => {
   const spots = laid(OUT.nodes);
   const view = { scale: 1, x: 0, y: 0 };
