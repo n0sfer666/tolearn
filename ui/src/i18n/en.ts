@@ -158,6 +158,7 @@ export const en: Dictionary = {
     hint: "Hint",
     outdated: "verification expired",
     stale: "outdated",
+    showStale: "Show outdated",
     offline: "not saved",
     mark: "Set status",
     focus: "Focus",

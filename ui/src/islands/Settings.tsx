@@ -1,5 +1,6 @@
 import { For, Show, createSignal, onMount } from "solid-js";
 
+import Budget from "../components/settings/Budget";
 import { LOCALES, type Locale, localized } from "../i18n";
 import { THEMES } from "../components/themes";
 import type { Dictionary } from "../i18n/ru";
@@ -78,43 +79,28 @@ export default function Settings(props: Props) {
   return (
     <Show when={view()}>
       {(current) => (
-        <article>
+        <article data-cards>
           <section>
-            <h2>{props.text.settings.budget}</h2>
-            <input
-              data-budget
-              type="number"
-              min="1"
-              aria-label={props.text.settings.budget}
-              value={current().disk_budget_mb}
-              onChange={(event) => onBudget(event.currentTarget.value)}
-            />
+            <h2>{props.text.settings.theme}</h2>
+            <nav aria-label={props.text.theme.switch}>
+              <For each={THEMES}>
+                {(choice) => (
+                  <button
+                    type="button"
+                    data-theme-choice={choice}
+                    aria-pressed={current().theme === choice}
+                    onClick={() => store({ theme: choice })}
+                  >
+                    {props.text.theme[choice]}
+                  </button>
+                )}
+              </For>
+            </nav>
           </section>
 
           <section>
-            <h2>{props.text.settings.history}</h2>
-            <p>{props.text.settings.historyLead}</p>
-            <label>
-              {props.text.settings.historyDepth}
-              <input
-                data-history-depth
-                type="number"
-                min="0"
-                value={current().history_depth}
-                onChange={(event) => onDepth(event.currentTarget.value)}
-              />
-            </label>
-            <label>
-              {props.text.settings.historyShare}
-              <input
-                data-history-share
-                type="number"
-                min="0"
-                max="100"
-                value={current().history_share_percent}
-                onChange={(event) => onShare(event.currentTarget.value)}
-              />
-            </label>
+            <h2>{props.text.settings.budget}</h2>
+            <Budget text={props.text} value={current().disk_budget_mb} onPick={onBudget} />
           </section>
 
           <section>
@@ -155,21 +141,29 @@ export default function Settings(props: Props) {
           </section>
 
           <section>
-            <h2>{props.text.settings.theme}</h2>
-            <nav aria-label={props.text.theme.switch}>
-              <For each={THEMES}>
-                {(choice) => (
-                  <button
-                    type="button"
-                    data-theme-choice={choice}
-                    aria-pressed={current().theme === choice}
-                    onClick={() => store({ theme: choice })}
-                  >
-                    {props.text.theme[choice]}
-                  </button>
-                )}
-              </For>
-            </nav>
+            <h2>{props.text.settings.history}</h2>
+            <p>{props.text.settings.historyLead}</p>
+            <label>
+              {props.text.settings.historyDepth}
+              <input
+                data-history-depth
+                type="number"
+                min="0"
+                value={current().history_depth}
+                onChange={(event) => onDepth(event.currentTarget.value)}
+              />
+            </label>
+            <label>
+              {props.text.settings.historyShare}
+              <input
+                data-history-share
+                type="number"
+                min="0"
+                max="100"
+                value={current().history_share_percent}
+                onChange={(event) => onShare(event.currentTarget.value)}
+              />
+            </label>
           </section>
 
           <Show when={saved()}>

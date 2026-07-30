@@ -14,14 +14,10 @@ const text = strings(locale);
 ---
 
 <Base locale={locale} title={text.nav.settings} back={{ href: "/", text: text.nav.programs }}>
-  <section id="settings">
-    <p>{text.settings.lead}</p>
+  <p>{text.settings.lead}</p>
+  <section class="grid" aria-label={text.nav.settings}>
     <Settings text={text} locale={locale} client:load />
-  </section>
-  <section id="encryption">
-    <Encryption text={text} client:load />
-  </section>
-  <section id="provider">
     <Provider text={text} locale={locale} client:load />
+    <Encryption text={text} client:load />
   </section>
 </Base>

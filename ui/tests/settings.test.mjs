@@ -79,6 +79,26 @@ test("новый бюджет диска уходит в ядро сразу", a
   assert.equal(host.querySelector("[data-saved]").textContent, ru.settings.saved);
 });
 
+test("слайдер и поле бюджета показывают одно число", async () => {
+  const { host, calls } = mount({ stored: { disk_budget_mb: 512 } });
+  await settled();
+
+  const slider = host.querySelector("[data-budget-slider]");
+  assert.equal(slider.value, "512");
+
+  slider.value = "1024";
+  slider.dispatchEvent(new window.Event("input", { bubbles: true }));
+  await settled();
+
+  assert.equal(host.querySelector("[data-budget]").value, "1024");
+  assert.equal(calls.length, 1, "движение ползунка уже записало настройку");
+
+  slider.dispatchEvent(new window.Event("change", { bubbles: true }));
+  await settled();
+
+  assert.equal(calls.at(-1).payload.save.disk_budget_mb, 1024);
+});
+
 test("нулевой бюджет не уезжает в ядро", async () => {
   const { host, calls } = mount();
   await settled();

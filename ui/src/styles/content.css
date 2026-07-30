@@ -8,7 +8,7 @@
   padding-inline-start: var(--spacing-6);
 }
 
-.page li + li {
+.page :where(li + li) {
   margin-block-start: var(--spacing-1);
 }
 

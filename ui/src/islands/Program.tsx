@@ -83,7 +83,7 @@ export default function Program(props: Props) {
       }
     >
       <section>
-        <nav class="row" aria-label={props.text.nav.sections}>
+        <nav class="row" data-tools aria-label={props.text.nav.sections}>
           <a data-stale href={`/${props.locale}/stale/?program=${encodeURIComponent(program())}`}>
             {props.text.stale.title}
           </a>
@@ -113,11 +113,13 @@ export default function Program(props: Props) {
         <For each={stages()}>
           {(stage) => (
             <article data-stage={stage.n}>
-              <h3>{stage.title}</h3>
-              <p data-tally>
-                {props.text.programs.progress}: {stage.tally.done} /{" "}
-                {plural(props.locale, stage.tally.total, props.text.counts.topics)}
-              </p>
+              <div class="head">
+                <h3>{stage.title}</h3>
+                <p data-tally>
+                  {props.text.programs.progress}: {stage.tally.done} /{" "}
+                  {plural(props.locale, stage.tally.total, props.text.counts.topics)}
+                </p>
+              </div>
               <ul>
                 <For each={of(stage)}>
                   {(topic) => (

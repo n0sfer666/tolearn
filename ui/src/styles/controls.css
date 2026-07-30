@@ -104,12 +104,23 @@ textarea[data-note] {
 }
 
 .bar-back,
-.bar-nav a {
-  padding: var(--spacing-1) var(--spacing-2);
+.bar-nav a,
+nav[data-tools] a {
+  display: inline-flex;
+  align-items: center;
   border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition:
+    background var(--duration) var(--easing),
+    border-color var(--duration) var(--easing),
+    color var(--duration) var(--easing);
+}
+
+.bar-back,
+.bar-nav a {
+  padding: var(--spacing-2) var(--spacing-3);
   color: var(--color-fg-muted);
   font-size: var(--font-size-sm);
-  text-decoration: none;
 }
 
 .bar-back:hover,
@@ -119,8 +130,26 @@ textarea[data-note] {
 }
 
 .bar-back {
-  margin-inline-start: calc(var(--spacing-2) * -1);
+  margin-inline-start: calc(var(--spacing-3) * -1);
   white-space: nowrap;
+}
+
+nav[data-tools] a {
+  padding: var(--spacing-2) var(--spacing-4);
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-bg-raised);
+  color: var(--color-fg);
+  font-size: var(--font-size-sm);
+}
+
+nav[data-tools] a:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-subtle);
+}
+
+nav[data-tools] > button {
+  margin-inline-start: auto;
+  font-size: var(--font-size-sm);
 }
 
 .bar-back::before {

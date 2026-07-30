@@ -96,7 +96,6 @@ export default function Topic(props: Props) {
 
           <Show when={view().materials.length > 0}>
             <section data-section="materials">
-              <h2>{props.text.topic.materials}</h2>
               <Materials text={props.text} materials={view().materials} />
             </section>
           </Show>

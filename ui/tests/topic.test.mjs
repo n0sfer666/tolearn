@@ -36,6 +36,17 @@ const FULL = {
   misconceptions: ["Квантование бесплатно"],
   materials: [
     {
+      title: "Гайд по квантованию",
+      url: "https://example.invalid/quant",
+      kind: "doc",
+      tier: "T1",
+      lang: "ru",
+      stale: false,
+      delta: null,
+      offline: "absent",
+      note: "",
+    },
+    {
       title: "llama.cpp README",
       url: "https://example.invalid/llama",
       kind: "repo",
@@ -182,11 +193,29 @@ test("подсказка практики закрыта спойлером, а 
   assert.equal(practice.querySelector("[data-acceptance] details"), null, "приёмка под спойлером");
 });
 
+test("неактуальные материалы скрыты, пока свитч выключен", async () => {
+  const { host } = mount();
+  await settled();
+
+  const materials = section(host, "materials");
+  const titles = () => [...materials.querySelectorAll("li a")].map((node) => node.textContent);
+
+  assert.deepEqual(titles(), ["Гайд по квантованию"]);
+
+  materials.querySelector("[data-show-stale]").click();
+  await settled();
+
+  assert.deepEqual(titles(), ["Гайд по квантованию", "llama.cpp README"]);
+});
+
 test("материал несёт свежесть, отличие и офлайн-доступность", async () => {
   const { host } = mount();
   await settled();
 
-  const material = section(host, "materials").querySelector("li");
+  section(host, "materials").querySelector("[data-show-stale]").click();
+  await settled();
+
+  const material = section(host, "materials").querySelector("li[data-material='repo']");
   assert.match(material.textContent, /llama\.cpp README/);
   assert.match(material.textContent, new RegExp(ru.topic.stale));
   assert.match(material.textContent, /n-gpu-layers/);
