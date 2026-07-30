@@ -5,6 +5,7 @@ import type { Dictionary } from "../i18n/ru";
 import { type Locale, plural } from "../i18n";
 import type { Stage, TopicStatus } from "../ipc";
 import { matches } from "../lib/filter";
+import { name as named } from "../lib/name";
 import { pickFile, quiet } from "../lib/ipc";
 import { toast } from "../lib/toast";
 import type { Transport } from "../lib/ipc";
@@ -47,6 +48,7 @@ export default function Program(props: Props) {
         const out = await call()("program", { bundle: path(), today: today() });
         setStages(out.stages);
         setTopics(out.topics);
+        named("program", path(), out.title);
       } catch {
         setGone(true);
       }

@@ -36,6 +36,7 @@ dto!(ProgramIn {
     today: String,
 });
 dto!(ProgramOut {
+    title: String,
     program: Tally,
     stages: Vec<Stage>,
     topics: Vec<TopicStatus>,
@@ -77,6 +78,7 @@ dto!(TopicIn {
 dto!(TopicOut {
     id: String,
     title: String,
+    program: String,
     stage: u32,
     checkpoint: bool,
     status: String,

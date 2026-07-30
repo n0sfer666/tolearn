@@ -48,6 +48,7 @@ export type ProgramIn = {
 };
 
 export type ProgramOut = {
+  title: string;
   program: Tally;
   stages: Stage[];
   topics: TopicStatus[];
@@ -98,6 +99,7 @@ export type TopicIn = {
 export type TopicOut = {
   id: string;
   title: string;
+  program: string;
   stage: number;
   checkpoint: boolean;
   status: string;

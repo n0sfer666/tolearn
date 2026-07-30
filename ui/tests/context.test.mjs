@@ -19,11 +19,11 @@ function page(route) {
   return readFileSync(path.join(DIST, route, "index.html"), "utf8");
 }
 
-function keeper(html) {
+function inline(html, marker) {
   const found = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)]
     .map(([, code]) => code)
-    .filter((code) => code.includes("data-keep"));
-  if (found.length !== 1) throw new Error(`ожидался один скрипт контекста, найдено ${found.length}`);
+    .filter((code) => code.includes(marker));
+  if (found.length !== 1) throw new Error(`ожидался один скрипт «${marker}», найдено ${found.length}`);
   return found[0];
 }
 
@@ -33,7 +33,7 @@ function visit(route, search, remembered = null) {
   window.localStorage.clear();
   if (remembered !== null) window.localStorage.setItem("tolearn.program", remembered);
   window.document.body.innerHTML = html.match(/<header[\s\S]*?<\/header>/)[0];
-  runInNewContext(keeper(html), {
+  runInNewContext(inline(html, "data-keep"), {
     document: window.document,
     location: window.location,
     localStorage: window.localStorage,

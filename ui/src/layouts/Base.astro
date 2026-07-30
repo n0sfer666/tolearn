@@ -14,10 +14,11 @@ import "../styles/toast.css";
 import Toasts from "../components/Toasts";
 import EarlyTheme from "../components/EarlyTheme.astro";
 import KeepContext from "../components/KeepContext.astro";
+import Names from "../components/Names.astro";
 import Keyboard from "../components/Keyboard.astro";
 import RememberLocale from "../components/RememberLocale.astro";
 import { type Locale, localized, strings } from "../i18n";
-import { keep } from "../lib/context";
+import { entity, keep, route } from "../lib/context";
 
 interface Props {
   locale: Locale;
@@ -30,6 +31,7 @@ const text = strings(locale);
 const here = Astro.url.pathname;
 const current = (href: string): "page" | undefined =>
   here === localized(href, locale) ? "page" : undefined;
+const named = entity(route(here, locale));
 ---
 
 <!doctype html>
@@ -50,12 +52,13 @@ const current = (href: string): "page" | undefined =>
               class="bar-back"
               data-back
               data-keep={keep(back.href).join(",")}
+              data-name={entity(back.href)}
             >
               {back.text}
             </a>
           )
         }
-        <h1 class="bar-title">{title}</h1>
+        <h1 class="bar-title" data-name={named}>{title}</h1>
       </div>
       <nav class="bar-nav" aria-label={text.nav.sections}>
         <a href={localized("/queue/", locale)} data-queue aria-current={current("/queue/")}>
@@ -80,6 +83,7 @@ const current = (href: string): "page" | undefined =>
     <Toasts client:load close={text.toast.close} />
     <RememberLocale />
     <KeepContext />
+    <Names />
     <Keyboard />
   </body>
 </html>

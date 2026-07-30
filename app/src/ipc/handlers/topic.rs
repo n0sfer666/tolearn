@@ -32,6 +32,7 @@ pub fn run(context: &Context, input: &TopicIn) -> Result<TopicOut, IpcError> {
     Ok(TopicOut {
         id: document.id.clone(),
         title: document.title.clone(),
+        program: opened.scan.roadmap.title.clone(),
         stage: document.stage,
         checkpoint: is_checkpoint(&opened.scan.roadmap, &document.id),
         status: statuses

@@ -21,7 +21,7 @@ export default function Materials(props: Props) {
   const shown = () =>
     stale() ? props.materials : props.materials.filter((material) => !material.stale);
   const reader = (url: string) =>
-    `/${props.locale}/read/?url=${encodeURIComponent(url)}`;
+    `/${props.locale}/read/?url=${encodeURIComponent(url)}&program=${encodeURIComponent(props.bundle)}&topic=${encodeURIComponent(props.topic)}`;
 
   return (
     <>

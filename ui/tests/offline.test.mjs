@@ -151,8 +151,8 @@ test("выгрузка запускается с шапки материалов
   assert.match(materials(host).querySelector("[data-unload-report]").textContent, /1/);
   assert.equal(
     materials(host).querySelector("[data-offline-open]").getAttribute("href"),
-    `/ru/read/?url=${encodeURIComponent(MATERIAL.url)}`,
-    "сохранённый материал не получил ход в читалку",
+    `/ru/read/?url=${encodeURIComponent(MATERIAL.url)}&program=${encodeURIComponent("/programs/llm-agents-base")}&topic=local-runtime`,
+    "сохранённый материал не получил ход в читалку с темой и программой",
   );
   dispose();
 });

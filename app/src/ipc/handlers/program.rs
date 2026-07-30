@@ -21,6 +21,7 @@ pub fn run(_context: &Context, input: &ProgramIn) -> Result<ProgramOut, IpcError
     let summary = summary::summarize(&opened.scan.roadmap, &opened.scan.topics, &statuses);
 
     Ok(ProgramOut {
+        title: opened.scan.roadmap.title.clone(),
         program: tally(&summary.program),
         stages: stages(&opened.scan.roadmap, &summary),
         topics: topics(&opened.scan.roadmap, &opened.scan.topics, &statuses),

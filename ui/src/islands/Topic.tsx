@@ -7,6 +7,7 @@ import type { Status } from "../components/status";
 import type { Dictionary } from "../i18n/ru";
 import type { Locale } from "../i18n";
 import type { TopicOut } from "../ipc";
+import { name } from "../lib/name";
 import { transport } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
 
@@ -35,7 +36,10 @@ export default function Topic(props: Props) {
   const refresh = () => {
     void (async () => {
       try {
-        setTopic(await call()("topic", { bundle: program(), topic: id(), today: today() }));
+        const out = await call()("topic", { bundle: program(), topic: id(), today: today() });
+        setTopic(out);
+        name("topic", id(), out.title);
+        name("program", program(), out.program);
       } catch {
         setGone(true);
       }

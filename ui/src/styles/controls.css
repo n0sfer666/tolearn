@@ -130,8 +130,12 @@ nav[data-tools] a {
 }
 
 .bar-back {
+  display: inline-block;
+  max-width: var(--width-crumb);
   margin-inline-start: calc(var(--spacing-3) * -1);
+  overflow: hidden;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 nav[data-tools] a {
