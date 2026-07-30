@@ -92,6 +92,13 @@ headless-окружении без GUI.
 | снимки прошлых версий | приложение | `<app-data>/history/<roadmap-id>/<n>/` |
 | бандл, приехавший архивом | приложение | `<app-data>/unpacked/<roadmap-id>/` |
 
+`<app-data>` — это `~/.local/share/tolearn` (или `$XDG_DATA_HOME/tolearn`), а
+настройки живут отдельно: `settings.yaml`, `provider.yaml` и `registry.yaml`
+лежат в `~/.config/tolearn` (или `$XDG_CONFIG_HOME/tolearn`). Первый запуск
+переносит туда содержимое старого `~/Library/Application Support/dev.tolearn.app`,
+если оно осталось; то, что уже есть на новом месте, переезд не трогает
+(`app/src/ipc/layout.rs`).
+
 Приложение **не пишет** в файлы бандла, кроме `progress.yaml`
 ([ADR-009](../docs/adr/009-user-data-outside-bundle.md)). Перегенерация бандла —
 штатный сценарий: обрабатывается слиянием по `id`, ничего пользовательского не

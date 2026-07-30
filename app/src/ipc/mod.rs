@@ -4,6 +4,7 @@ mod dto;
 mod error;
 mod handlers;
 mod history;
+pub mod layout;
 mod notes;
 mod open;
 mod provider;
