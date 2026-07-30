@@ -44,7 +44,7 @@ export default function Materials(props: Props) {
           onDone={props.onSaved}
         />
       </div>
-      <ul>
+      <ol data-materials>
         <For each={shown()}>
           {(material) => (
             <li data-material={material.kind}>
@@ -63,10 +63,11 @@ export default function Materials(props: Props) {
                 <span data-stale>{props.text.topic.stale}</span>
               </Show>
               <Show when={material.delta}>{(delta) => <span data-delta>{delta()}</span>}</Show>
+              <Show when={material.note}>{(note) => <p data-note>{note()}</p>}</Show>
             </li>
           )}
         </For>
-      </ul>
+      </ol>
     </>
   );
 }

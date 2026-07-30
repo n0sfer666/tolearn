@@ -44,7 +44,7 @@ const FULL = {
       stale: false,
       delta: null,
       offline: "absent",
-      note: "",
+      note: "Отсюда начинается тема: как считается расход памяти",
     },
     {
       title: "llama.cpp README",
@@ -219,6 +219,20 @@ test("материал несёт свежесть, отличие и офлай
   assert.match(material.textContent, new RegExp(ru.topic.stale));
   assert.match(material.textContent, /n-gpu-layers/);
   assert.match(material.textContent, new RegExp(ru.topic.offline));
+});
+
+test("материалы идут путём по порядку и говорят, зачем их читать", async () => {
+  const { host } = mount();
+  await settled();
+
+  const materials = section(host, "materials");
+
+  assert.ok(materials.querySelector("ol[data-materials]"), materials.innerHTML);
+  assert.equal(materials.querySelector("ul"), null, "путь читается порядком, а не кучей");
+  assert.match(
+    materials.querySelector("li[data-material='doc'] [data-note]").textContent,
+    /расход памяти/,
+  );
 });
 
 test("вопросы показаны формулировками, без ответов", async () => {

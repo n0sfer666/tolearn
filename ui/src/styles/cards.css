@@ -1,5 +1,5 @@
 ul:has(> li[data-program]),
-ul:has(> li[data-material]),
+ol[data-materials],
 ul:has(> li[data-topic]),
 ul:has(> li[data-due]),
 ul:has(> li[data-expired]),
@@ -65,6 +65,26 @@ li[data-program] > a,
 :is(li[data-topic], li[data-due], li[data-expired], li[data-aging], li[data-hit]) > a {
   display: inline-flex;
   align-items: center;
+}
+
+ol[data-materials] {
+  counter-reset: material;
+}
+
+li[data-material]::before {
+  content: counter(material);
+  counter-increment: material;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+li[data-material] [data-note] {
+  flex: 0 0 100%;
+  max-width: none;
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
 }
 
 ul[data-hits] {
