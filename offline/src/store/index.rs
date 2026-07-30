@@ -1,6 +1,6 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-use rusqlite::{Connection, OptionalExtension, params};
+use rusqlite::{Connection, OptionalExtension, Row, params};
 
 use super::error::StoreError;
 use super::types::Held;
@@ -17,7 +17,8 @@ create table if not exists urls (
     kind text not null,
     fetched_at integer not null,
     etag text,
-    last_modified text
+    last_modified text,
+    path text
 );
 create table if not exists holders (
     program text not null,
@@ -30,6 +31,14 @@ create table if not exists programs (
 );
 ";
 
+const COLUMNS: &str = "o.hash, o.size, u.kind, u.fetched_at, u.etag, u.last_modified, u.path";
+
+#[derive(Debug)]
+pub(super) struct Found {
+    pub(super) held: Held,
+    pub(super) outside: Option<PathBuf>,
+}
+
 #[derive(Debug)]
 pub(super) struct Index {
     db: Connection,
@@ -41,6 +50,14 @@ impl Index {
         db.pragma_update(None, "journal_mode", "WAL")?;
         db.pragma_update(None, "synchronous", "FULL")?;
         db.execute_batch(SCHEMA)?;
+        let aged: i64 = db.query_row(
+            "select count(*) from pragma_table_info('urls') where name = 'path'",
+            [],
+            |row| row.get(0),
+        )?;
+        if aged == 0 {
+            db.execute("alter table urls add column path text", [])?;
+        }
         Ok(Self { db })
     }
 
@@ -48,21 +65,31 @@ impl Index {
         &mut self,
         url: &str,
         program: &str,
-        held: &Held,
+        found: &Found,
         at: i64,
     ) -> Result<(), StoreError> {
+        let held = &found.held;
+        let outside = found.outside.as_ref().and_then(|path| path.to_str());
         let write = self.db.transaction()?;
         write.execute(
             "insert into objects (hash, size, used_at) values (?1, ?2, ?3)
-             on conflict (hash) do update set used_at = ?3",
+             on conflict (hash) do update set size = ?2, used_at = ?3",
             params![held.hash, held.size, at],
         )?;
         write.execute(
-            "insert into urls (url, hash, kind, fetched_at, etag, last_modified)
-             values (?1, ?2, ?3, ?4, ?5, ?6)
+            "insert into urls (url, hash, kind, fetched_at, etag, last_modified, path)
+             values (?1, ?2, ?3, ?4, ?5, ?6, ?7)
              on conflict (url) do update set
-                 hash = ?2, kind = ?3, fetched_at = ?4, etag = ?5, last_modified = ?6",
-            params![url, held.hash, held.kind, at, held.etag, held.last_modified],
+                 hash = ?2, kind = ?3, fetched_at = ?4, etag = ?5, last_modified = ?6, path = ?7",
+            params![
+                url,
+                held.hash,
+                held.kind,
+                at,
+                held.etag,
+                held.last_modified,
+                outside
+            ],
         )?;
         write.execute(
             "insert or ignore into holders (program, url) values (?1, ?2)",
@@ -72,27 +99,19 @@ impl Index {
         Ok(())
     }
 
-    pub(super) fn find(&self, url: &str) -> Result<Option<Held>, StoreError> {
-        let held = self
+    pub(super) fn find(&self, url: &str) -> Result<Option<Found>, StoreError> {
+        let found = self
             .db
             .query_row(
-                "select o.hash, o.size, u.kind, u.fetched_at, u.etag, u.last_modified
-                 from urls u join objects o on o.hash = u.hash where u.url = ?1",
+                &format!(
+                    "select {COLUMNS} from urls u join objects o on o.hash = u.hash
+                     where u.url = ?1"
+                ),
                 params![url],
-                |row| {
-                    Ok(Held {
-                        hash: row.get(0)?,
-                        path: Path::new("").to_path_buf(),
-                        size: row.get(1)?,
-                        kind: row.get(2)?,
-                        fetched_at: row.get(3)?,
-                        etag: row.get(4)?,
-                        last_modified: row.get(5)?,
-                    })
-                },
+                found,
             )
             .optional()?;
-        Ok(held)
+        Ok(found)
     }
 
     pub(super) fn touch(&self, hash: &str, at: i64) -> Result<(), StoreError> {
@@ -121,16 +140,16 @@ impl Index {
         Ok(total)
     }
 
-    pub(super) fn loose(&self) -> Result<Vec<(String, String, u64)>, StoreError> {
-        let mut query = self.db.prepare(
-            "select u.url, o.hash, o.size from urls u join objects o on o.hash = u.hash
+    pub(super) fn loose(&self) -> Result<Vec<(String, Found)>, StoreError> {
+        let mut query = self.db.prepare(&format!(
+            "select {COLUMNS}, u.url from urls u join objects o on o.hash = u.hash
              where not exists (
                  select 1 from holders h join programs p on p.program = h.program
                  where h.url = u.url and p.protected = 1
              )
              order by o.used_at asc, u.url asc",
-        )?;
-        let rows = query.query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?;
+        ))?;
+        let rows = query.query_map([], |row| Ok((row.get(7)?, found(row)?)))?;
         Ok(rows.collect::<Result<Vec<_>, _>>()?)
     }
 
@@ -155,4 +174,20 @@ impl Index {
         write.commit()?;
         Ok(())
     }
+}
+
+fn found(row: &Row<'_>) -> rusqlite::Result<Found> {
+    let outside: Option<String> = row.get(6)?;
+    Ok(Found {
+        held: Held {
+            hash: row.get(0)?,
+            path: PathBuf::new(),
+            size: row.get(1)?,
+            kind: row.get(2)?,
+            fetched_at: row.get(3)?,
+            etag: row.get(4)?,
+            last_modified: row.get(5)?,
+        },
+        outside: outside.map(PathBuf::from),
+    })
 }

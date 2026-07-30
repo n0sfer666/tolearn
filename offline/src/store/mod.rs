@@ -1,3 +1,4 @@
+mod disk;
 mod error;
 mod index;
 mod types;
@@ -9,7 +10,7 @@ use std::path::{Path, PathBuf};
 
 use sha2::{Digest, Sha256};
 
-use index::Index;
+use index::{Found, Index};
 
 #[derive(Debug)]
 pub struct Store {
@@ -44,37 +45,61 @@ impl Store {
             std::fs::write(&path, fetched.bytes).map_err(StoreError::Unwritable)?;
         }
 
-        let stale = self.index.find(url)?;
+        let size = fetched.bytes.len() as u64;
         let held = Held {
             hash: hash.clone(),
             path: path.clone(),
             kind: fetched.kind.to_string(),
-            size: fetched.bytes.len() as u64,
+            size,
             fetched_at: at,
             etag: fetched.etag.map(str::to_string),
             last_modified: fetched.last_modified.map(str::to_string),
         };
-        self.index.remember(url, program, &held, at)?;
-        if let Some(stale) = stale {
-            self.drop_object(&stale.hash)?;
-        }
+        self.write(url, program, held, None, at)?;
 
-        Ok(Stored {
-            hash,
-            path,
-            size: held.size,
-        })
+        Ok(Stored { hash, path, size })
+    }
+
+    pub fn corner(&self, url: &str) -> Result<PathBuf, StoreError> {
+        let path = self.nook(&kept(url));
+        std::fs::create_dir_all(&path).map_err(StoreError::Unwritable)?;
+        Ok(path)
+    }
+
+    pub fn keep(
+        &mut self,
+        url: &str,
+        program: &str,
+        kind: &str,
+        at: i64,
+    ) -> Result<Stored, StoreError> {
+        let hash = kept(url);
+        let path = self.nook(&hash);
+        let size = disk::weigh(&path)?;
+        let held = Held {
+            hash: hash.clone(),
+            path: path.clone(),
+            kind: kind.to_string(),
+            size,
+            fetched_at: at,
+            etag: None,
+            last_modified: None,
+        };
+        self.write(url, program, held, Some(path.clone()), at)?;
+
+        Ok(Stored { hash, path, size })
     }
 
     pub fn get(&mut self, url: &str, at: i64) -> Result<Option<Held>, StoreError> {
-        let Some(held) = self.index.find(url)? else {
+        let Some(found) = self.index.find(url)? else {
             return Ok(None);
         };
-        self.index.touch(&held.hash, at)?;
-        Ok(Some(Held {
-            path: self.spot(&held.hash),
-            ..held
-        }))
+        self.index.touch(&found.held.hash, at)?;
+        Ok(Some(self.at_hand(found)))
+    }
+
+    pub fn held(&self, url: &str) -> Result<Option<Held>, StoreError> {
+        Ok(self.index.find(url)?.map(|found| self.at_hand(found)))
     }
 
     pub fn protect(&mut self, program: &str, protected: bool) -> Result<(), StoreError> {
@@ -88,33 +113,62 @@ impl Store {
     pub fn sweep(&mut self) -> Result<Vec<String>, StoreError> {
         let mut total = self.index.size()?;
         let mut evicted = Vec::new();
-        for (url, hash, size) in self.index.loose()? {
+        for (url, found) in self.index.loose()? {
             if total <= self.budget {
                 break;
             }
-            self.index.forget(&url, &hash)?;
-            self.drop_object(&hash)?;
+            let size = found.held.size;
+            self.index.forget(&url, &found.held.hash)?;
+            self.drop_object(&found)?;
             total = total.saturating_sub(size);
             evicted.push(url);
         }
         Ok(evicted)
     }
 
+    fn write(
+        &mut self,
+        url: &str,
+        program: &str,
+        held: Held,
+        outside: Option<PathBuf>,
+        at: i64,
+    ) -> Result<(), StoreError> {
+        let stale = self.index.find(url)?;
+        self.index
+            .remember(url, program, &Found { held, outside }, at)?;
+        if let Some(stale) = stale {
+            self.drop_object(&stale)?;
+        }
+        Ok(())
+    }
+
+    fn at_hand(&self, found: Found) -> Held {
+        let path = found.outside.unwrap_or_else(|| self.spot(&found.held.hash));
+        Held { path, ..found.held }
+    }
+
     fn spot(&self, hash: &str) -> PathBuf {
         self.root.join("objects").join(&hash[0..2]).join(hash)
     }
 
-    fn drop_object(&self, hash: &str) -> Result<(), StoreError> {
-        if self.index.holds(hash)? {
+    fn nook(&self, hash: &str) -> PathBuf {
+        self.root.join("artifacts").join(&hash[0..2]).join(hash)
+    }
+
+    fn drop_object(&self, found: &Found) -> Result<(), StoreError> {
+        if self.index.holds(&found.held.hash)? {
             return Ok(());
         }
-        let path = self.spot(hash);
-        match std::fs::remove_file(&path) {
-            Ok(()) => Ok(()),
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-            Err(error) => Err(StoreError::Unwritable(error)),
+        match found.outside.as_ref() {
+            Some(path) => disk::erase(path),
+            None => disk::erase(&self.spot(&found.held.hash)),
         }
     }
+}
+
+fn kept(url: &str) -> String {
+    digest(format!("kept:{url}").as_bytes())
 }
 
 fn digest(bytes: &[u8]) -> String {
