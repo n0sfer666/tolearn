@@ -1,0 +1,18 @@
+---
+import { LOCALES, localeOf, strings } from "../../../i18n";
+import Base from "../../../layouts/Base.astro";
+import Read from "../../../islands/Read";
+
+export function getStaticPaths() {
+  return LOCALES.map((locale) => ({ params: { locale } }));
+}
+
+const locale = localeOf(Astro.params.locale);
+const text = strings(locale);
+---
+
+<Base locale={locale} title={text.offline.open} back={{ href: "/topic/", text: text.nav.topic }}>
+  <section id="read" aria-label={text.offline.open}>
+    <Read client:load text={text} locale={locale} />
+  </section>
+</Base>

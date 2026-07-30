@@ -32,11 +32,7 @@ export default function Topic(props: Props) {
   const [topic, setTopic] = createSignal<TopicOut | null>(null);
   const [gone, setGone] = createSignal(false);
 
-  onMount(() => {
-    if (program() === "" || id() === "") {
-      setGone(true);
-      return;
-    }
+  const refresh = () => {
     void (async () => {
       try {
         setTopic(await call()("topic", { bundle: program(), topic: id(), today: today() }));
@@ -44,6 +40,14 @@ export default function Topic(props: Props) {
         setGone(true);
       }
     })();
+  };
+
+  onMount(() => {
+    if (program() === "" || id() === "") {
+      setGone(true);
+      return;
+    }
+    refresh();
   });
 
   const pick = (status: Status) => {
@@ -96,7 +100,15 @@ export default function Topic(props: Props) {
 
           <Show when={view().materials.length > 0}>
             <section data-section="materials">
-              <Materials text={props.text} materials={view().materials} />
+              <Materials
+                text={props.text}
+                locale={props.locale}
+                bundle={program()}
+                topic={id()}
+                materials={view().materials}
+                call={props.call}
+                onSaved={refresh}
+              />
             </section>
           </Show>
 
