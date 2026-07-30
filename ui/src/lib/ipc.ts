@@ -6,7 +6,23 @@ export type Transport = <Name extends CommandName>(
   payload: Commands[Name]["input"],
 ) => Promise<Commands[Name]["output"]>;
 
+const BRIDGE = "http://127.0.0.1:4319";
+
+const bridged: Transport = async (name, payload) => {
+  const answer = await fetch(BRIDGE, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ name, payload }),
+  });
+  const body = await answer.json();
+  if (!answer.ok) throw body;
+  return body;
+};
+
+const shell = () => typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+
 export const quiet: Transport = async (name, payload) => {
+  if (import.meta.env.DEV && !shell()) return bridged(name, payload);
   const { invoke } = await import("@tauri-apps/api/core");
   return invoke("command", { name, payload });
 };
