@@ -25,20 +25,20 @@
   margin-block-start: var(--spacing-4);
 }
 
-[data-learn] {
-  display: grid;
-  gap: var(--spacing-6);
-  align-items: start;
+[data-tools] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
 }
 
-[data-learn] [data-note] {
-  width: 100%;
-}
-
-@media (min-width: 1024px) {
-  [data-learn] {
-    grid-template-columns: 1fr 1fr;
-  }
+[data-tools] :where(a) {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-target);
+  padding-inline: var(--spacing-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
 }
 
 .row :where(button) + :where(button),

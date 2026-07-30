@@ -21,7 +21,6 @@ export default function Header(props: Props) {
 
   return (
     <header data-header>
-      <h2>{props.topic.title}</h2>
       <p>
         <span
           class={`glyph status-${props.topic.status}`}

@@ -1,0 +1,48 @@
+[data-note-fab] {
+  position: fixed;
+  z-index: var(--z-sticky);
+  inset-block-end: var(--spacing-6);
+  inset-inline-end: var(--spacing-6);
+  min-block-size: var(--tap-target);
+  border-radius: var(--radius-md);
+}
+
+[data-note-panel] {
+  position: fixed;
+  z-index: var(--z-overlay);
+  inset-block: 0;
+  inset-inline-end: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: var(--spacing-3);
+  inline-size: max(33vw, var(--width-card));
+  overflow-y: auto;
+  padding: var(--spacing-6);
+  border-inline-start: var(--border-width) solid var(--color-border);
+  background: var(--color-bg-raised);
+}
+
+[data-note-panel] > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+}
+
+[data-note-panel] :where(textarea) {
+  block-size: 100%;
+}
+
+body:has([data-note-panel]) :where(.page, .bar) {
+  padding-inline-end: max(33vw, var(--width-card));
+}
+
+@media (max-width: 1024px) {
+  [data-note-panel] {
+    inline-size: 100vw;
+  }
+
+  body:has([data-note-panel]) :where(.page, .bar) {
+    padding-inline-end: 0;
+  }
+}

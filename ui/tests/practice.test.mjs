@@ -127,6 +127,16 @@ test("ограничения и приёмка — две коллекции", a
   assert.match(acceptance.textContent, /команда a2/);
 });
 
+test("подсказка закрыта спойлером, а критерии видны сразу", async () => {
+  const { host } = mount();
+  await settled();
+
+  const hint = host.querySelector("details");
+  assert.match(hint.textContent, /самой маленькой модели/);
+  assert.equal(hint.hasAttribute("open"), false);
+  assert.equal(host.querySelector("[data-acceptance] details"), null, "приёмка под спойлером");
+});
+
 test("прогон идёт по нажатию и только у своей проверки", async () => {
   const { host, calls } = mount();
   await settled();

@@ -3,7 +3,6 @@ import { For, Show, createSignal, onMount } from "solid-js";
 import Header from "../components/topic/Header";
 import Materials from "../components/topic/Materials";
 import Notes from "./Notes";
-import Practice from "../components/topic/Practice";
 import type { Status } from "../components/status";
 import type { Dictionary } from "../i18n/ru";
 import type { Locale } from "../i18n";
@@ -36,7 +35,7 @@ export default function Topic(props: Props) {
 
   const [topic, setTopic] = createSignal<TopicOut | null>(null);
   const [gone, setGone] = createSignal(false);
-  const [open, setOpen] = createSignal(shown(NOTE_PANEL));
+  const [open, setOpen] = createSignal(shown(NOTE_PANEL, false));
 
   const flip = (next: boolean) => {
     setOpen(next);
@@ -76,7 +75,10 @@ export default function Topic(props: Props) {
     })();
   };
 
-  const practice = () => `/${props.locale}/practice/?program=${encodeURIComponent(program())}&topic=${encodeURIComponent(id())}`;
+  const where = () =>
+    `?program=${encodeURIComponent(program())}&topic=${encodeURIComponent(id())}`;
+  const practice = () => `/${props.locale}/practice/${where()}`;
+  const exam = () => `/${props.locale}/exam/${where()}`;
 
   return (
     <Show
@@ -94,6 +96,29 @@ export default function Topic(props: Props) {
         <article>
           <Header text={props.text} topic={view()} onPick={pick} />
 
+          <Show when={view().materials.length > 0}>
+            <section data-section="materials">
+              <Materials
+                text={props.text}
+                locale={props.locale}
+                bundle={program()}
+                topic={id()}
+                materials={view().materials}
+                call={props.call}
+                onSaved={refresh}
+              />
+            </section>
+          </Show>
+
+          <nav class="row" data-tools aria-label={props.text.nav.sections}>
+            <a href={practice()} data-practice-link>
+              {props.text.topic.practice}
+            </a>
+            <a href={exam()} data-exam-link>
+              {props.text.topic.exam}
+            </a>
+          </nav>
+
           <section data-section="outcomes">
             <h2>{props.text.topic.outcomes}</h2>
             <ul>
@@ -101,66 +126,19 @@ export default function Topic(props: Props) {
             </ul>
           </section>
 
-          <Show when={view().misconceptions.length > 0}>
-            <section data-section="misconceptions">
-              <h2>{props.text.topic.misconceptions}</h2>
-              <ul>
-                <For each={view().misconceptions}>{(item) => <li>{item}</li>}</For>
-              </ul>
-            </section>
-          </Show>
-
-          <div data-learn>
-            <Show when={view().materials.length > 0}>
-              <section data-section="materials">
-                <Materials
-                  text={props.text}
-                  locale={props.locale}
-                  bundle={program()}
-                  topic={id()}
-                  materials={view().materials}
-                  call={props.call}
-                  onSaved={refresh}
-                />
-              </section>
+          <details data-section="exam">
+            <summary>{props.text.topic.exam}</summary>
+            <p>
+              {props.text.topic.focus}: {view().exam.focus}
+            </p>
+            <Show when={view().exam.artifact_required}>
+              <p data-artifact>{props.text.topic.artifact}</p>
             </Show>
-
-            <section data-section="notes">
-              <p class="row">
-                <span>{props.text.topic.notes}</span>
-                <button
-                  type="button"
-                  data-note-toggle
-                  aria-expanded={open()}
-                  onClick={() => flip(!open())}
-                >
-                  {open() ? props.text.notes.hide : props.text.notes.show}
-                </button>
-              </p>
-              <Show when={open()}>
-                <Notes
-                  text={props.text}
-                  locale={props.locale}
-                  program={program()}
-                  topic={id()}
-                  standalone={false}
-                  call={props.call}
-                />
-              </Show>
-            </section>
-          </div>
-
-          <section data-section="practice">
-            <h2>{props.text.topic.practice}</h2>
-            <Practice text={props.text} practice={view().practice} />
-            <a href={practice()} data-practice-link>
-              {props.text.practice.open}
-            </a>
-          </section>
+          </details>
 
           <Show when={view().questions.length > 0}>
-            <section data-section="questions">
-              <h2>{props.text.topic.questions}</h2>
+            <details data-section="questions">
+              <summary>{props.text.topic.questions}</summary>
               <ul>
                 <For each={view().questions}>
                   {(question) => (
@@ -171,18 +149,40 @@ export default function Topic(props: Props) {
                   )}
                 </For>
               </ul>
-            </section>
+            </details>
           </Show>
 
-          <section data-section="exam">
-            <h2>{props.text.topic.exam}</h2>
-            <p>
-              {props.text.topic.focus}: {view().exam.focus}
-            </p>
-            <Show when={view().exam.artifact_required}>
-              <p data-artifact>{props.text.topic.artifact}</p>
-            </Show>
-          </section>
+          <Show when={view().misconceptions.length > 0}>
+            <details data-section="misconceptions">
+              <summary>{props.text.topic.misconceptions}</summary>
+              <ul>
+                <For each={view().misconceptions}>{(item) => <li>{item}</li>}</For>
+              </ul>
+            </details>
+          </Show>
+
+          <button type="button" data-note-fab aria-expanded={open()} onClick={() => flip(!open())}>
+            {props.text.topic.notes}
+          </button>
+
+          <Show when={open()}>
+            <aside data-note-panel aria-label={props.text.topic.notes}>
+              <header>
+                <h2>{props.text.topic.notes}</h2>
+                <button type="button" data-note-close onClick={() => flip(false)}>
+                  {props.text.notes.hide}
+                </button>
+              </header>
+              <Notes
+                text={props.text}
+                locale={props.locale}
+                program={program()}
+                topic={id()}
+                standalone={false}
+                call={props.call}
+              />
+            </aside>
+          </Show>
         </article>
       )}
     </Show>

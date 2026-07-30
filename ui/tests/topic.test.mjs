@@ -132,7 +132,17 @@ test("секции идут в порядке работы, а не в поря�
 
   assert.deepEqual(
     [...host.querySelectorAll("[data-section]")].map((node) => node.dataset.section),
-    ["outcomes", "misconceptions", "materials", "notes", "practice", "questions", "exam"],
+    ["materials", "outcomes", "exam", "questions", "misconceptions"],
+  );
+});
+
+test("второстепенное убрано под раскрытие, материалы и итоги — нет", async () => {
+  const { host } = mount();
+  await settled();
+
+  assert.deepEqual(
+    [...host.querySelectorAll("details[data-section]")].map((node) => node.dataset.section),
+    ["exam", "questions", "misconceptions"],
   );
 });
 
@@ -142,7 +152,7 @@ test("вырожденный чекпойнт не рисует пустые с�
 
   assert.deepEqual(
     [...host.querySelectorAll("[data-section]")].map((node) => node.dataset.section),
-    ["outcomes", "notes", "practice", "exam"],
+    ["outcomes", "exam"],
   );
 });
 
@@ -165,31 +175,6 @@ test("устаревшая тема говорит об этом, свежая �
   const old = mount({ out: { ...FULL, outdated: true } });
   await settled();
   assert.match(old.host.querySelector("[data-header]").textContent, new RegExp(ru.topic.outdated));
-});
-
-test("ограничения и приёмка показаны двумя коллекциями", async () => {
-  const { host } = mount();
-  await settled();
-
-  const practice = section(host, "practice");
-  const constraints = practice.querySelector("[data-constraints]");
-  const acceptance = practice.querySelector("[data-acceptance]");
-  assert.match(constraints.textContent, /команда c1/);
-  assert.match(acceptance.textContent, /команда a1/);
-  assert.doesNotMatch(constraints.textContent, /команда a1/, "коллекции слиты");
-  assert.match(practice.textContent, new RegExp(ru.topic.constraints));
-  assert.match(practice.textContent, new RegExp(ru.topic.acceptance));
-});
-
-test("подсказка практики закрыта спойлером, а критерии видны сразу", async () => {
-  const { host } = mount();
-  await settled();
-
-  const practice = section(host, "practice");
-  const hint = practice.querySelector("details");
-  assert.match(hint.textContent, /самой маленькой модели/);
-  assert.equal(hint.hasAttribute("open"), false);
-  assert.equal(practice.querySelector("[data-acceptance] details"), null, "приёмка под спойлером");
 });
 
 test("неактуальные материалы скрыты, пока свитч выключен", async () => {
@@ -297,31 +282,35 @@ test("выведенный статус руками не двигается", a
   assert.equal(host.querySelector("[data-steps-locked]").textContent, ru.steps.locked);
 });
 
-test("конспект открыт рядом с материалом и убирается кнопкой", async () => {
+test("конспект живёт в панели, которую открывает и закрывает фаб", async () => {
   const { host } = mount();
   await settled();
 
-  const notes = section(host, "notes");
-  assert.ok(notes.querySelector("[data-note]"), "конспект не показан сразу");
-  assert.equal(notes.querySelector("[data-note-toggle]").textContent, ru.notes.hide);
+  assert.equal(host.querySelector("[data-note-panel]"), null, "панель лезет на глаза сразу");
+  assert.equal(host.querySelector("[data-note-fab]").getAttribute("aria-expanded"), "false");
 
-  notes.querySelector("[data-note-toggle]").click();
+  host.querySelector("[data-note-fab]").click();
   await settled();
 
-  assert.equal(section(host, "notes").querySelector("[data-note]"), null, "конспект не убрался");
-  assert.equal(section(host, "notes").querySelector("[data-note-toggle]").textContent, ru.notes.show);
+  assert.ok(host.querySelector("[data-note-panel] [data-note]"), "фаб не открыл конспект");
 
-  section(host, "notes").querySelector("[data-note-toggle]").click();
+  host.querySelector("[data-note-close]").click();
   await settled();
+
+  assert.equal(host.querySelector("[data-note-panel]"), null, "панель не убралась");
 });
 
-test("с темы есть ход на экран практики", async () => {
+test("с темы есть ход на практику и на зачёт", async () => {
   const { host } = mount();
   await settled();
 
-  const link = section(host, "practice").querySelector("[data-practice-link]");
-  assert.match(link.getAttribute("href"), /\/ru\/practice\/\?program=/);
-  assert.match(link.getAttribute("href"), /topic=local-runtime/);
+  const practice = host.querySelector("[data-tools] [data-practice-link]");
+  assert.match(practice.getAttribute("href"), /\/ru\/practice\/\?program=/);
+  assert.match(practice.getAttribute("href"), /topic=local-runtime/);
+
+  const exam = host.querySelector("[data-tools] [data-exam-link]");
+  assert.match(exam.getAttribute("href"), /\/ru\/exam\/\?program=/);
+  assert.match(exam.getAttribute("href"), /topic=local-runtime/);
 });
 
 test("без темы в адресе экран говорит об этом, а не пустеет", async () => {
