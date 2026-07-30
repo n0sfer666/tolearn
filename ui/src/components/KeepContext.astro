@@ -1,24 +1,26 @@
 <script is:inline>
-  const here = new URLSearchParams(location.search);
-  const REMEMBERED = "tolearn.program";
-  const store = typeof localStorage === "undefined" ? null : localStorage;
-  const open = here.get("program");
+  (() => {
+    const here = new URLSearchParams(location.search);
+    const REMEMBERED = "tolearn.program";
+    const store = typeof localStorage === "undefined" ? null : localStorage;
+    const open = here.get("program");
 
-  if (open !== null && open !== "" && store !== null) store.setItem(REMEMBERED, open);
+    if (open !== null && open !== "" && store !== null) store.setItem(REMEMBERED, open);
 
-  const known = (name) => {
-    const value = here.get(name);
-    if (value !== null && value !== "") return value;
-    if (name !== "program" || store === null) return null;
-    return store.getItem(REMEMBERED);
-  };
+    const known = (name) => {
+      const value = here.get(name);
+      if (value !== null && value !== "") return value;
+      if (name !== "program" || store === null) return null;
+      return store.getItem(REMEMBERED);
+    };
 
-  document.querySelectorAll("[data-keep]").forEach((link) => {
-    const url = new URL(link.href);
-    for (const name of link.dataset.keep.split(",").filter(Boolean)) {
-      const value = known(name);
-      if (value !== null && value !== "") url.searchParams.set(name, value);
-    }
-    link.href = `${url.pathname}${url.search}`;
-  });
+    document.querySelectorAll("[data-keep]").forEach((link) => {
+      const url = new URL(link.href);
+      for (const name of link.dataset.keep.split(",").filter(Boolean)) {
+        const value = known(name);
+        if (value !== null && value !== "") url.searchParams.set(name, value);
+      }
+      link.href = `${url.pathname}${url.search}`;
+    });
+  })();
 </script>

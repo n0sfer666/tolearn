@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import test, { before } from "node:test";
 import { fileURLToPath } from "node:url";
-import { runInNewContext } from "node:vm";
+import { createContext, runInContext } from "node:vm";
 
 import { DIST } from "../scripts/budget.mjs";
 import { browser } from "./support/dom.mjs";
@@ -21,12 +21,16 @@ before(
   { timeout: 300_000 },
 );
 
-function filler(html) {
-  const found = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)]
+const INLINE = /<script(?![^>]*\b(?:src|type)=)[^>]*>([\s\S]*?)<\/script>/g;
+
+function fillers(html) {
+  const found = [...html.matchAll(INLINE)]
     .map(([, code]) => code)
-    .filter((code) => code.includes("tolearn.names"));
-  if (found.length !== 1) throw new Error(`ожидался один скрипт имён, найдено ${found.length}`);
-  return found[0];
+    .filter((code) => code.includes("tolearn."));
+  if (!found.some((code) => code.includes("tolearn.names"))) {
+    throw new Error("на странице нет скрипта имён");
+  }
+  return found;
 }
 
 function visit(route, search, names = null) {
@@ -35,14 +39,16 @@ function visit(route, search, names = null) {
   window.localStorage.clear();
   if (names !== null) window.localStorage.setItem("tolearn.names", JSON.stringify(names));
   window.document.body.innerHTML = html.match(/<header[\s\S]*?<\/header>/)[0];
-  runInNewContext(filler(html), {
+  const context = createContext({
     document: window.document,
     location: window.location,
     localStorage: window.localStorage,
     addEventListener: window.addEventListener.bind(window),
     URLSearchParams: globalThis.URLSearchParams,
+    URL: globalThis.URL,
     JSON: globalThis.JSON,
   });
+  for (const code of fillers(html)) runInContext(code, context);
   return window;
 }
 

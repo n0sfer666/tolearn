@@ -1,4 +1,6 @@
 <script is:inline>
-  const theme = localStorage.getItem("tolearn.theme");
-  if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+  (() => {
+    const theme = localStorage.getItem("tolearn.theme");
+    if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+  })();
 </script>
