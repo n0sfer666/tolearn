@@ -506,6 +506,43 @@ dto!(ProviderView {
 });
 dto!(CheckedView { models: Vec<String> });
 
+dto!(SaveOfflineIn {
+    bundle: String,
+    topic: Option<String>,
+    again: Option<String>,
+});
+dto!(SaveOfflineOut {
+    job: String,
+    total: u32
+});
+dto!(OfflineStateIn { job: String });
+dto!(OfflineStateOut {
+    total: u32,
+    done: u32,
+    current: String,
+    finished: bool,
+    cancelled: bool,
+    bytes: u64,
+    saved: Vec<String>,
+    skipped: Vec<LeftView>,
+    failed: Vec<LeftView>,
+});
+dto!(LeftView {
+    url: String,
+    why: String
+});
+dto!(StopOfflineIn { job: String });
+dto!(StopOfflineOut { stopping: bool });
+dto!(ReadOfflineIn { url: String });
+dto!(ReadOfflineOut {
+    kind: String,
+    title: String,
+    html: String,
+    text: String,
+    path: String,
+    extracted: bool,
+});
+
 pub fn shapes() -> Vec<Shape> {
     vec![
         ValidateIn::shape(),
@@ -601,5 +638,14 @@ pub fn shapes() -> Vec<Shape> {
         ProviderOut::shape(),
         ProviderView::shape(),
         CheckedView::shape(),
+        SaveOfflineIn::shape(),
+        SaveOfflineOut::shape(),
+        OfflineStateIn::shape(),
+        OfflineStateOut::shape(),
+        LeftView::shape(),
+        StopOfflineIn::shape(),
+        StopOfflineOut::shape(),
+        ReadOfflineIn::shape(),
+        ReadOfflineOut::shape(),
     ]
 }

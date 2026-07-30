@@ -70,6 +70,10 @@ commands! {
     provider(types::ProviderIn) -> types::ProviderOut,
     encryption(types::EncryptionIn) -> types::EncryptionOut,
     follow(types::FollowIn) -> types::FollowOut,
+    save_offline(types::SaveOfflineIn) -> types::SaveOfflineOut,
+    offline_state(types::OfflineStateIn) -> types::OfflineStateOut,
+    stop_offline(types::StopOfflineIn) -> types::StopOfflineOut,
+    read_offline(types::ReadOfflineIn) -> types::ReadOfflineOut,
 }
 
 #[tauri::command]

@@ -5,12 +5,13 @@ use tolearn_core::topic::{Check, Material, Practice, Question, Topic};
 
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
-use crate::ipc::open;
 use crate::ipc::types::{
     CheckView, ExamView, Link, MaterialView, PracticeView, QuestionView, Span, TopicIn, TopicOut,
 };
+use crate::ipc::{open, settings};
+use crate::offline::{self, Seen};
 
-pub fn run(_context: &Context, input: &TopicIn) -> Result<TopicOut, IpcError> {
+pub fn run(context: &Context, input: &TopicIn) -> Result<TopicOut, IpcError> {
     let opened = open::open(&input.bundle)?;
     let day = Date::parse(&input.today).ok_or_else(|| IpcError::malformed_date(&input.today))?;
     let document = opened
@@ -19,6 +20,8 @@ pub fn run(_context: &Context, input: &TopicIn) -> Result<TopicOut, IpcError> {
         .iter()
         .find(|topic| topic.id == input.topic)
         .ok_or_else(|| IpcError::unknown_topic(&input.topic))?;
+    let settings = settings::stored(context)?;
+    let seen = offline::seen(&context.offline(), settings.budget_bytes());
     let statuses = effective(
         &opened.scan.roadmap,
         &opened.scan.topics,
@@ -44,7 +47,11 @@ pub fn run(_context: &Context, input: &TopicIn) -> Result<TopicOut, IpcError> {
         outdated: outdated(document, day),
         outcomes: document.outcomes.clone(),
         misconceptions: document.misconceptions.clone(),
-        materials: document.materials.iter().map(material).collect(),
+        materials: document
+            .materials
+            .iter()
+            .map(|source| material(source, &seen))
+            .collect(),
         practice: practice(&document.practice),
         questions: document.questions.iter().map(question).collect(),
         exam: ExamView {
@@ -86,7 +93,7 @@ fn title_of(roadmap: &Roadmap, id: &str) -> String {
         .unwrap_or_else(|| id.to_owned())
 }
 
-fn material(source: &Material) -> MaterialView {
+fn material(source: &Material, seen: &Seen) -> MaterialView {
     MaterialView {
         title: source.title.clone(),
         url: source.url.clone(),
@@ -95,7 +102,7 @@ fn material(source: &Material) -> MaterialView {
         lang: source.lang.clone(),
         stale: source.stale,
         delta: source.delta.clone(),
-        offline: "absent".to_owned(),
+        offline: seen.of(&source.url).to_owned(),
         note: source.note.clone(),
     }
 }

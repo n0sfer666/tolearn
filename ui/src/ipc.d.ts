@@ -608,6 +608,59 @@ export type CheckedView = {
   models: string[];
 };
 
+export type SaveOfflineIn = {
+  bundle: string;
+  topic: string | null;
+  again: string | null;
+};
+
+export type SaveOfflineOut = {
+  job: string;
+  total: number;
+};
+
+export type OfflineStateIn = {
+  job: string;
+};
+
+export type OfflineStateOut = {
+  total: number;
+  done: number;
+  current: string;
+  finished: boolean;
+  cancelled: boolean;
+  bytes: number;
+  saved: string[];
+  skipped: LeftView[];
+  failed: LeftView[];
+};
+
+export type LeftView = {
+  url: string;
+  why: string;
+};
+
+export type StopOfflineIn = {
+  job: string;
+};
+
+export type StopOfflineOut = {
+  stopping: boolean;
+};
+
+export type ReadOfflineIn = {
+  url: string;
+};
+
+export type ReadOfflineOut = {
+  kind: string;
+  title: string;
+  html: string;
+  text: string;
+  path: string;
+  extracted: boolean;
+};
+
 export type Commands = {
   validate: { input: ValidateIn; output: ValidateOut };
   scan: { input: ScanIn; output: ScanOut };
@@ -639,6 +692,10 @@ export type Commands = {
   provider: { input: ProviderIn; output: ProviderOut };
   encryption: { input: EncryptionIn; output: EncryptionOut };
   follow: { input: FollowIn; output: FollowOut };
+  save_offline: { input: SaveOfflineIn; output: SaveOfflineOut };
+  offline_state: { input: OfflineStateIn; output: OfflineStateOut };
+  stop_offline: { input: StopOfflineIn; output: StopOfflineOut };
+  read_offline: { input: ReadOfflineIn; output: ReadOfflineOut };
 };
 
 export type CommandName = keyof Commands;
