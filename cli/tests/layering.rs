@@ -18,6 +18,7 @@ struct Layer {
     package: &'static str,
     allowed_internal: &'static [&'static str],
     forbidden_markers: &'static [&'static str],
+    own_lints: bool,
 }
 
 const SHELL_MARKERS: &[&str] = &["tauri", "wry", "webkit", "objc"];
@@ -37,30 +38,42 @@ const LAYERS: &[Layer] = &[
         package: "tolearn-core",
         allowed_internal: &[],
         forbidden_markers: SHELL_MARKERS,
+        own_lints: false,
     },
     Layer {
         dir: "runner",
         package: "tolearn-runner",
         allowed_internal: &["tolearn-core"],
         forbidden_markers: SHELL_MARKERS,
+        own_lints: false,
     },
     Layer {
         dir: "offline",
         package: "tolearn-offline",
         allowed_internal: &["tolearn-core"],
         forbidden_markers: SHELL_MARKERS,
+        own_lints: false,
     },
     Layer {
         dir: "provider",
         package: "tolearn-provider",
         allowed_internal: &["tolearn-core"],
         forbidden_markers: SHELL_MARKERS,
+        own_lints: false,
+    },
+    Layer {
+        dir: "gestures",
+        package: "tolearn-gestures",
+        allowed_internal: &[],
+        forbidden_markers: &[],
+        own_lints: true,
     },
     Layer {
         dir: "cli",
         package: "tolearn-cli",
         allowed_internal: &["tolearn-core", "tolearn-runner", "tolearn-offline"],
         forbidden_markers: SHELL_MARKERS,
+        own_lints: false,
     },
     Layer {
         dir: "app",
@@ -70,8 +83,10 @@ const LAYERS: &[Layer] = &[
             "tolearn-runner",
             "tolearn-offline",
             "tolearn-provider",
+            "tolearn-gestures",
         ],
         forbidden_markers: &[],
+        own_lints: false,
     },
 ];
 
@@ -156,11 +171,23 @@ fn the_shell_does_not_reach_lower_layers_transitively() {
 fn every_crate_inherits_workspace_settings() {
     for layer in LAYERS {
         let manifest = manifest(layer.dir);
-        let lints = manifest
-            .get("lints")
-            .and_then(|lints| lints.get("workspace"))
-            .and_then(toml::Value::as_bool);
-        assert_eq!(lints, Some(true), "{}/Cargo.toml [lints]", layer.dir);
+        if layer.own_lints {
+            let unsafe_code = manifest["lints"]["rust"]
+                .get("unsafe_code")
+                .and_then(toml::Value::as_str);
+            assert_eq!(
+                unsafe_code,
+                Some("allow"),
+                "{}/Cargo.toml: своя таблица [lints] заводится только ради unsafe и объявляет его явно",
+                layer.dir
+            );
+        } else {
+            let lints = manifest
+                .get("lints")
+                .and_then(|lints| lints.get("workspace"))
+                .and_then(toml::Value::as_bool);
+            assert_eq!(lints, Some(true), "{}/Cargo.toml [lints]", layer.dir);
+        }
 
         for field in INHERITED_FIELDS {
             let inherited = manifest["package"]

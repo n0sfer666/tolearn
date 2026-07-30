@@ -17,6 +17,7 @@ tolearn-core.workspace = true
 tolearn-offline.workspace = true
 tolearn-provider.workspace = true
 tolearn-runner.workspace = true
+tolearn-gestures.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tauri.workspace = true

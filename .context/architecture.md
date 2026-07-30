@@ -10,6 +10,7 @@ core/       Rust: типы, парсинг, валидация, прогресс
 runner/     Rust: исполнение check-команд       (зависит от core)
 offline/    Rust: загрузка, архивация, кэш      (зависит от core)
 provider/   Rust: настройки LLM, ключ, проверка (зависит от core)
+gestures/   Rust: нативный жест «назад»         (ни от чего не зависит)
 cli/        Rust: tolearn validate|scan|exam    (зависит от core, runner, offline)
 app/        Tauri 2: IPC, окна, пререндер       (зависит от нижних слоёв)
 ui/         Astro + Solid                       (общается только через IPC)
@@ -30,6 +31,10 @@ headless-окружении без GUI.
 | `runner` | Tauri, UI |
 | `provider` | Tauri, UI, бандл и его файлы |
 | `ui` | что угодно, кроме IPC-контракта |
+
+`unsafe` разрешён ровно в одном крейте — `gestures`, где включается нативный жест
+«назад» у вебвью. Везде остальном `unsafe_code = "forbid"` из `[workspace.lints]`;
+крейт со своими `[lints]` обязан объявить `unsafe_code` явно, иначе падает S01.
 
 Правило закреплено гейтом `cli/tests/layering.rs` (S01). Он падает на:
 

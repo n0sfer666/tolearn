@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["core", "runner", "offline", "provider", "cli", "app"]
+members = ["core", "runner", "offline", "provider", "cli", "app", "gestures"]
 
 [workspace.package]
 version = "0.1.0"
@@ -15,6 +15,7 @@ tolearn-core = { path = "core" }
 tolearn-runner = { path = "runner" }
 tolearn-offline = { path = "offline" }
 tolearn-provider = { path = "provider" }
+tolearn-gestures = { path = "gestures" }
 age = { version = "0.12", default-features = false }
 getrandom = "0.3"
 keyring = "4"
