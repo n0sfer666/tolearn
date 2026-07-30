@@ -1,5 +1,6 @@
-import { For, Show, createSignal, onMount } from "solid-js";
+import { Show, createSignal, onMount } from "solid-js";
 
+import Blocks from "../components/read/Blocks";
 import type { Dictionary } from "../i18n/ru";
 import type { Locale } from "../i18n";
 import type { ReadOfflineOut } from "../ipc";
@@ -35,12 +36,6 @@ export default function Read(props: Props) {
     })();
   });
 
-  const paragraphs = () =>
-    (reading()?.text ?? "")
-      .split(/\n{2,}/)
-      .map((part) => part.trim())
-      .filter((part) => part !== "");
-
   const source = () => (
     <Show when={url() !== ""}>
       <a data-source href={url()}>
@@ -73,7 +68,7 @@ export default function Read(props: Props) {
               </p>
             }
           >
-            <For each={paragraphs()}>{(part) => <p>{part}</p>}</For>
+            <Blocks blocks={out().blocks} />
           </Show>
           {source()}
         </article>

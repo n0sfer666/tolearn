@@ -1,11 +1,12 @@
 use std::path::PathBuf;
 
+use tolearn_core::read;
 use tolearn_offline::reader;
 use tolearn_offline::store::Held;
 
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
-use crate::ipc::types::{ReadOfflineIn, ReadOfflineOut};
+use crate::ipc::types::{Block, ReadOfflineIn, ReadOfflineOut};
 use crate::ipc::{open, settings};
 use crate::offline;
 
@@ -21,6 +22,7 @@ pub fn run(context: &Context, input: &ReadOfflineIn) -> Result<ReadOfflineOut, I
             title: String::new(),
             html: String::new(),
             text: String::new(),
+            blocks: Vec::new(),
             path,
             extracted: false,
         });
@@ -32,10 +34,22 @@ pub fn run(context: &Context, input: &ReadOfflineIn) -> Result<ReadOfflineOut, I
         kind: held.kind,
         title: reading.title.unwrap_or_default(),
         html: reading.html,
+        blocks: laid(&reading.text),
         text: reading.text,
         path,
         extracted: reading.extracted,
     })
+}
+
+fn laid(text: &str) -> Vec<Block> {
+    read::blocks(text)
+        .into_iter()
+        .map(|block| Block {
+            kind: block.kind.label().to_owned(),
+            level: block.level,
+            text: block.text,
+        })
+        .collect()
 }
 
 fn entry(held: &Held) -> Option<PathBuf> {

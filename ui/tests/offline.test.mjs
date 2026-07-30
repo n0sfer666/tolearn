@@ -224,12 +224,15 @@ function mountRead(answer) {
   return host;
 }
 
+const BLOCK = (kind, text, level = 0) => ({ kind, level, text });
+
 test("читалка показывает сохранённый текст абзацами", async () => {
   const host = mountRead({
     kind: "archive",
     title: "Квантование",
     html: "<p>первый</p>",
     text: "первый абзац\n\nвторой абзац",
+    blocks: [BLOCK("paragraph", "первый абзац"), BLOCK("paragraph", "второй абзац")],
     path: "/store/objects/ab/abc",
     extracted: true,
   });
@@ -241,6 +244,36 @@ test("читалка показывает сохранённый текст аб
     ["первый абзац", "второй абзац"],
   );
   assert.equal(reading.querySelector("[data-source]").getAttribute("href"), MATERIAL.url);
+});
+
+test("страница читается разметкой, а не одной простынёй", async () => {
+  const host = mountRead({
+    kind: "archive",
+    title: "Квантование",
+    html: "",
+    text: "",
+    blocks: [
+      BLOCK("heading", "Что съедает память", 1),
+      BLOCK("paragraph", "Память уходит на три вещи."),
+      BLOCK("item", "веса"),
+      BLOCK("item", "KV-кэш"),
+      BLOCK("quote", "числа проверяй на своей машине"),
+      BLOCK("code", "llama-server -c 0"),
+    ],
+    path: "/store/objects/ab/abc",
+    extracted: true,
+  });
+  await settled();
+
+  const reading = host.querySelector("[data-reading]");
+  assert.equal(reading.querySelector("h3").textContent, "Что съедает память");
+  assert.deepEqual(
+    [...reading.querySelectorAll("ul li")].map((node) => node.textContent),
+    ["веса", "KV-кэш"],
+  );
+  assert.equal(reading.querySelectorAll("ul").length, 1, "список рассыпался");
+  assert.match(reading.querySelector("blockquote").textContent, /на своей машине/);
+  assert.equal(reading.querySelector("[data-code] code").textContent, "llama-server -c 0");
 });
 
 test("несохранённый материал не притворяется открытым", async () => {
@@ -256,6 +289,7 @@ test("репозиторий и видео отдают путь, а не пус
     title: "",
     html: "",
     text: "",
+    blocks: [],
     path: "/store/artifacts/ab/abc",
     extracted: false,
   });

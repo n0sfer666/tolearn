@@ -541,8 +541,14 @@ dto!(ReadOfflineOut {
     title: String,
     html: String,
     text: String,
+    blocks: Vec<Block>,
     path: String,
     extracted: bool,
+});
+dto!(Block {
+    kind: String,
+    level: u32,
+    text: String,
 });
 
 pub fn shapes() -> Vec<Shape> {
@@ -649,5 +655,6 @@ pub fn shapes() -> Vec<Shape> {
         StopOfflineOut::shape(),
         ReadOfflineIn::shape(),
         ReadOfflineOut::shape(),
+        Block::shape(),
     ]
 }

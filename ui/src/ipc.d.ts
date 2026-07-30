@@ -659,8 +659,15 @@ export type ReadOfflineOut = {
   title: string;
   html: string;
   text: string;
+  blocks: Block[];
   path: string;
   extracted: boolean;
+};
+
+export type Block = {
+  kind: string;
+  level: number;
+  text: string;
 };
 
 export type Commands = {

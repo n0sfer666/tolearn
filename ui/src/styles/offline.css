@@ -22,6 +22,24 @@ article[data-reading] > p {
   line-height: var(--line-height-body);
 }
 
+article[data-reading] > :is(h3, h4, h5, h6) {
+  margin-block-start: var(--spacing-6);
+}
+
+article[data-reading] > ul {
+  max-width: var(--measure);
+  margin-block: var(--spacing-3);
+  padding-inline-start: var(--spacing-6);
+}
+
+article[data-reading] > blockquote {
+  max-width: var(--measure);
+  margin-inline: 0;
+  padding-inline-start: var(--spacing-4);
+  border-inline-start: var(--border-width) solid var(--color-border-strong);
+  color: var(--color-fg-muted);
+}
+
 article[data-reading] > [data-source] {
   display: inline-block;
   margin-block-start: var(--spacing-6);
