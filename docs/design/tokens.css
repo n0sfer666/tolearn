@@ -56,10 +56,12 @@
 
   --color-neutral:       light-dark(#5f6973, #9aa4b0);
   --color-accent:        light-dark(#2f62b5, #7fa9e8);
+  --color-good:          light-dark(#2c6e49, #7dc198);
   --color-warning:       light-dark(#8a5a10, #d3a05c);
   --color-critical:      light-dark(#b03a2e, #e08a80);
 
   --color-accent-bg:     light-dark(#e6edf9, #1d2836);
+  --color-good-bg:       light-dark(#e3efe8, #1a2620);
   --color-warning-bg:    light-dark(#f6eedd, #2c2417);
   --color-critical-bg:   light-dark(#f8e8e6, #2f2020);
 

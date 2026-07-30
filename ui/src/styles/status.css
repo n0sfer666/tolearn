@@ -122,8 +122,6 @@ ul[data-actions] > li[data-action] {
 
 [data-blocked],
 [data-empty],
-[data-exported],
-[data-saved],
 [data-failed],
 [data-refused],
 [data-report],
@@ -155,7 +153,6 @@ li [data-blocked] {
   color: var(--color-critical);
 }
 
-[data-saved],
 [data-applied] {
   border-color: var(--color-accent);
   background: var(--color-accent-bg);

@@ -3,7 +3,7 @@ import test, { before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled } from "./support/dom.mjs";
+import { browser, settled, toasts } from "./support/dom.mjs";
 
 let Provider;
 let render;
@@ -46,8 +46,9 @@ function mount(options = {}) {
       checked: payload.check === true ? { models: ["llama3:8b"] } : null,
     });
   };
+  const said = toasts(document.defaultView);
   render(() => Provider({ text: ru, locale: "ru", call }), host);
-  return { host, calls };
+  return { host, calls, said };
 }
 
 test("провайдер читается при открытии экрана и выключен по умолчанию", async () => {
@@ -65,7 +66,7 @@ test("провайдер читается при открытии экрана �
 });
 
 test("правки уходят на сохранение одной командой", async () => {
-  const { host, calls } = mount();
+  const { host, calls, said } = mount();
   await settled();
 
   host.querySelector("[data-enabled]").click();
@@ -81,7 +82,7 @@ test("правки уходят на сохранение одной коман�
     endpoint: "http://127.0.0.1:1234",
   });
   assert.equal(calls[1].payload.check, false);
-  assert.equal(host.querySelector("[data-saved]").textContent, ru.provider.saved);
+  assert.deepEqual(said.at(-1), { tone: "ok", text: ru.provider.saved });
 });
 
 test("ключ уходит отдельным полем и не остаётся в форме", async () => {
@@ -124,25 +125,22 @@ test("проверка соединения показывает модели", 
 });
 
 test("отказ провайдера объясняется словами", async () => {
-  const { host } = mount({ stored: { enabled: true }, refuse: "provider.rejected" });
+  const { host, said } = mount({ stored: { enabled: true }, refuse: "provider.rejected" });
   await settled();
 
   host.querySelector("[data-check]").click();
   await settled();
 
-  assert.equal(
-    host.querySelector("[data-failed]").textContent,
-    ru.provider.rejected,
-  );
+  assert.deepEqual(said.at(-1), { tone: "error", text: ru.provider.rejected });
   assert.equal(host.querySelector("[data-checked]"), null);
 });
 
 test("неизвестный код отказа не оставляет экран без объяснения", async () => {
-  const { host } = mount({ stored: { enabled: true }, refuse: "provider.невиданный" });
+  const { host, said } = mount({ stored: { enabled: true }, refuse: "provider.невиданный" });
   await settled();
 
   host.querySelector("[data-save]").click();
   await settled();
 
-  assert.equal(host.querySelector("[data-failed]").textContent, ru.provider.failed);
+  assert.deepEqual(said.at(-1), { tone: "error", text: ru.provider.failed });
 });

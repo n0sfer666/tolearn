@@ -3,7 +3,7 @@ import test, { before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled } from "./support/dom.mjs";
+import { browser, settled, toasts } from "./support/dom.mjs";
 
 let Program;
 let render;
@@ -87,6 +87,7 @@ function mount(options = {}) {
     asked.push(name);
     return Promise.resolve(options.chosen === undefined ? "/дом/программа.md" : options.chosen);
   };
+  const said = toasts(document.defaultView);
   render(
     () =>
       Program({
@@ -99,7 +100,7 @@ function mount(options = {}) {
       }),
     host,
   );
-  return { host, calls, asked };
+  return { host, calls, asked, said };
 }
 
 const at = (host, id) => host.querySelector(`[data-topic="${id}"]`);
@@ -263,7 +264,7 @@ test("из программы есть ход в её статистику по�
 });
 
 test("экспорт спрашивает путь и пишет файл по выбранному", async () => {
-  const { host, calls, asked } = mount();
+  const { host, calls, asked, said } = mount();
   await settled();
 
   host.querySelector("[data-export]").click();
@@ -279,11 +280,11 @@ test("экспорт спрашивает путь и пишет файл по �
       directory: null,
     },
   });
-  assert.match(host.querySelector("[data-exported]").textContent, new RegExp(ru.program.exported));
+  assert.deepEqual(said.at(-1), { tone: "ok", text: ru.program.exported });
 });
 
 test("отказ от диалога экспорт не запускает", async () => {
-  const { host, calls } = mount({ chosen: null });
+  const { host, calls, said } = mount({ chosen: null });
   await settled();
 
   host.querySelector("[data-export]").click();
@@ -293,17 +294,15 @@ test("отказ от диалога экспорт не запускает", as
     calls.map((made) => made.name),
     ["program"],
   );
-  assert.equal(host.querySelector("[data-exported]"), null, "отчёт без экспорта");
+  assert.deepEqual(said, [], "отчёт без экспорта");
 });
 
 test("неудача экспорта названа вслух", async () => {
-  const { host } = mount({ fail: true });
+  const { host, said } = mount({ fail: true });
   await settled();
 
   host.querySelector("[data-export]").click();
   await settled();
 
-  const said = host.querySelector("[data-exported]");
-  assert.equal(said.getAttribute("role"), "status");
-  assert.match(said.textContent, new RegExp(ru.program.exportFailed));
+  assert.deepEqual(said.at(-1), { tone: "error", text: ru.program.exportFailed });
 });

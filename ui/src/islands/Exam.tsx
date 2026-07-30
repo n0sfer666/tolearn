@@ -5,10 +5,11 @@ import type { ApplyVerdictOut, VerdictView } from "../ipc";
 import type { Dictionary } from "../i18n/ru";
 import type { Locale } from "../i18n";
 import { copy as toClipboard } from "../lib/clipboard";
+import { explain, toast } from "../lib/toast";
 import { label } from "../components/status";
 import { query } from "../lib/query";
+import { quiet } from "../lib/ipc";
 import { reason } from "../lib/provider";
-import { transport } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
 
 interface Props {
@@ -22,36 +23,42 @@ interface Props {
 }
 
 export default function Exam(props: Props) {
-  const call = () => props.call ?? transport;
+  const call = () => props.call ?? quiet;
   const copy = () => props.copy ?? toClipboard;
   const program = () => props.program ?? query("program");
   const id = () => props.topic ?? query("topic");
   const today = () => props.today ?? new Date().toISOString().slice(0, 10);
 
   const [prompt, setPrompt] = createSignal("");
-  const [copied, setCopied] = createSignal(false);
-  const [manual, setManual] = createSignal(false);
   const [answer, setAnswer] = createSignal("");
   const [parsed, setParsed] = createSignal<VerdictView | null>(null);
-  const [broken, setBroken] = createSignal(false);
   const [applied, setApplied] = createSignal<ApplyVerdictOut | null>(null);
   const [built, setBuilt] = createSignal(false);
   const [asking, setAsking] = createSignal(false);
-  const [refused, setRefused] = createSignal("");
+
+  const broke = (error: unknown) => toast("error", explain(error) || props.text.toast.broke);
 
   onMount(() => {
     void (async () => {
-      const out = await call()("prompt", { bundle: program(), topic: id() });
-      setPrompt(out.text);
+      try {
+        const out = await call()("prompt", { bundle: program(), topic: id() });
+        setPrompt(out.text);
+      } catch (error) {
+        broke(error);
+      }
     })();
     void (async () => {
-      const out = await call()("provider", {
-        save: null,
-        key: null,
-        forget: false,
-        check: false,
-      });
-      setBuilt(out.provider.enabled);
+      try {
+        const out = await call()("provider", {
+          save: null,
+          key: null,
+          forget: false,
+          check: false,
+        });
+        setBuilt(out.provider.enabled);
+      } catch (error) {
+        broke(error);
+      }
     })();
   });
 
@@ -59,9 +66,9 @@ export default function Exam(props: Props) {
     void (async () => {
       try {
         await copy()(prompt());
-        setCopied(true);
+        toast("ok", props.text.exam.copied);
       } catch {
-        setManual(true);
+        toast("warn", props.text.exam.copyManually);
       }
     })();
   };
@@ -71,10 +78,9 @@ export default function Exam(props: Props) {
       setApplied(null);
       try {
         setParsed(await call()("parse_verdict", { bundle: program(), topic: id(), text: answer() }));
-        setBroken(false);
       } catch {
         setParsed(null);
-        setBroken(true);
+        toast("error", props.text.exam.broken);
       }
     })();
   };
@@ -82,13 +88,12 @@ export default function Exam(props: Props) {
   const onAsk = () => {
     void (async () => {
       setAsking(true);
-      setRefused("");
       try {
         const out = await call()("examine", { bundle: program(), topic: id() });
         setAnswer(out.text);
         onParse();
       } catch (error) {
-        setRefused(reason(error, props.text));
+        toast("error", reason(error, props.text));
       }
       setAsking(false);
     })();
@@ -96,14 +101,18 @@ export default function Exam(props: Props) {
 
   const onApply = () => {
     void (async () => {
-      setApplied(
-        await call()("apply_verdict", {
-          bundle: program(),
-          topic: id(),
-          text: answer(),
-          today: today(),
-        }),
-      );
+      try {
+        setApplied(
+          await call()("apply_verdict", {
+            bundle: program(),
+            topic: id(),
+            text: answer(),
+            today: today(),
+          }),
+        );
+      } catch (error) {
+        broke(error);
+      }
     })();
   };
 
@@ -116,12 +125,6 @@ export default function Exam(props: Props) {
         <button type="button" data-copy onClick={onCopy}>
           {props.text.exam.copy}
         </button>
-        <Show when={copied()}>
-          <span data-copied>{props.text.exam.copied}</span>
-        </Show>
-        <Show when={manual()}>
-          <span data-manual>{props.text.exam.copyManually}</span>
-        </Show>
       </p>
       <pre data-prompt-text>{prompt()}</pre>
 
@@ -144,13 +147,6 @@ export default function Exam(props: Props) {
           </button>
         </Show>
       </p>
-      <Show when={refused() !== ""}>
-        <p data-ask-failed>{refused()}</p>
-      </Show>
-
-      <Show when={broken()}>
-        <p data-broken>{props.text.exam.broken}</p>
-      </Show>
       <Show when={parsed()}>
         {(verdict) => (
           <>

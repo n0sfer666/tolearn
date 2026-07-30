@@ -4,6 +4,7 @@ import type { Dictionary } from "../i18n/ru";
 import type { Locale } from "../i18n";
 import type { StampView } from "../ipc";
 import { query } from "../lib/query";
+import { toast } from "../lib/toast";
 import { transport } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
 
@@ -27,7 +28,6 @@ export default function Notes(props: Props) {
 
   const [body, setBody] = createSignal("");
   const [stamp, setStamp] = createSignal<StampView | null>(null);
-  const [saved, setSaved] = createSignal(false);
   const [conflict, setConflict] = createSignal<Conflict | null>(null);
 
   const reread = () => {
@@ -36,7 +36,6 @@ export default function Notes(props: Props) {
       setBody(out.body);
       setStamp(out.stamp);
       setConflict(null);
-      setSaved(false);
     })();
   };
 
@@ -53,17 +52,13 @@ export default function Notes(props: Props) {
       });
       if (out.saved === false) {
         setConflict({ theirs: out.theirs ?? "", ours: body() });
+        toast("warn", props.text.notes.conflict);
         return;
       }
       setStamp(out.stamp);
       setConflict(null);
-      setSaved(true);
+      toast("ok", props.text.notes.saved);
     })();
-  };
-
-  const onInput = (text: string) => {
-    setBody(text);
-    setSaved(false);
   };
 
   const back = () =>
@@ -76,7 +71,7 @@ export default function Notes(props: Props) {
         rows={20}
         aria-label={props.text.topic.notes}
         value={body()}
-        onInput={(event) => onInput(event.currentTarget.value)}
+        onInput={(event) => setBody(event.currentTarget.value)}
       />
       <p>
         <button type="button" data-save onClick={onSave}>
@@ -85,9 +80,6 @@ export default function Notes(props: Props) {
         <button type="button" data-reread onClick={reread}>
           {props.text.notes.reread}
         </button>
-        <Show when={saved()}>
-          <span data-saved>{props.text.notes.saved}</span>
-        </Show>
       </p>
       <Show when={conflict()}>
         {(both) => (

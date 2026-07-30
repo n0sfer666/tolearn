@@ -5,7 +5,8 @@ import type { Dictionary } from "../i18n/ru";
 import { type Locale, plural } from "../i18n";
 import type { Stage, TopicStatus } from "../ipc";
 import { matches } from "../lib/filter";
-import { pickFile, transport } from "../lib/ipc";
+import { pickFile, quiet } from "../lib/ipc";
+import { toast } from "../lib/toast";
 import type { Transport } from "../lib/ipc";
 
 interface Props {
@@ -26,7 +27,7 @@ function glyph(status: string): string {
 }
 
 export default function Program(props: Props) {
-  const call = () => props.call ?? transport;
+  const call = () => props.call ?? quiet;
   const today = () => props.today ?? new Date().toISOString().slice(0, 10);
   const path = () => props.path ?? new URLSearchParams(location.search).get("program") ?? "";
 
@@ -34,7 +35,7 @@ export default function Program(props: Props) {
   const [topics, setTopics] = createSignal<TopicStatus[]>([]);
   const [needle, setNeedle] = createSignal("");
   const [program, setProgram] = createSignal("");
-  const [state, setState] = createSignal<"idle" | "busy" | "done" | "failed">("idle");
+  const [state, setState] = createSignal<"idle" | "busy">("idle");
 
   const [gone, setGone] = createSignal(false);
 
@@ -60,9 +61,11 @@ export default function Program(props: Props) {
     setState("busy");
     try {
       await call()("export", { bundle: path(), today: today(), path: chosen, directory: null });
-      setState("done");
+      toast("ok", props.text.program.exported);
     } catch {
-      setState("failed");
+      toast("error", props.text.program.exportFailed);
+    } finally {
+      setState("idle");
     }
   };
 
@@ -97,11 +100,6 @@ export default function Program(props: Props) {
             {state() === "busy" ? props.text.program.exporting : props.text.program.export}
           </button>
         </nav>
-        <Show when={state() === "done" || state() === "failed"}>
-          <p data-exported role="status">
-            {state() === "done" ? props.text.program.exported : props.text.program.exportFailed}
-          </p>
-        </Show>
         <input
           type="search"
           data-filter

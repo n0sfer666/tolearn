@@ -1,13 +1,23 @@
 import type { CommandName, Commands } from "../ipc";
+import { explain, toast } from "./toast";
 
 export type Transport = <Name extends CommandName>(
   name: Name,
   payload: Commands[Name]["input"],
 ) => Promise<Commands[Name]["output"]>;
 
-export const transport: Transport = async (name, payload) => {
+export const quiet: Transport = async (name, payload) => {
   const { invoke } = await import("@tauri-apps/api/core");
   return invoke("command", { name, payload });
+};
+
+export const transport: Transport = async (name, payload) => {
+  try {
+    return await quiet(name, payload);
+  } catch (failure) {
+    toast("error", explain(failure) || name);
+    throw failure;
+  }
 };
 
 export async function pick(): Promise<string | null> {

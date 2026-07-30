@@ -2,7 +2,8 @@ import { Show, createSignal, onMount } from "solid-js";
 
 import type { Dictionary } from "../i18n/ru";
 import type { EncryptionOut } from "../ipc";
-import { transport } from "../lib/ipc";
+import { quiet } from "../lib/ipc";
+import { explain, toast } from "../lib/toast";
 import type { Transport } from "../lib/ipc";
 
 interface Props {
@@ -11,13 +12,12 @@ interface Props {
 }
 
 export default function Encryption(props: Props) {
-  const call = () => props.call ?? transport;
+  const call = () => props.call ?? quiet;
 
   const [view, setView] = createSignal<EncryptionOut | null>(null);
   const [phrase, setPhrase] = createSignal("");
   const [warned, setWarned] = createSignal(false);
   const [busy, setBusy] = createSignal(false);
-  const [failed, setFailed] = createSignal("");
 
   onMount(() => {
     void (async () => {
@@ -27,14 +27,13 @@ export default function Encryption(props: Props) {
 
   const switched = (enable: boolean) => {
     setBusy(true);
-    setFailed("");
     void (async () => {
       try {
         setView(await call()("encryption", { enable, phrase: phrase() }));
         setPhrase("");
         setWarned(false);
       } catch (error) {
-        setFailed(error instanceof Error ? error.message : props.text.encryption.failed);
+        toast("error", explain(error) || props.text.encryption.failed);
       } finally {
         setBusy(false);
       }
@@ -90,12 +89,6 @@ export default function Encryption(props: Props) {
             <button type="button" data-disable disabled={busy()} onClick={() => switched(false)}>
               {busy() ? props.text.encryption.working : props.text.encryption.disable}
             </button>
-          </Show>
-
-          <Show when={failed().length > 0}>
-            <p data-failed role="status">
-              {failed()}
-            </p>
           </Show>
         </section>
       )}

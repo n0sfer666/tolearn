@@ -3,7 +3,7 @@ import test, { before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled } from "./support/dom.mjs";
+import { browser, settled, toasts } from "./support/dom.mjs";
 
 let Search;
 let render;
@@ -37,8 +37,9 @@ function mount(options = {}) {
     }
     return Promise.resolve({ hits: options.hits ?? [HIT], indexed: 0 });
   };
-  render(() => Search({ text: ru, locale: "ru", program: "/bundle", call }), host);
-  return { host, calls };
+  const said = toasts(document.defaultView);
+  render(() => Search({ text: ru, locale: "ru", program: options.program ?? "/bundle", call }), host);
+  return { host, calls, said };
 }
 
 function ask(host, text) {
@@ -99,10 +100,20 @@ test("пустая выдача говорит об этом", async () => {
 });
 
 test("отказ ядра показан, а не проглочен", async () => {
-  const { host } = mount({ refuse: true });
+  const { host, said } = mount({ refuse: true });
   ask(host, "рантайм");
   await settled();
 
-  assert.equal(host.querySelector("[data-failed]").textContent, ru.search.failed);
+  assert.deepEqual(said.at(-1), { tone: "error", text: ru.search.failed });
   assert.equal(host.querySelectorAll("[data-hit]").length, 0);
+  assert.equal(host.querySelector("[data-nothing]"), null, "отказ выдан за пустую выдачу");
+});
+
+test("без открытой программы экран зовёт выбрать её, а не ищет вслепую", async () => {
+  const { host, calls } = mount({ program: "" });
+  await settled();
+
+  assert.equal(calls.length, 0);
+  assert.equal(host.querySelector("[data-query]"), null);
+  assert.match(host.querySelector("[data-empty]").textContent, new RegExp(ru.program.none));
 });

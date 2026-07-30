@@ -4,6 +4,7 @@ export const en: Dictionary = {
   app: "tolearn",
   language: { ru: "Русский", en: "English", switch: "Language" },
   theme: { switch: "Theme", system: "System", light: "Light", dark: "Dark" },
+  toast: { close: "Dismiss the message", broke: "It did not work" },
   nav: {
     programs: "Programs",
     program: "Program",

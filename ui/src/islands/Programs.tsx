@@ -4,6 +4,7 @@ import type { Card, ImportOut, Merged } from "../ipc";
 import { matches } from "../lib/filter";
 import { drops as listen, pick as choose, pickArchive as chooseArchive, transport } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
+import { toast } from "../lib/toast";
 
 interface Props {
   text: {
@@ -55,6 +56,7 @@ export default function Programs(props: Props) {
       const done: ImportOut = await call()("import", { path, today: today() });
       if (!done.ok) {
         setRefused(done.violations.map((violation) => violation.message));
+        toast("error", props.text.refused);
         return;
       }
       setReport(done.report);

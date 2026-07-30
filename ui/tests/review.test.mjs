@@ -3,7 +3,7 @@ import test, { before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled } from "./support/dom.mjs";
+import { browser, settled, toasts } from "./support/dom.mjs";
 
 let Review;
 let render;
@@ -44,6 +44,7 @@ function mount(patch = {}, options = {}) {
     return Promise.resolve({ ...OUT, ...patch });
   };
   const copied = [];
+  const said = toasts(document.defaultView);
   render(
     () =>
       Review({
@@ -59,7 +60,7 @@ function mount(patch = {}, options = {}) {
       }),
     host,
   );
-  return { host, calls, copied };
+  return { host, calls, copied, said };
 }
 
 test("пробел висит на том вопросе, который его упустил", async () => {
@@ -109,7 +110,10 @@ test("без попыток разбор говорит об этом", async ()
 });
 
 test("три провала подряд дают текст запроса и копируют его одним действием", async () => {
-  const { host, copied } = mount({ split_suggested: true, split_request: "Раздели тему `local-runtime`" });
+  const { host, copied, said } = mount({
+    split_suggested: true,
+    split_request: "Раздели тему `local-runtime`",
+  });
   await settled();
 
   assert.match(host.querySelector("[data-request]").textContent, /local-runtime/);
@@ -117,11 +121,11 @@ test("три провала подряд дают текст запроса и �
   await settled();
 
   assert.deepEqual(copied, ["Раздели тему `local-runtime`"]);
-  assert.match(host.textContent, new RegExp(ru.review.copied));
+  assert.deepEqual(said.at(-1), { tone: "ok", text: ru.review.copied });
 });
 
 test("без буфера обмена текст запроса всё равно виден", async () => {
-  const { host } = mount(
+  const { host, said } = mount(
     { split_suggested: true, split_request: "Раздели тему `local-runtime`" },
     { noClipboard: true },
   );
@@ -131,7 +135,7 @@ test("без буфера обмена текст запроса всё равн
   await settled();
 
   assert.match(host.querySelector("[data-request]").textContent, /Раздели тему/);
-  assert.match(host.textContent, new RegExp(ru.review.copyManually));
+  assert.deepEqual(said.at(-1), { tone: "warn", text: ru.review.copyManually });
 });
 
 test("без предложения разделить блока запроса нет", async () => {

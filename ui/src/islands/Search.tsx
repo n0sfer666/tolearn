@@ -3,8 +3,9 @@ import { For, Show, createSignal } from "solid-js";
 import type { Dictionary } from "../i18n/ru";
 import type { HitView } from "../ipc";
 import type { Locale } from "../i18n";
-import { query } from "../lib/query";
-import { transport } from "../lib/ipc";
+import { opened } from "../lib/query";
+import { quiet } from "../lib/ipc";
+import { toast } from "../lib/toast";
 import type { Transport } from "../lib/ipc";
 
 interface Props {
@@ -15,13 +16,12 @@ interface Props {
 }
 
 export default function Search(props: Props) {
-  const call = () => props.call ?? transport;
-  const program = () => props.program ?? query("program");
+  const call = () => props.call ?? quiet;
+  const program = () => props.program ?? opened();
 
   const [asked, setAsked] = createSignal("");
   const [hits, setHits] = createSignal<HitView[]>([]);
   const [ran, setRan] = createSignal(false);
-  const [failed, setFailed] = createSignal(false);
 
   const find = () => {
     void (async () => {
@@ -33,12 +33,12 @@ export default function Search(props: Props) {
           limit: 20,
         });
         setHits(out.hits);
-        setFailed(false);
+        setRan(true);
       } catch {
         setHits([]);
-        setFailed(true);
+        setRan(false);
+        toast("error", props.text.search.failed);
       }
-      setRan(true);
     })();
   };
 
@@ -54,44 +54,50 @@ export default function Search(props: Props) {
   };
 
   return (
-    <article>
-      <form
-        class="row"
-        onSubmit={(event) => {
-          event.preventDefault();
-          find();
-        }}
-      >
-        <input
-          type="search"
-          data-query
-          autofocus
-          aria-label={props.text.search.placeholder}
-          placeholder={props.text.search.placeholder}
-          value={asked()}
-          onInput={(event) => setAsked(event.currentTarget.value)}
-        />
-        <button type="submit" data-find>
-          {props.text.search.find}
-        </button>
-      </form>
-      <Show when={failed()}>
-        <p data-failed>{props.text.search.failed}</p>
-      </Show>
-      <Show when={ran() && hits().length === 0 && !failed()}>
-        <p data-nothing>{props.text.search.nothing}</p>
-      </Show>
-      <ul data-hits>
-        <For each={hits()}>
-          {(hit) => (
-            <li data-hit={hit.kind}>
-              <a href={href(hit)}>{hit.title}</a>
-              <span data-kind>{kind(hit)}</span>
-              <p data-snippet>{hit.snippet}</p>
-            </li>
-          )}
-        </For>
-      </ul>
-    </article>
+    <Show
+      when={program() !== ""}
+      fallback={
+        <p data-empty>
+          {props.text.program.none} <a href={`/${props.locale}/`}>{props.text.nav.programs}</a>
+        </p>
+      }
+    >
+      <article>
+        <form
+          class="row"
+          onSubmit={(event) => {
+            event.preventDefault();
+            find();
+          }}
+        >
+          <input
+            type="search"
+            data-query
+            autofocus
+            aria-label={props.text.search.placeholder}
+            placeholder={props.text.search.placeholder}
+            value={asked()}
+            onInput={(event) => setAsked(event.currentTarget.value)}
+          />
+          <button type="submit" data-find>
+            {props.text.search.find}
+          </button>
+        </form>
+        <Show when={ran() && hits().length === 0}>
+          <p data-nothing>{props.text.search.nothing}</p>
+        </Show>
+        <ul data-hits>
+          <For each={hits()}>
+            {(hit) => (
+              <li data-hit={hit.kind}>
+                <a href={href(hit)}>{hit.title}</a>
+                <span data-kind>{kind(hit)}</span>
+                <p data-snippet>{hit.snippet}</p>
+              </li>
+            )}
+          </For>
+        </ul>
+      </article>
+    </Show>
   );
 }

@@ -3,7 +3,7 @@ import test, { before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled } from "./support/dom.mjs";
+import { browser, settled, toasts } from "./support/dom.mjs";
 
 let Notes;
 let render;
@@ -46,6 +46,7 @@ function mount(options = {}) {
     }
     throw new Error(`лишняя команда ${name}`);
   };
+  const said = toasts(document.defaultView);
   render(
     () =>
       Notes({
@@ -57,7 +58,7 @@ function mount(options = {}) {
       }),
     host,
   );
-  return { host, calls };
+  return { host, calls, said };
 }
 
 const area = (host) => host.querySelector("[data-note]");
@@ -84,7 +85,7 @@ test("пустой конспект открывается пустым поле
 });
 
 test("запись уходит вместе со слепком прочитанного", async () => {
-  const { host, calls } = mount({ body: "Старый текст" });
+  const { host, calls, said } = mount({ body: "Старый текст" });
   await settled();
 
   area(host).value = "Новый текст";
@@ -102,11 +103,11 @@ test("запись уходит вместе со слепком прочита�
       stamp: STAMP(1),
     },
   });
-  assert.match(host.textContent, new RegExp(ru.notes.saved));
+  assert.deepEqual(said.at(-1), { tone: "ok", text: ru.notes.saved });
 });
 
 test("одновременная правка показывает обе версии и ничего не сливает", async () => {
-  const { host } = mount({ body: "Старый текст", conflict: true });
+  const { host, said } = mount({ body: "Старый текст", conflict: true });
   await settled();
 
   area(host).value = "Моя версия";
@@ -118,6 +119,7 @@ test("одновременная правка показывает обе вер
   assert.match(conflict.querySelector("[data-theirs]").textContent, /Версия снаружи/);
   assert.match(conflict.querySelector("[data-ours]").textContent, /Моя версия/);
   assert.equal(area(host).value, "Моя версия", "поле затёрто чужой версией");
+  assert.deepEqual(said.at(-1), { tone: "warn", text: ru.notes.conflict });
 });
 
 test("правка снаружи подхватывается по перечитыванию", async () => {

@@ -3,7 +3,7 @@ import test, { before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled } from "./support/dom.mjs";
+import { browser, settled, toasts } from "./support/dom.mjs";
 
 let Queue;
 let render;
@@ -50,11 +50,12 @@ function mount(options = {}) {
     }
     throw new Error(`лишняя команда ${name}`);
   };
+  const said = toasts(document.defaultView);
   const dispose = render(
     () => Queue({ text: ru, locale: "ru", today: "2026-07-28", call }),
     host,
   );
-  return { host, calls, dispose };
+  return { host, calls, dispose, said };
 }
 
 const only = (calls, name) => calls.filter((call) => call.name === name);
@@ -128,7 +129,9 @@ test("пустая очередь так и говорит", async () => {
 });
 
 test("отказ в повторении объясняется и тему не теряет", async () => {
-  const { host } = mount({ refuses: { code: "unwritable", message: "папка только для чтения" } });
+  const { host, said } = mount({
+    refuses: { code: "unwritable", message: "папка только для чтения" },
+  });
   await settled();
 
   host.querySelector("[data-due='tokens-context-cost'] [data-repeat]").dispatchEvent(
@@ -137,8 +140,6 @@ test("отказ в повторении объясняется и тему не
   await settled();
   await settled();
 
-  const failed = host.querySelector("[data-repeat-failed]");
-  assert.ok(failed, host.innerHTML);
-  assert.match(failed.textContent, /папка только для чтения/);
+  assert.deepEqual(said.at(-1), { tone: "error", text: "папка только для чтения" });
   assert.match(host.textContent, /Токены, контекст и стоимость/);
 });

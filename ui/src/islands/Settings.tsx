@@ -6,6 +6,7 @@ import { THEMES } from "../components/themes";
 import type { Dictionary } from "../i18n/ru";
 import type { SettingsView } from "../ipc";
 import { pick, transport } from "../lib/ipc";
+import { toast } from "../lib/toast";
 import type { Transport } from "../lib/ipc";
 import { remember } from "../lib/theme";
 
@@ -21,8 +22,6 @@ export default function Settings(props: Props) {
   const choose = () => props.choose ?? pick;
 
   const [view, setView] = createSignal<SettingsView | null>(null);
-  const [saved, setSaved] = createSignal(false);
-  const [failed, setFailed] = createSignal(false);
 
   const took = (next: SettingsView) => {
     setView(next);
@@ -42,11 +41,9 @@ export default function Settings(props: Props) {
     void (async () => {
       try {
         took(await call()("settings", { save: next }));
-        setFailed(false);
-        setSaved(true);
+        toast("ok", props.text.settings.saved);
       } catch {
-        setFailed(true);
-        setSaved(false);
+        toast("error", props.text.settings.failed);
       }
     })();
   };
@@ -165,13 +162,6 @@ export default function Settings(props: Props) {
               />
             </label>
           </section>
-
-          <Show when={saved()}>
-            <p data-saved>{props.text.settings.saved}</p>
-          </Show>
-          <Show when={failed()}>
-            <p data-failed>{props.text.settings.failed}</p>
-          </Show>
         </article>
       )}
     </Show>

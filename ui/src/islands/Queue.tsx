@@ -2,7 +2,8 @@ import { For, Show, createSignal, onMount } from "solid-js";
 
 import type { Dictionary } from "../i18n/ru";
 import type { DueView } from "../ipc";
-import { transport } from "../lib/ipc";
+import { explain, toast } from "../lib/toast";
+import { quiet } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
 
 interface Props {
@@ -13,12 +14,11 @@ interface Props {
 }
 
 export default function Queue(props: Props) {
-  const call = () => props.call ?? transport;
+  const call = () => props.call ?? quiet;
   const today = () => props.today ?? new Date().toISOString().slice(0, 10);
 
   const [due, setDue] = createSignal<DueView[]>([]);
   const [busy, setBusy] = createSignal("");
-  const [refused, setRefused] = createSignal("");
 
   const list = async () => {
     const answer = await call()("queue", { today: today() });
@@ -34,18 +34,25 @@ export default function Queue(props: Props) {
   const onRepeat = (item: DueView) => {
     void (async () => {
       setBusy(item.topic);
-      setRefused("");
       try {
         await call()("repeat", { bundle: item.bundle, topic: item.topic, today: today() });
         await list();
       } catch (error) {
-        setRefused(said(error, props.text.queue.failed));
+        toast("error", explain(error) || props.text.queue.failed);
       }
       setBusy("");
     })();
   };
 
-  onMount(() => void list());
+  onMount(() => {
+    void (async () => {
+      try {
+        await list();
+      } catch (error) {
+        toast("error", explain(error) || props.text.toast.broke);
+      }
+    })();
+  });
 
   const group = (items: DueView[], mark: "overdue" | "today", heading: string) => (
     <Show when={items.length > 0}>
@@ -75,18 +82,6 @@ export default function Queue(props: Props) {
         {group(overdue(), "overdue", props.text.queue.overdue)}
         {group(now(), "today", props.text.queue.today)}
       </Show>
-      <Show when={refused() !== ""}>
-        <p data-repeat-failed role="alert">
-          {refused()}
-        </p>
-      </Show>
     </section>
   );
-}
-
-function said(error: unknown, fallback: string): string {
-  if (error instanceof Object && "message" in error && typeof error.message === "string") {
-    return error.message;
-  }
-  return fallback;
 }

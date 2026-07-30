@@ -3,7 +3,7 @@ import test, { before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled } from "./support/dom.mjs";
+import { browser, settled, toasts } from "./support/dom.mjs";
 
 let Settings;
 let render;
@@ -40,6 +40,7 @@ function mount(options = {}) {
     }
     return Promise.resolve(payload.save);
   };
+  const said = toasts(document.defaultView);
   render(
     () =>
       Settings({
@@ -50,7 +51,7 @@ function mount(options = {}) {
       }),
     host,
   );
-  return { host, calls };
+  return { host, calls, said };
 }
 
 test("настройки читаются при открытии экрана", async () => {
@@ -67,7 +68,7 @@ test("настройки читаются при открытии экрана",
 });
 
 test("новый бюджет диска уходит в ядро сразу", async () => {
-  const { host, calls } = mount();
+  const { host, calls, said } = mount();
   await settled();
 
   const input = host.querySelector("[data-budget]");
@@ -76,7 +77,7 @@ test("новый бюджет диска уходит в ядро сразу", a
   await settled();
 
   assert.equal(calls.at(-1).payload.save.disk_budget_mb, 128);
-  assert.equal(host.querySelector("[data-saved]").textContent, ru.settings.saved);
+  assert.deepEqual(said.at(-1), { tone: "ok", text: ru.settings.saved });
 });
 
 test("слайдер и поле бюджета показывают одно число", async () => {
@@ -100,7 +101,7 @@ test("слайдер и поле бюджета показывают одно ч
 });
 
 test("нулевой бюджет не уезжает в ядро", async () => {
-  const { host, calls } = mount();
+  const { host, calls, said } = mount();
   await settled();
 
   const input = host.querySelector("[data-budget]");
@@ -211,12 +212,11 @@ test("язык — ссылка на тот же экран и запись в �
 });
 
 test("отказ ядра виден на экране", async () => {
-  const { host } = mount({ refuse: true });
+  const { host, said } = mount({ refuse: true });
   await settled();
 
   host.querySelector('[data-theme-choice="light"]').click();
   await settled();
 
-  assert.equal(host.querySelector("[data-failed]").textContent, ru.settings.failed);
-  assert.equal(host.querySelector("[data-saved]"), null);
+  assert.deepEqual(said, [{ tone: "error", text: ru.settings.failed }]);
 });

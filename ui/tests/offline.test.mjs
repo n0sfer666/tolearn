@@ -3,7 +3,7 @@ import test, { before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled } from "./support/dom.mjs";
+import { browser, settled, toasts } from "./support/dom.mjs";
 
 let Topic;
 let Read;
@@ -75,7 +75,7 @@ const STATE = {
   failed: [],
 };
 
-function mountTopic(states) {
+function mountTopic(states, refuses = false) {
   const host = document.createElement("div");
   document.body.append(host);
   const calls = [];
@@ -83,6 +83,9 @@ function mountTopic(states) {
   let saved = false;
   const call = (name, payload) => {
     calls.push({ name, payload });
+    if (refuses && name === "offline_state") {
+      return Promise.reject({ code: "offline.job", message: "работа потерялась" });
+    }
     if (name === "topic") {
       const materials = [{ ...MATERIAL, offline: saved ? "saved" : "absent" }];
       return Promise.resolve({ ...TOPIC, materials });
@@ -97,6 +100,7 @@ function mountTopic(states) {
     if (name === "stop_offline") return Promise.resolve({ stopping: true });
     throw new Error(`лишняя команда ${name}`);
   };
+  const said = toasts(document.defaultView);
   const dispose = render(
     () =>
       Topic({
@@ -109,7 +113,7 @@ function mountTopic(states) {
       }),
     host,
   );
-  return { host, calls, dispose };
+  return { host, calls, dispose, said };
 }
 
 const materials = (host) => host.querySelector('[data-section="materials"]');
@@ -178,6 +182,19 @@ test("упавшая выгрузка предлагает повтор и шл�
     topic: "local-runtime",
     again: "job-1",
   });
+  dispose();
+});
+
+test("отвалившаяся выгрузка говорит об этом один раз и не долбит опросом", async () => {
+  const { host, calls, dispose, said } = mountTopic([STATE], true);
+  await settled();
+
+  materials(host).querySelector("[data-save-offline]").click();
+  await tick(3);
+
+  assert.deepEqual(said, [{ tone: "error", text: "работа потерялась" }]);
+  assert.equal(calls.filter((made) => made.name === "offline_state").length, 1);
+  assert.ok(materials(host).querySelector("[data-save-offline]"), "кнопка не вернулась");
   dispose();
 });
 

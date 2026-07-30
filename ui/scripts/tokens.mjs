@@ -28,6 +28,7 @@ const TEXT = [
   "--color-fg-muted",
   "--color-neutral",
   "--color-accent",
+  "--color-good",
   "--color-warning",
   "--color-critical",
 ];

@@ -27,13 +27,16 @@ function keeper(html) {
   return found[0];
 }
 
-function visit(route, search) {
+function visit(route, search, remembered = null) {
   const html = page(route);
   const window = browser(`https://tolearn.local/${route}/${search}`);
+  window.localStorage.clear();
+  if (remembered !== null) window.localStorage.setItem("tolearn.program", remembered);
   window.document.body.innerHTML = html.match(/<header[\s\S]*?<\/header>/)[0];
   runInNewContext(keeper(html), {
     document: window.document,
     location: window.location,
+    localStorage: window.localStorage,
     URL: globalThis.URL,
     URLSearchParams: globalThis.URLSearchParams,
   });
@@ -89,4 +92,23 @@ test("без контекста в адресе ссылки остаются к
 
   assert.equal(document.querySelector("[data-back]").getAttribute("href"), "/ru/program/");
   assert.equal(document.querySelector("[data-search]").getAttribute("href"), "/ru/search/");
+});
+
+test("открытая программа запоминается на будущее", () => {
+  const document = visit("ru/topic", OPEN);
+
+  assert.equal(
+    document.defaultView.localStorage.getItem("tolearn.program"),
+    "/programs/llm-agents-base",
+  );
+});
+
+test("поиск из шапки открывает последнюю программу, когда адрес её не несёт", () => {
+  const document = visit("ru/queue", "", "/programs/llm-agents-base");
+
+  assert.equal(
+    document.querySelector("[data-search]").getAttribute("href"),
+    "/ru/search/?program=%2Fprograms%2Fllm-agents-base",
+  );
+  assert.equal(document.querySelector("[data-settings]").getAttribute("href"), "/ru/settings/");
 });

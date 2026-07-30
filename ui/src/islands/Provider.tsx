@@ -4,7 +4,8 @@ import type { Locale } from "../i18n";
 import type { Dictionary } from "../i18n/ru";
 import type { ProviderOut, ProviderView } from "../ipc";
 import { reason } from "../lib/provider";
-import { transport } from "../lib/ipc";
+import { quiet } from "../lib/ipc";
+import { toast } from "../lib/toast";
 import type { Transport } from "../lib/ipc";
 
 interface Props {
@@ -14,14 +15,12 @@ interface Props {
 }
 
 export default function Provider(props: Props) {
-  const call = () => props.call ?? transport;
+  const call = () => props.call ?? quiet;
 
   const [draft, setDraft] = createSignal<ProviderView | null>(null);
   const [stored, setStored] = createSignal(false);
   const [key, setKey] = createSignal("");
   const [models, setModels] = createSignal<string[] | null>(null);
-  const [saved, setSaved] = createSignal(false);
-  const [failed, setFailed] = createSignal("");
 
   const took = (answer: ProviderOut) => {
     setDraft(answer.provider);
@@ -39,7 +38,6 @@ export default function Provider(props: Props) {
     const current = draft();
     if (current === null) return;
     setDraft({ ...current, ...next });
-    setSaved(false);
   };
 
   const send = (check: boolean, forget: boolean) => {
@@ -57,12 +55,10 @@ export default function Provider(props: Props) {
           }),
         );
         setKey("");
-        setFailed("");
-        setSaved(true);
+        toast("ok", props.text.provider.saved);
       } catch (error) {
         setModels(null);
-        setSaved(false);
-        setFailed(reason(error, props.text));
+        toast("error", reason(error, props.text));
       }
     })();
   };
@@ -147,12 +143,6 @@ export default function Provider(props: Props) {
                 {props.text.provider.checked} {found().join(", ")}
               </p>
             )}
-          </Show>
-          <Show when={saved()}>
-            <p data-saved>{props.text.provider.saved}</p>
-          </Show>
-          <Show when={failed() !== ""}>
-            <p data-failed>{failed()}</p>
           </Show>
         </article>
       )}

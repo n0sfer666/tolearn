@@ -5,6 +5,7 @@ import type { Dictionary } from "../i18n/ru";
 import type { ReviewOut } from "../ipc";
 import { copy as toClipboard } from "../lib/clipboard";
 import { query } from "../lib/query";
+import { toast } from "../lib/toast";
 import { transport } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
 import { verdict } from "../components/review/labels";
@@ -24,8 +25,6 @@ export default function Review(props: Props) {
   const id = () => props.topic ?? query("topic");
 
   const [seen, setSeen] = createSignal<ReviewOut | null>(null);
-  const [copied, setCopied] = createSignal(false);
-  const [manual, setManual] = createSignal(false);
 
   onMount(() => {
     void (async () => {
@@ -37,9 +36,9 @@ export default function Review(props: Props) {
     void (async () => {
       try {
         await copy()(request);
-        setCopied(true);
+        toast("ok", props.text.review.copied);
       } catch {
-        setManual(true);
+        toast("warn", props.text.review.copyManually);
       }
     })();
   };
@@ -85,12 +84,6 @@ export default function Review(props: Props) {
                 <button type="button" data-copy onClick={() => onCopy(out().split_request)}>
                   {props.text.review.copy}
                 </button>
-                <Show when={copied()}>
-                  <span data-copied>{props.text.review.copied}</span>
-                </Show>
-                <Show when={manual()}>
-                  <span data-manual>{props.text.review.copyManually}</span>
-                </Show>
               </p>
               <pre data-request>{out().split_request}</pre>
             </section>

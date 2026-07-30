@@ -3,7 +3,7 @@ import test, { before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled } from "./support/dom.mjs";
+import { browser, settled, toasts } from "./support/dom.mjs";
 
 let Encryption;
 let render;
@@ -33,8 +33,9 @@ function mount(options = {}) {
     state.enabled = payload.enable;
     return Promise.resolve({ ...state });
   };
+  const said = toasts(document.defaultView);
   render(() => Encryption({ text: ru, call }), host);
-  return { host, calls };
+  return { host, calls, said };
 }
 
 test("до включения человек видит предупреждение о потере конспектов", async () => {
@@ -91,7 +92,7 @@ test("внешний каталог закрывает включение и г�
 });
 
 test("отказ ядра показывается человеку", async () => {
-  const { host } = mount({ refuse: true });
+  const { host, said } = mount({ refuse: true });
   await settled();
 
   const phrase = host.querySelector("[data-phrase]");
@@ -105,7 +106,5 @@ test("отказ ядра показывается человеку", async () =
   host.querySelector("[data-enable]").click();
   await settled();
 
-  const failed = host.querySelector("[data-failed]");
-  assert.equal(failed.getAttribute("role"), "status");
-  assert.equal(failed.textContent, "не получилось");
+  assert.deepEqual(said.at(-1), { tone: "error", text: "не получилось" });
 });

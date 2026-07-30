@@ -2,7 +2,8 @@ import { Show, createSignal, onCleanup } from "solid-js";
 
 import type { Dictionary } from "../../i18n/ru";
 import type { OfflineStateOut } from "../../ipc";
-import { transport } from "../../lib/ipc";
+import { explain, toast } from "../../lib/toast";
+import { quiet } from "../../lib/ipc";
 import type { Transport } from "../../lib/ipc";
 
 interface Props {
@@ -19,7 +20,7 @@ const MEGABYTE = 1024 * 1024;
 const megabytes = (bytes: number) => Math.max(1, Math.round(bytes / MEGABYTE));
 
 export default function Unload(props: Props) {
-  const call = () => props.call ?? transport;
+  const call = () => props.call ?? quiet;
   const [job, setJob] = createSignal("");
   const [state, setState] = createSignal<OfflineStateOut | null>(null);
   let timer: ReturnType<typeof setInterval> | undefined;
@@ -30,30 +31,54 @@ export default function Unload(props: Props) {
   };
   onCleanup(halt);
 
+  const broke = (error: unknown) => {
+    halt();
+    toast("error", explain(error) || props.text.toast.broke);
+  };
+
   const look = () => {
     void (async () => {
-      const out = await call()("offline_state", { job: job() });
-      setState(out);
-      if (!out.finished) return;
-      halt();
-      props.onDone?.();
+      try {
+        const out = await call()("offline_state", { job: job() });
+        setState(out);
+        if (!out.finished) return;
+        halt();
+        props.onDone?.();
+      } catch (error) {
+        setJob("");
+        broke(error);
+      }
     })();
   };
 
   const start = () => {
     const again = broken() ? job() : null;
     void (async () => {
-      const out = await call()("save_offline", { bundle: props.bundle, topic: props.topic, again });
-      setJob(out.job);
-      setState(null);
-      halt();
-      timer = setInterval(look, STEP);
-      look();
+      try {
+        const out = await call()("save_offline", {
+          bundle: props.bundle,
+          topic: props.topic,
+          again,
+        });
+        setJob(out.job);
+        setState(null);
+        halt();
+        timer = setInterval(look, STEP);
+        look();
+      } catch (error) {
+        broke(error);
+      }
     })();
   };
 
   const stop = () => {
-    void call()("stop_offline", { job: job() });
+    void (async () => {
+      try {
+        await call()("stop_offline", { job: job() });
+      } catch (error) {
+        broke(error);
+      }
+    })();
   };
 
   const done = () => {

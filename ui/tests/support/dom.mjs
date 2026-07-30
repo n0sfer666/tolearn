@@ -14,3 +14,9 @@ export function browser(url = "https://tolearn.local/") {
 }
 
 export const settled = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+export function toasts(window) {
+  const said = [];
+  window.addEventListener("tolearn:toast", (event) => said.push(event.detail));
+  return said;
+}

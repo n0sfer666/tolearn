@@ -3,7 +3,7 @@ import test, { before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled } from "./support/dom.mjs";
+import { browser, settled, toasts } from "./support/dom.mjs";
 
 let Exam;
 let render;
@@ -75,6 +75,7 @@ function mount(options = {}) {
     throw new Error(`лишняя команда ${name}`);
   };
   const copied = [];
+  const said = toasts(document.defaultView);
   render(
     () =>
       Exam({
@@ -93,7 +94,7 @@ function mount(options = {}) {
     host,
   );
   const only = (name) => calls.filter((made) => made.name === name);
-  return { host, calls, copied, only };
+  return { host, calls, copied, only, said };
 }
 
 function paste(host, text) {
@@ -103,7 +104,7 @@ function paste(host, text) {
 }
 
 test("промпт готов к копированию одним действием", async () => {
-  const { host, only, copied } = mount();
+  const { host, only, copied, said } = mount();
   await settled();
 
   assert.deepEqual(only("prompt")[0], {
@@ -114,18 +115,18 @@ test("промпт готов к копированию одним действ�
   await settled();
 
   assert.deepEqual(copied, ["Текст промпта"]);
-  assert.match(host.textContent, new RegExp(ru.exam.copied));
+  assert.deepEqual(said.at(-1), { tone: "ok", text: ru.exam.copied });
 });
 
 test("без буфера обмена промпт всё равно виден и его можно выделить", async () => {
-  const { host } = mount({ noClipboard: true });
+  const { host, said } = mount({ noClipboard: true });
   await settled();
 
   host.querySelector("[data-copy]").click();
   await settled();
 
   assert.match(host.querySelector("[data-prompt-text]").textContent, /Текст промпта/);
-  assert.match(host.textContent, new RegExp(ru.exam.copyManually));
+  assert.deepEqual(said.at(-1), { tone: "warn", text: ru.exam.copyManually });
 });
 
 test("разбор идёт по нажатию и ничего не применяет сам", async () => {
@@ -185,14 +186,14 @@ test("пропущенные поля названы, но применение 
 });
 
 test("нераспознанный ответ говорит об этом и не даёт применить", async () => {
-  const { host, only } = mount({ broken: true });
+  const { host, only, said } = mount({ broken: true });
   await settled();
 
   paste(host, "проза без json");
   host.querySelector("[data-parse]").click();
   await settled();
 
-  assert.match(host.querySelector("[data-broken]").textContent, new RegExp(ru.exam.broken));
+  assert.deepEqual(said.at(-1), { tone: "error", text: ru.exam.broken });
   assert.equal(host.querySelector("[data-apply]"), null);
   assert.equal(only("apply_verdict").length, 0);
 });
@@ -255,14 +256,14 @@ test("выключенный провайдер оставляет копипа�
 });
 
 test("отказ провайдера объясняется словами и не стирает вставленное", async () => {
-  const { host, only } = mount({ provider: true, refuse: "provider.unreachable" });
+  const { host, only, said } = mount({ provider: true, refuse: "provider.unreachable" });
   await settled();
 
   paste(host, "вставлено руками");
   host.querySelector("[data-ask]").click();
   await settled();
 
-  assert.equal(host.querySelector("[data-ask-failed]").textContent, ru.provider.unreachable);
+  assert.deepEqual(said.at(-1), { tone: "error", text: ru.provider.unreachable });
   assert.equal(host.querySelector("[data-verdict-input]").value, "вставлено руками");
   assert.equal(only("parse_verdict").length, 0);
 });
