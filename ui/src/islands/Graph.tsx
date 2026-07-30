@@ -1,8 +1,10 @@
 import { For, Show, createMemo, createSignal, onMount } from "solid-js";
 
+import Canvas from "../components/graph/Canvas";
 import { GLYPHS, known, label } from "../components/status";
 import type { Dictionary } from "../i18n/ru";
 import type { GraphOut, NodeView } from "../ipc";
+import { remember, shown } from "../lib/panel";
 import { transport } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
 
@@ -13,6 +15,8 @@ interface Props {
   today?: string;
   call?: Transport;
 }
+
+const LIST = "tolearn.graph-list";
 
 interface Layer {
   n: number;
@@ -25,6 +29,12 @@ export default function Graph(props: Props) {
   const path = () => props.path ?? new URLSearchParams(location.search).get("program") ?? "";
 
   const [taken, setTaken] = createSignal<GraphOut | null>(null);
+  const [open, setOpen] = createSignal(shown(LIST));
+
+  const flip = (next: boolean) => {
+    setOpen(next);
+    remember(LIST, next);
+  };
 
   onMount(() => {
     void (async () => {
@@ -98,20 +108,39 @@ export default function Graph(props: Props) {
   return (
     <Show when={taken()}>
       <Show when={nodes().length > 0} fallback={<p data-empty>{props.text.graph.empty}</p>}>
-        <ol data-graph>
-          <For each={layers()}>
-            {(layer) => (
-              <li data-layer={layer.n}>
-                <h3>
-                  {props.text.graph.layer} {layer.n}
-                </h3>
-                <ul>
-                  <For each={layer.nodes}>{node}</For>
-                </ul>
-              </li>
-            )}
-          </For>
-        </ol>
+        <Canvas
+          nodes={nodes()}
+          label={props.text.graph.map}
+          onOpen={(id) => {
+            location.href = href(id);
+          }}
+        />
+        <p class="row">
+          <button
+            type="button"
+            data-list-toggle
+            aria-expanded={open()}
+            onClick={() => flip(!open())}
+          >
+            {open() ? props.text.graph.hide : props.text.graph.show}
+          </button>
+        </p>
+        <Show when={open()}>
+          <ol data-graph>
+            <For each={layers()}>
+              {(layer) => (
+                <li data-layer={layer.n}>
+                  <h3>
+                    {props.text.graph.layer} {layer.n}
+                  </h3>
+                  <ul>
+                    <For each={layer.nodes}>{node}</For>
+                  </ul>
+                </li>
+              )}
+            </For>
+          </ol>
+        </Show>
       </Show>
     </Show>
   );

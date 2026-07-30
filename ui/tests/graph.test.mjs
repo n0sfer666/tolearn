@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test, { before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
+import { laid, links } from "../src/components/graph/layout.ts";
+import { at, near } from "../src/components/graph/paint.ts";
 import { ru } from "../src/i18n/ru.ts";
 import { browser, settled } from "./support/dom.mjs";
 
@@ -133,4 +135,54 @@ test("пустая программа сказана словами", async () =
   await settled();
 
   assert.ok(host.querySelector("[data-empty]"), host.innerHTML);
+});
+
+test("карта нарисована холстом, а список убирается кнопкой", async () => {
+  const host = mount();
+  await settled();
+
+  const map = host.querySelector("[data-map]");
+  const toggle = host.querySelector("[data-list-toggle]");
+
+  assert.equal(map.getAttribute("aria-label"), ru.graph.map);
+  assert.ok(host.querySelector("[data-graph]"), host.innerHTML);
+  toggle.click();
+  await settled();
+  assert.equal(host.querySelector("[data-graph]"), null);
+  assert.equal(host.querySelector("[data-list-toggle]").getAttribute("aria-expanded"), "false");
+});
+
+test("линии карты идут только между темами этой программы", () => {
+  const drawn = links([
+    ...OUT.nodes,
+    { ...OUT.nodes[1], id: "чужая", depends_on: ["из-другой-программы"] },
+  ]);
+
+  assert.deepEqual(
+    drawn.filter((link) => link.to === "structured-output").map((link) => link.from),
+    ["local-runtime", "openai-compatible-api"],
+  );
+  assert.equal(
+    drawn.some((link) => link.from === "из-другой-программы"),
+    false,
+  );
+});
+
+test("раскладка разводит темы и повторяется от прогона к прогону", () => {
+  const spots = laid(OUT.nodes);
+  const again = laid(OUT.nodes);
+
+  const here = spots.get("local-runtime");
+  const there = spots.get("structured-output");
+  assert.ok(Math.hypot(here.x - there.x, here.y - there.y) > 40, JSON.stringify([here, there]));
+  assert.deepEqual([...again.entries()], [...spots.entries()]);
+});
+
+test("клик по точке попадает в её тему, а мимо — ни в какую", () => {
+  const spots = laid(OUT.nodes);
+  const view = { scale: 1, x: 0, y: 0 };
+  const spot = spots.get("openai-compatible-api");
+
+  assert.equal(near(OUT.nodes, spots, 1, at(view, spot.x, spot.y)), "openai-compatible-api");
+  assert.equal(near(OUT.nodes, spots, 1, at(view, spot.x + 400, spot.y + 400)), "");
 });
