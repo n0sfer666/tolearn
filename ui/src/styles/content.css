@@ -13,7 +13,7 @@
 }
 
 [data-header] > p,
-[data-mark] {
+[data-steps] {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -21,12 +21,28 @@
   max-width: none;
 }
 
-[data-mark] {
+[data-steps] {
   margin-block-start: var(--spacing-4);
 }
 
+[data-learn] {
+  display: grid;
+  gap: var(--spacing-6);
+  align-items: start;
+}
+
+[data-learn] [data-note] {
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  [data-learn] {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .row :where(button) + :where(button),
-[data-mark] :where(button) + :where(button) {
+[data-steps] :where(button) + :where(button) {
   margin-inline-start: 0;
 }
 

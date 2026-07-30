@@ -1,6 +1,7 @@
-import { For, Show } from "solid-js";
+import { Show } from "solid-js";
 
-import { GLYPHS, STATUSES, type Status } from "../status";
+import Steps from "./Steps";
+import { GLYPHS, type Status } from "../status";
 import type { Dictionary } from "../../i18n/ru";
 import type { TopicOut } from "../../ipc";
 
@@ -43,21 +44,7 @@ export default function Header(props: Props) {
           {props.topic.blocked_by.map((link) => link.title).join(", ")}
         </p>
       </Show>
-      <p data-mark>
-        <span>{props.text.topic.mark}</span>
-        <For each={STATUSES}>
-          {(status) => (
-            <button
-              type="button"
-              data-status-choice={status}
-              aria-pressed={props.topic.status === status}
-              onClick={() => props.onPick(status)}
-            >
-              {props.text.status[status]}
-            </button>
-          )}
-        </For>
-      </p>
+      <Steps text={props.text} status={props.topic.status} onPick={props.onPick} />
     </header>
   );
 }

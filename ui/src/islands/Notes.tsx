@@ -13,8 +13,11 @@ interface Props {
   locale: Locale;
   program?: string;
   topic?: string;
+  standalone?: boolean;
   call?: Transport;
 }
+
+const LEAST_ROWS = 12;
 
 interface Conflict {
   theirs: string;
@@ -64,11 +67,14 @@ export default function Notes(props: Props) {
   const back = () =>
     `/${props.locale}/topic/?program=${encodeURIComponent(program())}&topic=${encodeURIComponent(id())}`;
 
+  const alone = () => props.standalone ?? true;
+  const rows = () => Math.max(LEAST_ROWS, body().split("\n").length + 1);
+
   return (
     <article>
       <textarea
         data-note
-        rows={20}
+        rows={rows()}
         aria-label={props.text.topic.notes}
         value={body()}
         onInput={(event) => setBody(event.currentTarget.value)}
@@ -93,9 +99,11 @@ export default function Notes(props: Props) {
           </section>
         )}
       </Show>
-      <a href={back()} data-topic-link>
-        {props.text.practice.open}
-      </a>
+      <Show when={alone()}>
+        <a href={back()} data-topic-link>
+          {props.text.practice.open}
+        </a>
+      </Show>
     </article>
   );
 }

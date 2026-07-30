@@ -2,14 +2,18 @@ import { For, Show, createSignal, onMount } from "solid-js";
 
 import Header from "../components/topic/Header";
 import Materials from "../components/topic/Materials";
+import Notes from "./Notes";
 import Practice from "../components/topic/Practice";
 import type { Status } from "../components/status";
 import type { Dictionary } from "../i18n/ru";
 import type { Locale } from "../i18n";
 import type { TopicOut } from "../ipc";
 import { name } from "../lib/name";
+import { remember, shown } from "../lib/panel";
 import { transport } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
+
+const NOTE_PANEL = "tolearn.note-open";
 
 interface Props {
   text: Dictionary;
@@ -32,6 +36,12 @@ export default function Topic(props: Props) {
 
   const [topic, setTopic] = createSignal<TopicOut | null>(null);
   const [gone, setGone] = createSignal(false);
+  const [open, setOpen] = createSignal(shown(NOTE_PANEL));
+
+  const flip = (next: boolean) => {
+    setOpen(next);
+    remember(NOTE_PANEL, next);
+  };
 
   const refresh = () => {
     void (async () => {
@@ -68,8 +78,6 @@ export default function Topic(props: Props) {
 
   const practice = () => `/${props.locale}/practice/?program=${encodeURIComponent(program())}&topic=${encodeURIComponent(id())}`;
 
-  const notes = () => `/${props.locale}/notes/?program=${encodeURIComponent(program())}&topic=${encodeURIComponent(id())}`;
-
   return (
     <Show
       when={topic()}
@@ -102,19 +110,45 @@ export default function Topic(props: Props) {
             </section>
           </Show>
 
-          <Show when={view().materials.length > 0}>
-            <section data-section="materials">
-              <Materials
-                text={props.text}
-                locale={props.locale}
-                bundle={program()}
-                topic={id()}
-                materials={view().materials}
-                call={props.call}
-                onSaved={refresh}
-              />
+          <div data-learn>
+            <Show when={view().materials.length > 0}>
+              <section data-section="materials">
+                <Materials
+                  text={props.text}
+                  locale={props.locale}
+                  bundle={program()}
+                  topic={id()}
+                  materials={view().materials}
+                  call={props.call}
+                  onSaved={refresh}
+                />
+              </section>
+            </Show>
+
+            <section data-section="notes">
+              <p class="row">
+                <span>{props.text.topic.notes}</span>
+                <button
+                  type="button"
+                  data-note-toggle
+                  aria-expanded={open()}
+                  onClick={() => flip(!open())}
+                >
+                  {open() ? props.text.notes.hide : props.text.notes.show}
+                </button>
+              </p>
+              <Show when={open()}>
+                <Notes
+                  text={props.text}
+                  locale={props.locale}
+                  program={program()}
+                  topic={id()}
+                  standalone={false}
+                  call={props.call}
+                />
+              </Show>
             </section>
-          </Show>
+          </div>
 
           <section data-section="practice">
             <h2>{props.text.topic.practice}</h2>
@@ -148,11 +182,6 @@ export default function Topic(props: Props) {
             <Show when={view().exam.artifact_required}>
               <p data-artifact>{props.text.topic.artifact}</p>
             </Show>
-          </section>
-
-          <section data-section="notes">
-            <h2>{props.text.topic.notes}</h2>
-            <a href={notes()}>{props.text.topic.notes}</a>
           </section>
         </article>
       )}

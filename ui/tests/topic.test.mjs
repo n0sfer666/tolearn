@@ -96,6 +96,7 @@ function mount(options = {}) {
       return options.broken ? Promise.reject(new Error("нет такой")) : Promise.resolve(options.out ?? FULL);
     }
     if (name === "set_status") return Promise.resolve({ status: payload.status });
+    if (name === "note") return Promise.resolve({ body: "первая строка", stamp: null, path: "" });
     throw new Error(`лишняя команда ${name}`);
   };
   render(
@@ -119,12 +120,10 @@ test("экран читает тему по программе и идентиф
   const { calls } = mount({ program: "/programs/other", topic: "agent-loop" });
   await settled();
 
-  assert.deepEqual(calls, [
-    {
-      name: "topic",
-      payload: { bundle: "/programs/other", topic: "agent-loop", today: "2026-07-27" },
-    },
-  ]);
+  assert.deepEqual(calls[0], {
+    name: "topic",
+    payload: { bundle: "/programs/other", topic: "agent-loop", today: "2026-07-27" },
+  });
 });
 
 test("секции идут в порядке работы, а не в порядке полей", async () => {
@@ -133,7 +132,7 @@ test("секции идут в порядке работы, а не в поря�
 
   assert.deepEqual(
     [...host.querySelectorAll("[data-section]")].map((node) => node.dataset.section),
-    ["outcomes", "misconceptions", "materials", "practice", "questions", "exam", "notes"],
+    ["outcomes", "misconceptions", "materials", "notes", "practice", "questions", "exam"],
   );
 });
 
@@ -143,7 +142,7 @@ test("вырожденный чекпойнт не рисует пустые с�
 
   assert.deepEqual(
     [...host.querySelectorAll("[data-section]")].map((node) => node.dataset.section),
-    ["outcomes", "practice", "exam", "notes"],
+    ["outcomes", "notes", "practice", "exam"],
   );
 });
 
@@ -231,30 +230,75 @@ test("вопросы показаны формулировками, без от�
   assert.doesNotMatch(host.innerHTML, /expected_signals|red_flags|follow_up/);
 });
 
-test("статус ставится вручную и экран обновляется", async () => {
+test("статус переключается по шагам вперёд и назад", async () => {
   const { host, calls } = mount();
   await settled();
 
-  const choice = host.querySelector('[data-status-choice="passed"]');
-  choice.click();
+  const step = (way) => host.querySelector(`[data-step="${way}"]`);
+  assert.equal(step("next").textContent, ru.steps.toExam);
+  assert.equal(step("back").textContent, ru.steps.toStart);
+
+  step("next").click();
   await settled();
 
-  assert.deepEqual(calls[1], {
+  const marks = () => calls.filter((made) => made.name === "set_status");
+  assert.deepEqual(marks().at(-1), {
     name: "set_status",
     payload: {
       bundle: "/programs/llm-agents-base",
       topic: "local-runtime",
-      status: "passed",
+      status: "exam_pending",
       today: "2026-07-27",
     },
   });
-  assert.match(host.querySelector("[data-header]").textContent, new RegExp(ru.status.passed));
+  assert.equal(host.querySelector("[data-status]").textContent, ru.status.exam_pending);
+  assert.equal(step("next").textContent, ru.steps.pass);
 
-  host.querySelector('[data-status-choice="failed"]').click();
+  step("back").click();
   await settled();
 
-  assert.equal(calls[2].payload.status, "failed");
-  assert.equal(host.querySelector("[data-status]").textContent, ru.status.failed);
+  assert.equal(marks().at(-1).payload.status, "in_progress");
+  assert.equal(host.querySelector("[data-status]").textContent, ru.status.in_progress);
+});
+
+test("из «не начата» назад хода нет, а провал зовёт начать заново", async () => {
+  const fresh = mount({ out: { ...FULL, status: "todo" } });
+  await settled();
+
+  assert.equal(fresh.host.querySelector('[data-step="back"]'), null, "из «не начата» есть назад");
+  assert.equal(fresh.host.querySelector('[data-step="next"]').textContent, ru.steps.start);
+
+  const broken = mount({ out: { ...FULL, status: "failed" } });
+  await settled();
+
+  assert.equal(broken.host.querySelector('[data-step="back"]'), null, "у провала есть назад");
+  assert.equal(broken.host.querySelector('[data-step="next"]').textContent, ru.steps.restart);
+});
+
+test("выведенный статус руками не двигается", async () => {
+  const { host } = mount({ out: CHECKPOINT, topic: "cp-gateway" });
+  await settled();
+
+  assert.equal(host.querySelector("[data-step]"), null, "заблокированную тему двигают руками");
+  assert.equal(host.querySelector("[data-steps-locked]").textContent, ru.steps.locked);
+});
+
+test("конспект открыт рядом с материалом и убирается кнопкой", async () => {
+  const { host } = mount();
+  await settled();
+
+  const notes = section(host, "notes");
+  assert.ok(notes.querySelector("[data-note]"), "конспект не показан сразу");
+  assert.equal(notes.querySelector("[data-note-toggle]").textContent, ru.notes.hide);
+
+  notes.querySelector("[data-note-toggle]").click();
+  await settled();
+
+  assert.equal(section(host, "notes").querySelector("[data-note]"), null, "конспект не убрался");
+  assert.equal(section(host, "notes").querySelector("[data-note-toggle]").textContent, ru.notes.show);
+
+  section(host, "notes").querySelector("[data-note-toggle]").click();
+  await settled();
 });
 
 test("с темы есть ход на экран практики", async () => {

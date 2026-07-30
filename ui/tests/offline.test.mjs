@@ -98,6 +98,7 @@ function mountTopic(states, refuses = false) {
       return Promise.resolve(out);
     }
     if (name === "stop_offline") return Promise.resolve({ stopping: true });
+    if (name === "note") return Promise.resolve({ body: "", stamp: null, path: "" });
     throw new Error(`лишняя команда ${name}`);
   };
   const said = toasts(document.defaultView);
@@ -139,7 +140,7 @@ test("выгрузка запускается с шапки материалов
   materials(host).querySelector("[data-save-offline]").click();
   await settled();
 
-  assert.deepEqual(calls[1], {
+  assert.deepEqual(calls.find((made) => made.name === "save_offline"), {
     name: "save_offline",
     payload: { bundle: "/programs/llm-agents-base", topic: "local-runtime", again: null },
   });
