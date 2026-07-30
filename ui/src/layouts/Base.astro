@@ -1,12 +1,19 @@
 ---
 import "@design/tokens.css";
 import "../styles/base.css";
+import "../styles/layout.css";
+import "../styles/controls.css";
+import "../styles/content.css";
+import "../styles/cards.css";
+import "../styles/status.css";
+import "../styles/practice.css";
 
 import EarlyTheme from "../components/EarlyTheme.astro";
+import KeepContext from "../components/KeepContext.astro";
 import Keyboard from "../components/Keyboard.astro";
 import RememberLocale from "../components/RememberLocale.astro";
-import ThemeSwitch from "../components/ThemeSwitch.astro";
-import { LOCALES, type Locale, localized, strings } from "../i18n";
+import { type Locale, localized, strings } from "../i18n";
+import { keep } from "../lib/context";
 
 interface Props {
   locale: Locale;
@@ -17,6 +24,8 @@ interface Props {
 const { locale, title, back } = Astro.props;
 const text = strings(locale);
 const here = Astro.url.pathname;
+const current = (href: string): "page" | undefined =>
+  here === localized(href, locale) ? "page" : undefined;
 ---
 
 <!doctype html>
@@ -28,27 +37,44 @@ const here = Astro.url.pathname;
     <EarlyTheme />
   </head>
   <body>
-    <header>
-      {back && <a href={localized(back.href, locale)} data-back>{back.text}</a>}
-      <h1>{title}</h1>
-      <nav aria-label={text.language.switch}>
+    <header class="bar">
+      <div class="bar-here">
         {
-          LOCALES.map((other) => (
-            <a href={localized(here, other)} data-locale={other} hreflang={other} lang={other}>
-              {text.language[other]}
+          back && (
+            <a
+              href={localized(back.href, locale)}
+              class="bar-back"
+              data-back
+              data-keep={keep(back.href).join(",")}
+            >
+              {back.text}
             </a>
-          ))
+          )
         }
+        <h1 class="bar-title">{title}</h1>
+      </div>
+      <nav class="bar-nav" aria-label={text.nav.sections}>
+        <a href={localized("/queue/", locale)} data-queue aria-current={current("/queue/")}>
+          {text.nav.queue}
+        </a>
+        <a
+          href={localized("/search/", locale)}
+          data-search
+          data-keep={keep("/search/").join(",")}
+          aria-current={current("/search/")}
+        >
+          {text.nav.search}
+        </a>
+        <a href={localized("/settings/", locale)} data-settings aria-current={current("/settings/")}>
+          {text.nav.settings}
+        </a>
       </nav>
-      <ThemeSwitch locale={locale} />
-      <a href={localized("/queue/", locale)} data-queue>{text.nav.queue}</a>
-    <a href={localized("/search/", locale)} data-search>{text.nav.search}</a>
-      <a href={localized("/settings/", locale)} data-settings>{text.nav.settings}</a>
     </header>
-    <main>
+    <main class="page">
       <slot />
     </main>
     <RememberLocale />
+    <KeepContext />
     <Keyboard />
   </body>
 </html>

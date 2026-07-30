@@ -1,10 +1,12 @@
 ---
 import "@design/tokens.css";
 import "../styles/base.css";
+import "../styles/layout.css";
+import "../styles/controls.css";
+import "../styles/content.css";
 
 import EarlyTheme from "../components/EarlyTheme.astro";
 import RememberLocale from "../components/RememberLocale.astro";
-import ThemeSwitch from "../components/ThemeSwitch.astro";
 import { LOCALES, strings } from "../i18n";
 ---
 
@@ -23,11 +25,12 @@ import { LOCALES, strings } from "../i18n";
     </script>
   </head>
   <body>
-    <header>
-      <h1>tolearn</h1>
-      <ThemeSwitch locale="ru" />
+    <header class="bar">
+      <div class="bar-here">
+        <h1 class="bar-title">tolearn</h1>
+      </div>
     </header>
-    <main>
+    <main class="page">
       <section id="language">
         <h2>{strings("ru").language.switch}</h2>
         <ul>

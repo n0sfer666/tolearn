@@ -146,6 +146,21 @@ test("отказ от внешнего каталога возвращает с�
   assert.equal(host.querySelector("[data-reset]"), null);
 });
 
+test("переключатель темы предлагает три варианта на языке экрана", async () => {
+  const { host } = mount();
+  await settled();
+
+  const choices = [...host.querySelectorAll("[data-theme-choice]")];
+  assert.deepEqual(
+    choices.map((button) => button.dataset.themeChoice),
+    ["system", "light", "dark"],
+  );
+  assert.deepEqual(
+    choices.map((button) => button.textContent),
+    [ru.theme.system, ru.theme.light, ru.theme.dark],
+  );
+});
+
 test("тема применяется к странице без перезагрузки", async () => {
   const { host } = mount();
   await settled();

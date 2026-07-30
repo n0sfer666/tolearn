@@ -81,7 +81,9 @@ function mount(options = {}) {
   const calls = [];
   const call = (name, payload) => {
     calls.push({ name, payload });
-    if (name === "topic") return Promise.resolve(options.out ?? FULL);
+    if (name === "topic") {
+      return options.broken ? Promise.reject(new Error("нет такой")) : Promise.resolve(options.out ?? FULL);
+    }
     if (name === "set_status") return Promise.resolve({ status: payload.status });
     throw new Error(`лишняя команда ${name}`);
   };
@@ -233,4 +235,20 @@ test("с темы есть ход на экран практики", async () =>
   const link = section(host, "practice").querySelector("[data-practice-link]");
   assert.match(link.getAttribute("href"), /\/ru\/practice\/\?program=/);
   assert.match(link.getAttribute("href"), /topic=local-runtime/);
+});
+
+test("без темы в адресе экран говорит об этом, а не пустеет", async () => {
+  const { host, calls } = mount({ program: "", topic: "" });
+  await settled();
+
+  assert.equal(calls.length, 0, "ядро дёрнули без темы");
+  assert.match(host.querySelector("[data-empty]").textContent, /Тема не выбрана/);
+  assert.equal(host.querySelector("[data-empty] a").getAttribute("href"), "/ru/");
+});
+
+test("недоступная тема сообщает о себе", async () => {
+  const { host } = mount({ broken: true });
+  await settled();
+
+  assert.match(host.querySelector("[data-empty]").textContent, /Тема не выбрана/);
 });

@@ -72,7 +72,9 @@ function mount(options = {}) {
   const calls = [];
   const call = (name, payload) => {
     calls.push({ name, payload });
-    if (name === "program") return Promise.resolve(options.out ?? OUT);
+    if (name === "program") {
+      return options.broken ? Promise.reject(new Error("нет такой")) : Promise.resolve(options.out ?? OUT);
+    }
     if (name === "export") {
       return options.fail
         ? Promise.reject(new Error("не записалось"))
@@ -101,6 +103,22 @@ function mount(options = {}) {
 }
 
 const at = (host, id) => host.querySelector(`[data-topic="${id}"]`);
+
+test("без выбранной программы экран говорит об этом, а не пустеет", async () => {
+  const { host, calls } = mount({ path: "" });
+  await settled();
+
+  assert.equal(calls.length, 0, "ядро дёрнули без программы");
+  assert.match(host.querySelector("[data-empty]").textContent, /Программа не выбрана/);
+  assert.equal(host.querySelector('[data-empty] a').getAttribute("href"), "/ru/");
+});
+
+test("недоступная программа сообщает о себе, а не оставляет пустой экран", async () => {
+  const { host } = mount({ path: "/programs/нет", broken: true });
+  await settled();
+
+  assert.match(host.querySelector("[data-empty]").textContent, /Программа не выбрана/);
+});
 
 test("экран читает программу по её пути", async () => {
   const { calls } = mount({ path: "/programs/other" });

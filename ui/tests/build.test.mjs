@@ -36,7 +36,7 @@ test("каждый маршрут собран отдельной страниц
 test("страница несёт содержимое, а не пустой корень для гидрации", async () => {
   for (const file of await pages()) {
     const html = readFileSync(file, "utf8");
-    assert.match(html, /<h1>/, `${route(file)} без заголовка`);
+    assert.match(html, /<h1[\s>]/, `${route(file)} без заголовка`);
     assert.match(html, /<section /, `${route(file)} без секций`);
   }
 });

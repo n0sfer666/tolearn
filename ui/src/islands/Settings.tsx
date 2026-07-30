@@ -94,23 +94,27 @@ export default function Settings(props: Props) {
           <section>
             <h2>{props.text.settings.history}</h2>
             <p>{props.text.settings.historyLead}</p>
-            <input
-              data-history-depth
-              type="number"
-              min="0"
-              aria-label={props.text.settings.historyDepth}
-              value={current().history_depth}
-              onChange={(event) => onDepth(event.currentTarget.value)}
-            />
-            <input
-              data-history-share
-              type="number"
-              min="0"
-              max="100"
-              aria-label={props.text.settings.historyShare}
-              value={current().history_share_percent}
-              onChange={(event) => onShare(event.currentTarget.value)}
-            />
+            <label>
+              {props.text.settings.historyDepth}
+              <input
+                data-history-depth
+                type="number"
+                min="0"
+                value={current().history_depth}
+                onChange={(event) => onDepth(event.currentTarget.value)}
+              />
+            </label>
+            <label>
+              {props.text.settings.historyShare}
+              <input
+                data-history-share
+                type="number"
+                min="0"
+                max="100"
+                value={current().history_share_percent}
+                onChange={(event) => onShare(event.currentTarget.value)}
+              />
+            </label>
           </section>
 
           <section>

@@ -1,0 +1,12 @@
+<script is:inline>
+  const here = new URLSearchParams(location.search);
+
+  document.querySelectorAll("[data-keep]").forEach((link) => {
+    const url = new URL(link.href);
+    for (const name of link.dataset.keep.split(",").filter(Boolean)) {
+      const value = here.get(name);
+      if (value !== null && value !== "") url.searchParams.set(name, value);
+    }
+    link.href = `${url.pathname}${url.search}`;
+  });
+</script>

@@ -14,6 +14,3 @@ export function early(html) {
   return only(inline(head).filter((code) => code.includes(KEY)), "темы в <head>");
 }
 
-export function switcher(html) {
-  return only(inline(html).filter((code) => code.includes("data-theme-choice")), "переключателя темы");
-}

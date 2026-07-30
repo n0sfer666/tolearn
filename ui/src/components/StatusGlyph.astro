@@ -10,17 +10,3 @@ const { status, label } = Astro.props;
 ---
 
 <span class={`glyph status-${status}`} role="img" aria-label={label}>{GLYPHS[status]}</span>
-
-<style>
-  .glyph {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: var(--tap-target);
-    min-height: var(--tap-target);
-    border: var(--border-width) solid var(--color-border-strong);
-    border-radius: var(--radius-sm);
-    background: var(--color-status-bg);
-    color: var(--color-status);
-  }
-</style>

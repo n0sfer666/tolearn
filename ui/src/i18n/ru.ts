@@ -12,6 +12,7 @@ export const ru = {
     search: "Поиск",
     queue: "Повторение",
     back: "Назад",
+    sections: "Разделы",
   },
   programs: {
     import: "Импорт",
@@ -33,6 +34,7 @@ export const ru = {
     filter: "Фильтр (/)",
   },
   program: {
+    none: "Программа не выбрана — откройте её из списка:",
     filter: "Фильтр (/)",
     stages: "Этапы",
     lead: "Лента этапов с темами и чекпойнтами.",
@@ -137,6 +139,7 @@ export const ru = {
     verdictBlocked: "заблокировано",
   },
   topic: {
+    none: "Тема не выбрана или недоступна — начните со списка программ:",
     outcomes: "Результаты",
     misconceptions: "Заблуждения",
     materials: "Материалы",

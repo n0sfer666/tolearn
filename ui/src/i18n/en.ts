@@ -14,6 +14,7 @@ export const en: Dictionary = {
     search: "Search",
     queue: "Review queue",
     back: "Back",
+    sections: "Sections",
   },
   programs: {
     import: "Import",
@@ -35,6 +36,7 @@ export const en: Dictionary = {
     filter: "Filter (/)",
   },
   program: {
+    none: "No program is open — pick one from the list:",
     filter: "Filter (/)",
     stages: "Stages",
     lead: "Stages with their topics and checkpoints.",
@@ -139,6 +141,7 @@ export const en: Dictionary = {
     verdictBlocked: "blocked",
   },
   topic: {
+    none: "No topic is open, or it is out of reach — start from the program list:",
     outcomes: "Outcomes",
     misconceptions: "Misconceptions",
     materials: "Materials",

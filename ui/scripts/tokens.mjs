@@ -19,6 +19,7 @@ const FAMILIES = [
   "radius",
   "z",
   "breakpoint",
+  "width",
 ];
 
 const SURFACES = ["--color-bg", "--color-bg-subtle", "--color-bg-raised"];

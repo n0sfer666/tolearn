@@ -13,7 +13,7 @@ export default function Materials(props: Props) {
     <ul>
       <For each={props.materials}>
         {(material) => (
-          <li>
+          <li data-material={material.kind}>
             <a href={material.url}>{material.title}</a>
             <span data-tier>{material.tier}</span>
             <span data-kind>{material.kind}</span>

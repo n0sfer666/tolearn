@@ -30,10 +30,19 @@ export default function Topic(props: Props) {
   const id = () => props.topic ?? query("topic");
 
   const [topic, setTopic] = createSignal<TopicOut | null>(null);
+  const [gone, setGone] = createSignal(false);
 
   onMount(() => {
+    if (program() === "" || id() === "") {
+      setGone(true);
+      return;
+    }
     void (async () => {
-      setTopic(await call()("topic", { bundle: program(), topic: id(), today: today() }));
+      try {
+        setTopic(await call()("topic", { bundle: program(), topic: id(), today: today() }));
+      } catch {
+        setGone(true);
+      }
     })();
   });
 
@@ -54,7 +63,17 @@ export default function Topic(props: Props) {
   const notes = () => `/${props.locale}/notes/?program=${encodeURIComponent(program())}&topic=${encodeURIComponent(id())}`;
 
   return (
-    <Show when={topic()}>
+    <Show
+      when={topic()}
+      fallback={
+        <Show when={gone()}>
+          <p data-empty>
+            {props.text.topic.none}{" "}
+            <a href={`/${props.locale}/`}>{props.text.nav.programs}</a>
+          </p>
+        </Show>
+      }
+    >
       {(view) => (
         <article>
           <Header text={props.text} topic={view()} onPick={pick} />

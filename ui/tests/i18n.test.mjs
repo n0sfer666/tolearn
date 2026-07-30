@@ -37,9 +37,9 @@ test("страница объявляет свой язык и говорит н
   assert.doesNotMatch(page("en/program"), /Этапы/);
 });
 
-test("смена языка — ссылка на ту же страницу, а не перезапуск", () => {
-  assert.match(page("ru/topic"), /<a href="\/en\/topic\/"/);
-  assert.match(page("en/topic"), /<a href="\/ru\/topic\/"/);
+test("экран не уводит в другой язык — переключатель живёт в настройках", () => {
+  assert.doesNotMatch(page("ru/topic"), /<a[^>]*href="\/en\//);
+  assert.doesNotMatch(page("en/topic"), /<a[^>]*href="\/ru\//);
 });
 
 test("ссылка назад остаётся внутри своего языка", () => {

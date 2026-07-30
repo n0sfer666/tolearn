@@ -56,6 +56,7 @@ export default function Search(props: Props) {
   return (
     <article>
       <form
+        class="row"
         onSubmit={(event) => {
           event.preventDefault();
           find();

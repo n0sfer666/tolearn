@@ -46,6 +46,14 @@ export default function Stats(props: Props) {
               {percent(stats().hinted_share)}
             </p>
             <table data-kinds>
+              <thead>
+                <tr>
+                  <td />
+                  <th scope="col">{props.text.review.resultOk}</th>
+                  <th scope="col">{props.text.review.resultPartial}</th>
+                  <th scope="col">{props.text.review.resultMiss}</th>
+                </tr>
+              </thead>
               <tbody>
                 <For each={stats().kinds}>
                   {(kind) => (
