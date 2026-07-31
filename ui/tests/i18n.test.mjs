@@ -47,12 +47,12 @@ test("ссылка назад остаётся внутри своего язы�
   assert.doesNotMatch(page("en/topic"), /<a href="\/program\/"/);
 });
 
-test("выбор языка запоминается и подхватывается на корне", () => {
+test("выбор языка на корне запоминается, а решает ядро", () => {
   const root = page(".");
 
-  assert.match(root, /localStorage\.getItem\("tolearn\.locale"\)/);
   assert.match(root, /localStorage\.setItem\("tolearn\.locale"/);
-  assert.match(root, /location\.replace/);
+  assert.doesNotMatch(root, /localStorage\.getItem\("tolearn\.locale"\)/);
+  assert.match(root, /<script type="module" src="[^"]*BootLocale[^"]*"><\/script>/);
 });
 
 test("плюрализация идёт по CLDR-категориям языка", () => {

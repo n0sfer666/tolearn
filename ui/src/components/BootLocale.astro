@@ -1,0 +1,6 @@
+<script>
+  import { boot } from "../lib/boot";
+  import { quiet } from "../lib/ipc";
+
+  void boot(quiet).then((locale) => location.replace(`/${locale}/`));
+</script>

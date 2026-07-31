@@ -6,7 +6,7 @@ import solid from "vite-plugin-solid";
 const UI = fileURLToPath(new URL("..", import.meta.url));
 const OUT = path.join(UI, "node_modules/.islands");
 
-export async function island(name, from = "src/islands") {
+export async function island(name, from = "src/islands", ext = "tsx") {
   await build({
     root: UI,
     logLevel: "error",
@@ -15,7 +15,7 @@ export async function island(name, from = "src/islands") {
       outDir: OUT,
       emptyOutDir: false,
       lib: {
-        entry: path.join(UI, from, `${name}.tsx`),
+        entry: path.join(UI, from, `${name}.${ext}`),
         formats: ["es"],
         fileName: () => `${name}.mjs`,
       },

@@ -8,6 +8,7 @@ import type { SettingsView } from "../ipc";
 import { pick, transport } from "../lib/ipc";
 import { toast } from "../lib/toast";
 import type { Transport } from "../lib/ipc";
+import { remember as keepLocale } from "../lib/locale";
 import { remember } from "../lib/theme";
 
 interface Props {
@@ -15,17 +16,20 @@ interface Props {
   locale: Locale;
   call?: Transport;
   choose?: () => Promise<string | null>;
+  go?: (url: string) => void;
 }
 
 export default function Settings(props: Props) {
   const call = () => props.call ?? transport;
   const choose = () => props.choose ?? pick;
+  const go = () => props.go ?? ((url: string) => location.assign(url));
 
   const [view, setView] = createSignal<SettingsView | null>(null);
 
   const took = (next: SettingsView) => {
     setView(next);
     remember(next.theme);
+    keepLocale(next.locale);
   };
 
   onMount(() => {
@@ -34,42 +38,49 @@ export default function Settings(props: Props) {
     })();
   });
 
-  const store = (change: Partial<SettingsView>) => {
+  const store = async (change: Partial<SettingsView>): Promise<boolean> => {
     const current = view();
-    if (current === null) return;
+    if (current === null) return false;
     const next: SettingsView = { ...current, ...change };
-    void (async () => {
-      try {
-        took(await call()("settings", { save: next }));
-        toast("ok", props.text.settings.saved);
-      } catch {
-        toast("error", props.text.settings.failed);
-      }
-    })();
+    try {
+      took(await call()("settings", { save: next }));
+      toast("ok", props.text.settings.saved);
+      return true;
+    } catch {
+      toast("error", props.text.settings.failed);
+      return false;
+    }
   };
 
   const onBudget = (value: string) => {
     const budget = Number.parseInt(value, 10);
     if (Number.isNaN(budget) || budget < 1) return;
-    store({ disk_budget_mb: budget });
+    void store({ disk_budget_mb: budget });
   };
 
   const onDepth = (value: string) => {
     const depth = Number.parseInt(value, 10);
     if (Number.isNaN(depth) || depth < 0) return;
-    store({ history_depth: depth });
+    void store({ history_depth: depth });
   };
 
   const onShare = (value: string) => {
     const share = Number.parseInt(value, 10);
     if (Number.isNaN(share) || share < 0 || share > 100) return;
-    store({ history_share_percent: share });
+    void store({ history_share_percent: share });
   };
 
   const onChoose = () => {
     void (async () => {
       const chosen = await choose()();
-      if (chosen !== null) store({ notes_directory: chosen });
+      if (chosen !== null) await store({ notes_directory: chosen });
+    })();
+  };
+
+  const onLocale = (event: MouseEvent, other: Locale) => {
+    event.preventDefault();
+    void (async () => {
+      if (await store({ locale: other })) go()(localized("/settings/", other));
     })();
   };
 
@@ -86,7 +97,7 @@ export default function Settings(props: Props) {
                     type="button"
                     data-theme-choice={choice}
                     aria-pressed={current().theme === choice}
-                    onClick={() => store({ theme: choice })}
+                    onClick={() => void store({ theme: choice })}
                   >
                     {props.text.theme[choice]}
                   </button>
@@ -110,7 +121,7 @@ export default function Settings(props: Props) {
               <button
                 type="button"
                 data-reset
-                onClick={() => store({ notes_directory: null })}
+                onClick={() => void store({ notes_directory: null })}
               >
                 {props.text.settings.reset}
               </button>
@@ -128,7 +139,7 @@ export default function Settings(props: Props) {
                     hreflang={other}
                     lang={other}
                     aria-current={current().locale === other ? "true" : undefined}
-                    onClick={() => store({ locale: other })}
+                    onClick={(event) => onLocale(event, other)}
                   >
                     {props.text.language[other]}
                   </a>

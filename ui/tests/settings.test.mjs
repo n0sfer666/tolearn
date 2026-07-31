@@ -31,14 +31,14 @@ function mount(options = {}) {
   const host = document.createElement("div");
   document.body.append(host);
   const calls = [];
-  const call = (name, payload) => {
+  const went = [];
+  const call = async (name, payload) => {
     calls.push({ name, payload });
     if (name !== "settings") throw new Error(`лишняя команда ${name}`);
-    if (payload.save === null) return Promise.resolve({ ...DEFAULTS, ...options.stored });
-    if (options.refuse === true) {
-      return Promise.reject({ code: "settings.unknown-value", message: "нет" });
-    }
-    return Promise.resolve(payload.save);
+    if (payload.save === null) return { ...DEFAULTS, ...options.stored };
+    if (options.gate !== undefined) await options.gate;
+    if (options.refuse === true) throw { code: "settings.unknown-value", message: "нет" };
+    return payload.save;
   };
   const said = toasts(document.defaultView);
   render(
@@ -48,10 +48,11 @@ function mount(options = {}) {
         locale: "ru",
         call,
         choose: () => Promise.resolve(options.chosen ?? null),
+        go: (url) => went.push(url),
       }),
     host,
   );
-  return { host, calls, said };
+  return { host, calls, said, went };
 }
 
 test("настройки читаются при открытии экрана", async () => {
@@ -200,7 +201,7 @@ test("тема применяется к странице без перезаг�
 });
 
 test("язык — ссылка на тот же экран и запись в настройки", async () => {
-  const { host, calls } = mount();
+  const { host, calls, went } = mount();
   await settled();
 
   const link = host.querySelector('[data-locale="en"]');
@@ -209,6 +210,39 @@ test("язык — ссылка на тот же экран и запись в �
   await settled();
 
   assert.equal(calls.at(-1).payload.save.locale, "en");
+  assert.equal(window.localStorage.getItem("tolearn.locale"), "en");
+  assert.deepEqual(went, ["/en/settings/"]);
+});
+
+test("переход ждёт, пока язык ляжет в настройки", async () => {
+  let release;
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  const { host, calls, went } = mount({ gate });
+  await settled();
+
+  host.querySelector('[data-locale="en"]').click();
+  await settled();
+
+  assert.equal(calls.at(-1).payload.save.locale, "en");
+  assert.deepEqual(went, [], "ушли со страницы раньше, чем настройка записана");
+
+  release();
+  await settled();
+
+  assert.deepEqual(went, ["/en/settings/"]);
+});
+
+test("незаписанный язык не уводит со страницы", async () => {
+  const { host, said, went } = mount({ refuse: true });
+  await settled();
+
+  host.querySelector('[data-locale="en"]').click();
+  await settled();
+
+  assert.deepEqual(went, []);
+  assert.deepEqual(said.at(-1), { tone: "error", text: ru.settings.failed });
 });
 
 test("отказ ядра виден на экране", async () => {

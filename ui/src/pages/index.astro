@@ -5,6 +5,7 @@ import "../styles/layout.css";
 import "../styles/controls.css";
 import "../styles/content.css";
 
+import BootLocale from "../components/BootLocale.astro";
 import EarlyTheme from "../components/EarlyTheme.astro";
 import RememberLocale from "../components/RememberLocale.astro";
 import { LOCALES, strings } from "../i18n";
@@ -17,12 +18,7 @@ import { LOCALES, strings } from "../i18n";
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>tolearn</title>
     <EarlyTheme />
-    <script is:inline>
-      const stored = localStorage.getItem("tolearn.locale");
-      const known = ["ru", "en"];
-      const wanted = known.includes(stored) ? stored : navigator.language.slice(0, 2);
-      location.replace(`/${known.includes(wanted) ? wanted : "ru"}/`);
-    </script>
+    <BootLocale />
   </head>
   <body>
     <header class="bar">
