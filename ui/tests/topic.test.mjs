@@ -72,6 +72,7 @@ const FULL = {
   },
   questions: [{ id: "q1", kind: "diagnose", text: "Что съело память?" }],
   exam: { focus: "расход памяти", artifact_required: true, max_exchanges: 12 },
+  unload: { state: "missing", checked_at: null },
 };
 
 const CHECKPOINT = {

@@ -19,14 +19,14 @@ pub fn seen(root: &Path, budget: u64) -> Seen {
     }
 }
 
-impl Seen {
-    pub fn of(&self, url: &str) -> &'static str {
-        match self.held(url) {
-            Some(_) => SAVED,
-            None => ABSENT,
-        }
+pub fn label(held: Option<&Held>) -> &'static str {
+    match held {
+        Some(_) => SAVED,
+        None => ABSENT,
     }
+}
 
+impl Seen {
     pub fn held(&self, url: &str) -> Option<Held> {
         self.store.as_ref()?.held(url).ok().flatten()
     }

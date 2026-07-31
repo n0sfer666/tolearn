@@ -6702,6 +6702,7 @@ dependencies = [
  "markup5ever_rcdom",
  "monolith",
  "pulldown-cmark",
+ "reqwest 0.12.28",
  "rusqlite",
  "sha2 0.10.9",
  "tolearn-core",

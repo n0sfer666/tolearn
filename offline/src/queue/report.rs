@@ -5,6 +5,8 @@ use std::fmt;
 pub enum Skip {
     Paywall,
     LoginRequired,
+    Unchanged,
+    Unchecked,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -21,6 +23,8 @@ impl Skip {
         match self {
             Self::Paywall => "paywall",
             Self::LoginRequired => "login_required",
+            Self::Unchanged => "unchanged",
+            Self::Unchecked => "unchecked",
         }
     }
 }

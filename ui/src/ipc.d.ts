@@ -110,9 +110,15 @@ export type TopicOut = {
   outcomes: string[];
   misconceptions: string[];
   materials: MaterialView[];
+  unload: UnloadView;
   practice: PracticeView;
   questions: QuestionView[];
   exam: ExamView;
+};
+
+export type UnloadView = {
+  state: string;
+  checked_at: number | null;
 };
 
 export type MaterialView = {

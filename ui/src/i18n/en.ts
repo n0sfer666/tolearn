@@ -169,6 +169,8 @@ export const en: Dictionary = {
   },
   offline: {
     save: "Save everything offline",
+    update: "Update what is saved",
+    actual: "up to date as of",
     saving: "Saving",
     stop: "Stop",
     again: "Retry the failed ones",

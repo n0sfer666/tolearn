@@ -1,14 +1,15 @@
 mod disk;
 mod error;
 mod index;
+mod migrate;
 mod types;
 
 pub use error::StoreError;
-pub use types::{Fetched, Held, Stored};
+pub use types::{Checked, Fetched, Held, Stored};
 
 use std::path::{Path, PathBuf};
 
-use sha2::{Digest, Sha256};
+use crate::digest::digest;
 
 use index::{Found, Index};
 
@@ -54,6 +55,8 @@ impl Store {
             fetched_at: at,
             etag: fetched.etag.map(str::to_string),
             last_modified: fetched.last_modified.map(str::to_string),
+            body_hash: None,
+            checked_at: None,
         };
         self.write(url, program, held, None, at)?;
 
@@ -84,6 +87,8 @@ impl Store {
             fetched_at: at,
             etag: None,
             last_modified: None,
+            body_hash: None,
+            checked_at: None,
         };
         self.write(url, program, held, Some(path.clone()), at)?;
 
@@ -100,6 +105,14 @@ impl Store {
 
     pub fn held(&self, url: &str) -> Result<Option<Held>, StoreError> {
         Ok(self.index.find(url)?.map(|found| self.at_hand(found)))
+    }
+
+    pub fn stamp(&mut self, url: &str, checked: &Checked) -> Result<(), StoreError> {
+        self.index.stamp(url, checked)
+    }
+
+    pub fn checked(&mut self, url: &str, at: i64) -> Result<(), StoreError> {
+        self.index.checked(url, at)
     }
 
     pub fn protect(&mut self, program: &str, protected: bool) -> Result<(), StoreError> {
@@ -169,14 +182,4 @@ impl Store {
 
 fn kept(url: &str) -> String {
     digest(format!("kept:{url}").as_bytes())
-}
-
-fn digest(bytes: &[u8]) -> String {
-    let mut hasher = Sha256::new();
-    hasher.update(bytes);
-    hasher
-        .finalize()
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect()
 }

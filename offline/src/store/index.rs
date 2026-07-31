@@ -3,35 +3,11 @@ use std::path::{Path, PathBuf};
 use rusqlite::{Connection, OptionalExtension, Row, params};
 
 use super::error::StoreError;
-use super::types::Held;
+use super::migrate;
+use super::types::{Checked, Held};
 
-const SCHEMA: &str = "
-create table if not exists objects (
-    hash text primary key,
-    size integer not null,
-    used_at integer not null
-);
-create table if not exists urls (
-    url text primary key,
-    hash text not null,
-    kind text not null,
-    fetched_at integer not null,
-    etag text,
-    last_modified text,
-    path text
-);
-create table if not exists holders (
-    program text not null,
-    url text not null,
-    primary key (program, url)
-);
-create table if not exists programs (
-    program text primary key,
-    protected integer not null
-);
-";
-
-const COLUMNS: &str = "o.hash, o.size, u.kind, u.fetched_at, u.etag, u.last_modified, u.path";
+const COLUMNS: &str = "o.hash, o.size, u.kind, u.fetched_at, u.etag, u.last_modified, u.path,
+     u.body_hash, u.checked_at";
 
 #[derive(Debug)]
 pub(super) struct Found {
@@ -49,15 +25,7 @@ impl Index {
         let db = Connection::open(path)?;
         db.pragma_update(None, "journal_mode", "WAL")?;
         db.pragma_update(None, "synchronous", "FULL")?;
-        db.execute_batch(SCHEMA)?;
-        let aged: i64 = db.query_row(
-            "select count(*) from pragma_table_info('urls') where name = 'path'",
-            [],
-            |row| row.get(0),
-        )?;
-        if aged == 0 {
-            db.execute("alter table urls add column path text", [])?;
-        }
+        migrate::setup(&db)?;
         Ok(Self { db })
     }
 
@@ -114,6 +82,29 @@ impl Index {
         Ok(found)
     }
 
+    pub(super) fn stamp(&self, url: &str, checked: &Checked) -> Result<(), StoreError> {
+        let rows = self.db.execute(
+            "update urls set body_hash = ?2, etag = ?3, last_modified = ?4, checked_at = ?5
+             where url = ?1",
+            params![
+                url,
+                checked.body_hash,
+                checked.etag,
+                checked.last_modified,
+                checked.at
+            ],
+        )?;
+        hit(rows, url)
+    }
+
+    pub(super) fn checked(&self, url: &str, at: i64) -> Result<(), StoreError> {
+        let rows = self.db.execute(
+            "update urls set checked_at = ?2 where url = ?1",
+            params![url, at],
+        )?;
+        hit(rows, url)
+    }
+
     pub(super) fn touch(&self, hash: &str, at: i64) -> Result<(), StoreError> {
         self.db.execute(
             "update objects set used_at = ?2 where hash = ?1",
@@ -149,7 +140,7 @@ impl Index {
              )
              order by o.used_at asc, u.url asc",
         ))?;
-        let rows = query.query_map([], |row| Ok((row.get(7)?, found(row)?)))?;
+        let rows = query.query_map([], |row| Ok((row.get(9)?, found(row)?)))?;
         Ok(rows.collect::<Result<Vec<_>, _>>()?)
     }
 
@@ -176,6 +167,13 @@ impl Index {
     }
 }
 
+fn hit(rows: usize, url: &str) -> Result<(), StoreError> {
+    match rows {
+        0 => Err(StoreError::Absent(url.to_owned())),
+        _ => Ok(()),
+    }
+}
+
 fn found(row: &Row<'_>) -> rusqlite::Result<Found> {
     let outside: Option<String> = row.get(6)?;
     Ok(Found {
@@ -187,6 +185,8 @@ fn found(row: &Row<'_>) -> rusqlite::Result<Found> {
             fetched_at: row.get(3)?,
             etag: row.get(4)?,
             last_modified: row.get(5)?,
+            body_hash: row.get(7)?,
+            checked_at: row.get(8)?,
         },
         outside: outside.map(PathBuf::from),
     })

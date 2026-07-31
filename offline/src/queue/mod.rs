@@ -1,6 +1,8 @@
+mod checker;
 mod report;
 mod strategy;
 
+pub use checker::{Always, Checker, Look};
 pub use report::{Report, Skip};
 pub use strategy::{Step, Strategy, plan};
 
@@ -13,28 +15,16 @@ pub trait Saver {
 }
 
 pub fn unload(materials: &[Material], saver: &dyn Saver, stop: &AtomicBool) -> Report {
-    let mut report = Report::default();
-    for material in materials {
-        let how = match plan(material) {
-            Step::Skip(why) => {
-                report.skipped.push((material.url.clone(), why));
-                continue;
-            }
-            Step::Take(how) => how,
-        };
-        if stop.load(Ordering::Relaxed) {
-            report.cancelled = true;
-            return report;
-        }
-        match saver.save(material, how) {
-            Ok(bytes) => {
-                report.bytes += bytes;
-                report.saved.push(material.url.clone());
-            }
-            Err(reason) => report.failed.push((material.url.clone(), reason)),
-        }
-    }
-    report
+    walk(materials, &Always, saver, stop)
+}
+
+pub fn refresh(
+    materials: &[Material],
+    checker: &dyn Checker,
+    saver: &dyn Saver,
+    stop: &AtomicBool,
+) -> Report {
+    walk(materials, checker, saver, stop)
 }
 
 pub fn again(
@@ -50,6 +40,45 @@ pub fn again(
         .cloned()
         .collect();
     unload(&again, saver, stop)
+}
+
+fn walk(
+    materials: &[Material],
+    checker: &dyn Checker,
+    saver: &dyn Saver,
+    stop: &AtomicBool,
+) -> Report {
+    let mut report = Report::default();
+    for material in materials {
+        let how = match plan(material) {
+            Step::Skip(why) => {
+                report.skipped.push((material.url.clone(), why));
+                continue;
+            }
+            Step::Take(how) => how,
+        };
+        if stop.load(Ordering::Relaxed) {
+            report.cancelled = true;
+            return report;
+        }
+        match checker.look(material, how) {
+            Ok(Look::Fetch) => took(&mut report, material, saver.save(material, how)),
+            Ok(Look::Same) => report.skipped.push((material.url.clone(), Skip::Unchanged)),
+            Ok(Look::Unchecked) => report.skipped.push((material.url.clone(), Skip::Unchecked)),
+            Err(reason) => report.failed.push((material.url.clone(), reason)),
+        }
+    }
+    report
+}
+
+fn took(report: &mut Report, material: &Material, taken: Result<u64, String>) {
+    match taken {
+        Ok(bytes) => {
+            report.bytes += bytes;
+            report.saved.push(material.url.clone());
+        }
+        Err(reason) => report.failed.push((material.url.clone(), reason)),
+    }
 }
 
 fn closed(liveness: Liveness) -> Option<Skip> {

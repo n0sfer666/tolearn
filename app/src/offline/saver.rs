@@ -13,11 +13,11 @@ use tolearn_offline::video::{self, Tools, Wanted};
 use super::jobs::Job;
 use super::renderer;
 
-const TIMEOUT: u64 = 30;
+pub(super) const TIMEOUT: u64 = 30;
 const VIDEO: &str = "video.mp4";
 
 pub struct Bundled<'a> {
-    pub store: RefCell<Store>,
+    pub store: &'a RefCell<Store>,
     pub program: String,
     pub at: i64,
     pub limit: u64,

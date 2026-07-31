@@ -1,3 +1,6 @@
+mod digest;
+
+pub mod fresh;
 pub mod mirror;
 pub mod page;
 pub mod queue;

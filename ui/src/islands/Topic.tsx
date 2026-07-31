@@ -104,6 +104,7 @@ export default function Topic(props: Props) {
                 bundle={program()}
                 topic={id()}
                 materials={view().materials}
+                unload={view().unload}
                 call={props.call}
                 onSaved={refresh}
               />

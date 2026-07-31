@@ -47,6 +47,7 @@ const TOPIC = {
   outcomes: ["Поднимает модель"],
   misconceptions: [],
   materials: [MATERIAL],
+  unload: { state: "missing", checked_at: null },
   practice: {
     kind: "ops",
     tier: "P2",
@@ -75,7 +76,7 @@ const STATE = {
   failed: [],
 };
 
-function mountTopic(states, refuses = false) {
+function mountTopic(states, refuses = false, unload = TOPIC.unload) {
   const host = document.createElement("div");
   document.body.append(host);
   const calls = [];
@@ -88,7 +89,7 @@ function mountTopic(states, refuses = false) {
     }
     if (name === "topic") {
       const materials = [{ ...MATERIAL, offline: saved ? "saved" : "absent" }];
-      return Promise.resolve({ ...TOPIC, materials });
+      return Promise.resolve({ ...TOPIC, materials, unload });
     }
     if (name === "save_offline") return Promise.resolve({ job: "job-1", total: 1 });
     if (name === "offline_state") {
@@ -142,7 +143,11 @@ test("выгрузка запускается с шапки материалов
 
   assert.deepEqual(calls.find((made) => made.name === "save_offline"), {
     name: "save_offline",
-    payload: { bundle: "/programs/llm-agents-base", topic: "local-runtime", again: null },
+    payload: {
+      bundle: "/programs/llm-agents-base",
+      topic: "local-runtime",
+      again: null,
+    },
   });
   assert.match(materials(host).querySelector("[data-unload-progress]").textContent, /0\/1/);
 
@@ -150,6 +155,11 @@ test("выгрузка запускается с шапки материалов
 
   assert.equal(materials(host).querySelector("[data-unload-progress]"), null, "прогресс не убрался");
   assert.match(materials(host).querySelector("[data-unload-report]").textContent, /1/);
+  assert.deepEqual(
+    [...materials(host).querySelectorAll("[data-unload-saved] li")].map((row) => row.textContent),
+    [MATERIAL.title],
+    "отчёт не перечислил обновлённое поимённо",
+  );
   assert.equal(
     materials(host).querySelector("[data-offline-open]").getAttribute("href"),
     `/ru/read/?url=${encodeURIComponent(MATERIAL.url)}&program=${encodeURIComponent("/programs/llm-agents-base")}&topic=local-runtime`,
@@ -183,6 +193,57 @@ test("упавшая выгрузка предлагает повтор и шл�
     topic: "local-runtime",
     again: "job-1",
   });
+  dispose();
+});
+
+test("скачанное за окном зовёт обновить, а режим решает ядро", async () => {
+  const { host, calls, dispose } = mountTopic([STATE], false, {
+    state: "stale",
+    checked_at: null,
+  });
+  await settled();
+
+  const button = materials(host).querySelector("[data-save-offline]");
+  assert.equal(button.textContent, ru.offline.update);
+  assert.equal(button.disabled, false);
+
+  button.click();
+  await settled();
+
+  assert.deepEqual(calls.find((made) => made.name === "save_offline").payload, {
+    bundle: "/programs/llm-agents-base",
+    topic: "local-runtime",
+    again: null,
+  });
+  dispose();
+});
+
+test("непроверяемое скачанное зовёт обновить и кнопку не запирает", async () => {
+  const { host, calls, dispose } = mountTopic([STATE], false, {
+    state: "unchecked",
+    checked_at: null,
+  });
+  await settled();
+
+  const button = materials(host).querySelector("[data-save-offline]");
+  assert.equal(button.textContent, ru.offline.update);
+  assert.equal(button.disabled, false, "проверять нечего, а кнопка заперта");
+
+  button.click();
+  await settled();
+
+  assert.equal(calls.filter((made) => made.name === "save_offline").length, 1);
+  dispose();
+});
+
+test("свежее запирает кнопку и показывает момент проверки", async () => {
+  const at = Math.floor(new Date("2026-07-31T14:05:00").getTime() / 1000);
+  const { host, dispose } = mountTopic([STATE], false, { state: "fresh", checked_at: at });
+  await settled();
+
+  const button = materials(host).querySelector("[data-save-offline]");
+  assert.equal(button.disabled, true, "свежее осталось нажимаемым");
+  assert.equal(button.textContent, `${ru.offline.actual} 31-07 14:05`);
   dispose();
 });
 

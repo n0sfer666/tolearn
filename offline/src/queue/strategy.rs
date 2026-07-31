@@ -11,6 +11,12 @@ pub enum Strategy {
     Direct,
 }
 
+impl Strategy {
+    pub fn checkable(self) -> bool {
+        matches!(self, Self::Mirror | Self::Archive | Self::Direct)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Step {
     Take(Strategy),

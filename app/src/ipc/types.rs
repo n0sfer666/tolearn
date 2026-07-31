@@ -89,9 +89,14 @@ dto!(TopicOut {
     outcomes: Vec<String>,
     misconceptions: Vec<String>,
     materials: Vec<MaterialView>,
+    unload: UnloadView,
     practice: PracticeView,
     questions: Vec<QuestionView>,
     exam: ExamView,
+});
+dto!(UnloadView {
+    state: String,
+    checked_at: Option<i64>,
 });
 dto!(MaterialView {
     title: String,
@@ -570,6 +575,7 @@ pub fn shapes() -> Vec<Shape> {
         Link::shape(),
         TopicIn::shape(),
         TopicOut::shape(),
+        UnloadView::shape(),
         MaterialView::shape(),
         PracticeView::shape(),
         CheckView::shape(),

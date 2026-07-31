@@ -5,6 +5,7 @@ use std::io;
 pub enum StoreError {
     Unreadable(io::Error),
     Unwritable(io::Error),
+    Absent(String),
     Index(rusqlite::Error),
 }
 
@@ -13,6 +14,7 @@ impl fmt::Display for StoreError {
         match self {
             Self::Unreadable(error) => write!(out, "объект кэша не прочитан: {error}"),
             Self::Unwritable(error) => write!(out, "объект кэша не записан: {error}"),
+            Self::Absent(url) => write!(out, "адреса нет в индексе кэша: {url}"),
             Self::Index(error) => write!(out, "индекс кэша не отвечает: {error}"),
         }
     }

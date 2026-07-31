@@ -3,7 +3,7 @@ import { For, Show, createSignal } from "solid-js";
 import Unload from "./Unload";
 import type { Dictionary } from "../../i18n/ru";
 import type { Locale } from "../../i18n";
-import type { MaterialView } from "../../ipc";
+import type { MaterialView, UnloadView } from "../../ipc";
 import type { Transport } from "../../lib/ipc";
 
 interface Props {
@@ -12,6 +12,7 @@ interface Props {
   bundle: string;
   topic: string;
   materials: MaterialView[];
+  unload: UnloadView;
   call?: Transport;
   onSaved?: () => void;
 }
@@ -40,6 +41,8 @@ export default function Materials(props: Props) {
           text={props.text}
           bundle={props.bundle}
           topic={props.topic}
+          unload={props.unload}
+          materials={props.materials}
           call={props.call}
           onDone={props.onSaved}
         />

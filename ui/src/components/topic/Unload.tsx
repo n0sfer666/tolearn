@@ -1,8 +1,9 @@
-import { Show, createSignal, onCleanup } from "solid-js";
+import { For, Show, createSignal, onCleanup } from "solid-js";
 
 import type { Dictionary } from "../../i18n/ru";
-import type { OfflineStateOut } from "../../ipc";
+import type { MaterialView, OfflineStateOut, UnloadView } from "../../ipc";
 import { explain, toast } from "../../lib/toast";
+import { moment } from "../../lib/moment";
 import { quiet } from "../../lib/ipc";
 import type { Transport } from "../../lib/ipc";
 
@@ -10,6 +11,8 @@ interface Props {
   text: Dictionary;
   bundle: string;
   topic: string;
+  unload: UnloadView;
+  materials: MaterialView[];
   call?: Transport;
   onDone?: () => void;
 }
@@ -87,14 +90,32 @@ export default function Unload(props: Props) {
   };
   const running = () => job() !== "" && done() === null;
   const broken = () => (done()?.failed.length ?? 0) > 0;
+  const stamp = () => (props.unload.state === "fresh" ? props.unload.checked_at : null);
+  const locked = () => !broken() && stamp() !== null;
+  const kept = () => props.unload.state === "stale" || props.unload.state === "unchecked";
+  const named = (url: string) =>
+    props.materials.find((material) => material.url === url)?.title ?? url;
+
+  const label = () => {
+    if (broken()) return props.text.offline.again;
+    const at = stamp();
+    if (at !== null) return `${props.text.offline.actual} ${moment(at)}`;
+    return kept() ? props.text.offline.update : props.text.offline.save;
+  };
 
   return (
     <div data-unload>
       <Show
         when={running()}
         fallback={
-          <button type="button" data-save-offline onClick={start}>
-            {broken() ? props.text.offline.again : props.text.offline.save}
+          <button
+            type="button"
+            data-save-offline
+            data-unload-state={props.unload.state}
+            disabled={locked()}
+            onClick={start}
+          >
+            {label()}
           </button>
         }
       >
@@ -107,15 +128,22 @@ export default function Unload(props: Props) {
       </Show>
       <Show when={done()}>
         {(out) => (
-          <span data-unload-report>
-            <Show when={out().cancelled}>{props.text.offline.cancelled}, </Show>
-            {out().saved.length} {props.text.offline.saved}, {out().skipped.length}{" "}
-            {props.text.offline.skipped}, {out().failed.length} {props.text.offline.failed}
-            <Show when={out().bytes > 0}>
-              {", "}
-              {megabytes(out().bytes)} {props.text.offline.bytes}
+          <>
+            <span data-unload-report>
+              <Show when={out().cancelled}>{props.text.offline.cancelled}, </Show>
+              {out().saved.length} {props.text.offline.saved}, {out().skipped.length}{" "}
+              {props.text.offline.skipped}, {out().failed.length} {props.text.offline.failed}
+              <Show when={out().bytes > 0}>
+                {", "}
+                {megabytes(out().bytes)} {props.text.offline.bytes}
+              </Show>
+            </span>
+            <Show when={out().saved.length > 0}>
+              <ul data-unload-saved>
+                <For each={out().saved}>{(url) => <li>{named(url)}</li>}</For>
+              </ul>
             </Show>
-          </span>
+          </>
         )}
       </Show>
     </div>

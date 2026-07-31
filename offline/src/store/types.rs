@@ -24,4 +24,14 @@ pub struct Held {
     pub fetched_at: i64,
     pub etag: Option<String>,
     pub last_modified: Option<String>,
+    pub body_hash: Option<String>,
+    pub checked_at: Option<i64>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Checked {
+    pub body_hash: Option<String>,
+    pub etag: Option<String>,
+    pub last_modified: Option<String>,
+    pub at: i64,
 }
