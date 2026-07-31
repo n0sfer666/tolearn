@@ -668,6 +668,7 @@ export type Block = {
   kind: string;
   level: number;
   text: string;
+  src: string;
 };
 
 export type Commands = {

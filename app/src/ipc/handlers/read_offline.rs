@@ -1,7 +1,6 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
-use tolearn_core::read;
-use tolearn_offline::reader;
+use tolearn_offline::reader::{self, Kind, Piece};
 use tolearn_offline::store::Held;
 
 use crate::ipc::context::Context;
@@ -30,26 +29,41 @@ pub fn run(context: &Context, input: &ReadOfflineIn) -> Result<ReadOfflineOut, I
 
     let archive = open::text(&file)?;
     let reading = reader::read(&archive, &input.url);
+    let beside = file.parent().unwrap_or(&held.path).to_path_buf();
+    let blocks = if reading.extracted {
+        laid(&reading.html, &beside)
+    } else {
+        Vec::new()
+    };
     Ok(ReadOfflineOut {
         kind: held.kind,
         title: reading.title.unwrap_or_default(),
+        blocks,
         html: reading.html,
-        blocks: laid(&reading.text),
         text: reading.text,
         path,
         extracted: reading.extracted,
     })
 }
 
-fn laid(text: &str) -> Vec<Block> {
-    read::blocks(text)
+fn laid(html: &str, beside: &Path) -> Vec<Block> {
+    reader::pieces(html)
         .into_iter()
-        .map(|block| Block {
-            kind: block.kind.label().to_owned(),
-            level: block.level,
-            text: block.text,
-        })
+        .filter_map(|piece| shown(piece, beside))
         .collect()
+}
+
+fn shown(piece: Piece, beside: &Path) -> Option<Block> {
+    let src = match piece.kind {
+        Kind::Image => Some(reader::inlined(&piece.src, beside)?),
+        _ => None,
+    };
+    Some(Block {
+        kind: piece.kind.label().to_owned(),
+        level: piece.level,
+        text: piece.text,
+        src: src.unwrap_or_default(),
+    })
 }
 
 fn entry(held: &Held) -> Option<PathBuf> {

@@ -1,3 +1,9 @@
+mod local;
+mod pieces;
+
+pub use local::inlined;
+pub use pieces::{Kind, Piece, pieces};
+
 use dom_smoothie::{Article, Config, Readability, TextMode};
 
 const ENOUGH: usize = 500;

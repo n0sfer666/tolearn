@@ -224,7 +224,7 @@ function mountRead(answer) {
   return host;
 }
 
-const BLOCK = (kind, text, level = 0) => ({ kind, level, text });
+const BLOCK = (kind, text, level = 0, src = "") => ({ kind, level, text, src });
 
 test("читалка показывает сохранённый текст абзацами", async () => {
   const host = mountRead({
@@ -274,6 +274,26 @@ test("страница читается разметкой, а не одной �
   assert.equal(reading.querySelectorAll("ul").length, 1, "список рассыпался");
   assert.match(reading.querySelector("blockquote").textContent, /на своей машине/);
   assert.equal(reading.querySelector("[data-code] code").textContent, "llama-server -c 0");
+});
+
+test("картинка сохранённой страницы показывается на месте", async () => {
+  const host = mountRead({
+    kind: "mirror",
+    title: "Квантование",
+    html: "",
+    text: "",
+    blocks: [
+      BLOCK("paragraph", "до картинки"),
+      BLOCK("image", "Схема памяти", 0, "data:image/png;base64,UE5H"),
+    ],
+    path: "/store/artifacts/ab/abc",
+    extracted: true,
+  });
+  await settled();
+
+  const shot = host.querySelector("[data-reading] img");
+  assert.equal(shot.getAttribute("src"), "data:image/png;base64,UE5H");
+  assert.equal(shot.getAttribute("alt"), "Схема памяти");
 });
 
 test("несохранённый материал не притворяется открытым", async () => {

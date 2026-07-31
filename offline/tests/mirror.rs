@@ -7,7 +7,7 @@
 
 use std::collections::HashMap;
 
-use tolearn_offline::mirror::{Limits, Mirror, Skip, mirror};
+use tolearn_offline::mirror::{Limits, Mirror, Skip, Weight, mirror};
 use tolearn_offline::page::{PageError, Source};
 
 struct Site {
@@ -50,6 +50,7 @@ fn wide() -> Limits {
     Limits {
         depth: 5,
         pages: 50,
+        ..Limits::default()
     }
 }
 
@@ -73,6 +74,30 @@ fn llms_txt_предпочитается_обходу() {
     assert!(
         !saved(&result).contains(&"https://docs.test/tour"),
         "обход пошёл мимо llms.txt"
+    );
+}
+
+#[test]
+fn запрошенная_страница_сохраняется_мимо_llms_txt() {
+    let site = Site::new(&[
+        (
+            "https://docs.test/llms.txt",
+            "# Документация\n- [Основы](https://docs.test/basics.md)\n",
+        ),
+        ("https://docs.test/context", &page(&[], "Длина контекста")),
+        ("https://docs.test/basics.md", "# Основы\n"),
+    ]);
+
+    let result = mirror("https://docs.test/context", &site, &wide()).unwrap();
+
+    assert!(
+        saved(&result).contains(&"https://docs.test/context"),
+        "запрошенной страницы нет в зеркале: {:?}",
+        saved(&result)
+    );
+    assert_eq!(
+        result.pages[0].url, "https://docs.test/context",
+        "запрошенная страница не первая — открывать будут не её"
     );
 }
 
@@ -159,6 +184,7 @@ fn глубина_ограничена() {
         &Limits {
             depth: 1,
             pages: 50,
+            ..Limits::default()
         },
     )
     .unwrap();
@@ -185,7 +211,16 @@ fn потолок_числа_страниц_соблюдается() {
         ("https://docs.test/three", &page(&[], "Третья")),
     ]);
 
-    let result = mirror("https://docs.test/", &site, &Limits { depth: 5, pages: 2 }).unwrap();
+    let result = mirror(
+        "https://docs.test/",
+        &site,
+        &Limits {
+            depth: 5,
+            pages: 2,
+            ..Limits::default()
+        },
+    )
+    .unwrap();
 
     assert_eq!(saved(&result).len(), 2);
     assert!(result.skipped.iter().any(|(_, why)| *why == Skip::Cap));
@@ -258,4 +293,122 @@ fn цикл_ссылок_не_зацикливает() {
     let result = mirror("https://docs.test/", &site, &wide()).unwrap();
 
     assert_eq!(saved(&result).len(), 2, "страница сохранена дважды");
+}
+
+#[test]
+fn markdown_из_llms_txt_сохраняется_разметкой() {
+    let site = Site::new(&[
+        (
+            "https://docs.test/llms.txt",
+            "# Индекс\n- [Контекст](https://docs.test/context.md)\n",
+        ),
+        ("https://docs.test/", &page(&[], "Заглавная")),
+        (
+            "https://docs.test/context.md",
+            "# Длина контекста\n\nДефолт `4096` токенов.\n\n```yaml\nnum_ctx: 4096\n```\n",
+        ),
+    ]);
+
+    let result = mirror("https://docs.test/", &site, &wide()).unwrap();
+
+    let saved = &result
+        .pages
+        .iter()
+        .find(|page| page.url == "https://docs.test/context.md")
+        .unwrap()
+        .html;
+    assert!(
+        saved.contains("<h1>Длина контекста</h1>"),
+        "заголовок остался сырым markdown: {saved}"
+    );
+    assert!(saved.contains("<pre><code"), "фенса кода осталась текстом");
+    assert!(
+        !saved.contains("# Длина контекста"),
+        "решётка утекла в текст"
+    );
+}
+
+#[test]
+fn готовый_html_разметкой_не_переписывается() {
+    let site = Site::new(&[("https://docs.test/", &page(&[], "Заглавная"))]);
+
+    let result = mirror("https://docs.test/", &site, &wide()).unwrap();
+
+    assert!(result.pages[0].html.contains("<h1>Заглавная</h1>"));
+}
+
+#[test]
+fn картинки_страницы_скачиваются_и_подменяются_локальными() {
+    let site = Site::new(&[
+        (
+            "https://docs.test/",
+            "<html><body><img src=\"/img/scheme.png\"><video poster=\"/img/cover.jpg\" src=\"/v/clip.mp4\"></video></body></html>",
+        ),
+        ("https://docs.test/img/scheme.png", "PNGBYTES"),
+        ("https://docs.test/img/cover.jpg", "JPGBYTES"),
+        ("https://docs.test/v/clip.mp4", "MP4BYTES"),
+    ]);
+
+    let result = mirror("https://docs.test/", &site, &wide()).unwrap();
+
+    let names: Vec<&str> = result
+        .assets
+        .iter()
+        .map(|asset| asset.name.as_str())
+        .collect();
+    assert_eq!(result.assets.len(), 3, "скачано не всё: {names:?}");
+    assert!(names.contains(&"img-scheme.png"), "нет картинки: {names:?}");
+    assert!(names.contains(&"v-clip.mp4"), "нет видео: {names:?}");
+
+    let html = &result.pages[0].html;
+    assert!(
+        !html.contains("https://docs.test/img/scheme.png"),
+        "ссылка осталась внешней"
+    );
+    assert!(
+        html.contains("img-scheme.png"),
+        "картинка не подменена: {html}"
+    );
+    assert!(html.contains("v-clip.mp4"), "видео не подменено: {html}");
+}
+
+#[test]
+fn тяжёлое_вложение_не_тянется() {
+    let site = Site::new(&[
+        (
+            "https://docs.test/",
+            "<html><body><img src=\"/big.png\"></body></html>",
+        ),
+        ("https://docs.test/big.png", "0123456789"),
+    ]);
+
+    let limits = Limits {
+        depth: 5,
+        pages: 50,
+        weight: Weight { each: 4, total: 99 },
+    };
+
+    let result = mirror("https://docs.test/", &site, &limits).unwrap();
+
+    assert!(
+        result.assets.is_empty(),
+        "тяжёлая картинка всё равно скачана"
+    );
+    assert!(
+        result.pages[0].html.contains("/big.png"),
+        "ссылка на несохранённое вложение потеряна"
+    );
+}
+
+#[test]
+fn недоступное_вложение_не_валит_зеркало() {
+    let site = Site::new(&[(
+        "https://docs.test/",
+        "<html><body><img src=\"/gone.png\"></body></html>",
+    )]);
+
+    let result = mirror("https://docs.test/", &site, &wide()).unwrap();
+
+    assert_eq!(saved(&result).len(), 1);
+    assert!(result.assets.is_empty());
 }

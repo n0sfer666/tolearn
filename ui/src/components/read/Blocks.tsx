@@ -35,6 +35,9 @@ function One(props: OneProps) {
       <Match when={props.block.kind === "quote"}>
         <blockquote>{props.block.text}</blockquote>
       </Match>
+      <Match when={props.block.kind === "image"}>
+        <img data-shot src={props.block.src} alt={props.block.text} loading="lazy" />
+      </Match>
       <Match when={props.block.kind === "code"}>
         <pre data-code>
           <code>{props.block.text}</code>

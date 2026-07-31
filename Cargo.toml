@@ -25,7 +25,9 @@ rusqlite = { version = "0.37", features = ["bundled"] }
 sha2 = "0.10"
 monolith = { version = "2.10", default-features = false, features = ["vendored-openssl"] }
 url = "2"
+base64 = "0.22"
 markup5ever_rcdom = "=0.4.0-unofficial"
+pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
 gix = { version = "0.86.0", default-features = false, features = ["blocking-network-client", "max-performance-safe", "worktree-mutation", "sha1"] }
 zip = { version = "8.6", default-features = false, features = ["deflate"] }
 tar = { version = "0.4", default-features = false }

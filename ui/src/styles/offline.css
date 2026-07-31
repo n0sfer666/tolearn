@@ -40,6 +40,14 @@ article[data-reading] > blockquote {
   color: var(--color-fg-muted);
 }
 
+article[data-reading] > [data-shot] {
+  display: block;
+  max-inline-size: min(100%, var(--measure));
+  block-size: auto;
+  margin-block: var(--spacing-4);
+  border-radius: var(--radius-sm);
+}
+
 article[data-reading] > [data-source] {
   display: inline-block;
   margin-block-start: var(--spacing-6);

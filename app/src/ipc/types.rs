@@ -549,6 +549,7 @@ dto!(Block {
     kind: String,
     level: u32,
     text: String,
+    src: String,
 });
 
 pub fn shapes() -> Vec<Shape> {

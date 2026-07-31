@@ -1,6 +1,9 @@
+mod assets;
 mod links;
+mod markup;
 mod robots;
 
+pub use assets::{Asset, Weight};
 pub use robots::Robots;
 
 use std::collections::{HashMap, HashSet, VecDeque};
@@ -9,10 +12,14 @@ use url::Url;
 
 use crate::page::{PageError, Source};
 
+const EACH: u64 = 16 * 1024 * 1024;
+const TOTAL: u64 = 128 * 1024 * 1024;
+
 #[derive(Debug, Clone)]
 pub struct Limits {
     pub depth: usize,
     pub pages: usize,
+    pub weight: assets::Weight,
 }
 
 impl Default for Limits {
@@ -20,6 +27,10 @@ impl Default for Limits {
         Self {
             depth: 2,
             pages: 50,
+            weight: assets::Weight {
+                each: EACH,
+                total: TOTAL,
+            },
         }
     }
 }
@@ -43,6 +54,7 @@ pub struct Mirrored {
 #[derive(Debug, Clone)]
 pub struct Mirror {
     pub pages: Vec<Mirrored>,
+    pub assets: Vec<Asset>,
     pub skipped: Vec<(String, Skip)>,
 }
 
@@ -54,7 +66,8 @@ pub fn mirror(root: &str, source: &dyn Source, limits: &Limits) -> Result<Mirror
         .unwrap_or_default();
     let listed = listed(source, &start);
     let walking = listed.is_none();
-    let seeds = listed.unwrap_or_else(|| vec![start.clone()]);
+    let mut seeds = listed.unwrap_or_default();
+    seeds.insert(0, start.clone());
 
     let mut skipped = Vec::new();
     let mut seen: HashSet<String> = HashSet::new();
@@ -87,7 +100,8 @@ pub fn mirror(root: &str, source: &dyn Source, limits: &Limits) -> Result<Mirror
             skipped.push((url.to_string(), Skip::Unreachable));
             continue;
         };
-        let html = String::from_utf8_lossy(&bytes).to_string();
+        let raw_text = String::from_utf8_lossy(&bytes).to_string();
+        let html = markup::as_html(&raw_text, &titled(&url)).unwrap_or(raw_text);
         if walking {
             for target in links::hrefs(&html, &url) {
                 if depth < limits.depth {
@@ -104,16 +118,49 @@ pub fn mirror(root: &str, source: &dyn Source, limits: &Limits) -> Result<Mirror
         .iter()
         .map(|(url, _)| (url.as_str().to_string(), links::local_name(url)))
         .collect();
+    let (assets, local) = carried(source, &raw, &limits.weight);
     let pages = raw
         .iter()
         .map(|(url, html)| Mirrored {
             url: url.to_string(),
             name: links::local_name(url),
-            html: links::localize(html, url, &names),
+            html: assets::relink(&links::localize(html, url, &names), url, &local),
         })
         .collect();
 
-    Ok(Mirror { pages, skipped })
+    Ok(Mirror {
+        pages,
+        assets,
+        skipped,
+    })
+}
+
+fn carried(
+    source: &dyn Source,
+    raw: &[(Url, String)],
+    weight: &Weight,
+) -> (Vec<Asset>, HashMap<String, String>) {
+    let mut seen = HashSet::new();
+    let wanted: Vec<Url> = raw
+        .iter()
+        .flat_map(|(url, html)| assets::wanted(html, url))
+        .filter(|url| seen.insert(url.as_str().to_string()))
+        .collect();
+    let taken = assets::fetch(source, &wanted, weight);
+    let local = taken
+        .iter()
+        .map(|(url, asset)| (url.clone(), asset.name.clone()))
+        .collect();
+    let assets = taken.into_iter().map(|(_, asset)| asset).collect();
+    (assets, local)
+}
+
+fn titled(url: &Url) -> String {
+    url.path_segments()
+        .and_then(|mut parts| parts.next_back())
+        .filter(|last| !last.is_empty())
+        .unwrap_or_else(|| url.as_str())
+        .to_string()
 }
 
 fn listed(source: &dyn Source, start: &Url) -> Option<Vec<Url>> {
