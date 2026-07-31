@@ -61,8 +61,9 @@ mod tests {
 
     use super::inlined;
 
-    fn corner() -> std::path::PathBuf {
-        let corner = std::env::temp_dir().join("tolearn-inline");
+    fn corner(name: &str) -> std::path::PathBuf {
+        let corner =
+            std::env::temp_dir().join(format!("tolearn-inline-{name}-{}", std::process::id()));
         std::fs::create_dir_all(&corner).unwrap();
         std::fs::write(corner.join("scheme.png"), b"PNGBYTES").unwrap();
         corner
@@ -70,7 +71,7 @@ mod tests {
 
     #[test]
     fn соседний_файл_становится_data_uri() {
-        let uri = inlined("scheme.png", &corner()).unwrap();
+        let uri = inlined("scheme.png", &corner("соседний")).unwrap();
 
         assert!(uri.starts_with("data:image/png;base64,"), "{uri}");
         assert!(uri.ends_with("UE5HQllURVM="), "{uri}");
@@ -85,19 +86,23 @@ mod tests {
 
     #[test]
     fn читается_только_соседний_файл() {
-        assert!(inlined("../../etc/passwd", &corner()).is_none());
-        assert!(inlined("/etc/hosts", &corner()).is_none());
+        assert!(inlined("../../etc/passwd", &corner("только-соседний")).is_none());
+        assert!(inlined("/etc/hosts", &corner("только-соседний")).is_none());
     }
 
     #[test]
     fn у_абсолютной_ссылки_берётся_имя_файла() {
-        let uri = inlined("https://docs.test/img/scheme.png?v=2", &corner()).unwrap();
+        let uri = inlined(
+            "https://docs.test/img/scheme.png?v=2",
+            &corner("абсолютная"),
+        )
+        .unwrap();
 
         assert!(uri.starts_with("data:image/png;base64,"), "{uri}");
     }
 
     #[test]
     fn отсутствующий_файл_молчит() {
-        assert!(inlined("gone.png", &corner()).is_none());
+        assert!(inlined("gone.png", &corner("пропавший")).is_none());
     }
 }
