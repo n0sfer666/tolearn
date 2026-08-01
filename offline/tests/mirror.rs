@@ -412,3 +412,89 @@ fn недоступное_вложение_не_валит_зеркало() {
     assert_eq!(saved(&result).len(), 1);
     assert!(result.assets.is_empty());
 }
+
+const NAME_MAX: usize = 255;
+
+fn deep(tail: &str) -> String {
+    format!("https://docs.test/{}/{tail}", "a".repeat(64))
+}
+
+#[test]
+fn длинный_адрес_вложения_режется_до_имени_файла() {
+    let shot = deep(&"b".repeat(200));
+    let site = Site::new(&[
+        (
+            "https://docs.test/",
+            &format!("<html><body><img src=\"{shot}\"></body></html>"),
+        ),
+        (&shot, "PNGBYTES"),
+    ]);
+
+    let result = mirror("https://docs.test/", &site, &wide()).unwrap();
+
+    let name = &result.assets[0].name;
+    assert!(
+        name.len() <= NAME_MAX,
+        "имя вложения не влезет на диск: {} байт",
+        name.len()
+    );
+    assert!(
+        result.pages[0].html.contains(name.as_str()),
+        "картинка не подменена: {name}"
+    );
+}
+
+#[test]
+fn длинные_адреса_с_общим_началом_не_сливаются_в_одно_имя() {
+    let one = deep(&format!("{}-one.png", "b".repeat(200)));
+    let two = deep(&format!("{}-two.png", "b".repeat(200)));
+    let site = Site::new(&[
+        (
+            "https://docs.test/",
+            &format!("<html><body><img src=\"{one}\"><img src=\"{two}\"></body></html>"),
+        ),
+        (&one, "PNGONE"),
+        (&two, "PNGTWO"),
+    ]);
+
+    let result = mirror("https://docs.test/", &site, &wide()).unwrap();
+
+    let names: Vec<&str> = result
+        .assets
+        .iter()
+        .map(|asset| asset.name.as_str())
+        .collect();
+    assert_eq!(names.len(), 2, "скачано не всё: {names:?}");
+    assert_ne!(names[0], names[1], "разные картинки легли в один файл");
+    assert!(
+        names.iter().all(|name| name.ends_with(".png")),
+        "расширение потеряно: {names:?}"
+    );
+}
+
+#[test]
+fn длинный_адрес_страницы_режется_до_имени_файла() {
+    let far = deep(&"c".repeat(200));
+    let site = Site::new(&[
+        ("https://docs.test/", &page(&[far.as_str()], "Заглавная")),
+        (&far, &page(&[], "Глубокая")),
+    ]);
+
+    let result = mirror("https://docs.test/", &site, &wide()).unwrap();
+
+    let page = result
+        .pages
+        .iter()
+        .find(|page| page.url == far)
+        .expect("глубокая страница не сохранена");
+    assert!(
+        page.name.len() <= NAME_MAX,
+        "имя страницы не влезет на диск: {} байт",
+        page.name.len()
+    );
+    assert!(
+        result.pages[0].html.contains(page.name.as_str()),
+        "ссылка не локализована: {}",
+        page.name
+    );
+}

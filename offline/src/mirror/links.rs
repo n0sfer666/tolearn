@@ -7,6 +7,8 @@ use monolith::html::{
 };
 use url::Url;
 
+use super::naming;
+
 pub(super) fn hrefs(html: &str, base: &Url) -> Vec<Url> {
     let dom = html_to_dom(&html.as_bytes().to_vec(), "utf-8".to_string());
     let mut found = Vec::new();
@@ -50,17 +52,10 @@ pub(super) fn local_name(url: &Url) -> String {
     if path.is_empty() {
         return "index.html".to_string();
     }
-    let slug: String = path
-        .chars()
-        .map(|letter| {
-            if letter.is_alphanumeric() {
-                letter
-            } else {
-                '-'
-            }
-        })
-        .collect();
-    format!("{}.html", slug.trim_matches('-'))
+    format!(
+        "{}.html",
+        naming::fitted(&naming::slugged(path, "page"), url)
+    )
 }
 
 fn resolve(base: &Url, href: &str) -> Option<Url> {

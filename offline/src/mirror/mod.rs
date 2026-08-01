@@ -1,6 +1,7 @@
 mod assets;
 mod links;
 mod markup;
+mod naming;
 mod robots;
 
 pub use assets::{Asset, Weight};

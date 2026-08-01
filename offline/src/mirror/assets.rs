@@ -7,6 +7,7 @@ use monolith::html::{
 };
 use url::Url;
 
+use super::naming;
 use crate::page::Source;
 
 const CARRYING: [(&str, &str); 6] = [
@@ -128,29 +129,11 @@ fn name(url: &Url) -> String {
         Some((stem, kind)) if kind.chars().all(char::is_alphanumeric) => (stem, Some(kind)),
         _ => (path, None),
     };
-    let slug = slugged(&format!("{stem}-{}", url.query().unwrap_or_default()));
+    let raw = format!("{stem}-{}", url.query().unwrap_or_default());
+    let slug = naming::fitted(&naming::slugged(&raw, "asset"), url);
     match kind {
         Some(kind) => format!("{slug}.{kind}"),
         None => slug,
-    }
-}
-
-fn slugged(text: &str) -> String {
-    let slug: String = text
-        .chars()
-        .map(|letter| {
-            if letter.is_alphanumeric() {
-                letter
-            } else {
-                '-'
-            }
-        })
-        .collect();
-    let slug = slug.trim_matches('-').to_string();
-    if slug.is_empty() {
-        "asset".to_string()
-    } else {
-        slug
     }
 }
 

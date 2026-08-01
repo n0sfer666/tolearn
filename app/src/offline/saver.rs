@@ -59,7 +59,7 @@ impl Bundled<'_> {
             std::fs::write(corner.join(&page.name), &page.html).map_err(say)?;
         }
         for asset in &mirrored.assets {
-            std::fs::write(corner.join(&asset.name), &asset.bytes).map_err(say)?;
+            let _ = std::fs::write(corner.join(&asset.name), &asset.bytes);
         }
         let entry = mirrored
             .pages
