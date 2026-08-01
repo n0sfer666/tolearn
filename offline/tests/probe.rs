@@ -10,6 +10,7 @@ use std::net::TcpListener;
 use std::sync::{Arc, Mutex, PoisonError};
 
 use tolearn_offline::fresh::{Answer, Conditional, Probe};
+use tolearn_offline::page::{Source, Web};
 
 struct Server {
     address: String,
@@ -133,6 +134,24 @@ fn тело_больше_потолка_хэшем_не_прикидываетс
             last_modified: None,
         },
         "обрезок ушёл в хэш и притворился телом"
+    );
+}
+
+#[test]
+fn скачивание_и_проверка_ходят_одинаковым_запросом() {
+    let page = sent("200 OK", "", "<html><body>тело</body></html>");
+    let server = serving(vec![page.clone(), page]);
+    let web = Web::new(5).unwrap();
+    let probe = Conditional::with(web.client());
+
+    web.fetch(&server.address).unwrap();
+    probe.ask(&server.address, None, None).unwrap();
+
+    let heard = server.heard();
+    assert_eq!(
+        heard.first(),
+        heard.last(),
+        "хэш при сохранении и при проверке снимается с разных ответов"
     );
 }
 

@@ -17,6 +17,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use tolearn_core::topic::Material;
 use tolearn_offline::fresh::Conditional;
+use tolearn_offline::page::Web;
 use tolearn_offline::queue::{refresh, unload};
 use tolearn_offline::store::{Held, Store};
 use tolearn_offline::video;
@@ -69,13 +70,15 @@ fn run(root: &Path, budget: u64, program: &str, materials: &[Material], mode: Mo
     };
     let store = RefCell::new(opened);
     let at = now();
-    let probe = match Conditional::new(saver::TIMEOUT) {
-        Ok(probe) => probe,
+    let web = match Web::new(saver::TIMEOUT) {
+        Ok(web) => web,
         Err(error) => return job.broke(&error),
     };
+    let probe = Conditional::with(web.client());
     let watched = Watched::new(&store, &probe, at, job);
     let saver = Bundled {
         store: &store,
+        web: &web,
         program: program.to_owned(),
         at,
         limit: budget,

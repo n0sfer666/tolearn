@@ -1,9 +1,10 @@
 use std::io::Read;
-use std::time::Duration;
 
+use reqwest::StatusCode;
 use reqwest::blocking::{Client, Response};
 use reqwest::header::{ETAG, HeaderName, IF_MODIFIED_SINCE, IF_NONE_MATCH, LAST_MODIFIED};
-use reqwest::{StatusCode, header};
+
+use crate::net;
 
 use super::{Answer, Probe};
 
@@ -16,11 +17,11 @@ pub struct Conditional {
 
 impl Conditional {
     pub fn new(timeout: u64) -> Result<Self, String> {
-        let client = Client::builder()
-            .timeout(Duration::from_secs(timeout))
-            .build()
-            .map_err(|error| error.to_string())?;
-        Ok(Self { client })
+        Ok(Self::with(net::client(timeout)?))
+    }
+
+    pub fn with(client: Client) -> Self {
+        Self { client }
     }
 }
 
@@ -31,10 +32,7 @@ impl Probe for Conditional {
         etag: Option<&str>,
         last_modified: Option<&str>,
     ) -> Result<Answer, String> {
-        let mut request = self
-            .client
-            .get(url)
-            .header(header::ACCEPT, "text/html, */*");
+        let mut request = self.client.get(url);
         if let Some(etag) = etag {
             request = request.header(IF_NONE_MATCH, etag);
         }

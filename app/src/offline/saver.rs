@@ -20,6 +20,7 @@ const VIDEO: &str = "video.mp4";
 
 pub struct Bundled<'a> {
     pub store: &'a RefCell<Store>,
+    pub web: &'a Web,
     pub program: String,
     pub at: i64,
     pub limit: u64,
@@ -44,8 +45,7 @@ impl Saver for Bundled<'_> {
 
 impl Bundled<'_> {
     fn archive(&self, url: &str) -> Result<u64, String> {
-        let source = web();
-        let noted = Noted::new(&source, url);
+        let noted = Noted::new(self.web, url);
         let page =
             page::save(url, &noted, renderer::current(), &Fetching::default()).map_err(say)?;
         let size = self.put(url, "archive", &page.html)?;
@@ -54,15 +54,14 @@ impl Bundled<'_> {
     }
 
     fn direct(&self, url: &str) -> Result<u64, String> {
-        let bytes = web().fetch(url).map_err(say)?;
+        let bytes = self.web.fetch(url).map_err(say)?;
         let size = self.put(url, "file", &bytes)?;
         self.mark(url, &bytes);
         Ok(size)
     }
 
     fn mirror(&self, url: &str) -> Result<u64, String> {
-        let source = web();
-        let noted = Noted::new(&source, url);
+        let noted = Noted::new(self.web, url);
         let mirrored = mirror::mirror(url, &noted, &Limits::default()).map_err(say)?;
         let corner = self.corner(url)?;
         for page in &mirrored.pages {
@@ -152,10 +151,6 @@ impl Bundled<'_> {
         };
         let _ = self.store.borrow_mut().stamp(url, &checked);
     }
-}
-
-fn web() -> Web {
-    Web { timeout: TIMEOUT }
 }
 
 fn say(error: impl Display) -> String {

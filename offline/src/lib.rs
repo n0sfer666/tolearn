@@ -1,4 +1,5 @@
 mod digest;
+mod net;
 
 pub mod fresh;
 pub mod mirror;
