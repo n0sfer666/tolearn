@@ -183,6 +183,11 @@ test("упавшая выгрузка предлагает повтор и шл�
 
   const again = materials(host).querySelector("[data-save-offline]");
   assert.equal(again.textContent, ru.offline.again);
+  assert.deepEqual(
+    [...materials(host).querySelectorAll("[data-unload-failed] li")].map((row) => row.textContent),
+    [`${MATERIAL.title} — сеть не ответила`],
+    "отчёт не назвал причину падения",
+  );
 
   again.click();
   await settled();

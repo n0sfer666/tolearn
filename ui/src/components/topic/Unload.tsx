@@ -143,6 +143,17 @@ export default function Unload(props: Props) {
                 <For each={out().saved}>{(url) => <li>{named(url)}</li>}</For>
               </ul>
             </Show>
+            <Show when={out().failed.length > 0}>
+              <ul data-unload-failed>
+                <For each={out().failed}>
+                  {(left) => (
+                    <li>
+                      {named(left.url)} — {left.why}
+                    </li>
+                  )}
+                </For>
+              </ul>
+            </Show>
           </>
         )}
       </Show>
