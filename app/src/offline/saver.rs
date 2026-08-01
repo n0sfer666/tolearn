@@ -3,14 +3,16 @@ use std::fmt::Display;
 use std::path::PathBuf;
 
 use tolearn_core::topic::Material;
+use tolearn_offline::fresh::body_hash;
 use tolearn_offline::mirror::{self, Limits};
 use tolearn_offline::page::{self, Fetching, Source, Web};
 use tolearn_offline::queue::{Saver, Strategy};
 use tolearn_offline::repo;
-use tolearn_offline::store::{Fetched, Store};
+use tolearn_offline::store::{Checked, Fetched, Store};
 use tolearn_offline::video::{self, Tools, Wanted};
 
 use super::jobs::Job;
+use super::noted::Noted;
 use super::renderer;
 
 pub(super) const TIMEOUT: u64 = 30;
@@ -42,18 +44,26 @@ impl Saver for Bundled<'_> {
 
 impl Bundled<'_> {
     fn archive(&self, url: &str) -> Result<u64, String> {
+        let source = web();
+        let noted = Noted::new(&source, url);
         let page =
-            page::save(url, &web(), renderer::current(), &Fetching::default()).map_err(say)?;
-        self.put(url, "archive", &page.html)
+            page::save(url, &noted, renderer::current(), &Fetching::default()).map_err(say)?;
+        let size = self.put(url, "archive", &page.html)?;
+        self.noticed(url, &noted);
+        Ok(size)
     }
 
     fn direct(&self, url: &str) -> Result<u64, String> {
         let bytes = web().fetch(url).map_err(say)?;
-        self.put(url, "file", &bytes)
+        let size = self.put(url, "file", &bytes)?;
+        self.mark(url, &bytes);
+        Ok(size)
     }
 
     fn mirror(&self, url: &str) -> Result<u64, String> {
-        let mirrored = mirror::mirror(url, &web(), &Limits::default()).map_err(say)?;
+        let source = web();
+        let noted = Noted::new(&source, url);
+        let mirrored = mirror::mirror(url, &noted, &Limits::default()).map_err(say)?;
         let corner = self.corner(url)?;
         for page in &mirrored.pages {
             std::fs::write(corner.join(&page.name), &page.html).map_err(say)?;
@@ -68,7 +78,9 @@ impl Bundled<'_> {
             .or_else(|| mirrored.pages.first())
             .ok_or_else(|| "зеркало вышло пустым".to_owned())?;
         std::fs::write(corner.join("index.html"), &entry.html).map_err(say)?;
-        self.keep(url, "mirror")
+        let size = self.keep(url, "mirror")?;
+        self.noticed(url, &noted);
+        Ok(size)
     }
 
     fn cloned(&self, url: &str) -> Result<u64, String> {
@@ -123,6 +135,22 @@ impl Bundled<'_> {
             .keep(url, &self.program, kind, self.at)
             .map_err(say)?;
         Ok(kept.size)
+    }
+
+    fn noticed(&self, url: &str, noted: &Noted<'_>) {
+        if let Some(bytes) = noted.taken() {
+            self.mark(url, &bytes);
+        }
+    }
+
+    fn mark(&self, url: &str, bytes: &[u8]) {
+        let checked = Checked {
+            body_hash: Some(body_hash(bytes)),
+            etag: None,
+            last_modified: None,
+            at: self.at,
+        };
+        let _ = self.store.borrow_mut().stamp(url, &checked);
     }
 }
 
