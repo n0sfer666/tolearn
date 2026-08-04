@@ -42,12 +42,12 @@ fn case(name: &str) -> Case {
 }
 
 fn settings(endpoint: &str, active: &str, enabled: bool) -> Value {
-    let http = json!({ "endpoint": endpoint, "model": "llama3:8b" });
+    let http = |api| json!({ "endpoint": endpoint, "api": api, "model": "llama3:8b" });
     json!({
         "enabled": enabled,
         "active": active,
-        "local": http,
-        "remote": http,
+        "local": http("ollama"),
+        "remote": http("openai"),
         "harness": {
             "id": "claude",
             "command": "claude",

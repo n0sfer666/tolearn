@@ -21,8 +21,8 @@ before(
 const DEFAULTS = {
   enabled: false,
   active: "local",
-  local: { endpoint: "http://127.0.0.1:11434", model: "" },
-  remote: { endpoint: "", model: "" },
+  local: { endpoint: "http://127.0.0.1:11434", api: "ollama", model: "" },
+  remote: { endpoint: "", api: "openai", model: "" },
   harness: { id: "claude", command: "claude", args: ["-p"], timeout_secs: 180 },
 };
 
@@ -116,14 +116,16 @@ test("правки уходят на сохранение одной коман�
   assert.deepEqual(calls[1].payload.save, {
     ...DEFAULTS,
     enabled: true,
-    local: { endpoint: "http://127.0.0.1:1234", model: "" },
+    local: { endpoint: "http://127.0.0.1:1234", api: "ollama", model: "" },
   });
   assert.equal(calls[1].payload.check, false);
   assert.deepEqual(said.at(-1), { tone: "ok", text: ru.provider.saved });
 });
 
 test("настройки неактивных видов уходят вместе с активным", async () => {
-  const { host, calls } = mount({ stored: { local: { endpoint: "http://здесь", model: "qwen3" } } });
+  const { host, calls } = mount({
+    stored: { local: { endpoint: "http://здесь", api: "ollama", model: "qwen3" } },
+  });
   await settled();
 
   host.querySelector("[data-kind=harness]").click();
@@ -131,7 +133,50 @@ test("настройки неактивных видов уходят вмест
   await settled();
 
   assert.equal(calls[1].payload.save.active, "harness");
-  assert.deepEqual(calls[1].payload.save.local, { endpoint: "http://здесь", model: "qwen3" });
+  assert.deepEqual(calls[1].payload.save.local, {
+    endpoint: "http://здесь",
+    api: "ollama",
+    model: "qwen3",
+  });
+});
+
+test("локальной модели выбирают API, и типовой адрес подставляется сам", async () => {
+  const { host, calls } = mount();
+  await settled();
+
+  assert.equal(host.querySelector("[data-api=ollama]").checked, true);
+  host.querySelector("[data-api=openai]").click();
+  host.querySelector("[data-save]").click();
+  await settled();
+
+  assert.equal(host.querySelector("[data-endpoint]").value, "http://127.0.0.1:8080/v1");
+  assert.deepEqual(calls[1].payload.save.local, {
+    endpoint: "http://127.0.0.1:8080/v1",
+    api: "openai",
+    model: "",
+  });
+});
+
+test("свой адрес смена API не затирает", async () => {
+  const { host, calls } = mount({
+    stored: { local: { endpoint: "http://192.168.1.10:9000/v1", api: "ollama", model: "qwen3" } },
+  });
+  await settled();
+
+  host.querySelector("[data-api=openai]").click();
+  host.querySelector("[data-save]").click();
+  await settled();
+
+  assert.equal(calls[1].payload.save.local.endpoint, "http://192.168.1.10:9000/v1");
+  assert.equal(calls[1].payload.save.local.api, "openai");
+});
+
+test("у внешнего сервиса выбора API нет", async () => {
+  const { host } = mount({ stored: { active: "remote" } });
+  await settled();
+
+  assert.equal(host.querySelector("[data-api=ollama]"), null);
+  assert.equal(host.querySelector("[data-key]").value, "");
 });
 
 test("пресет харнесса подставляет команду и аргументы", async () => {

@@ -47,8 +47,8 @@ function mount(options = {}) {
         provider: {
           enabled: options.provider === true,
           active: options.kind ?? "local",
-          local: { endpoint: "http://127.0.0.1:11434", model: "llama3:8b" },
-          remote: { endpoint: "", model: "" },
+          local: { endpoint: "http://127.0.0.1:11434", api: "ollama", model: "llama3:8b" },
+          remote: { endpoint: "", api: "openai", model: "" },
           harness: { id: "claude", command: "claude", args: ["-p"], timeout_secs: 180 },
         },
         has_key: false,

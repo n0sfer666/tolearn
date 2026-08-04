@@ -263,6 +263,11 @@ export const ru = {
     harness: "CLI-харнесс",
     localPrivacy: "Данные не покидают машину.",
     outsidePrivacy: "Текст задания и ваш ответ уйдут во внешний сервис под вашим аккаунтом.",
+    api: "API сервера",
+    apiOllama: "Ollama",
+    apiOpenai: "OpenAI-совместимый — llama.cpp, LM Studio, vLLM",
+    apiHint:
+      "Ollama слушает 11434, llama-server — 8080 и путь /v1. Не сходится — сверьте адрес с тем, что напечатал сервер при запуске.",
     endpoint: "Адрес",
     model: "Модель",
     key: "Ключ",

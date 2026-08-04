@@ -265,6 +265,11 @@ export const en: Dictionary = {
     harness: "CLI harness",
     localPrivacy: "Nothing leaves this machine.",
     outsidePrivacy: "The task text and your answer go to an outside service under your account.",
+    api: "Server API",
+    apiOllama: "Ollama",
+    apiOpenai: "OpenAI-compatible — llama.cpp, LM Studio, vLLM",
+    apiHint:
+      "Ollama listens on 11434, llama-server on 8080 under /v1. If it does not match, compare the endpoint with what the server printed at startup.",
     endpoint: "Endpoint",
     model: "Model",
     key: "Key",

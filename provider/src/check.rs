@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use crate::error::CheckError;
 use crate::harness;
-use crate::types::{Http, Kind, Provider};
+use crate::types::{Api, Http, Kind, Provider};
 use crate::wire::{apart, broken, client, given, refused};
 
 pub const TIMEOUT: Duration = Duration::from_secs(5);
@@ -19,10 +19,10 @@ pub fn check(provider: &Provider, key: Option<&str>) -> Result<Checked, CheckErr
     }
     match provider.active {
         Kind::Harness => harness::version(&provider.harness).map(spoke),
-        Kind::Local => listed(&provider.local, None, Kind::Local),
+        Kind::Local => listed(&provider.local, None),
         Kind::Remote => {
             let key = given(key).ok_or(CheckError::NoKey)?;
-            listed(&provider.remote, Some(key), Kind::Remote)
+            listed(&provider.remote, Some(key))
         }
     }
 }
@@ -34,14 +34,14 @@ fn spoke(version: String) -> Checked {
     }
 }
 
-fn listed(http: &Http, key: Option<&str>, kind: Kind) -> Result<Checked, CheckError> {
+fn listed(http: &Http, key: Option<&str>) -> Result<Checked, CheckError> {
     let asked = http.clone();
     let key = key.map(str::to_owned);
-    apart(move || fetch(&asked, key.as_deref(), kind))
+    apart(move || fetch(&asked, key.as_deref()))
 }
 
-fn fetch(http: &Http, key: Option<&str>, kind: Kind) -> Result<Checked, CheckError> {
-    let mut request = client(TIMEOUT)?.get(route(http, kind));
+fn fetch(http: &Http, key: Option<&str>) -> Result<Checked, CheckError> {
+    let mut request = client(TIMEOUT)?.get(route(http));
     if let Some(key) = key {
         request = request.bearer_auth(key);
     }
@@ -52,7 +52,7 @@ fn fetch(http: &Http, key: Option<&str>, kind: Kind) -> Result<Checked, CheckErr
     }
 
     let body = answer.text().map_err(broken)?;
-    models(kind, &body)
+    models(http.api, &body)
         .map(|models| Checked {
             models,
             version: None,
@@ -60,18 +60,18 @@ fn fetch(http: &Http, key: Option<&str>, kind: Kind) -> Result<Checked, CheckErr
         .ok_or(CheckError::BadAnswer)
 }
 
-fn route(http: &Http, kind: Kind) -> String {
+fn route(http: &Http) -> String {
     let base = http.endpoint.trim_end_matches('/');
-    match kind {
-        Kind::Remote => format!("{base}/models"),
-        _ => format!("{base}/api/tags"),
+    match http.api {
+        Api::Ollama => format!("{base}/api/tags"),
+        Api::OpenAi => format!("{base}/models"),
     }
 }
 
-fn models(kind: Kind, body: &str) -> Option<Vec<String>> {
-    let (list, name) = match kind {
-        Kind::Remote => ("data", "id"),
-        _ => ("models", "name"),
+fn models(api: Api, body: &str) -> Option<Vec<String>> {
+    let (list, name) = match api {
+        Api::Ollama => ("models", "name"),
+        Api::OpenAi => ("data", "id"),
     };
     let answer: serde_json::Value = serde_json::from_str(body).ok()?;
     let found = answer

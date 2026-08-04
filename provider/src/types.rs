@@ -1,6 +1,7 @@
 use crate::preset::CLAUDE;
 
 pub const DEFAULT_ENDPOINT: &str = "http://127.0.0.1:11434";
+pub const OPENAI_ENDPOINT: &str = "http://127.0.0.1:8080/v1";
 pub const DEFAULT_TIMEOUT_SECS: u32 = 180;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -51,9 +52,32 @@ impl Kind {
     }
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Api {
+    Ollama,
+    OpenAi,
+}
+
+pub(crate) const API: [(&str, Api); 2] = [("ollama", Api::Ollama), ("openai", Api::OpenAi)];
+
+impl Api {
+    pub fn label(self) -> &'static str {
+        API.iter()
+            .find(|(_, api)| *api == self)
+            .map_or("ollama", |(label, _)| label)
+    }
+
+    pub fn parse(label: &str) -> Option<Self> {
+        API.iter()
+            .find(|(known, _)| *known == label)
+            .map(|(_, api)| *api)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Http {
     pub endpoint: String,
+    pub api: Api,
     pub model: String,
 }
 
@@ -61,12 +85,17 @@ impl Http {
     pub fn local() -> Self {
         Self {
             endpoint: DEFAULT_ENDPOINT.to_owned(),
+            api: Api::Ollama,
             model: String::new(),
         }
     }
 
     pub fn remote() -> Self {
-        Self::default()
+        Self {
+            endpoint: String::new(),
+            api: Api::OpenAi,
+            model: String::new(),
+        }
     }
 }
 

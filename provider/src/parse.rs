@@ -2,7 +2,7 @@ use tolearn_core::yaml::{ParseError, Reader, read};
 
 use crate::legacy;
 use crate::render::SCHEMA;
-use crate::types::{Harness, Http, KIND, Provider};
+use crate::types::{API, Api, Harness, Http, KIND, Provider};
 
 pub const SCHEMA_V1: &str = "tolearn/provider/v1";
 
@@ -21,15 +21,20 @@ fn current(node: &Reader<'_>) -> Result<Provider, ParseError> {
     Ok(Provider {
         enabled: node.field("enabled")?.flag()?,
         active: node.field("active")?.choice("kind", &KIND)?,
-        local: http(&node.field("local")?)?,
-        remote: http(&node.field("remote")?)?,
+        local: http(&node.field("local")?, Api::Ollama)?,
+        remote: http(&node.field("remote")?, Api::OpenAi)?,
         harness: harness(&node.field("harness")?)?,
     })
 }
 
-fn http(node: &Reader<'_>) -> Result<Http, ParseError> {
+fn http(node: &Reader<'_>, spoken: Api) -> Result<Http, ParseError> {
+    let api = match node.optional_field("api")? {
+        Some(field) => field.choice("api", &API)?,
+        None => spoken,
+    };
     Ok(Http {
         endpoint: node.field("endpoint")?.any_text()?,
+        api,
         model: node.field("model")?.any_text()?,
     })
 }

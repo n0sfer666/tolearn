@@ -19,5 +19,7 @@ pub use check::{Checked, check};
 pub use error::{CheckError, ProviderError, VaultError};
 pub use preset::{PRESETS, Preset, preset};
 pub use probe::{Probed, probe};
-pub use types::{DEFAULT_ENDPOINT, DEFAULT_TIMEOUT_SECS, Harness, Http, Kind, Provider};
+pub use types::{
+    Api, DEFAULT_ENDPOINT, DEFAULT_TIMEOUT_SECS, Harness, Http, Kind, OPENAI_ENDPOINT, Provider,
+};
 pub use vault::{Keychain, Remembered, Vault};

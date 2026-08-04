@@ -74,12 +74,12 @@ fn save(case: &Case, provider: Value, key: Value, check: bool) -> Result<Value, 
 }
 
 fn settings(endpoint: &str, active: &str) -> Value {
-    let http = json!({ "endpoint": endpoint, "model": "llama3:8b" });
+    let http = |api| json!({ "endpoint": endpoint, "api": api, "model": "llama3:8b" });
     json!({
         "enabled": true,
         "active": active,
-        "local": http,
-        "remote": http,
+        "local": http("ollama"),
+        "remote": http("openai"),
         "harness": harness("claude"),
     })
 }
@@ -260,6 +260,29 @@ fn неизвестный_вид_провайдера_отвергается() {
     .unwrap_err();
 
     assert_eq!(failed.code, "provider.unknown-value");
+}
+
+#[test]
+fn неизвестный_api_локальной_модели_отвергается() {
+    let case = case("api");
+    let mut asked = settings("http://127.0.0.1:8080/v1", "local");
+    asked["local"]["api"] = json!("llama.cpp");
+
+    let failed = save(&case, asked, Value::Null, false).unwrap_err();
+
+    assert_eq!(failed.code, "provider.unknown-value");
+}
+
+#[test]
+fn выбранный_api_переживает_перезапуск() {
+    let case = case("api-stored");
+    let mut asked = settings("http://127.0.0.1:8080/v1", "local");
+    asked["local"]["api"] = json!("openai");
+
+    save(&case, asked, Value::Null, false).unwrap();
+    let answer = read(&case);
+
+    assert_eq!(answer["provider"]["local"]["api"], json!("openai"));
 }
 
 #[test]

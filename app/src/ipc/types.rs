@@ -517,6 +517,7 @@ dto!(ProviderView {
 });
 dto!(HttpView {
     endpoint: String,
+    api: String,
     model: String,
 });
 dto!(HarnessView {

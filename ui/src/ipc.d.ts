@@ -618,6 +618,7 @@ export type ProviderView = {
 
 export type HttpView = {
   endpoint: string;
+  api: string;
   model: string;
 };
 

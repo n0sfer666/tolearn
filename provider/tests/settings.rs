@@ -9,8 +9,8 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use tolearn_provider::{
-    DEFAULT_ENDPOINT, DEFAULT_TIMEOUT_SECS, Harness, Http, Keychain, Kind, Provider, Remembered,
-    Vault,
+    Api, DEFAULT_ENDPOINT, DEFAULT_TIMEOUT_SECS, Harness, Http, Keychain, Kind, OPENAI_ENDPOINT,
+    Provider, Remembered, Vault,
 };
 
 static FILES: AtomicUsize = AtomicUsize::new(0);
@@ -31,11 +31,13 @@ fn filled(active: Kind) -> Provider {
         enabled: true,
         active,
         local: Http {
-            endpoint: DEFAULT_ENDPOINT.to_owned(),
+            endpoint: OPENAI_ENDPOINT.to_owned(),
+            api: Api::OpenAi,
             model: "qwen3:8b".to_owned(),
         },
         remote: Http {
             endpoint: "https://api.example.test/v1".to_owned(),
+            api: Api::OpenAi,
             model: "gpt-4o-mini".to_owned(),
         },
         harness: Harness {
@@ -54,8 +56,10 @@ fn по_умолчанию_провайдер_выключен() {
     assert!(!provider.enabled);
     assert_eq!(provider.active, Kind::Local);
     assert_eq!(provider.local.endpoint, DEFAULT_ENDPOINT);
+    assert_eq!(provider.local.api, Api::Ollama);
     assert_eq!(provider.local.model, "");
     assert_eq!(provider.remote.endpoint, "");
+    assert_eq!(provider.remote.api, Api::OpenAi);
     assert_eq!(provider.harness.id, "claude");
     assert_eq!(provider.harness.command, "claude");
     assert_eq!(provider.harness.timeout_secs, DEFAULT_TIMEOUT_SECS);
@@ -94,6 +98,41 @@ fn смена_вида_не_теряет_настройки_остальных()
 }
 
 #[test]
+fn выбранный_api_переживает_запись_и_чтение() {
+    let file = path("api");
+    let mut provider = filled(Kind::Local);
+    provider.local.api = Api::Ollama;
+    provider.save(&file).unwrap();
+
+    let stored = Provider::read(&file).unwrap();
+
+    assert_eq!(stored.local.api, Api::Ollama);
+    assert_eq!(stored.remote.api, Api::OpenAi);
+}
+
+#[test]
+fn конфиг_без_поля_api_читается_как_прежде() {
+    let file = path("v2-no-api");
+    std::fs::write(
+        &file,
+        concat!(
+            "schema: tolearn/provider/v2\n",
+            "enabled: true\n",
+            "active: local\n",
+            "local:\n  endpoint: http://127.0.0.1:11434\n  model: qwen3:8b\n",
+            "remote:\n  endpoint: https://api.example.test/v1\n  model: gpt-4o-mini\n",
+            "harness:\n  id: claude\n  command: claude\n  args:\n    - -p\n  timeout_secs: 180\n",
+        ),
+    )
+    .unwrap();
+
+    let stored = Provider::read(&file).unwrap();
+
+    assert_eq!(stored.local.api, Api::Ollama);
+    assert_eq!(stored.remote.api, Api::OpenAi);
+}
+
+#[test]
 fn старый_конфиг_ollama_переезжает_в_local() {
     let file = path("v1-ollama");
     std::fs::write(
@@ -114,6 +153,7 @@ fn старый_конфиг_ollama_переезжает_в_local() {
     assert_eq!(stored.active, Kind::Local);
     assert_eq!(stored.local.model, "qwen3:8b");
     assert_eq!(stored.local.endpoint, DEFAULT_ENDPOINT);
+    assert_eq!(stored.local.api, Api::Ollama);
     assert_eq!(stored.harness, Provider::default().harness);
 }
 

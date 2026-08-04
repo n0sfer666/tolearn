@@ -8,21 +8,25 @@
 mod support;
 
 use support::{closed, harness, stub};
-use tolearn_provider::{CheckError, Http, Kind, Provider, check};
+use tolearn_provider::{Api, CheckError, Http, Kind, Provider, check};
 
 const OLLAMA: &str = r#"{"models":[{"name":"llama3:8b"},{"name":"qwen2.5"}]}"#;
 const OPENAI: &str = r#"{"data":[{"id":"gpt-4o-mini"}]}"#;
 
-fn provider(kind: Kind, endpoint: &str) -> Provider {
-    let http = Http {
+fn http(endpoint: &str, api: Api) -> Http {
+    Http {
         endpoint: endpoint.to_owned(),
+        api,
         model: String::new(),
-    };
+    }
+}
+
+fn provider(kind: Kind, endpoint: &str) -> Provider {
     Provider {
         enabled: true,
         active: kind,
-        local: http.clone(),
-        remote: http,
+        local: http(endpoint, Api::Ollama),
+        remote: http(endpoint, Api::OpenAi),
         ..Provider::default()
     }
 }
@@ -40,6 +44,20 @@ fn локальная_модель_отдаёт_список_моделей() {
         "{:?}",
         stub.heard()
     );
+}
+
+#[test]
+fn локальный_openai_совместимый_сервер_спрашивают_по_своему() {
+    let stub = stub("200 OK", OPENAI);
+    let mut asked = provider(Kind::Local, &stub.endpoint);
+    asked.local.api = Api::OpenAi;
+
+    let checked = check(&asked, None).unwrap();
+
+    assert_eq!(checked.models, ["gpt-4o-mini"]);
+    let heard = stub.heard()[0].to_lowercase();
+    assert!(heard.starts_with("get /models "), "{heard}");
+    assert!(!heard.contains("authorization"), "{heard}");
 }
 
 #[test]

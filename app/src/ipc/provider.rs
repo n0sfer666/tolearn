@@ -1,5 +1,5 @@
 use tolearn_provider::{
-    CheckError, Harness, Http, Kind, PRESETS, Provider, ProviderError, VaultError,
+    Api, CheckError, Harness, Http, Kind, PRESETS, Provider, ProviderError, VaultError,
 };
 
 use crate::ipc::error::IpcError;
@@ -53,8 +53,8 @@ pub fn taken(view: &ProviderView) -> Result<Provider, IpcError> {
     Ok(Provider {
         enabled: view.enabled,
         active,
-        local: told(&view.local),
-        remote: told(&view.remote),
+        local: told(&view.local)?,
+        remote: told(&view.remote)?,
         harness: Harness {
             id: view.harness.id.trim().to_owned(),
             command: view.harness.command.trim().to_owned(),
@@ -83,15 +83,17 @@ pub fn refute(error: CheckError) -> IpcError {
 fn seen(http: &Http) -> HttpView {
     HttpView {
         endpoint: http.endpoint.clone(),
+        api: http.api.label().to_owned(),
         model: http.model.clone(),
     }
 }
 
-fn told(view: &HttpView) -> Http {
-    Http {
+fn told(view: &HttpView) -> Result<Http, IpcError> {
+    Ok(Http {
         endpoint: view.endpoint.trim().to_owned(),
+        api: Api::parse(&view.api).ok_or_else(|| refused("API", &view.api))?,
         model: view.model.trim().to_owned(),
-    }
+    })
 }
 
 fn refused(what: &str, value: &str) -> IpcError {

@@ -1,5 +1,17 @@
 import type { Dictionary } from "../i18n/ru";
-import type { ProviderView } from "../ipc";
+import type { HttpView, ProviderView } from "../ipc";
+
+const OLLAMA_ENDPOINT = "http://127.0.0.1:11434";
+const OPENAI_ENDPOINT = "http://127.0.0.1:8080/v1";
+
+export function spoken(http: HttpView, api: string): HttpView {
+  const typical = api === "ollama" ? OLLAMA_ENDPOINT : OPENAI_ENDPOINT;
+  const untouched =
+    http.endpoint.trim() === "" ||
+    http.endpoint.trim() === OLLAMA_ENDPOINT ||
+    http.endpoint.trim() === OPENAI_ENDPOINT;
+  return { ...http, api, endpoint: untouched ? typical : http.endpoint };
+}
 
 export function reason(error: unknown, text: Dictionary): string {
   const problems: Record<string, string> = {

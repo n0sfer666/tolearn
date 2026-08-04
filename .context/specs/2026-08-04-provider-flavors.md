@@ -26,8 +26,11 @@ S41 и S42 закрыты: крейт `provider/` умеет два вида (`F
 **Три вида в одном radio** (`active`), у каждого своя панель полей и свои две
 кнопки проверки:
 
-1. `local` — локальная модель через Ollama: `endpoint`, `model`, `num_ctx`,
-   `temperature`, рекомендации моделей по железу.
+1. `local` — локальная модель: `api` (`ollama` либо `openai` — llama.cpp,
+   LM Studio, vLLM), `endpoint`, `model`, `num_ctx`, `temperature`,
+   рекомендации моделей по железу. API выбирается руками: сервер не обязан
+   говорить, кто он, а молчаливое угадывание маршрута прячет причину отказа.
+   Ключ у локального вида не спрашивается ни при каком `api`.
 2. `remote` — OpenAI-совместимый HTTP: `endpoint`, `model`, ключ в keychain.
 3. `harness` — внешний CLI-харнесс: выбор из реестра либо своя команда,
    `command`, `args`, `timeout`.
@@ -41,7 +44,8 @@ S41 и S42 закрыты: крейт `provider/` умеет два вида (`F
 
 | | «Проверить» (дёшево) | «Пробный запрос» (по-настоящему) |
 |---|---|---|
-| `local` | `GET /api/tags` → список моделей; выбранной нет → отказ с `ollama pull <model>` | микро-промпт через `/api/chat`, ответ показан |
+| `local` (`api: ollama`) | `GET /api/tags` → список моделей; выбранной нет → отказ с `ollama pull <model>` | микро-промпт через `/api/chat`, ответ показан |
+| `local` (`api: openai`) | `GET /models` без ключа | микро-промпт через `/chat/completions` |
 | `remote` | `GET /models` с `Bearer` | микро-промпт через `/chat/completions` |
 | `harness` | бинарник найден и ответил на `--version` | микро-промпт через stdin, ответ показан |
 
@@ -73,11 +77,13 @@ enabled: false
 active: local          # local | remote | harness
 local:
   endpoint: http://127.0.0.1:11434
+  api: ollama          # ollama | openai (llama.cpp, LM Studio, vLLM)
   model: ""
   num_ctx: 16384
   temperature: 0.2
 remote:
   endpoint: ""
+  api: openai
   model: ""            # ключ — только в keychain
 harness:
   id: claude           # claude | opencode | pi | custom

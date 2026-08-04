@@ -1,12 +1,13 @@
 import { Show, createSignal, onMount } from "solid-js";
 
+import Apis from "../components/settings/Apis";
 import HarnessFields from "../components/settings/HarnessFields";
 import HttpFields from "../components/settings/HttpFields";
 import Kinds from "../components/settings/Kinds";
 import type { Locale } from "../i18n";
 import type { Dictionary } from "../i18n/ru";
 import type { CheckedView, PresetView, ProbedView, ProviderOut, ProviderView } from "../ipc";
-import { reason } from "../lib/provider";
+import { reason, spoken } from "../lib/provider";
 import { quiet } from "../lib/ipc";
 import { toast } from "../lib/toast";
 import type { Transport } from "../lib/ipc";
@@ -107,6 +108,11 @@ export default function Provider(props: Props) {
           />
 
           <Show when={current().active === "local"}>
+            <Apis
+              text={props.text}
+              active={current().local.api}
+              onPick={(api) => change({ local: spoken(current().local, api) })}
+            />
             <HttpFields
               text={props.text}
               value={current().local}

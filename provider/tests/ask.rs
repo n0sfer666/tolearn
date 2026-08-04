@@ -8,18 +8,22 @@
 mod support;
 
 use support::{closed, harness, stub};
-use tolearn_provider::{CheckError, Http, Kind, Provider, ask, probe};
+use tolearn_provider::{Api, CheckError, Http, Kind, Provider, ask, probe};
+
+fn http(endpoint: &str, api: Api, model: &str) -> Http {
+    Http {
+        endpoint: endpoint.to_owned(),
+        api,
+        model: model.to_owned(),
+    }
+}
 
 fn provider(endpoint: &str, kind: Kind, model: &str) -> Provider {
-    let http = Http {
-        endpoint: endpoint.to_owned(),
-        model: model.to_owned(),
-    };
     Provider {
         enabled: true,
         active: kind,
-        local: http.clone(),
-        remote: http,
+        local: http(endpoint, Api::Ollama, model),
+        remote: http(endpoint, Api::OpenAi, model),
         ..Provider::default()
     }
 }
@@ -39,6 +43,26 @@ fn локальная_модель_возвращает_текст_ответа(
     assert!(request.contains("POST /api/chat"), "{request}");
     assert!(request.contains("llama3:8b"), "{request}");
     assert!(request.contains("спроси меня"), "{request}");
+}
+
+#[test]
+fn локальный_openai_совместимый_сервер_отвечает_без_ключа() {
+    let heard = stub(
+        "200 OK",
+        r#"{"choices":[{"message":{"content":"вердикт"}}]}"#,
+    );
+    let mut asked = provider(&heard.endpoint, Kind::Local, "qwen3");
+    asked.local.api = Api::OpenAi;
+
+    let answer = ask(&asked, None, "спроси меня").expect("llama.cpp отвечает");
+
+    assert_eq!(answer, "вердикт");
+    let request = heard.heard().join("\n");
+    assert!(request.contains("POST /chat/completions"), "{request}");
+    assert!(
+        !request.to_lowercase().contains("authorization"),
+        "{request}"
+    );
 }
 
 #[test]
