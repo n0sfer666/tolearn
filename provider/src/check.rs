@@ -1,32 +1,47 @@
 use std::time::Duration;
 
 use crate::error::CheckError;
-use crate::types::{Flavor, Provider};
-use crate::wire::{apart, broken, client, refused};
+use crate::harness;
+use crate::types::{Http, Kind, Provider};
+use crate::wire::{apart, broken, client, given, refused};
 
 pub const TIMEOUT: Duration = Duration::from_secs(5);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Checked {
     pub models: Vec<String>,
+    pub version: Option<String>,
 }
 
 pub fn check(provider: &Provider, key: Option<&str>) -> Result<Checked, CheckError> {
     if !provider.enabled {
         return Err(CheckError::Disabled);
     }
-    let key = key.map(str::trim).filter(|key| !key.is_empty());
-    if provider.flavor == Flavor::OpenAi && key.is_none() {
-        return Err(CheckError::NoKey);
+    match provider.active {
+        Kind::Harness => harness::version(&provider.harness).map(spoke),
+        Kind::Local => listed(&provider.local, None, Kind::Local),
+        Kind::Remote => {
+            let key = given(key).ok_or(CheckError::NoKey)?;
+            listed(&provider.remote, Some(key), Kind::Remote)
+        }
     }
-
-    let asked = provider.clone();
-    let key = key.map(str::to_owned);
-    apart(move || probe(&asked, key.as_deref()))
 }
 
-fn probe(provider: &Provider, key: Option<&str>) -> Result<Checked, CheckError> {
-    let mut request = client(TIMEOUT)?.get(route(provider));
+fn spoke(version: String) -> Checked {
+    Checked {
+        models: Vec::new(),
+        version: Some(version),
+    }
+}
+
+fn listed(http: &Http, key: Option<&str>, kind: Kind) -> Result<Checked, CheckError> {
+    let asked = http.clone();
+    let key = key.map(str::to_owned);
+    apart(move || fetch(&asked, key.as_deref(), kind))
+}
+
+fn fetch(http: &Http, key: Option<&str>, kind: Kind) -> Result<Checked, CheckError> {
+    let mut request = client(TIMEOUT)?.get(route(http, kind));
     if let Some(key) = key {
         request = request.bearer_auth(key);
     }
@@ -37,23 +52,26 @@ fn probe(provider: &Provider, key: Option<&str>) -> Result<Checked, CheckError> 
     }
 
     let body = answer.text().map_err(broken)?;
-    models(provider.flavor, &body)
-        .map(|models| Checked { models })
+    models(kind, &body)
+        .map(|models| Checked {
+            models,
+            version: None,
+        })
         .ok_or(CheckError::BadAnswer)
 }
 
-fn route(provider: &Provider) -> String {
-    let base = provider.endpoint.trim_end_matches('/');
-    match provider.flavor {
-        Flavor::Ollama => format!("{base}/api/tags"),
-        Flavor::OpenAi => format!("{base}/models"),
+fn route(http: &Http, kind: Kind) -> String {
+    let base = http.endpoint.trim_end_matches('/');
+    match kind {
+        Kind::Remote => format!("{base}/models"),
+        _ => format!("{base}/api/tags"),
     }
 }
 
-fn models(flavor: Flavor, body: &str) -> Option<Vec<String>> {
-    let (list, name) = match flavor {
-        Flavor::Ollama => ("models", "name"),
-        Flavor::OpenAi => ("data", "id"),
+fn models(kind: Kind, body: &str) -> Option<Vec<String>> {
+    let (list, name) = match kind {
+        Kind::Remote => ("data", "id"),
+        _ => ("models", "name"),
     };
     let answer: serde_json::Value = serde_json::from_str(body).ok()?;
     let found = answer

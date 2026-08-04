@@ -1,27 +1,38 @@
+#![allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::panic,
+    reason = "provider gate: a panic here is the report"
+)]
+
 mod support;
 
-use tolearn_provider::{CheckError, Flavor, Provider, ask};
+use support::{closed, harness, stub};
+use tolearn_provider::{CheckError, Http, Kind, Provider, ask, probe};
 
-use support::{closed, stub};
-
-fn provider(endpoint: &str, flavor: Flavor, model: &str) -> Provider {
-    Provider {
-        enabled: true,
-        flavor,
+fn provider(endpoint: &str, kind: Kind, model: &str) -> Provider {
+    let http = Http {
         endpoint: endpoint.to_owned(),
         model: model.to_owned(),
+    };
+    Provider {
+        enabled: true,
+        active: kind,
+        local: http.clone(),
+        remote: http,
+        ..Provider::default()
     }
 }
 
 #[test]
-fn ollama_возвращает_текст_ответа() {
+fn локальная_модель_возвращает_текст_ответа() {
     let heard = stub(
         "200 OK",
         r#"{"message":{"content":"{\"result\":\"pass\"}"}}"#,
     );
-    let asked = provider(&heard.endpoint, Flavor::Ollama, "llama3:8b");
+    let asked = provider(&heard.endpoint, Kind::Local, "llama3:8b");
 
-    let answer = ask(&asked, None, "спроси меня").expect("ollama отвечает");
+    let answer = ask(&asked, None, "спроси меня").expect("локальная модель отвечает");
 
     assert_eq!(answer, "{\"result\":\"pass\"}");
     let request = heard.heard().join("\n");
@@ -31,14 +42,14 @@ fn ollama_возвращает_текст_ответа() {
 }
 
 #[test]
-fn openai_совместимый_путь_получает_ключ() {
+fn внешний_путь_получает_ключ() {
     let heard = stub(
         "200 OK",
         r#"{"choices":[{"message":{"content":"вердикт"}}]}"#,
     );
-    let asked = provider(&heard.endpoint, Flavor::OpenAi, "gpt-4o-mini");
+    let asked = provider(&heard.endpoint, Kind::Remote, "gpt-4o-mini");
 
-    let answer = ask(&asked, Some("sk-ключ"), "спроси меня").expect("openai отвечает");
+    let answer = ask(&asked, Some("sk-ключ"), "спроси меня").expect("внешний отвечает");
 
     assert_eq!(answer, "вердикт");
     let request = heard.heard().join("\n");
@@ -47,9 +58,29 @@ fn openai_совместимый_путь_получает_ключ() {
 }
 
 #[test]
+fn харнесс_получает_промпт_через_stdin() {
+    let asked = harness(&["say".to_owned()], 20);
+
+    let answer = ask(&asked, None, "спроси меня").expect("харнесс отвечает");
+
+    assert_eq!(answer, "услышал: спроси меня");
+}
+
+#[test]
+fn пробный_запрос_меряет_время_и_показывает_ответ() {
+    let asked = harness(&["say".to_owned()], 20);
+
+    let probed = probe(&asked, None).expect("харнесс отвечает");
+
+    assert!(probed.said.starts_with("услышал: "), "{}", probed.said);
+    assert!(probed.said.contains("одним словом"), "{}", probed.said);
+    assert!(probed.took_ms < 20_000, "{}", probed.took_ms);
+}
+
+#[test]
 fn отказ_по_ключу_виден_как_отказ() {
     let heard = stub("401 Unauthorized", "{}");
-    let asked = provider(&heard.endpoint, Flavor::OpenAi, "gpt-4o-mini");
+    let asked = provider(&heard.endpoint, Kind::Remote, "gpt-4o-mini");
 
     assert_eq!(
         ask(&asked, Some("sk-чужой"), "спроси"),
@@ -60,7 +91,7 @@ fn отказ_по_ключу_виден_как_отказ() {
 #[test]
 fn неожиданный_код_называется_кодом() {
     let heard = stub("503 Service Unavailable", "{}");
-    let asked = provider(&heard.endpoint, Flavor::Ollama, "llama3:8b");
+    let asked = provider(&heard.endpoint, Kind::Local, "llama3:8b");
 
     assert_eq!(ask(&asked, None, "спроси"), Err(CheckError::Answered(503)));
 }
@@ -68,14 +99,14 @@ fn неожиданный_код_называется_кодом() {
 #[test]
 fn чужой_формат_ответа_отвергается() {
     let heard = stub("200 OK", r#"{"answer":"вердикт"}"#);
-    let asked = provider(&heard.endpoint, Flavor::Ollama, "llama3:8b");
+    let asked = provider(&heard.endpoint, Kind::Local, "llama3:8b");
 
     assert_eq!(ask(&asked, None, "спроси"), Err(CheckError::BadAnswer));
 }
 
 #[test]
 fn недоступный_endpoint_не_валит_запрос() {
-    let asked = provider(&closed(), Flavor::Ollama, "llama3:8b");
+    let asked = provider(&closed(), Kind::Local, "llama3:8b");
 
     let failed = ask(&asked, None, "спроси").expect_err("порт закрыт");
 
@@ -85,7 +116,7 @@ fn недоступный_endpoint_не_валит_запрос() {
 #[test]
 fn выключенный_провайдер_в_сеть_не_ходит() {
     let heard = stub("200 OK", r#"{"message":{"content":"вердикт"}}"#);
-    let mut asked = provider(&heard.endpoint, Flavor::Ollama, "llama3:8b");
+    let mut asked = provider(&heard.endpoint, Kind::Local, "llama3:8b");
     asked.enabled = false;
 
     assert_eq!(ask(&asked, None, "спроси"), Err(CheckError::Disabled));
@@ -95,16 +126,16 @@ fn выключенный_провайдер_в_сеть_не_ходит() {
 #[test]
 fn без_модели_в_сеть_не_ходит() {
     let heard = stub("200 OK", r#"{"message":{"content":"вердикт"}}"#);
-    let asked = provider(&heard.endpoint, Flavor::Ollama, "  ");
+    let asked = provider(&heard.endpoint, Kind::Local, "  ");
 
     assert_eq!(ask(&asked, None, "спроси"), Err(CheckError::NoModel));
     assert!(heard.heard().is_empty());
 }
 
 #[test]
-fn openai_без_ключа_в_сеть_не_ходит() {
+fn внешний_без_ключа_в_сеть_не_ходит() {
     let heard = stub("200 OK", r#"{"choices":[{"message":{"content":"в"}}]}"#);
-    let asked = provider(&heard.endpoint, Flavor::OpenAi, "gpt-4o-mini");
+    let asked = provider(&heard.endpoint, Kind::Remote, "gpt-4o-mini");
 
     assert_eq!(ask(&asked, None, "спроси"), Err(CheckError::NoKey));
     assert!(heard.heard().is_empty());

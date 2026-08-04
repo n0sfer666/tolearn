@@ -41,20 +41,32 @@ fn case(name: &str) -> Case {
     }
 }
 
-fn enable(case: &Case, endpoint: &str, flavor: &str) {
+fn settings(endpoint: &str, active: &str, enabled: bool) -> Value {
+    let http = json!({ "endpoint": endpoint, "model": "llama3:8b" });
+    json!({
+        "enabled": enabled,
+        "active": active,
+        "local": http,
+        "remote": http,
+        "harness": {
+            "id": "claude",
+            "command": "claude",
+            "args": ["-p"],
+            "timeout_secs": 180,
+        },
+    })
+}
+
+fn enable(case: &Case, endpoint: &str, active: &str) {
     call(
         &case.context,
         "provider",
         &json!({
-            "save": {
-                "enabled": true,
-                "flavor": flavor,
-                "endpoint": endpoint,
-                "model": "llama3:8b",
-            },
-            "key": if flavor == "openai" { json!("sk-ключ") } else { Value::Null },
+            "save": settings(endpoint, active, true),
+            "key": if active == "remote" { json!("sk-ключ") } else { Value::Null },
             "forget": false,
             "check": false,
+            "probe": false,
         }),
     )
     .unwrap();
@@ -91,7 +103,7 @@ fn progress(root: &Path) -> String {
 fn ответ_модели_разбирается_тем_же_протоколом() {
     let case = case("same");
     let heard = stub("200 OK", SAID);
-    enable(&case, &heard.endpoint, "ollama");
+    enable(&case, &heard.endpoint, "local");
 
     let answer = examine(&case).unwrap();
     let out = parse(&case, answer["text"].as_str().unwrap()).unwrap();
@@ -105,7 +117,7 @@ fn ответ_модели_разбирается_тем_же_протоколо
 fn модели_уходит_тот_же_промпт() {
     let case = case("prompt");
     let heard = stub("200 OK", SAID);
-    enable(&case, &heard.endpoint, "ollama");
+    enable(&case, &heard.endpoint, "local");
     let prompt = call(
         &case.context,
         "prompt",
@@ -125,7 +137,7 @@ fn модели_уходит_тот_же_промпт() {
 fn ответ_модели_ничего_не_пишет_в_прогресс() {
     let case = case("dry");
     let heard = stub("200 OK", SAID);
-    enable(&case, &heard.endpoint, "ollama");
+    enable(&case, &heard.endpoint, "local");
     let before = progress(&case.root);
 
     examine(&case).unwrap();
@@ -141,20 +153,16 @@ fn ответ_модели_ничего_не_пишет_в_прогресс() {
 fn выключенный_провайдер_в_сеть_не_ходит() {
     let case = case("disabled");
     let heard = stub("200 OK", SAID);
-    enable(&case, &heard.endpoint, "ollama");
+    enable(&case, &heard.endpoint, "local");
     call(
         &case.context,
         "provider",
         &json!({
-            "save": {
-                "enabled": false,
-                "flavor": "ollama",
-                "endpoint": heard.endpoint,
-                "model": "llama3:8b",
-            },
+            "save": settings(&heard.endpoint, "local", false),
             "key": Value::Null,
             "forget": false,
             "check": false,
+            "probe": false,
         }),
     )
     .unwrap();
@@ -169,7 +177,7 @@ fn выключенный_провайдер_в_сеть_не_ходит() {
 fn отказ_провайдера_приходит_кодом_ошибки() {
     let case = case("rejected");
     let heard = stub("401 Unauthorized", "{}");
-    enable(&case, &heard.endpoint, "openai");
+    enable(&case, &heard.endpoint, "remote");
 
     let failed = examine(&case).unwrap_err();
 
@@ -180,7 +188,7 @@ fn отказ_провайдера_приходит_кодом_ошибки() {
 fn неизвестная_тема_отвергается_до_сети() {
     let case = case("topic");
     let heard = stub("200 OK", SAID);
-    enable(&case, &heard.endpoint, "ollama");
+    enable(&case, &heard.endpoint, "local");
 
     let failed = call(
         &case.context,

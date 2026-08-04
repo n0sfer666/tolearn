@@ -499,19 +499,45 @@ dto!(ProviderIn {
     key: Option<String>,
     forget: bool,
     check: bool,
+    probe: bool,
 });
 dto!(ProviderOut {
     provider: ProviderView,
     has_key: bool,
     checked: Option<CheckedView>,
+    probed: Option<ProbedView>,
+    presets: Vec<PresetView>,
 });
 dto!(ProviderView {
     enabled: bool,
-    flavor: String,
+    active: String,
+    local: HttpView,
+    remote: HttpView,
+    harness: HarnessView,
+});
+dto!(HttpView {
     endpoint: String,
     model: String,
 });
-dto!(CheckedView { models: Vec<String> });
+dto!(HarnessView {
+    id: String,
+    command: String,
+    args: Vec<String>,
+    timeout_secs: u32,
+});
+dto!(PresetView {
+    id: String,
+    command: String,
+    args: Vec<String>,
+});
+dto!(CheckedView {
+    models: Vec<String>,
+    version: Option<String>,
+});
+dto!(ProbedView {
+    said: String,
+    took_ms: u32,
+});
 
 dto!(SaveOfflineIn {
     bundle: String,
@@ -652,7 +678,11 @@ pub fn shapes() -> Vec<Shape> {
         ProviderIn::shape(),
         ProviderOut::shape(),
         ProviderView::shape(),
+        HttpView::shape(),
+        HarnessView::shape(),
+        PresetView::shape(),
         CheckedView::shape(),
+        ProbedView::shape(),
         SaveOfflineIn::shape(),
         SaveOfflineOut::shape(),
         OfflineStateIn::shape(),

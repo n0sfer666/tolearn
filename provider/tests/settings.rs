@@ -8,7 +8,10 @@
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use tolearn_provider::{DEFAULT_ENDPOINT, Flavor, Keychain, Provider, Remembered, Vault};
+use tolearn_provider::{
+    DEFAULT_ENDPOINT, DEFAULT_TIMEOUT_SECS, Harness, Http, Keychain, Kind, Provider, Remembered,
+    Vault,
+};
 
 static FILES: AtomicUsize = AtomicUsize::new(0);
 
@@ -23,14 +26,39 @@ fn path(name: &str) -> PathBuf {
     directory.join("provider.yaml")
 }
 
+fn filled(active: Kind) -> Provider {
+    Provider {
+        enabled: true,
+        active,
+        local: Http {
+            endpoint: DEFAULT_ENDPOINT.to_owned(),
+            model: "qwen3:8b".to_owned(),
+        },
+        remote: Http {
+            endpoint: "https://api.example.test/v1".to_owned(),
+            model: "gpt-4o-mini".to_owned(),
+        },
+        harness: Harness {
+            id: "custom".to_owned(),
+            command: "/usr/local/bin/claude".to_owned(),
+            args: vec!["-p".to_owned(), "--allowedTools".to_owned(), String::new()],
+            timeout_secs: 42,
+        },
+    }
+}
+
 #[test]
 fn по_умолчанию_провайдер_выключен() {
     let provider = Provider::default();
 
     assert!(!provider.enabled);
-    assert_eq!(provider.flavor, Flavor::Ollama);
-    assert_eq!(provider.endpoint, DEFAULT_ENDPOINT);
-    assert_eq!(provider.model, "");
+    assert_eq!(provider.active, Kind::Local);
+    assert_eq!(provider.local.endpoint, DEFAULT_ENDPOINT);
+    assert_eq!(provider.local.model, "");
+    assert_eq!(provider.remote.endpoint, "");
+    assert_eq!(provider.harness.id, "claude");
+    assert_eq!(provider.harness.command, "claude");
+    assert_eq!(provider.harness.timeout_secs, DEFAULT_TIMEOUT_SECS);
 }
 
 #[test]
@@ -41,14 +69,9 @@ fn отсутствующий_конфиг_читается_как_умолча�
 }
 
 #[test]
-fn настройки_переживают_запись_и_чтение() {
+fn настройки_трёх_видов_переживают_запись_и_чтение() {
     let file = path("roundtrip");
-    let provider = Provider {
-        enabled: true,
-        flavor: Flavor::OpenAi,
-        endpoint: "https://api.example.test/v1".to_owned(),
-        model: "gpt-4o-mini".to_owned(),
-    };
+    let provider = filled(Kind::Harness);
 
     provider.save(&file).unwrap();
 
@@ -56,18 +79,98 @@ fn настройки_переживают_запись_и_чтение() {
 }
 
 #[test]
+fn смена_вида_не_теряет_настройки_остальных() {
+    let file = path("switch");
+    let mut provider = filled(Kind::Local);
+    provider.save(&file).unwrap();
+
+    provider.active = Kind::Harness;
+    provider.save(&file).unwrap();
+    let stored = Provider::read(&file).unwrap();
+
+    assert_eq!(stored.active, Kind::Harness);
+    assert_eq!(stored.local.model, "qwen3:8b");
+    assert_eq!(stored.remote.endpoint, "https://api.example.test/v1");
+}
+
+#[test]
+fn старый_конфиг_ollama_переезжает_в_local() {
+    let file = path("v1-ollama");
+    std::fs::write(
+        &file,
+        concat!(
+            "schema: tolearn/provider/v1\n",
+            "enabled: true\n",
+            "flavor: ollama\n",
+            "endpoint: http://127.0.0.1:11434\n",
+            "model: qwen3:8b\n",
+        ),
+    )
+    .unwrap();
+
+    let stored = Provider::read(&file).unwrap();
+
+    assert!(stored.enabled);
+    assert_eq!(stored.active, Kind::Local);
+    assert_eq!(stored.local.model, "qwen3:8b");
+    assert_eq!(stored.local.endpoint, DEFAULT_ENDPOINT);
+    assert_eq!(stored.harness, Provider::default().harness);
+}
+
+#[test]
+fn старый_конфиг_openai_переезжает_в_remote() {
+    let file = path("v1-openai");
+    std::fs::write(
+        &file,
+        concat!(
+            "schema: tolearn/provider/v1\n",
+            "enabled: true\n",
+            "flavor: openai\n",
+            "endpoint: https://api.example.test/v1\n",
+            "model: gpt-4o-mini\n",
+        ),
+    )
+    .unwrap();
+
+    let stored = Provider::read(&file).unwrap();
+
+    assert_eq!(stored.active, Kind::Remote);
+    assert_eq!(stored.remote.endpoint, "https://api.example.test/v1");
+    assert_eq!(stored.remote.model, "gpt-4o-mini");
+    assert_eq!(stored.local.endpoint, DEFAULT_ENDPOINT);
+}
+
+#[test]
+fn переехавший_конфиг_записывается_уже_как_v2() {
+    let file = path("v1-rewrite");
+    std::fs::write(
+        &file,
+        concat!(
+            "schema: tolearn/provider/v1\n",
+            "enabled: false\n",
+            "flavor: ollama\n",
+            "endpoint: http://127.0.0.1:11434\n",
+            "model: \"\"\n",
+        ),
+    )
+    .unwrap();
+
+    let stored = Provider::read(&file).unwrap();
+    stored.save(&file).unwrap();
+    let written = std::fs::read_to_string(&file).unwrap();
+
+    assert!(written.contains("schema: tolearn/provider/v2"), "{written}");
+    assert!(!written.contains("flavor"), "{written}");
+    assert_eq!(Provider::read(&file).unwrap(), stored);
+}
+
+#[test]
 fn ключ_не_попадает_в_файл_конфига() {
     let file = path("secret");
     let vault = Remembered::default();
     vault.store("sk-очень-секретный-ключ").unwrap();
-    let provider = Provider {
-        enabled: true,
-        flavor: Flavor::OpenAi,
-        endpoint: "https://api.example.test/v1".to_owned(),
-        model: "gpt-4o-mini".to_owned(),
-    };
 
-    provider.save(&file).unwrap();
+    filled(Kind::Remote).save(&file).unwrap();
     let written = std::fs::read_to_string(&file).unwrap();
 
     assert!(!written.contains("sk-очень-секретный-ключ"), "{written}");

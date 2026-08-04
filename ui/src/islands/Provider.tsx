@@ -1,8 +1,11 @@
 import { Show, createSignal, onMount } from "solid-js";
 
+import HarnessFields from "../components/settings/HarnessFields";
+import HttpFields from "../components/settings/HttpFields";
+import Kinds from "../components/settings/Kinds";
 import type { Locale } from "../i18n";
 import type { Dictionary } from "../i18n/ru";
-import type { ProviderOut, ProviderView } from "../ipc";
+import type { CheckedView, PresetView, ProbedView, ProviderOut, ProviderView } from "../ipc";
 import { reason } from "../lib/provider";
 import { quiet } from "../lib/ipc";
 import { toast } from "../lib/toast";
@@ -20,17 +23,30 @@ export default function Provider(props: Props) {
   const [draft, setDraft] = createSignal<ProviderView | null>(null);
   const [stored, setStored] = createSignal(false);
   const [key, setKey] = createSignal("");
-  const [models, setModels] = createSignal<string[] | null>(null);
+  const [presets, setPresets] = createSignal<PresetView[]>([]);
+  const [checked, setChecked] = createSignal<CheckedView | null>(null);
+  const [probed, setProbed] = createSignal<ProbedView | null>(null);
+  const [busy, setBusy] = createSignal(false);
 
   const took = (answer: ProviderOut) => {
     setDraft(answer.provider);
     setStored(answer.has_key);
-    setModels(answer.checked === null ? null : answer.checked.models);
+    setPresets(answer.presets);
+    setChecked(answer.checked);
+    setProbed(answer.probed);
   };
 
   onMount(() => {
     void (async () => {
-      took(await call()("provider", { save: null, key: null, forget: false, check: false }));
+      took(
+        await call()("provider", {
+          save: null,
+          key: null,
+          forget: false,
+          check: false,
+          probe: false,
+        }),
+      );
     })();
   });
 
@@ -40,10 +56,11 @@ export default function Provider(props: Props) {
     setDraft({ ...current, ...next });
   };
 
-  const send = (check: boolean, forget: boolean) => {
+  const send = (check: boolean, probe: boolean, forget: boolean) => {
     const current = draft();
-    if (current === null) return;
+    if (current === null || busy()) return;
     const given = key().trim();
+    setBusy(true);
     void (async () => {
       try {
         took(
@@ -52,14 +69,17 @@ export default function Provider(props: Props) {
             key: given === "" ? null : given,
             forget,
             check,
+            probe,
           }),
         );
         setKey("");
         toast("ok", props.text.provider.saved);
       } catch (error) {
-        setModels(null);
+        setChecked(null);
+        setProbed(null);
         toast("error", reason(error, props.text));
       }
+      setBusy(false);
     })();
   };
 
@@ -80,67 +100,82 @@ export default function Provider(props: Props) {
             {props.text.provider.enabled}
           </label>
 
-          <label>
-            {props.text.provider.flavor}
-            <select
-              data-flavor
-              value={current().flavor}
-              onChange={(event) => change({ flavor: event.currentTarget.value })}
-            >
-              <option value="ollama">{props.text.provider.ollama}</option>
-              <option value="openai">{props.text.provider.openai}</option>
-            </select>
-          </label>
+          <Kinds
+            text={props.text}
+            active={current().active}
+            onPick={(active) => change({ active })}
+          />
 
-          <label>
-            {props.text.provider.endpoint}
-            <input
-              data-endpoint
-              type="url"
-              value={current().endpoint}
-              onInput={(event) => change({ endpoint: event.currentTarget.value })}
+          <Show when={current().active === "local"}>
+            <HttpFields
+              text={props.text}
+              value={current().local}
+              onChange={(local) => change({ local })}
             />
-          </label>
-
-          <label>
-            {props.text.provider.model}
-            <input
-              data-model
-              type="text"
-              value={current().model}
-              onInput={(event) => change({ model: event.currentTarget.value })}
-            />
-          </label>
-
-          <label>
-            {props.text.provider.key}
-            <input
-              data-key
-              type="password"
-              value={key()}
-              onInput={(event) => setKey(event.currentTarget.value)}
-            />
-          </label>
-          <p data-stored>
-            {stored() ? props.text.provider.keyStored : props.text.provider.keyEmpty}
-          </p>
-          <Show when={stored()}>
-            <button type="button" data-forget onClick={() => send(false, true)}>
-              {props.text.provider.forget}
-            </button>
           </Show>
 
-          <button type="button" data-save onClick={() => send(false, false)}>
+          <Show when={current().active === "remote"}>
+            <HttpFields
+              text={props.text}
+              value={current().remote}
+              onChange={(remote) => change({ remote })}
+            />
+            <label>
+              {props.text.provider.key}
+              <input
+                data-key
+                type="password"
+                value={key()}
+                onInput={(event) => setKey(event.currentTarget.value)}
+              />
+            </label>
+            <p data-stored>
+              {stored() ? props.text.provider.keyStored : props.text.provider.keyEmpty}
+            </p>
+            <Show when={stored()}>
+              <button type="button" data-forget onClick={() => send(false, false, true)}>
+                {props.text.provider.forget}
+              </button>
+            </Show>
+          </Show>
+
+          <Show when={current().active === "harness"}>
+            <HarnessFields
+              text={props.text}
+              value={current().harness}
+              presets={presets()}
+              onChange={(harness) => change({ harness })}
+            />
+          </Show>
+
+          <button type="button" data-save disabled={busy()} onClick={() => send(false, false, false)}>
             {props.text.provider.save}
           </button>
-          <button type="button" data-check onClick={() => send(true, false)}>
+          <button type="button" data-check disabled={busy()} onClick={() => send(true, false, false)}>
             {props.text.provider.check}
           </button>
+          <button type="button" data-probe disabled={busy()} onClick={() => send(false, true, false)}>
+            {props.text.provider.probe}
+          </button>
 
-          <Show when={models()}>
+          <Show when={busy()}>
+            <p data-working>{props.text.provider.working}</p>
+          </Show>
+
+          <Show when={checked()}>
             {(found) => (
               <p data-checked>
-                {props.text.provider.checked} {found().join(", ")}
+                {found().version === null
+                  ? `${props.text.provider.checked} ${found().models.join(", ")}`
+                  : `${props.text.provider.version} ${found().version}`}
+              </p>
+            )}
+          </Show>
+
+          <Show when={probed()}>
+            {(said) => (
+              <p data-probed>
+                {props.text.provider.said} {said().said}
               </p>
             )}
           </Show>
@@ -149,4 +184,3 @@ export default function Provider(props: Props) {
     </Show>
   );
 }
-

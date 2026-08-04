@@ -46,12 +46,15 @@ function mount(options = {}) {
       return Promise.resolve({
         provider: {
           enabled: options.provider === true,
-          flavor: "ollama",
-          endpoint: "http://127.0.0.1:11434",
-          model: "llama3:8b",
+          active: options.kind ?? "local",
+          local: { endpoint: "http://127.0.0.1:11434", model: "llama3:8b" },
+          remote: { endpoint: "", model: "" },
+          harness: { id: "claude", command: "claude", args: ["-p"], timeout_secs: 180 },
         },
         has_key: false,
         checked: null,
+        probed: null,
+        presets: [],
       });
     }
     if (name === "examine") {
@@ -226,6 +229,20 @@ test("включённый провайдер спрашивает модель 
   assert.equal(host.querySelector("[data-verdict-input]").value, "ответ модели целиком");
   assert.equal(only("parse_verdict")[0].payload.text, "ответ модели целиком");
   assert.match(host.querySelector("[data-parsed]").textContent, new RegExp(ru.status.passed));
+});
+
+test("кнопка называет того, кого спрашивают", async () => {
+  const { host } = mount({ provider: true });
+  await settled();
+
+  assert.match(host.querySelector("[data-ask]").textContent, /llama3:8b/);
+});
+
+test("у харнесса кнопка называет харнесс, а не модель", async () => {
+  const { host } = mount({ provider: true, kind: "harness" });
+  await settled();
+
+  assert.match(host.querySelector("[data-ask]").textContent, new RegExp(ru.provider.presetClaude));
 });
 
 test("ответ модели правится руками до применения", async () => {

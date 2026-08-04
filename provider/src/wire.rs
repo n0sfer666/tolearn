@@ -15,6 +15,10 @@ where
         .map_err(|_| CheckError::Unreachable("запрос оборвался".to_owned()))?
 }
 
+pub(crate) fn given(key: Option<&str>) -> Option<&str> {
+    key.map(str::trim).filter(|key| !key.is_empty())
+}
+
 pub(crate) fn client(timeout: Duration) -> Result<Client, CheckError> {
     Client::builder().timeout(timeout).build().map_err(broken)
 }

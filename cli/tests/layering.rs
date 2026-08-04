@@ -57,7 +57,7 @@ const LAYERS: &[Layer] = &[
     Layer {
         dir: "provider",
         package: "tolearn-provider",
-        allowed_internal: &["tolearn-core"],
+        allowed_internal: &["tolearn-core", "tolearn-runner"],
         forbidden_markers: SHELL_MARKERS,
         own_lints: false,
     },

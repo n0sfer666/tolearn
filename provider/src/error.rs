@@ -52,6 +52,10 @@ pub enum CheckError {
     Rejected,
     Answered(u16),
     BadAnswer,
+    NotFound(String),
+    Failed { code: Option<i32>, said: String },
+    TimedOut(u32),
+    Truncated,
 }
 
 impl CheckError {
@@ -64,6 +68,10 @@ impl CheckError {
             Self::Rejected => "provider.rejected",
             Self::Answered(_) => "provider.answered",
             Self::BadAnswer => "provider.bad-answer",
+            Self::NotFound(_) => "harness.not-found",
+            Self::Failed { .. } => "harness.failed",
+            Self::TimedOut(_) => "harness.timeout",
+            Self::Truncated => "harness.truncated",
         }
     }
 }
@@ -78,6 +86,16 @@ impl fmt::Display for CheckError {
             Self::Rejected => write!(out, "провайдер отверг ключ"),
             Self::Answered(status) => write!(out, "провайдер ответил кодом {status}"),
             Self::BadAnswer => write!(out, "провайдер ответил не в том формате, которого ждали"),
+            Self::NotFound(command) => write!(
+                out,
+                "команда `{command}` не найдена: выполните `which {command}` и впишите полный путь"
+            ),
+            Self::Failed { code, said } => match code {
+                Some(code) => write!(out, "харнесс завершился с кодом {code}: {said}"),
+                None => write!(out, "харнесс убит сигналом: {said}"),
+            },
+            Self::TimedOut(seconds) => write!(out, "харнесс не ответил за {seconds} с"),
+            Self::Truncated => write!(out, "харнесс напечатал больше, чем разрешено принять"),
         }
     }
 }

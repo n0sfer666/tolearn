@@ -10,9 +10,14 @@ publish.workspace = true
 
 [dependencies]
 tolearn-core.workspace = true
+tolearn-runner.workspace = true
 keyring.workspace = true
 reqwest.workspace = true
 serde_json.workspace = true
+
+[[bin]]
+name = "fake-harness"
+path = "src/bin/fake-harness.rs"
 
 [lints]
 workspace = true

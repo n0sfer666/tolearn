@@ -1,19 +1,48 @@
-use crate::types::Provider;
+use crate::types::{Harness, Http, Provider};
 
-pub const SCHEMA: &str = "tolearn/provider/v1";
+pub const SCHEMA: &str = "tolearn/provider/v2";
 
 pub fn text(provider: &Provider) -> String {
     format!(
         "schema: {SCHEMA}\n\
          enabled: {}\n\
-         flavor: {}\n\
-         endpoint: {}\n\
-         model: {}\n",
+         active: {}\n\
+         local:\n{}\
+         remote:\n{}\
+         harness:\n{}",
         provider.enabled,
-        provider.flavor.label(),
-        quoted(&provider.endpoint),
-        quoted(&provider.model),
+        provider.active.label(),
+        http(&provider.local),
+        http(&provider.remote),
+        harness(&provider.harness),
     )
+}
+
+fn http(http: &Http) -> String {
+    format!(
+        "  endpoint: {}\n  model: {}\n",
+        quoted(&http.endpoint),
+        quoted(&http.model),
+    )
+}
+
+fn harness(harness: &Harness) -> String {
+    format!(
+        "  id: {}\n  command: {}\n  args:{}\n  timeout_secs: {}\n",
+        quoted(&harness.id),
+        quoted(&harness.command),
+        args(&harness.args),
+        harness.timeout_secs,
+    )
+}
+
+fn args(args: &[String]) -> String {
+    if args.is_empty() {
+        return " []".to_owned();
+    }
+    args.iter()
+        .map(|arg| format!("\n    - {}", quoted(arg)))
+        .collect()
 }
 
 fn quoted(value: &str) -> String {

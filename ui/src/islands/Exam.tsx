@@ -1,7 +1,7 @@
 import { Show, createSignal, onMount } from "solid-js";
 
 import Parsed from "../components/exam/Parsed";
-import type { ApplyVerdictOut, VerdictView } from "../ipc";
+import type { ApplyVerdictOut, ProviderView, VerdictView } from "../ipc";
 import type { Dictionary } from "../i18n/ru";
 import type { Locale } from "../i18n";
 import { copy as toClipboard } from "../lib/clipboard";
@@ -9,7 +9,7 @@ import { explain, toast } from "../lib/toast";
 import { label } from "../components/status";
 import { query } from "../lib/query";
 import { quiet } from "../lib/ipc";
-import { reason } from "../lib/provider";
+import { named, reason } from "../lib/provider";
 import type { Transport } from "../lib/ipc";
 
 interface Props {
@@ -33,7 +33,7 @@ export default function Exam(props: Props) {
   const [answer, setAnswer] = createSignal("");
   const [parsed, setParsed] = createSignal<VerdictView | null>(null);
   const [applied, setApplied] = createSignal<ApplyVerdictOut | null>(null);
-  const [built, setBuilt] = createSignal(false);
+  const [built, setBuilt] = createSignal<ProviderView | null>(null);
   const [asking, setAsking] = createSignal(false);
 
   const broke = (error: unknown) => toast("error", explain(error) || props.text.toast.broke);
@@ -54,8 +54,9 @@ export default function Exam(props: Props) {
           key: null,
           forget: false,
           check: false,
+          probe: false,
         });
-        setBuilt(out.provider.enabled);
+        setBuilt(out.provider.enabled ? out.provider : null);
       } catch (error) {
         broke(error);
       }
@@ -142,9 +143,12 @@ export default function Exam(props: Props) {
           {props.text.exam.parse}
         </button>
         <Show when={built()}>
-          <button type="button" data-ask disabled={asking()} onClick={onAsk}>
-            {asking() ? props.text.exam.asking : props.text.exam.ask}
-          </button>
+          {(provider) => (
+            <button type="button" data-ask disabled={asking()} onClick={onAsk}>
+              {asking() ? props.text.exam.asking : props.text.exam.ask}{" "}
+              {named(provider(), props.text)}
+            </button>
+          )}
         </Show>
       </p>
       <Show when={parsed()}>

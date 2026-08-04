@@ -597,23 +597,51 @@ export type ProviderIn = {
   key: string | null;
   forget: boolean;
   check: boolean;
+  probe: boolean;
 };
 
 export type ProviderOut = {
   provider: ProviderView;
   has_key: boolean;
   checked: CheckedView | null;
+  probed: ProbedView | null;
+  presets: PresetView[];
 };
 
 export type ProviderView = {
   enabled: boolean;
-  flavor: string;
+  active: string;
+  local: HttpView;
+  remote: HttpView;
+  harness: HarnessView;
+};
+
+export type HttpView = {
   endpoint: string;
   model: string;
 };
 
+export type HarnessView = {
+  id: string;
+  command: string;
+  args: string[];
+  timeout_secs: number;
+};
+
+export type PresetView = {
+  id: string;
+  command: string;
+  args: string[];
+};
+
 export type CheckedView = {
   models: string[];
+  version: string | null;
+};
+
+export type ProbedView = {
+  said: string;
+  took_ms: number;
 };
 
 export type SaveOfflineIn = {

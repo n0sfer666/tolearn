@@ -4,10 +4,27 @@
     clippy::panic,
     reason = "provider gate: a panic here is the report"
 )]
+#![allow(dead_code, reason = "each test binary takes its own share of helpers")]
 
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpListener;
 use std::sync::{Arc, Mutex, PoisonError};
+
+use tolearn_provider::{Harness, Kind, Provider};
+
+pub fn harness(args: &[String], timeout_secs: u32) -> Provider {
+    Provider {
+        enabled: true,
+        active: Kind::Harness,
+        harness: Harness {
+            id: "custom".to_owned(),
+            command: env!("CARGO_BIN_EXE_fake-harness").to_owned(),
+            args: args.to_vec(),
+            timeout_secs,
+        },
+        ..Provider::default()
+    }
+}
 
 #[derive(Debug)]
 pub struct Stub {

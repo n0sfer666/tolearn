@@ -1,27 +1,66 @@
-use tolearn_provider::{CheckError, Flavor, Provider, ProviderError, VaultError};
+use tolearn_provider::{
+    CheckError, Harness, Http, Kind, PRESETS, Provider, ProviderError, VaultError,
+};
 
 use crate::ipc::error::IpcError;
-use crate::ipc::types::ProviderView;
+use crate::ipc::types::{HarnessView, HttpView, PresetView, ProviderView};
+
+const TIMEOUT_MAX: u32 = 3_600;
 
 pub fn view(provider: &Provider) -> ProviderView {
     ProviderView {
         enabled: provider.enabled,
-        flavor: provider.flavor.label().to_owned(),
-        endpoint: provider.endpoint.clone(),
-        model: provider.model.clone(),
+        active: provider.active.label().to_owned(),
+        local: seen(&provider.local),
+        remote: seen(&provider.remote),
+        harness: HarnessView {
+            id: provider.harness.id.clone(),
+            command: provider.harness.command.clone(),
+            args: provider.harness.args.clone(),
+            timeout_secs: provider.harness.timeout_secs,
+        },
     }
 }
 
+pub fn presets() -> Vec<PresetView> {
+    PRESETS
+        .iter()
+        .map(|preset| PresetView {
+            id: preset.id.to_owned(),
+            command: preset.command.to_owned(),
+            args: preset.args.iter().map(|arg| (*arg).to_owned()).collect(),
+        })
+        .collect()
+}
+
 pub fn taken(view: &ProviderView) -> Result<Provider, IpcError> {
-    let endpoint = view.endpoint.trim();
-    if endpoint.is_empty() {
-        return Err(refused("адрес", &view.endpoint));
+    let active = Kind::parse(&view.active).ok_or_else(|| refused("вид", &view.active))?;
+    let asked = match active {
+        Kind::Local => Some(&view.local),
+        Kind::Remote => Some(&view.remote),
+        Kind::Harness => None,
+    };
+    if let Some(http) = asked
+        && http.endpoint.trim().is_empty()
+    {
+        return Err(refused("адрес", &http.endpoint));
     }
+    let timeout_secs = view.harness.timeout_secs;
+    if timeout_secs == 0 || timeout_secs > TIMEOUT_MAX {
+        return Err(refused("таймаут", &timeout_secs.to_string()));
+    }
+
     Ok(Provider {
         enabled: view.enabled,
-        flavor: Flavor::parse(&view.flavor).ok_or_else(|| refused("вид", &view.flavor))?,
-        endpoint: endpoint.to_owned(),
-        model: view.model.trim().to_owned(),
+        active,
+        local: told(&view.local),
+        remote: told(&view.remote),
+        harness: Harness {
+            id: view.harness.id.trim().to_owned(),
+            command: view.harness.command.trim().to_owned(),
+            args: view.harness.args.clone(),
+            timeout_secs,
+        },
     })
 }
 
@@ -39,6 +78,20 @@ pub fn denied(error: VaultError) -> IpcError {
 
 pub fn refute(error: CheckError) -> IpcError {
     IpcError::new(error.code(), error.to_string())
+}
+
+fn seen(http: &Http) -> HttpView {
+    HttpView {
+        endpoint: http.endpoint.clone(),
+        model: http.model.clone(),
+    }
+}
+
+fn told(view: &HttpView) -> Http {
+    Http {
+        endpoint: view.endpoint.trim().to_owned(),
+        model: view.model.trim().to_owned(),
+    }
 }
 
 fn refused(what: &str, value: &str) -> IpcError {

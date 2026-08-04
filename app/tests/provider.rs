@@ -49,7 +49,13 @@ fn ask(case: &Case, payload: Value) -> Result<Value, IpcError> {
 fn read(case: &Case) -> Value {
     ask(
         case,
-        json!({ "save": Value::Null, "key": Value::Null, "forget": false, "check": false }),
+        json!({
+            "save": Value::Null,
+            "key": Value::Null,
+            "forget": false,
+            "check": false,
+            "probe": false,
+        }),
     )
     .unwrap()
 }
@@ -57,12 +63,34 @@ fn read(case: &Case) -> Value {
 fn save(case: &Case, provider: Value, key: Value, check: bool) -> Result<Value, IpcError> {
     ask(
         case,
-        json!({ "save": provider, "key": key, "forget": false, "check": check }),
+        json!({
+            "save": provider,
+            "key": key,
+            "forget": false,
+            "check": check,
+            "probe": false,
+        }),
     )
 }
 
-fn settings(endpoint: &str, flavor: &str) -> Value {
-    json!({ "enabled": true, "flavor": flavor, "endpoint": endpoint, "model": "llama3:8b" })
+fn settings(endpoint: &str, active: &str) -> Value {
+    let http = json!({ "endpoint": endpoint, "model": "llama3:8b" });
+    json!({
+        "enabled": true,
+        "active": active,
+        "local": http,
+        "remote": http,
+        "harness": harness("claude"),
+    })
+}
+
+fn harness(command: &str) -> Value {
+    json!({
+        "id": "custom",
+        "command": command,
+        "args": ["-p"],
+        "timeout_secs": 180,
+    })
 }
 
 #[test]
@@ -72,9 +100,24 @@ fn провайдер_выключен_пока_его_не_включили() {
     let answer = read(&case);
 
     assert_eq!(answer["provider"]["enabled"], json!(false));
-    assert_eq!(answer["provider"]["flavor"], json!("ollama"));
+    assert_eq!(answer["provider"]["active"], json!("local"));
     assert_eq!(answer["has_key"], json!(false));
     assert_eq!(answer["checked"], Value::Null);
+    assert_eq!(answer["probed"], Value::Null);
+}
+
+#[test]
+fn реестр_харнессов_приходит_вместе_с_настройками() {
+    let case = case("presets");
+
+    let answer = read(&case);
+
+    let presets = answer["presets"].as_array().unwrap().clone();
+    let ids: Vec<&str> = presets
+        .iter()
+        .filter_map(|preset| preset["id"].as_str())
+        .collect();
+    assert_eq!(ids, ["claude", "opencode", "pi", "custom"]);
 }
 
 #[test]
@@ -83,7 +126,7 @@ fn настройки_переживают_перезапуск() {
 
     save(
         &case,
-        settings("http://127.0.0.1:11434", "ollama"),
+        settings("http://127.0.0.1:11434", "local"),
         Value::Null,
         false,
     )
@@ -91,7 +134,22 @@ fn настройки_переживают_перезапуск() {
     let answer = read(&case);
 
     assert_eq!(answer["provider"]["enabled"], json!(true));
-    assert_eq!(answer["provider"]["model"], json!("llama3:8b"));
+    assert_eq!(answer["provider"]["local"]["model"], json!("llama3:8b"));
+}
+
+#[test]
+fn смена_вида_не_теряет_настройки_остальных() {
+    let case = case("switch");
+    let mut asked = settings("http://127.0.0.1:11434", "local");
+    save(&case, asked.clone(), Value::Null, false).unwrap();
+
+    asked["active"] = json!("harness");
+    save(&case, asked, Value::Null, false).unwrap();
+    let answer = read(&case);
+
+    assert_eq!(answer["provider"]["active"], json!("harness"));
+    assert_eq!(answer["provider"]["local"]["model"], json!("llama3:8b"));
+    assert_eq!(answer["provider"]["harness"]["command"], json!("claude"));
 }
 
 #[test]
@@ -100,7 +158,7 @@ fn ключ_ложится_в_хранилище_а_не_в_конфиг() {
 
     let answer = save(
         &case,
-        settings("https://api.example.test/v1", "openai"),
+        settings("https://api.example.test/v1", "remote"),
         json!("sk-секрет"),
         false,
     )
@@ -117,7 +175,7 @@ fn забытый_ключ_уходит_из_хранилища() {
     let case = case("forget");
     save(
         &case,
-        settings("https://api.example.test/v1", "openai"),
+        settings("https://api.example.test/v1", "remote"),
         json!("sk-секрет"),
         false,
     )
@@ -125,7 +183,13 @@ fn забытый_ключ_уходит_из_хранилища() {
 
     let answer = ask(
         &case,
-        json!({ "save": Value::Null, "key": Value::Null, "forget": true, "check": false }),
+        json!({
+            "save": Value::Null,
+            "key": Value::Null,
+            "forget": true,
+            "check": false,
+            "probe": false,
+        }),
     )
     .unwrap();
 
@@ -138,15 +202,10 @@ fn проверка_соединения_возвращает_модели() {
     let case = case("check");
     let heard = stub("200 OK", OLLAMA);
 
-    let answer = save(
-        &case,
-        settings(&heard.endpoint, "ollama"),
-        Value::Null,
-        true,
-    )
-    .unwrap();
+    let answer = save(&case, settings(&heard.endpoint, "local"), Value::Null, true).unwrap();
 
     assert_eq!(answer["checked"]["models"], json!(["llama3:8b"]));
+    assert_eq!(answer["checked"]["version"], Value::Null);
 }
 
 #[test]
@@ -156,7 +215,7 @@ fn отказ_провайдера_приходит_кодом_ошибки() {
 
     let failed = save(
         &case,
-        settings(&heard.endpoint, "openai"),
+        settings(&heard.endpoint, "remote"),
         json!("sk-плохой"),
         true,
     )
@@ -169,7 +228,7 @@ fn отказ_провайдера_приходит_кодом_ошибки() {
 fn выключенный_провайдер_не_проверяется() {
     let case = case("disabled");
     let heard = stub("200 OK", OLLAMA);
-    let mut asked = settings(&heard.endpoint, "ollama");
+    let mut asked = settings(&heard.endpoint, "local");
     asked["enabled"] = json!(false);
 
     let failed = save(&case, asked, Value::Null, true).unwrap_err();
@@ -178,8 +237,19 @@ fn выключенный_провайдер_не_проверяется() {
 }
 
 #[test]
+fn ненайденный_харнесс_приходит_своим_кодом() {
+    let case = case("harness");
+    let mut asked = settings("http://127.0.0.1:11434", "harness");
+    asked["harness"] = harness("tolearn-нет-такой-команды");
+
+    let failed = save(&case, asked, Value::Null, true).unwrap_err();
+
+    assert_eq!(failed.code, "harness.not-found");
+}
+
+#[test]
 fn неизвестный_вид_провайдера_отвергается() {
-    let case = case("flavor");
+    let case = case("kind");
 
     let failed = save(
         &case,
@@ -188,6 +258,17 @@ fn неизвестный_вид_провайдера_отвергается() {
         false,
     )
     .unwrap_err();
+
+    assert_eq!(failed.code, "provider.unknown-value");
+}
+
+#[test]
+fn нелепый_таймаут_харнесса_отвергается() {
+    let case = case("timeout");
+    let mut asked = settings("http://127.0.0.1:11434", "harness");
+    asked["harness"]["timeout_secs"] = json!(0);
+
+    let failed = save(&case, asked, Value::Null, false).unwrap_err();
 
     assert_eq!(failed.code, "provider.unknown-value");
 }

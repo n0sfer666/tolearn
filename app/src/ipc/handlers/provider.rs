@@ -1,9 +1,9 @@
-use tolearn_provider::{Provider, check};
+use tolearn_provider::{Provider, check, probe};
 
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
-use crate::ipc::provider::{denied, failed, refute, taken, view};
-use crate::ipc::types::{CheckedView, ProviderIn, ProviderOut};
+use crate::ipc::provider::{denied, failed, presets, refute, taken, view};
+use crate::ipc::types::{CheckedView, ProbedView, ProviderIn, ProviderOut};
 
 pub fn run(context: &Context, input: &ProviderIn) -> Result<ProviderOut, IpcError> {
     let mut provider = Provider::read(&context.provider()).map_err(failed)?;
@@ -20,15 +20,35 @@ pub fn run(context: &Context, input: &ProviderIn) -> Result<ProviderOut, IpcErro
 
     let key = context.vault().key().map_err(denied)?;
     let checked = match input.check {
-        true => Some(CheckedView {
-            models: check(&provider, key.as_deref()).map_err(refute)?.models,
-        }),
+        true => Some(checked(&provider, key.as_deref())?),
+        false => None,
+    };
+    let probed = match input.probe {
+        true => Some(probed(&provider, key.as_deref())?),
         false => None,
     };
     Ok(ProviderOut {
         provider: view(&provider),
         has_key: key.is_some(),
         checked,
+        probed,
+        presets: presets(),
+    })
+}
+
+fn checked(provider: &Provider, key: Option<&str>) -> Result<CheckedView, IpcError> {
+    let checked = check(provider, key).map_err(refute)?;
+    Ok(CheckedView {
+        models: checked.models,
+        version: checked.version,
+    })
+}
+
+fn probed(provider: &Provider, key: Option<&str>) -> Result<ProbedView, IpcError> {
+    let probed = probe(provider, key).map_err(refute)?;
+    Ok(ProbedView {
+        said: probed.said,
+        took_ms: probed.took_ms,
     })
 }
 

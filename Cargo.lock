@@ -6717,6 +6717,7 @@ dependencies = [
  "reqwest 0.12.28",
  "serde_json",
  "tolearn-core",
+ "tolearn-runner",
 ]
 
 [[package]]
