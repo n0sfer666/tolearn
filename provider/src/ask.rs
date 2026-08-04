@@ -9,35 +9,70 @@ use crate::wire::{apart, broken, client, given, refused};
 
 pub const PATIENCE: Duration = Duration::from_secs(180);
 
+const BRIEF_TOKENS: u32 = 128;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Length {
+    Full,
+    Brief,
+}
+
 pub fn ask(provider: &Provider, key: Option<&str>, prompt: &str) -> Result<String, CheckError> {
+    told(provider, key, prompt, Length::Full)
+}
+
+pub(crate) fn briefly(
+    provider: &Provider,
+    key: Option<&str>,
+    prompt: &str,
+) -> Result<String, CheckError> {
+    told(provider, key, prompt, Length::Brief)
+}
+
+fn told(
+    provider: &Provider,
+    key: Option<&str>,
+    prompt: &str,
+    length: Length,
+) -> Result<String, CheckError> {
     if !provider.enabled {
         return Err(CheckError::Disabled);
     }
     match provider.active {
         Kind::Harness => harness::ask(&provider.harness, prompt),
-        Kind::Local => spoken(&provider.local, None, prompt),
+        Kind::Local => spoken(&provider.local, None, prompt, length),
         Kind::Remote => {
             let key = given(key).ok_or(CheckError::NoKey)?;
-            spoken(&provider.remote, Some(key), prompt)
+            spoken(&provider.remote, Some(key), prompt, length)
         }
     }
 }
 
-fn spoken(http: &Http, key: Option<&str>, prompt: &str) -> Result<String, CheckError> {
+fn spoken(
+    http: &Http,
+    key: Option<&str>,
+    prompt: &str,
+    length: Length,
+) -> Result<String, CheckError> {
     if http.model.trim().is_empty() {
         return Err(CheckError::NoModel);
     }
     let asked = http.clone();
     let key = key.map(str::to_owned);
     let prompt = prompt.to_owned();
-    apart(move || send(&asked, key.as_deref(), &prompt))
+    apart(move || send(&asked, key.as_deref(), &prompt, length))
 }
 
-fn send(http: &Http, key: Option<&str>, prompt: &str) -> Result<String, CheckError> {
+fn send(
+    http: &Http,
+    key: Option<&str>,
+    prompt: &str,
+    length: Length,
+) -> Result<String, CheckError> {
     let mut request = client(PATIENCE)?
         .post(route(http))
         .header("content-type", "application/json")
-        .body(body(http, prompt).to_string());
+        .body(body(http, prompt, length).to_string());
     if let Some(key) = key {
         request = request.bearer_auth(key);
     }
@@ -48,7 +83,7 @@ fn send(http: &Http, key: Option<&str>, prompt: &str) -> Result<String, CheckErr
     }
 
     let body = answer.text().map_err(broken)?;
-    said(http.api, &body).ok_or(CheckError::BadAnswer)
+    said(http.api, &body, length).ok_or(CheckError::BadAnswer)
 }
 
 fn route(http: &Http) -> String {
@@ -59,28 +94,44 @@ fn route(http: &Http) -> String {
     }
 }
 
-fn body(http: &Http, prompt: &str) -> serde_json::Value {
-    json!({
+fn body(http: &Http, prompt: &str, length: Length) -> serde_json::Value {
+    let mut body = json!({
         "model": http.model,
         "messages": [{ "role": "user", "content": prompt }],
         "stream": false,
-    })
+    });
+    if length == Length::Brief {
+        match http.api {
+            Api::Ollama => body["options"] = json!({ "num_predict": BRIEF_TOKENS }),
+            Api::OpenAi => body["max_tokens"] = json!(BRIEF_TOKENS),
+        }
+    }
+    body
 }
 
-fn said(api: Api, body: &str) -> Option<String> {
+fn said(api: Api, body: &str, length: Length) -> Option<String> {
     let answer: serde_json::Value = serde_json::from_str(body).ok()?;
-    let said = match api {
-        Api::Ollama => answer.get("message")?.get("content")?,
-        Api::OpenAi => answer
-            .get("choices")?
-            .as_array()?
-            .first()?
-            .get("message")?
-            .get("content")?,
+    let message = match api {
+        Api::Ollama => answer.get("message")?,
+        Api::OpenAi => answer.get("choices")?.as_array()?.first()?.get("message")?,
     };
-    let said = said.as_str()?.trim();
-    match said.is_empty() {
-        true => None,
-        false => Some(said.to_owned()),
+    let told = |field: &str| {
+        message
+            .get(field)
+            .and_then(serde_json::Value::as_str)
+            .map(str::trim)
+            .filter(|said| !said.is_empty())
+    };
+    match length {
+        Length::Full => told("content"),
+        Length::Brief => told("content").or_else(|| told(thinking(api))),
+    }
+    .map(str::to_owned)
+}
+
+fn thinking(api: Api) -> &'static str {
+    match api {
+        Api::Ollama => "thinking",
+        Api::OpenAi => "reasoning_content",
     }
 }

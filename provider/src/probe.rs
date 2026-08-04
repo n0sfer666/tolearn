@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use crate::ask::ask;
+use crate::ask::briefly;
 use crate::error::CheckError;
 use crate::types::Provider;
 
@@ -16,7 +16,7 @@ pub struct Probed {
 
 pub fn probe(provider: &Provider, key: Option<&str>) -> Result<Probed, CheckError> {
     let started = Instant::now();
-    let said = ask(provider, key, PROMPT)?;
+    let said = briefly(provider, key, PROMPT)?;
     let took = u32::try_from(started.elapsed().as_millis()).unwrap_or(u32::MAX);
     Ok(Probed {
         said: said.chars().take(SAID_CHARS).collect(),

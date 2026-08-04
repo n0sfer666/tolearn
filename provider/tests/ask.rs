@@ -102,6 +102,57 @@ fn пробный_запрос_меряет_время_и_показывает_�
 }
 
 #[test]
+fn пробный_запрос_просит_короткий_ответ() {
+    let heard = stub("200 OK", r#"{"choices":[{"message":{"content":"готов"}}]}"#);
+    let mut asked = provider(&heard.endpoint, Kind::Local, "qwen3");
+    asked.local.api = Api::OpenAi;
+
+    probe(&asked, None).expect("сервер отвечает");
+
+    let request = heard.heard().join("\n");
+    assert!(request.contains("\"max_tokens\""), "{request}");
+}
+
+#[test]
+fn пробный_запрос_к_ollama_ограничен_её_полем() {
+    let heard = stub("200 OK", r#"{"message":{"content":"готов"}}"#);
+    let asked = provider(&heard.endpoint, Kind::Local, "llama3:8b");
+
+    probe(&asked, None).expect("сервер отвечает");
+
+    let request = heard.heard().join("\n");
+    assert!(request.contains("\"num_predict\""), "{request}");
+}
+
+#[test]
+fn пробный_запрос_принимает_рассуждение_вместо_пустого_ответа() {
+    let heard = stub(
+        "200 OK",
+        r#"{"choices":[{"message":{"content":"","reasoning_content":"думаю, что готов"}}]}"#,
+    );
+    let mut asked = provider(&heard.endpoint, Kind::Local, "qwen3");
+    asked.local.api = Api::OpenAi;
+
+    let probed = probe(&asked, None).expect("рассуждение — тоже ответ");
+
+    assert_eq!(probed.said, "думаю, что готов");
+}
+
+#[test]
+fn экзамен_не_подменяет_ответ_рассуждением_и_длину_не_режет() {
+    let heard = stub(
+        "200 OK",
+        r#"{"choices":[{"message":{"content":"","reasoning_content":"думаю"}}]}"#,
+    );
+    let mut asked = provider(&heard.endpoint, Kind::Local, "qwen3");
+    asked.local.api = Api::OpenAi;
+
+    assert_eq!(ask(&asked, None, "спроси"), Err(CheckError::BadAnswer));
+    let request = heard.heard().join("\n");
+    assert!(!request.contains("max_tokens"), "{request}");
+}
+
+#[test]
 fn отказ_по_ключу_виден_как_отказ() {
     let heard = stub("401 Unauthorized", "{}");
     let asked = provider(&heard.endpoint, Kind::Remote, "gpt-4o-mini");
