@@ -3,6 +3,9 @@ use crate::preset::CLAUDE;
 pub const DEFAULT_ENDPOINT: &str = "http://127.0.0.1:11434";
 pub const OPENAI_ENDPOINT: &str = "http://127.0.0.1:8080/v1";
 pub const DEFAULT_TIMEOUT_SECS: u32 = 180;
+pub const DEFAULT_TEMPERATURE_TENTHS: u32 = 7;
+pub const TEMPERATURE_TENTHS_MAX: u32 = 20;
+pub const NUM_CTX_MAX: u32 = 1_048_576;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Provider {
@@ -79,6 +82,8 @@ pub struct Http {
     pub endpoint: String,
     pub api: Api,
     pub model: String,
+    pub num_ctx: u32,
+    pub temperature_tenths: u32,
 }
 
 impl Http {
@@ -87,6 +92,8 @@ impl Http {
             endpoint: DEFAULT_ENDPOINT.to_owned(),
             api: Api::Ollama,
             model: String::new(),
+            num_ctx: 0,
+            temperature_tenths: DEFAULT_TEMPERATURE_TENTHS,
         }
     }
 
@@ -95,6 +102,8 @@ impl Http {
             endpoint: String::new(),
             api: Api::OpenAi,
             model: String::new(),
+            num_ctx: 0,
+            temperature_tenths: DEFAULT_TEMPERATURE_TENTHS,
         }
     }
 }

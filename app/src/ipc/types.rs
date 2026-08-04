@@ -519,6 +519,8 @@ dto!(HttpView {
     endpoint: String,
     api: String,
     model: String,
+    num_ctx: u32,
+    temperature_tenths: u32,
 });
 dto!(HarnessView {
     id: String,

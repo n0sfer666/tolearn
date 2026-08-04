@@ -271,6 +271,9 @@ export const en: Dictionary = {
     apiHint:
       "Ollama listens on 11434, llama-server on 8080 under /v1. If it does not match, compare the endpoint with what the server printed at startup.",
     endpoint: "Endpoint",
+    context: "Context, tokens (0 — leave it to the server)",
+    contextHint: "The context is set when the server starts — the -c flag.",
+    temperature: "Temperature",
     model: "Model",
     key: "Key",
     keyStored: "the key is kept in the system store",

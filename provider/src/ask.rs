@@ -108,13 +108,28 @@ fn body(http: &Http, prompt: &str, length: Length) -> serde_json::Value {
         "messages": [{ "role": "user", "content": prompt }],
         "stream": false,
     });
-    if length == Length::Brief {
-        match http.api {
-            Api::Ollama => body["options"] = json!({ "num_predict": BRIEF_TOKENS }),
-            Api::OpenAi => body["max_tokens"] = json!(BRIEF_TOKENS),
+    let heat = json!(f64::from(http.temperature_tenths) / 10.0);
+    match http.api {
+        Api::Ollama => body["options"] = options(http, heat, length),
+        Api::OpenAi => {
+            body["temperature"] = heat;
+            if length == Length::Brief {
+                body["max_tokens"] = json!(BRIEF_TOKENS);
+            }
         }
     }
     body
+}
+
+fn options(http: &Http, heat: serde_json::Value, length: Length) -> serde_json::Value {
+    let mut options = json!({ "temperature": heat });
+    if http.num_ctx > 0 {
+        options["num_ctx"] = json!(http.num_ctx);
+    }
+    if length == Length::Brief {
+        options["num_predict"] = json!(BRIEF_TOKENS);
+    }
+    options
 }
 
 fn said(api: Api, body: &str, length: Length) -> Option<Told> {

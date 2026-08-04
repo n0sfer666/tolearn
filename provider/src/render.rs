@@ -20,10 +20,12 @@ pub fn text(provider: &Provider) -> String {
 
 fn http(http: &Http) -> String {
     format!(
-        "  endpoint: {}\n  api: {}\n  model: {}\n",
+        "  endpoint: {}\n  api: {}\n  model: {}\n  num_ctx: {}\n  temperature_tenths: {}\n",
         quoted(&http.endpoint),
         http.api.label(),
         quoted(&http.model),
+        http.num_ctx,
+        http.temperature_tenths,
     )
 }
 

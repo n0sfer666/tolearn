@@ -1,5 +1,6 @@
 use tolearn_provider::{
-    Api, CheckError, Harness, Http, Kind, PRESETS, Provider, ProviderError, VaultError,
+    Api, CheckError, Harness, Http, Kind, NUM_CTX_MAX, PRESETS, Provider, ProviderError,
+    TEMPERATURE_TENTHS_MAX, VaultError,
 };
 
 use crate::ipc::error::IpcError;
@@ -85,14 +86,24 @@ fn seen(http: &Http) -> HttpView {
         endpoint: http.endpoint.clone(),
         api: http.api.label().to_owned(),
         model: http.model.clone(),
+        num_ctx: http.num_ctx,
+        temperature_tenths: http.temperature_tenths,
     }
 }
 
 fn told(view: &HttpView) -> Result<Http, IpcError> {
+    if view.num_ctx > NUM_CTX_MAX {
+        return Err(refused("контекст", &view.num_ctx.to_string()));
+    }
+    if view.temperature_tenths > TEMPERATURE_TENTHS_MAX {
+        return Err(refused("температуру", &view.temperature_tenths.to_string()));
+    }
     Ok(Http {
         endpoint: view.endpoint.trim().to_owned(),
         api: Api::parse(&view.api).ok_or_else(|| refused("API", &view.api))?,
         model: view.model.trim().to_owned(),
+        num_ctx: view.num_ctx,
+        temperature_tenths: view.temperature_tenths,
     })
 }
 

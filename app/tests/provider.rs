@@ -74,7 +74,15 @@ fn save(case: &Case, provider: Value, key: Value, check: bool) -> Result<Value, 
 }
 
 fn settings(endpoint: &str, active: &str) -> Value {
-    let http = |api| json!({ "endpoint": endpoint, "api": api, "model": "llama3:8b" });
+    let http = |api| {
+        json!({
+            "endpoint": endpoint,
+            "api": api,
+            "model": "llama3:8b",
+            "num_ctx": 0,
+            "temperature_tenths": 7,
+        })
+    };
     json!({
         "enabled": true,
         "active": active,
@@ -283,6 +291,31 @@ fn выбранный_api_переживает_перезапуск() {
     let answer = read(&case);
 
     assert_eq!(answer["provider"]["local"]["api"], json!("openai"));
+}
+
+#[test]
+fn нелепая_температура_отвергается() {
+    let case = case("temperature");
+    let mut asked = settings("http://127.0.0.1:11434", "local");
+    asked["local"]["temperature_tenths"] = json!(99);
+
+    let failed = save(&case, asked, Value::Null, false).unwrap_err();
+
+    assert_eq!(failed.code, "provider.unknown-value");
+}
+
+#[test]
+fn контекст_и_температура_переживают_перезапуск() {
+    let case = case("tuning-stored");
+    let mut asked = settings("http://127.0.0.1:11434", "local");
+    asked["local"]["num_ctx"] = json!(16_384);
+    asked["local"]["temperature_tenths"] = json!(3);
+
+    save(&case, asked, Value::Null, false).unwrap();
+    let answer = read(&case);
+
+    assert_eq!(answer["provider"]["local"]["num_ctx"], json!(16_384));
+    assert_eq!(answer["provider"]["local"]["temperature_tenths"], json!(3));
 }
 
 #[test]

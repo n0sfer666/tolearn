@@ -42,7 +42,15 @@ fn case(name: &str) -> Case {
 }
 
 fn settings(endpoint: &str, active: &str, enabled: bool) -> Value {
-    let http = |api| json!({ "endpoint": endpoint, "api": api, "model": "llama3:8b" });
+    let http = |api| {
+        json!({
+            "endpoint": endpoint,
+            "api": api,
+            "model": "llama3:8b",
+            "num_ctx": 0,
+            "temperature_tenths": 7,
+        })
+    };
     json!({
         "enabled": enabled,
         "active": active,

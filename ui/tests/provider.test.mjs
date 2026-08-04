@@ -21,8 +21,14 @@ before(
 const DEFAULTS = {
   enabled: false,
   active: "local",
-  local: { endpoint: "http://127.0.0.1:11434", api: "ollama", model: "" },
-  remote: { endpoint: "", api: "openai", model: "" },
+  local: {
+    endpoint: "http://127.0.0.1:11434",
+    api: "ollama",
+    model: "",
+    num_ctx: 0,
+    temperature_tenths: 7,
+  },
+  remote: { endpoint: "", api: "openai", model: "", num_ctx: 0, temperature_tenths: 7 },
   harness: { id: "claude", command: "claude", args: ["-p"], timeout_secs: 180 },
 };
 
@@ -119,7 +125,7 @@ test("правки уходят на сохранение одной коман�
   assert.deepEqual(calls[1].payload.save, {
     ...DEFAULTS,
     enabled: true,
-    local: { endpoint: "http://127.0.0.1:1234", api: "ollama", model: "" },
+    local: { ...DEFAULTS.local, endpoint: "http://127.0.0.1:1234" },
   });
   assert.equal(calls[1].payload.check, false);
   assert.deepEqual(said.at(-1), { tone: "ok", text: ru.provider.saved });
@@ -127,7 +133,7 @@ test("правки уходят на сохранение одной коман�
 
 test("настройки неактивных видов уходят вместе с активным", async () => {
   const { host, calls } = mount({
-    stored: { local: { endpoint: "http://здесь", api: "ollama", model: "qwen3" } },
+    stored: { local: { ...DEFAULTS.local, endpoint: "http://здесь", model: "qwen3" } },
   });
   await settled();
 
@@ -137,8 +143,8 @@ test("настройки неактивных видов уходят вмест
 
   assert.equal(calls[1].payload.save.active, "harness");
   assert.deepEqual(calls[1].payload.save.local, {
+    ...DEFAULTS.local,
     endpoint: "http://здесь",
-    api: "ollama",
     model: "qwen3",
   });
 });
@@ -154,15 +160,17 @@ test("локальной модели выбирают API, и типовой а
 
   assert.equal(host.querySelector("[data-endpoint]").value, "http://127.0.0.1:8080/v1");
   assert.deepEqual(calls[1].payload.save.local, {
+    ...DEFAULTS.local,
     endpoint: "http://127.0.0.1:8080/v1",
     api: "openai",
-    model: "",
   });
 });
 
 test("свой адрес смена API не затирает", async () => {
   const { host, calls } = mount({
-    stored: { local: { endpoint: "http://192.168.1.10:9000/v1", api: "ollama", model: "qwen3" } },
+    stored: {
+      local: { ...DEFAULTS.local, endpoint: "http://192.168.1.10:9000/v1", model: "qwen3" },
+    },
   });
   await settled();
 
@@ -172,6 +180,33 @@ test("свой адрес смена API не затирает", async () => {
 
   assert.equal(calls[1].payload.save.local.endpoint, "http://192.168.1.10:9000/v1");
   assert.equal(calls[1].payload.save.local.api, "openai");
+});
+
+test("контекст спрашивают только у ollama", async () => {
+  const { host } = mount();
+  await settled();
+
+  assert.notEqual(host.querySelector("[data-num-ctx]"), null);
+  assert.equal(host.querySelector("[data-context-hint]"), null);
+
+  host.querySelector("[data-api=openai]").click();
+  await settled();
+
+  assert.equal(host.querySelector("[data-num-ctx]"), null);
+  assert.equal(host.querySelector("[data-context-hint]").textContent, ru.provider.contextHint);
+});
+
+test("контекст и температура уходят в сохранение числами", async () => {
+  const { host, calls } = mount();
+  await settled();
+
+  input(host, "[data-num-ctx]", "16384");
+  input(host, "[data-temperature]", "0.3");
+  host.querySelector("[data-save]").click();
+  await settled();
+
+  assert.equal(calls[1].payload.save.local.num_ctx, 16384);
+  assert.equal(calls[1].payload.save.local.temperature_tenths, 3);
 });
 
 test("у внешнего сервиса выбора API нет", async () => {

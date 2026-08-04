@@ -620,6 +620,8 @@ export type HttpView = {
   endpoint: string;
   api: string;
   model: string;
+  num_ctx: number;
+  temperature_tenths: number;
 };
 
 export type HarnessView = {

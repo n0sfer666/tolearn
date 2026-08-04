@@ -116,6 +116,7 @@ export default function Provider(props: Props) {
             <HttpFields
               text={props.text}
               value={current().local}
+              local
               onChange={(local) => change({ local })}
             />
           </Show>
@@ -124,6 +125,7 @@ export default function Provider(props: Props) {
             <HttpFields
               text={props.text}
               value={current().remote}
+              local={false}
               onChange={(remote) => change({ remote })}
             />
             <label>

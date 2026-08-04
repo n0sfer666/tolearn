@@ -18,6 +18,7 @@ fn http(endpoint: &str, api: Api) -> Http {
         endpoint: endpoint.to_owned(),
         api,
         model: String::new(),
+        ..Http::local()
     }
 }
 

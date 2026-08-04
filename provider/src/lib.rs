@@ -20,6 +20,7 @@ pub use error::{CheckError, ProviderError, VaultError};
 pub use preset::{PRESETS, Preset, preset};
 pub use probe::{Probed, probe};
 pub use types::{
-    Api, DEFAULT_ENDPOINT, DEFAULT_TIMEOUT_SECS, Harness, Http, Kind, OPENAI_ENDPOINT, Provider,
+    Api, DEFAULT_ENDPOINT, DEFAULT_TEMPERATURE_TENTHS, DEFAULT_TIMEOUT_SECS, Harness, Http, Kind,
+    NUM_CTX_MAX, OPENAI_ENDPOINT, Provider, TEMPERATURE_TENTHS_MAX,
 };
 pub use vault::{Keychain, Remembered, Vault};

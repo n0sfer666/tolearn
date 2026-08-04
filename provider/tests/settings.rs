@@ -9,8 +9,8 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use tolearn_provider::{
-    Api, DEFAULT_ENDPOINT, DEFAULT_TIMEOUT_SECS, Harness, Http, Keychain, Kind, OPENAI_ENDPOINT,
-    Provider, Remembered, Vault,
+    Api, DEFAULT_ENDPOINT, DEFAULT_TEMPERATURE_TENTHS, DEFAULT_TIMEOUT_SECS, Harness, Http,
+    Keychain, Kind, OPENAI_ENDPOINT, Provider, Remembered, Vault,
 };
 
 static FILES: AtomicUsize = AtomicUsize::new(0);
@@ -34,11 +34,13 @@ fn filled(active: Kind) -> Provider {
             endpoint: OPENAI_ENDPOINT.to_owned(),
             api: Api::OpenAi,
             model: "qwen3:8b".to_owned(),
+            ..Http::local()
         },
         remote: Http {
             endpoint: "https://api.example.test/v1".to_owned(),
             api: Api::OpenAi,
             model: "gpt-4o-mini".to_owned(),
+            ..Http::remote()
         },
         harness: Harness {
             id: "custom".to_owned(),
@@ -108,6 +110,42 @@ fn выбранный_api_переживает_запись_и_чтение() {
 
     assert_eq!(stored.local.api, Api::Ollama);
     assert_eq!(stored.remote.api, Api::OpenAi);
+}
+
+#[test]
+fn контекст_и_температура_переживают_запись_и_чтение() {
+    let file = path("tuning");
+    let mut provider = filled(Kind::Local);
+    provider.local.num_ctx = 16_384;
+    provider.local.temperature_tenths = 3;
+    provider.save(&file).unwrap();
+
+    let stored = Provider::read(&file).unwrap();
+
+    assert_eq!(stored.local.num_ctx, 16_384);
+    assert_eq!(stored.local.temperature_tenths, 3);
+}
+
+#[test]
+fn конфиг_без_контекста_и_температуры_читается_как_прежде() {
+    let file = path("v2-no-tuning");
+    std::fs::write(
+        &file,
+        concat!(
+            "schema: tolearn/provider/v2\n",
+            "enabled: true\n",
+            "active: local\n",
+            "local:\n  endpoint: http://127.0.0.1:11434\n  api: ollama\n  model: qwen3:8b\n",
+            "remote:\n  endpoint: https://api.example.test/v1\n  api: openai\n  model: gpt-4o-mini\n",
+            "harness:\n  id: claude\n  command: claude\n  args:\n    - -p\n  timeout_secs: 180\n",
+        ),
+    )
+    .unwrap();
+
+    let stored = Provider::read(&file).unwrap();
+
+    assert_eq!(stored.local.num_ctx, 0);
+    assert_eq!(stored.local.temperature_tenths, DEFAULT_TEMPERATURE_TENTHS);
 }
 
 #[test]

@@ -3,6 +3,7 @@ import type { HttpView, ProbedView, ProviderView } from "../ipc";
 
 const OLLAMA_ENDPOINT = "http://127.0.0.1:11434";
 const OPENAI_ENDPOINT = "http://127.0.0.1:8080/v1";
+const TEMPERATURE_TENTHS_MAX = 20;
 
 export function spoken(http: HttpView, api: string): HttpView {
   const typical = api === "ollama" ? OLLAMA_ENDPOINT : OPENAI_ENDPOINT;
@@ -11,6 +12,22 @@ export function spoken(http: HttpView, api: string): HttpView {
     http.endpoint.trim() === OLLAMA_ENDPOINT ||
     http.endpoint.trim() === OPENAI_ENDPOINT;
   return { ...http, api, endpoint: untouched ? typical : http.endpoint };
+}
+
+export function heat(tenths: number): string {
+  return (tenths / 10).toFixed(1);
+}
+
+export function tenths(said: string): number {
+  const asked = Number.parseFloat(said);
+  if (Number.isNaN(asked)) return 0;
+  return Math.min(Math.max(Math.round(asked * 10), 0), TEMPERATURE_TENTHS_MAX);
+}
+
+export function numbered(said: string, most: number): number {
+  const asked = Number.parseInt(said, 10);
+  if (Number.isNaN(asked)) return 0;
+  return Math.min(Math.max(asked, 0), most);
 }
 
 export function answered(probed: ProbedView, text: Dictionary): string {

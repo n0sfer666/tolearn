@@ -15,6 +15,7 @@ fn http(endpoint: &str, api: Api, model: &str) -> Http {
         endpoint: endpoint.to_owned(),
         api,
         model: model.to_owned(),
+        ..Http::local()
     }
 }
 
@@ -79,6 +80,51 @@ fn внешний_путь_получает_ключ() {
     let request = heard.heard().join("\n");
     assert!(request.contains("POST /chat/completions"), "{request}");
     assert!(request.contains("Bearer sk-ключ"), "{request}");
+}
+
+#[test]
+fn ollama_получает_контекст_и_температуру_в_options() {
+    let heard = stub("200 OK", r#"{"message":{"content":"вердикт"}}"#);
+    let mut asked = provider(&heard.endpoint, Kind::Local, "llama3:8b");
+    asked.local.num_ctx = 16_384;
+    asked.local.temperature_tenths = 3;
+
+    ask(&asked, None, "спроси").expect("сервер отвечает");
+
+    let request = heard.heard().join("\n");
+    assert!(request.contains("\"num_ctx\":16384"), "{request}");
+    assert!(request.contains("\"temperature\":0.3"), "{request}");
+}
+
+#[test]
+fn нулевой_контекст_у_ollama_не_отправляется() {
+    let heard = stub("200 OK", r#"{"message":{"content":"вердикт"}}"#);
+    let mut asked = provider(&heard.endpoint, Kind::Local, "llama3:8b");
+    asked.local.num_ctx = 0;
+
+    ask(&asked, None, "спроси").expect("сервер отвечает");
+
+    let request = heard.heard().join("\n");
+    assert!(!request.contains("num_ctx"), "{request}");
+    assert!(request.contains("\"temperature\""), "{request}");
+}
+
+#[test]
+fn openai_совместимый_получает_температуру_без_контекста() {
+    let heard = stub(
+        "200 OK",
+        r#"{"choices":[{"message":{"content":"вердикт"}}]}"#,
+    );
+    let mut asked = provider(&heard.endpoint, Kind::Local, "qwen3");
+    asked.local.api = Api::OpenAi;
+    asked.local.num_ctx = 16_384;
+    asked.local.temperature_tenths = 12;
+
+    ask(&asked, None, "спроси").expect("сервер отвечает");
+
+    let request = heard.heard().join("\n");
+    assert!(request.contains("\"temperature\":1.2"), "{request}");
+    assert!(!request.contains("num_ctx"), "{request}");
 }
 
 #[test]

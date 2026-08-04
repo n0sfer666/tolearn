@@ -11,6 +11,7 @@ pub fn provider(node: &Reader<'_>) -> Result<Provider, ParseError> {
         endpoint: endpoint.clone(),
         api,
         model: model.clone(),
+        ..Http::local()
     };
 
     match flavor.text()?.as_str() {
