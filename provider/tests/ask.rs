@@ -136,6 +136,19 @@ fn пробный_запрос_принимает_рассуждение_вме�
     let probed = probe(&asked, None).expect("рассуждение — тоже ответ");
 
     assert_eq!(probed.said, "думаю, что готов");
+    assert!(probed.thinking);
+}
+
+#[test]
+fn обычный_ответ_рассуждением_не_зовётся() {
+    let heard = stub("200 OK", r#"{"choices":[{"message":{"content":"готов"}}]}"#);
+    let mut asked = provider(&heard.endpoint, Kind::Local, "qwen3");
+    asked.local.api = Api::OpenAi;
+
+    let probed = probe(&asked, None).expect("сервер отвечает");
+
+    assert_eq!(probed.said, "готов");
+    assert!(!probed.thinking);
 }
 
 #[test]

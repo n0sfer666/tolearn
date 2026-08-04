@@ -17,15 +17,21 @@ enum Length {
     Brief,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct Told {
+    pub said: String,
+    pub thinking: bool,
+}
+
 pub fn ask(provider: &Provider, key: Option<&str>, prompt: &str) -> Result<String, CheckError> {
-    told(provider, key, prompt, Length::Full)
+    told(provider, key, prompt, Length::Full).map(|told| told.said)
 }
 
 pub(crate) fn briefly(
     provider: &Provider,
     key: Option<&str>,
     prompt: &str,
-) -> Result<String, CheckError> {
+) -> Result<Told, CheckError> {
     told(provider, key, prompt, Length::Brief)
 }
 
@@ -34,12 +40,12 @@ fn told(
     key: Option<&str>,
     prompt: &str,
     length: Length,
-) -> Result<String, CheckError> {
+) -> Result<Told, CheckError> {
     if !provider.enabled {
         return Err(CheckError::Disabled);
     }
     match provider.active {
-        Kind::Harness => harness::ask(&provider.harness, prompt),
+        Kind::Harness => harness::ask(&provider.harness, prompt).map(plainly),
         Kind::Local => spoken(&provider.local, None, prompt, length),
         Kind::Remote => {
             let key = given(key).ok_or(CheckError::NoKey)?;
@@ -48,12 +54,19 @@ fn told(
     }
 }
 
+fn plainly(said: String) -> Told {
+    Told {
+        said,
+        thinking: false,
+    }
+}
+
 fn spoken(
     http: &Http,
     key: Option<&str>,
     prompt: &str,
     length: Length,
-) -> Result<String, CheckError> {
+) -> Result<Told, CheckError> {
     if http.model.trim().is_empty() {
         return Err(CheckError::NoModel);
     }
@@ -63,12 +76,7 @@ fn spoken(
     apart(move || send(&asked, key.as_deref(), &prompt, length))
 }
 
-fn send(
-    http: &Http,
-    key: Option<&str>,
-    prompt: &str,
-    length: Length,
-) -> Result<String, CheckError> {
+fn send(http: &Http, key: Option<&str>, prompt: &str, length: Length) -> Result<Told, CheckError> {
     let mut request = client(PATIENCE)?
         .post(route(http))
         .header("content-type", "application/json")
@@ -109,7 +117,7 @@ fn body(http: &Http, prompt: &str, length: Length) -> serde_json::Value {
     body
 }
 
-fn said(api: Api, body: &str, length: Length) -> Option<String> {
+fn said(api: Api, body: &str, length: Length) -> Option<Told> {
     let answer: serde_json::Value = serde_json::from_str(body).ok()?;
     let message = match api {
         Api::Ollama => answer.get("message")?,
@@ -121,12 +129,18 @@ fn said(api: Api, body: &str, length: Length) -> Option<String> {
             .and_then(serde_json::Value::as_str)
             .map(str::trim)
             .filter(|said| !said.is_empty())
+            .map(str::to_owned)
     };
-    match length {
-        Length::Full => told("content"),
-        Length::Brief => told("content").or_else(|| told(thinking(api))),
+    if let Some(said) = told("content") {
+        return Some(plainly(said));
     }
-    .map(str::to_owned)
+    match length {
+        Length::Full => None,
+        Length::Brief => told(thinking(api)).map(|said| Told {
+            said,
+            thinking: true,
+        }),
+    }
 }
 
 fn thinking(api: Api) -> &'static str {

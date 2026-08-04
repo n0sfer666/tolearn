@@ -49,6 +49,7 @@ fn probed(provider: &Provider, key: Option<&str>) -> Result<ProbedView, IpcError
     Ok(ProbedView {
         said: probed.said,
         took_ms: probed.took_ms,
+        thinking: probed.thinking,
     })
 }
 

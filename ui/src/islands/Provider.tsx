@@ -7,7 +7,7 @@ import Kinds from "../components/settings/Kinds";
 import type { Locale } from "../i18n";
 import type { Dictionary } from "../i18n/ru";
 import type { CheckedView, PresetView, ProbedView, ProviderOut, ProviderView } from "../ipc";
-import { reason, spoken } from "../lib/provider";
+import { answered, reason, spoken } from "../lib/provider";
 import { quiet } from "../lib/ipc";
 import { toast } from "../lib/toast";
 import type { Transport } from "../lib/ipc";
@@ -179,11 +179,7 @@ export default function Provider(props: Props) {
           </Show>
 
           <Show when={probed()}>
-            {(said) => (
-              <p data-probed>
-                {props.text.provider.said} {said().said}
-              </p>
-            )}
+            {(said) => <p data-probed>{answered(said(), props.text)}</p>}
           </Show>
         </article>
       )}

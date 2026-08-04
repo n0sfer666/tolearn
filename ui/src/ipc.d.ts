@@ -643,6 +643,7 @@ export type CheckedView = {
 export type ProbedView = {
   said: string;
   took_ms: number;
+  thinking: boolean;
 };
 
 export type SaveOfflineIn = {

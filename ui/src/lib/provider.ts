@@ -1,5 +1,5 @@
 import type { Dictionary } from "../i18n/ru";
-import type { HttpView, ProviderView } from "../ipc";
+import type { HttpView, ProbedView, ProviderView } from "../ipc";
 
 const OLLAMA_ENDPOINT = "http://127.0.0.1:11434";
 const OPENAI_ENDPOINT = "http://127.0.0.1:8080/v1";
@@ -11,6 +11,12 @@ export function spoken(http: HttpView, api: string): HttpView {
     http.endpoint.trim() === OLLAMA_ENDPOINT ||
     http.endpoint.trim() === OPENAI_ENDPOINT;
   return { ...http, api, endpoint: untouched ? typical : http.endpoint };
+}
+
+export function answered(probed: ProbedView, text: Dictionary): string {
+  if (!probed.thinking) return `${text.provider.said} ${probed.said}`;
+  const took = (probed.took_ms / 1000).toFixed(1);
+  return `${text.provider.thinking} ${took} ${text.provider.seconds}`;
 }
 
 export function reason(error: unknown, text: Dictionary): string {

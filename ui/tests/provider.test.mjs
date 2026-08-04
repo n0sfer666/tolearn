@@ -54,7 +54,10 @@ function mount(options = {}) {
       provider: payload.save ?? { ...DEFAULTS, ...options.stored },
       has_key: payload.forget === true ? false : payload.key !== null || options.hasKey === true,
       checked: payload.check === true ? { models: ["llama3:8b"], version: null } : null,
-      probed: payload.probe === true ? { said: "готов", took_ms: 42 } : null,
+      probed:
+        payload.probe === true
+          ? { said: options.thinking ?? "готов", took_ms: 3680, thinking: options.thinking != null }
+          : null,
       presets: PRESETS,
     });
   };
@@ -251,6 +254,18 @@ test("пробный запрос показывает ответ модели",
 
   assert.equal(calls[1].payload.probe, true);
   assert.match(host.querySelector("[data-probed]").textContent, /готов/);
+});
+
+test("размышление вместо ответа не выдаётся за ответ", async () => {
+  const { host } = mount({ stored: { enabled: true }, thinking: "Thinking Process: 1. Analyze" });
+  await settled();
+
+  host.querySelector("[data-probe]").click();
+  await settled();
+
+  const shown = host.querySelector("[data-probed]").textContent;
+  assert.match(shown, /3\.7/);
+  assert.doesNotMatch(shown, /Thinking Process/);
 });
 
 test("отказ провайдера объясняется словами", async () => {

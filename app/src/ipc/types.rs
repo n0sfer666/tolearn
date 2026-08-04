@@ -538,6 +538,7 @@ dto!(CheckedView {
 dto!(ProbedView {
     said: String,
     took_ms: u32,
+    thinking: bool,
 });
 
 dto!(SaveOfflineIn {

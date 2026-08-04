@@ -12,14 +12,16 @@ const SAID_CHARS: usize = 400;
 pub struct Probed {
     pub said: String,
     pub took_ms: u32,
+    pub thinking: bool,
 }
 
 pub fn probe(provider: &Provider, key: Option<&str>) -> Result<Probed, CheckError> {
     let started = Instant::now();
-    let said = briefly(provider, key, PROMPT)?;
+    let told = briefly(provider, key, PROMPT)?;
     let took = u32::try_from(started.elapsed().as_millis()).unwrap_or(u32::MAX);
     Ok(Probed {
-        said: said.chars().take(SAID_CHARS).collect(),
+        said: told.said.chars().take(SAID_CHARS).collect(),
         took_ms: took,
+        thinking: told.thinking,
     })
 }

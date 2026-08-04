@@ -293,6 +293,8 @@ export const en: Dictionary = {
     checked: "Connected, models:",
     version: "The harness is there:",
     said: "The model answered:",
+    thinking: "The model answers — it thinks aloud, a ready answer takes",
+    seconds: "s",
     saved: "saved",
     failed: "failed",
     disabled: "The provider is disabled",
