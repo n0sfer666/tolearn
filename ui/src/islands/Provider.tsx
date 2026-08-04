@@ -3,10 +3,19 @@ import { Show, createSignal, onMount } from "solid-js";
 import Apis from "../components/settings/Apis";
 import HarnessFields from "../components/settings/HarnessFields";
 import HttpFields from "../components/settings/HttpFields";
+import KeyField from "../components/settings/KeyField";
 import Kinds from "../components/settings/Kinds";
+import Models from "../components/settings/Models";
 import type { Locale } from "../i18n";
 import type { Dictionary } from "../i18n/ru";
-import type { CheckedView, PresetView, ProbedView, ProviderOut, ProviderView } from "../ipc";
+import type {
+  AdviceView,
+  CheckedView,
+  PresetView,
+  ProbedView,
+  ProviderOut,
+  ProviderView,
+} from "../ipc";
 import { answered, reason, spoken } from "../lib/provider";
 import { quiet } from "../lib/ipc";
 import { toast } from "../lib/toast";
@@ -27,12 +36,14 @@ export default function Provider(props: Props) {
   const [presets, setPresets] = createSignal<PresetView[]>([]);
   const [checked, setChecked] = createSignal<CheckedView | null>(null);
   const [probed, setProbed] = createSignal<ProbedView | null>(null);
+  const [advised, setAdvised] = createSignal<AdviceView[]>([]);
   const [busy, setBusy] = createSignal(false);
 
   const took = (answer: ProviderOut) => {
     setDraft(answer.provider);
     setStored(answer.has_key);
     setPresets(answer.presets);
+    setAdvised(answer.advised);
     setChecked(answer.checked);
     setProbed(answer.probed);
   };
@@ -119,6 +130,12 @@ export default function Provider(props: Props) {
               local
               onChange={(local) => change({ local })}
             />
+            <Models
+              text={props.text}
+              advised={advised()}
+              chosen={current().local.model}
+              onPick={(model) => change({ local: { ...current().local, model } })}
+            />
           </Show>
 
           <Show when={current().active === "remote"}>
@@ -128,23 +145,13 @@ export default function Provider(props: Props) {
               local={false}
               onChange={(remote) => change({ remote })}
             />
-            <label>
-              {props.text.provider.key}
-              <input
-                data-key
-                type="password"
-                value={key()}
-                onInput={(event) => setKey(event.currentTarget.value)}
-              />
-            </label>
-            <p data-stored>
-              {stored() ? props.text.provider.keyStored : props.text.provider.keyEmpty}
-            </p>
-            <Show when={stored()}>
-              <button type="button" data-forget onClick={() => send(false, false, true)}>
-                {props.text.provider.forget}
-              </button>
-            </Show>
+            <KeyField
+              text={props.text}
+              value={key()}
+              stored={stored()}
+              onChange={setKey}
+              onForget={() => send(false, false, true)}
+            />
           </Show>
 
           <Show when={current().active === "harness"}>

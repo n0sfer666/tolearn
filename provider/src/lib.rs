@@ -4,6 +4,8 @@ mod check;
 mod error;
 mod harness;
 mod legacy;
+mod memory;
+mod models;
 mod parse;
 mod preset;
 mod probe;
@@ -17,6 +19,8 @@ mod wire;
 pub use ask::ask;
 pub use check::{Checked, check};
 pub use error::{CheckError, ProviderError, VaultError};
+pub use memory::memory;
+pub use models::{Advice, advised, known};
 pub use preset::{PRESETS, Preset, preset};
 pub use probe::{Probed, probe};
 pub use types::{

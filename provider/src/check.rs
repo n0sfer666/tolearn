@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use crate::error::CheckError;
 use crate::harness;
+use crate::models::known;
 use crate::types::{Api, Http, Kind, Provider};
 use crate::wire::{apart, broken, client, given, refused};
 
@@ -19,12 +20,24 @@ pub fn check(provider: &Provider, key: Option<&str>) -> Result<Checked, CheckErr
     }
     match provider.active {
         Kind::Harness => harness::version(&provider.harness).map(spoke),
-        Kind::Local => listed(&provider.local, None),
+        Kind::Local => {
+            let checked = listed(&provider.local, None)?;
+            installed(&provider.local, &checked)?;
+            Ok(checked)
+        }
         Kind::Remote => {
             let key = given(key).ok_or(CheckError::NoKey)?;
             listed(&provider.remote, Some(key))
         }
     }
+}
+
+fn installed(http: &Http, checked: &Checked) -> Result<(), CheckError> {
+    let asked = http.model.trim();
+    if checked.models.is_empty() || known(&checked.models, asked) {
+        return Ok(());
+    }
+    Err(CheckError::ModelMissing(asked.to_owned()))
 }
 
 fn spoke(version: String) -> Checked {

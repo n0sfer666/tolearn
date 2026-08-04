@@ -45,6 +45,7 @@ export function reason(error: unknown, text: Dictionary): string {
     "provider.rejected": text.provider.rejected,
     "provider.answered": text.provider.answered,
     "provider.bad-answer": text.provider.badAnswer,
+    "provider.model-missing": text.provider.modelMissing,
     "provider.vault": text.provider.vault,
     "provider.unknown-value": text.provider.unknownValue,
     "harness.not-found": text.provider.notFound,

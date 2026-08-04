@@ -606,6 +606,7 @@ export type ProviderOut = {
   checked: CheckedView | null;
   probed: ProbedView | null;
   presets: PresetView[];
+  advised: AdviceView[];
 };
 
 export type ProviderView = {
@@ -635,6 +636,14 @@ export type PresetView = {
   id: string;
   command: string;
   args: string[];
+};
+
+export type AdviceView = {
+  model: string;
+  command: string;
+  gigabytes: number;
+  heavy: boolean;
+  installed: boolean;
 };
 
 export type CheckedView = {

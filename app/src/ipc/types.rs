@@ -507,6 +507,14 @@ dto!(ProviderOut {
     checked: Option<CheckedView>,
     probed: Option<ProbedView>,
     presets: Vec<PresetView>,
+    advised: Vec<AdviceView>,
+});
+dto!(AdviceView {
+    model: String,
+    command: String,
+    gigabytes: u32,
+    heavy: bool,
+    installed: bool,
 });
 dto!(ProviderView {
     enabled: bool,
@@ -685,6 +693,7 @@ pub fn shapes() -> Vec<Shape> {
         HttpView::shape(),
         HarnessView::shape(),
         PresetView::shape(),
+        AdviceView::shape(),
         CheckedView::shape(),
         ProbedView::shape(),
         SaveOfflineIn::shape(),

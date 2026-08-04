@@ -52,6 +52,7 @@ pub enum CheckError {
     Rejected,
     Answered(u16),
     BadAnswer,
+    ModelMissing(String),
     NotFound(String),
     Failed { code: Option<i32>, said: String },
     TimedOut(u32),
@@ -68,6 +69,7 @@ impl CheckError {
             Self::Rejected => "provider.rejected",
             Self::Answered(_) => "provider.answered",
             Self::BadAnswer => "provider.bad-answer",
+            Self::ModelMissing(_) => "provider.model-missing",
             Self::NotFound(_) => "harness.not-found",
             Self::Failed { .. } => "harness.failed",
             Self::TimedOut(_) => "harness.timeout",
@@ -86,6 +88,9 @@ impl fmt::Display for CheckError {
             Self::Rejected => write!(out, "провайдер отверг ключ"),
             Self::Answered(status) => write!(out, "провайдер ответил кодом {status}"),
             Self::BadAnswer => write!(out, "провайдер ответил не в том формате, которого ждали"),
+            Self::ModelMissing(model) => {
+                write!(out, "модели `{model}` на сервере нет: её надо поставить")
+            }
             Self::NotFound(command) => write!(
                 out,
                 "команда `{command}` не найдена: выполните `which {command}` и впишите полный путь"

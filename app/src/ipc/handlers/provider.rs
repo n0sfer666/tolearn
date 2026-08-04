@@ -2,7 +2,7 @@ use tolearn_provider::{Provider, check, probe};
 
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
-use crate::ipc::provider::{denied, failed, presets, refute, taken, view};
+use crate::ipc::provider::{advice, denied, failed, presets, refute, taken, view};
 use crate::ipc::types::{CheckedView, ProbedView, ProviderIn, ProviderOut};
 
 pub fn run(context: &Context, input: &ProviderIn) -> Result<ProviderOut, IpcError> {
@@ -30,6 +30,7 @@ pub fn run(context: &Context, input: &ProviderIn) -> Result<ProviderOut, IpcErro
     Ok(ProviderOut {
         provider: view(&provider),
         has_key: key.is_some(),
+        advised: advice(&provider.local, checked.as_ref()),
         checked,
         probed,
         presets: presets(),

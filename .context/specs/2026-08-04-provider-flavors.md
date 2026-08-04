@@ -88,8 +88,8 @@ local:
   endpoint: http://127.0.0.1:11434
   api: ollama          # ollama | openai (llama.cpp, LM Studio, vLLM)
   model: ""
-  num_ctx: 16384
-  temperature: 0.2
+  num_ctx: 16384              # 0 — не слать, решает сервер
+  temperature_tenths: 7       # десятые доли: 7 = 0.7, потолок 20
 remote:
   endpoint: ""
   api: openai
@@ -117,9 +117,11 @@ log_requests: false
 - `provider/` начинает зависеть от `runner/` (гейт слоёв обновляется). Общее
   между HTTP и процессом — форма ответа и коды отказов, они уже в `error.rs`.
 - `provider/src/harness.rs` — реестр пресетов, сборка команды, разбор вывода.
-- `provider/src/recommend.rs` (S63) — таблица моделей и сверка с RAM.
-- `sysinfo` (MIT, совместим с GPL-3.0) — новая зависимость ради объёма RAM,
-  вносится в `.context/stack.md`.
+- `provider/src/models.rs` (S63) — таблица моделей и сверка с RAM.
+- `provider/src/memory.rs` (S63) — объём RAM своими силами, без новой
+  зависимости: `sysctl hw.memsize` на macOS, `/proc/meminfo` на Linux,
+  PowerShell на Windows. Не измерилось — 0, и тогда никого не помечаем
+  тяжёлым.
 
 ### Разбор вывода харнесса
 

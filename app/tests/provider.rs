@@ -129,6 +129,25 @@ fn реестр_харнессов_приходит_вместе_с_настро
 }
 
 #[test]
+fn совет_по_моделям_приходит_с_командой_установки() {
+    let case = case("advised");
+
+    let answer = read(&case);
+
+    let advised = answer["advised"].as_array().unwrap().clone();
+    assert!(!advised.is_empty());
+    let first = advised.first().unwrap();
+    assert!(first["gigabytes"].as_u64().unwrap() > 0);
+    assert!(
+        first["command"]
+            .as_str()
+            .unwrap()
+            .starts_with("ollama pull ")
+    );
+    assert_eq!(first["installed"], json!(false));
+}
+
+#[test]
 fn настройки_переживают_перезапуск() {
     let case = case("stored");
 

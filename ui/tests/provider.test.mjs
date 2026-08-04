@@ -32,6 +32,23 @@ const DEFAULTS = {
   harness: { id: "claude", command: "claude", args: ["-p"], timeout_secs: 180 },
 };
 
+const ADVISED = [
+  {
+    model: "qwen3:4b",
+    command: "ollama pull qwen3:4b",
+    gigabytes: 3,
+    heavy: false,
+    installed: true,
+  },
+  {
+    model: "qwen3:32b",
+    command: "ollama pull qwen3:32b",
+    gigabytes: 20,
+    heavy: true,
+    installed: false,
+  },
+];
+
 const PRESETS = [
   { id: "claude", command: "claude", args: ["-p"] },
   { id: "opencode", command: "opencode", args: ["run"] },
@@ -53,6 +70,7 @@ function mount(options = {}) {
         checked: null,
         probed: null,
         presets: PRESETS,
+        advised: ADVISED,
       });
     }
     if (options.refuse !== undefined) return Promise.reject({ code: options.refuse });
@@ -65,6 +83,7 @@ function mount(options = {}) {
           ? { said: options.thinking ?? "готов", took_ms: 3680, thinking: options.thinking != null }
           : null,
       presets: PRESETS,
+      advised: ADVISED,
     });
   };
   const said = toasts(document.defaultView);
@@ -325,6 +344,46 @@ test("отказ харнесса объясняется своими слова
   await settled();
 
   assert.deepEqual(said.at(-1), { tone: "error", text: ru.provider.notFound });
+});
+
+test("совет по моделям называет размер, годность и команду установки", async () => {
+  const { host } = mount();
+  await settled();
+
+  const rows = host.querySelectorAll("[data-advice]");
+  assert.equal(rows.length, ADVISED.length);
+  assert.equal(rows[0].querySelector("[data-advice-model]").textContent, "qwen3:4b");
+  assert.match(rows[0].querySelector("[data-advice-size]").textContent, /3 ГБ/);
+  assert.equal(rows[0].querySelector("[data-advice-fit]").textContent, ru.provider.modelInstalled);
+  assert.equal(rows[0].querySelector("[data-advice-command]").textContent, "ollama pull qwen3:4b");
+  assert.equal(rows[1].querySelector("[data-advice-fit]").textContent, ru.provider.modelHeavy);
+});
+
+test("совет по моделям не показывают внешнему сервису", async () => {
+  const { host } = mount({ stored: { active: "remote" } });
+  await settled();
+
+  assert.equal(host.querySelector("[data-advice]"), null);
+});
+
+test("выбор модели из совета попадает в поле", async () => {
+  const { host } = mount();
+  await settled();
+
+  host.querySelectorAll("[data-advice]")[1].querySelector("[data-advice-pick]").click();
+  await settled();
+
+  assert.equal(host.querySelector("[data-model]").value, "qwen3:32b");
+});
+
+test("отсутствие модели на сервере объясняется словами", async () => {
+  const { host, said } = mount({ stored: { enabled: true }, refuse: "provider.model-missing" });
+  await settled();
+
+  host.querySelector("[data-check]").click();
+  await settled();
+
+  assert.deepEqual(said.at(-1), { tone: "error", text: ru.provider.modelMissing });
 });
 
 test("неизвестный код отказа не оставляет экран без объяснения", async () => {

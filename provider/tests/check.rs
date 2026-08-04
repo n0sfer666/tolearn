@@ -74,6 +74,40 @@ fn внешний_endpoint_получает_ключ() {
 }
 
 #[test]
+fn выбранной_модели_нет_на_сервере_и_проверка_это_говорит() {
+    let stub = stub("200 OK", OLLAMA);
+    let mut asked = provider(Kind::Local, &stub.endpoint);
+    asked.local.model = "qwen3:32b".to_owned();
+
+    let failed = check(&asked, None).unwrap_err();
+
+    assert_eq!(failed.code(), "provider.model-missing");
+    assert!(failed.to_string().contains("qwen3:32b"), "{failed}");
+}
+
+#[test]
+fn установленная_модель_проверку_проходит() {
+    let stub = stub("200 OK", OLLAMA);
+    let mut asked = provider(Kind::Local, &stub.endpoint);
+    asked.local.model = "llama3:8b".to_owned();
+
+    let checked = check(&asked, None).unwrap();
+
+    assert_eq!(checked.models, ["llama3:8b", "qwen2.5"]);
+}
+
+#[test]
+fn чужой_список_моделей_внешнего_сервиса_не_судят() {
+    let stub = stub("200 OK", OPENAI);
+    let mut asked = provider(Kind::Remote, &stub.endpoint);
+    asked.remote.model = "o5-mini".to_owned();
+
+    let checked = check(&asked, Some("sk-test")).unwrap();
+
+    assert_eq!(checked.models, ["gpt-4o-mini"]);
+}
+
+#[test]
 fn харнесс_называет_версию() {
     let checked = check(&harness(&["say".to_owned()], 20), None).unwrap();
 
