@@ -30,7 +30,7 @@ pub fn run(context: &Context, input: &ProviderIn) -> Result<ProviderOut, IpcErro
     Ok(ProviderOut {
         provider: view(&provider),
         has_key: key.is_some(),
-        advised: advice(&provider.local, checked.as_ref()),
+        advised: advice(checked.as_ref()),
         checked,
         probed,
         presets: presets(),

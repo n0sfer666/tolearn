@@ -2,10 +2,12 @@ import { For } from "solid-js";
 
 import type { Dictionary } from "../../i18n/ru";
 import type { AdviceView } from "../../ipc";
+import { installs, names } from "../../lib/models";
 
 interface Props {
   text: Dictionary;
   advised: AdviceView[];
+  api: string;
   chosen: string;
   onPick: (model: string) => void;
 }
@@ -18,17 +20,17 @@ export default function Models(props: Props) {
       <For each={props.advised}>
         {(advice) => (
           <div data-advice>
-            <span data-advice-model>{advice.model}</span>
+            <span data-advice-model>{names(advice, props.api)}</span>
             <span data-advice-size>
               {advice.gigabytes} {props.text.provider.gigabytes}
             </span>
             <span data-advice-fit>{fit(advice, props.text)}</span>
-            <code data-advice-command>{advice.command}</code>
+            <code data-advice-command>{installs(advice, props.api)}</code>
             <button
               type="button"
               data-advice-pick
-              disabled={advice.model === props.chosen}
-              onClick={() => props.onPick(advice.model)}
+              disabled={names(advice, props.api) === props.chosen}
+              onClick={() => props.onPick(names(advice, props.api))}
             >
               {props.text.provider.pick}
             </button>

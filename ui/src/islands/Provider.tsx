@@ -133,6 +133,7 @@ export default function Provider(props: Props) {
             <Models
               text={props.text}
               advised={advised()}
+              api={current().local.api}
               chosen={current().local.model}
               onPick={(model) => change({ local: { ...current().local, model } })}
             />

@@ -1,5 +1,5 @@
 use tolearn_provider::{
-    Api, CheckError, Harness, Http, Kind, NUM_CTX_MAX, PRESETS, Provider, ProviderError,
+    Advice, Api, CheckError, Harness, Http, Kind, NUM_CTX_MAX, PRESETS, Provider, ProviderError,
     TEMPERATURE_TENTHS_MAX, VaultError, advised, known, memory,
 };
 
@@ -34,18 +34,22 @@ pub fn presets() -> Vec<PresetView> {
         .collect()
 }
 
-pub fn advice(http: &Http, checked: Option<&CheckedView>) -> Vec<AdviceView> {
+pub fn advice(checked: Option<&CheckedView>) -> Vec<AdviceView> {
     let models = checked.map_or(&[][..], |checked| checked.models.as_slice());
-    advised(http.api, memory())
+    advised(memory())
         .into_iter()
         .map(|advice| AdviceView {
-            installed: !models.is_empty() && known(models, &advice.model),
-            model: advice.model,
-            command: advice.command,
+            installed: installed(models, &advice),
+            id: advice.id,
+            repo: advice.repo,
             gigabytes: advice.gigabytes,
             heavy: advice.heavy,
         })
         .collect()
+}
+
+fn installed(models: &[String], advice: &Advice) -> bool {
+    !models.is_empty() && (known(models, &advice.id) || known(models, &advice.repo))
 }
 
 pub fn taken(view: &ProviderView) -> Result<Provider, IpcError> {

@@ -639,8 +639,8 @@ export type PresetView = {
 };
 
 export type AdviceView = {
-  model: string;
-  command: string;
+  id: string;
+  repo: string;
   gigabytes: number;
   heavy: boolean;
   installed: boolean;

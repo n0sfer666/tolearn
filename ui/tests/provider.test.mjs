@@ -34,15 +34,15 @@ const DEFAULTS = {
 
 const ADVISED = [
   {
-    model: "qwen3:4b",
-    command: "ollama pull qwen3:4b",
+    id: "qwen3:4b",
+    repo: "unsloth/Qwen3-4B-GGUF:Q4_K_M",
     gigabytes: 3,
     heavy: false,
     installed: true,
   },
   {
-    model: "qwen3:32b",
-    command: "ollama pull qwen3:32b",
+    id: "qwen3:32b",
+    repo: "unsloth/Qwen3-32B-GGUF:Q4_K_M",
     gigabytes: 20,
     heavy: true,
     installed: false,
@@ -357,6 +357,24 @@ test("совет по моделям называет размер, годнос
   assert.equal(rows[0].querySelector("[data-advice-fit]").textContent, ru.provider.modelInstalled);
   assert.equal(rows[0].querySelector("[data-advice-command]").textContent, "ollama pull qwen3:4b");
   assert.equal(rows[1].querySelector("[data-advice-fit]").textContent, ru.provider.modelHeavy);
+});
+
+test("смена API переписывает совет, не дожидаясь сохранения", async () => {
+  const { host } = mount();
+  await settled();
+
+  host.querySelector("[data-api=openai]").click();
+  await settled();
+
+  const first = host.querySelectorAll("[data-advice]")[0];
+  assert.equal(
+    first.querySelector("[data-advice-model]").textContent,
+    "unsloth/Qwen3-4B-GGUF:Q4_K_M",
+  );
+  assert.equal(
+    first.querySelector("[data-advice-command]").textContent,
+    "llama-server -hf unsloth/Qwen3-4B-GGUF:Q4_K_M",
+  );
 });
 
 test("совет по моделям не показывают внешнему сервису", async () => {

@@ -5,30 +5,22 @@
     reason = "provider gate: a panic here is the report"
 )]
 
-use tolearn_provider::{Api, advised, memory};
+use tolearn_provider::{advised, memory};
 
 #[test]
-fn ollama_ставит_модель_своей_командой() {
-    let advised = advised(Api::Ollama, 64);
+fn у_модели_есть_оба_имени_короткое_и_репозиторий() {
+    let advised = advised(64);
 
     let first = advised.first().expect("таблица не пуста");
-    assert!(first.command.starts_with("ollama pull "), "{first:?}");
-    assert!(first.command.ends_with(&first.model), "{first:?}");
-}
-
-#[test]
-fn openai_совместимому_серверу_модель_называют_репозиторием() {
-    let advised = advised(Api::OpenAi, 64);
-
-    let first = advised.first().expect("таблица не пуста");
-    assert!(first.command.starts_with("llama-server -hf "), "{first:?}");
-    assert!(first.model.contains('/'), "{first:?}");
+    assert!(!first.id.contains('/'), "{first:?}");
+    assert!(first.repo.contains('/'), "{first:?}");
+    assert!(first.gigabytes > 0, "{first:?}");
 }
 
 #[test]
 fn на_маленькой_машине_тяжёлые_модели_помечены() {
-    let tight = advised(Api::Ollama, 8);
-    let roomy = advised(Api::Ollama, 128);
+    let tight = advised(8);
+    let roomy = advised(128);
 
     assert!(tight.iter().any(|model| model.heavy), "{tight:?}");
     assert!(tight.iter().any(|model| !model.heavy), "{tight:?}");
@@ -37,9 +29,19 @@ fn на_маленькой_машине_тяжёлые_модели_помече
 
 #[test]
 fn неизвестный_объём_памяти_никого_не_чернит() {
-    let advised = advised(Api::Ollama, 0);
+    let advised = advised(0);
 
     assert!(advised.iter().all(|model| !model.heavy), "{advised:?}");
+}
+
+#[test]
+fn таблица_идёт_от_меньшей_модели_к_большей() {
+    let advised = advised(64);
+
+    let sizes: Vec<u32> = advised.iter().map(|model| model.gigabytes).collect();
+    let mut sorted = sizes.clone();
+    sorted.sort_unstable();
+    assert_eq!(sizes, sorted);
 }
 
 #[test]

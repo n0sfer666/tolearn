@@ -129,7 +129,7 @@ fn реестр_харнессов_приходит_вместе_с_настро
 }
 
 #[test]
-fn совет_по_моделям_приходит_с_командой_установки() {
+fn совет_по_моделям_приходит_обоими_именами() {
     let case = case("advised");
 
     let answer = read(&case);
@@ -138,13 +138,27 @@ fn совет_по_моделям_приходит_с_командой_уста�
     assert!(!advised.is_empty());
     let first = advised.first().unwrap();
     assert!(first["gigabytes"].as_u64().unwrap() > 0);
-    assert!(
-        first["command"]
-            .as_str()
-            .unwrap()
-            .starts_with("ollama pull ")
-    );
+    assert!(!first["id"].as_str().unwrap().contains('/'));
+    assert!(first["repo"].as_str().unwrap().contains('/'));
     assert_eq!(first["installed"], json!(false));
+}
+
+#[test]
+fn установленная_модель_помечена_в_совете() {
+    let case = case("advised-installed");
+    let heard = stub("200 OK", r#"{"models":[{"name":"qwen3:8b"}]}"#);
+
+    let mut asked = settings(&heard.endpoint, "local");
+    asked["local"]["model"] = json!("qwen3:8b");
+    let answer = save(&case, asked, Value::Null, true).unwrap();
+
+    let advised = answer["advised"].as_array().unwrap().clone();
+    let marked: Vec<&str> = advised
+        .iter()
+        .filter(|advice| advice["installed"] == json!(true))
+        .filter_map(|advice| advice["id"].as_str())
+        .collect();
+    assert_eq!(marked, ["qwen3:8b"]);
 }
 
 #[test]

@@ -1,5 +1,3 @@
-use crate::types::Api;
-
 const HEADROOM: u32 = 4;
 
 #[derive(Debug)]
@@ -44,18 +42,18 @@ const MODELS: [Model; 6] = [
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Advice {
-    pub model: String,
-    pub command: String,
+    pub id: String,
+    pub repo: String,
     pub gigabytes: u32,
     pub heavy: bool,
 }
 
-pub fn advised(api: Api, gigabytes: u32) -> Vec<Advice> {
+pub fn advised(gigabytes: u32) -> Vec<Advice> {
     MODELS
         .iter()
         .map(|model| Advice {
-            model: named(model, api).to_owned(),
-            command: command(model, api),
+            id: model.id.to_owned(),
+            repo: model.repo.to_owned(),
             gigabytes: model.gigabytes,
             heavy: gigabytes > 0 && model.gigabytes + HEADROOM > gigabytes,
         })
@@ -71,18 +69,4 @@ pub fn known(models: &[String], asked: &str) -> bool {
         let found = found.trim().to_lowercase();
         !found.is_empty() && (found.contains(&asked) || asked.contains(&found))
     })
-}
-
-fn named(model: &Model, api: Api) -> &'static str {
-    match api {
-        Api::Ollama => model.id,
-        Api::OpenAi => model.repo,
-    }
-}
-
-fn command(model: &Model, api: Api) -> String {
-    match api {
-        Api::Ollama => format!("ollama pull {}", model.id),
-        Api::OpenAi => format!("llama-server -hf {}", model.repo),
-    }
 }

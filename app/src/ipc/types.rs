@@ -510,8 +510,8 @@ dto!(ProviderOut {
     advised: Vec<AdviceView>,
 });
 dto!(AdviceView {
-    model: String,
-    command: String,
+    id: String,
+    repo: String,
     gigabytes: u32,
     heavy: bool,
     installed: bool,
