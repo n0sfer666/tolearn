@@ -16,6 +16,9 @@ const LIMIT: usize = 8 * 1024 * 1024;
 fn main() {
     let home = PathBuf::from(std::env::var("HOME").expect("нет HOME"));
     let places = layout::places(&home);
+    for room in [&places.config, &places.data] {
+        std::fs::create_dir_all(room).expect("каталог не создан");
+    }
     let context = Context::split(&places.config, &places.data);
     let listener = TcpListener::bind(ADDRESS).expect("порт занят");
     println!("мост: http://{ADDRESS}");
