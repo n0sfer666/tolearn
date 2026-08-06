@@ -79,6 +79,7 @@ export default function Topic(props: Props) {
     `?program=${encodeURIComponent(program())}&topic=${encodeURIComponent(id())}`;
   const practice = () => `/${props.locale}/practice/${where()}`;
   const exam = () => `/${props.locale}/exam/${where()}`;
+  const check = () => `/${props.locale}/exam/dialog/${where()}`;
 
   return (
     <Show
@@ -95,6 +96,12 @@ export default function Topic(props: Props) {
       {(view) => (
         <article>
           <Header text={props.text} topic={view()} onPick={pick} />
+
+          <p data-check>
+            <a href={check()} data-check-link>
+              {props.text.topic.check}
+            </a>
+          </p>
 
           <Show when={view().materials.length > 0}>
             <section data-section="materials">

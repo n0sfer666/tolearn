@@ -1,4 +1,5 @@
 mod error;
+pub mod examining;
 pub mod generation;
 mod values;
 
@@ -8,6 +9,8 @@ use crate::roadmap::Roadmap;
 use crate::topic::Topic;
 
 use values::{Value, value};
+
+pub(crate) use values::question;
 
 const RULE: &str = "---";
 

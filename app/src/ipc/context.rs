@@ -74,6 +74,10 @@ impl Context {
         self.data.join("history").join(roadmap)
     }
 
+    pub fn dialogs(&self) -> PathBuf {
+        self.data.join("dialogs")
+    }
+
     pub fn offline(&self) -> PathBuf {
         self.data.join("offline")
     }

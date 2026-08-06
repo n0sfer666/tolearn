@@ -1,5 +1,10 @@
 pub mod apply_verdict;
 pub mod encryption;
+pub mod exam_finish;
+pub mod exam_hint;
+pub mod exam_say;
+pub mod exam_start;
+pub mod exam_state;
 pub mod examine;
 pub mod export;
 pub mod follow;

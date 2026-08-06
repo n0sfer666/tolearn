@@ -466,6 +466,44 @@ dto!(ExamineIn {
 });
 dto!(ExamineOut { text: String });
 
+dto!(ExamLineView {
+    side: String,
+    text: String
+});
+dto!(ExamStateOut {
+    open: bool,
+    stale: bool,
+    stage: String,
+    asked: u32,
+    total: u32,
+    hint_ready: bool,
+    log: Vec<ExamLineView>,
+    graded: Vec<AnswerView>,
+    hinted: Vec<String>,
+    seconds: u32,
+    tokens: u32,
+    verdict: Option<String>
+});
+dto!(ExamStateIn {
+    bundle: String,
+    topic: String
+});
+dto!(ExamStartIn {
+    bundle: String,
+    topic: String,
+    restart: bool
+});
+dto!(ExamSayIn {
+    bundle: String,
+    topic: String,
+    text: String
+});
+dto!(ExamFinishIn {
+    bundle: String,
+    topic: String,
+    today: String
+});
+
 dto!(SettingsIn { save: Option<SettingsView> });
 dto!(SettingsView {
     disk_budget_mb: u32,
@@ -724,6 +762,12 @@ pub fn shapes() -> Vec<Shape> {
         PromptOut::shape(),
         ExamineIn::shape(),
         ExamineOut::shape(),
+        ExamLineView::shape(),
+        ExamStateOut::shape(),
+        ExamStateIn::shape(),
+        ExamStartIn::shape(),
+        ExamSayIn::shape(),
+        ExamFinishIn::shape(),
         SettingsIn::shape(),
         SettingsView::shape(),
         SearchIn::shape(),

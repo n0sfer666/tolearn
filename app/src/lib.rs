@@ -1,3 +1,4 @@
+pub mod exam;
 pub mod generate;
 pub mod ipc;
 pub mod offline;

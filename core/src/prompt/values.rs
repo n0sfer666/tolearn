@@ -49,7 +49,7 @@ fn checks(checks: &[Check]) -> Vec<String> {
         .collect()
 }
 
-fn question(question: &Question) -> String {
+pub(crate) fn question(question: &Question) -> String {
     let mut block = format!(
         "`{}` ({}) — {}",
         question.id,

@@ -36,7 +36,7 @@ pub fn view(verdict: &Verdict) -> VerdictView {
     }
 }
 
-fn answer(answer: &tolearn_core::progress::Answer) -> AnswerView {
+pub fn answer(answer: &tolearn_core::progress::Answer) -> AnswerView {
     AnswerView {
         id: answer.id.clone(),
         outcome: answer.outcome.label().to_owned(),

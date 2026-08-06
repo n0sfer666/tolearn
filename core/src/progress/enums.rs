@@ -83,6 +83,13 @@ impl Outcome {
             Self::Miss => "miss",
         }
     }
+
+    pub fn read(label: &str) -> Option<Self> {
+        OUTCOME
+            .iter()
+            .find(|(name, _)| *name == label)
+            .map(|(_, outcome)| *outcome)
+    }
 }
 
 impl NextAction {

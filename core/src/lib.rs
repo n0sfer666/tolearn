@@ -5,6 +5,7 @@ mod moment;
 pub mod archive;
 pub mod atomic;
 pub mod bundle;
+pub mod exam;
 pub mod export;
 pub mod generate;
 pub mod graph;

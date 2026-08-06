@@ -3,13 +3,14 @@ use tolearn_core::progress::save;
 use tolearn_core::protocol::{apply, record};
 use tolearn_core::status::effective;
 
+use crate::exam::forget;
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
 use crate::ipc::open;
 use crate::ipc::types::{ApplyVerdictIn, ApplyVerdictOut};
 use crate::ipc::verdict::{of, read};
 
-pub fn run(_context: &Context, input: &ApplyVerdictIn) -> Result<ApplyVerdictOut, IpcError> {
+pub fn run(context: &Context, input: &ApplyVerdictIn) -> Result<ApplyVerdictOut, IpcError> {
     let mut opened = open::open(&input.bundle)?;
     let day = Date::parse(&input.today).ok_or_else(|| IpcError::malformed_date(&input.today))?;
     let topic = read(&opened, &input.topic)?;
@@ -33,6 +34,8 @@ pub fn run(_context: &Context, input: &ApplyVerdictIn) -> Result<ApplyVerdictOut
     let file = open::progress_file(&opened.scan);
     save(&file, &opened.document)
         .map_err(|error| IpcError::unwritable(&file, &error.to_string()))?;
+
+    forget(context, &opened.scan.roadmap.id, &input.topic);
 
     let statuses = effective(
         &opened.scan.roadmap,

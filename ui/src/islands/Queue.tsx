@@ -31,6 +31,9 @@ export default function Queue(props: Props) {
   const href = (item: DueView) =>
     `/${props.locale}/topic/?program=${encodeURIComponent(item.bundle)}&topic=${encodeURIComponent(item.topic)}`;
 
+  const check = (item: DueView) =>
+    `/${props.locale}/exam/dialog/?program=${encodeURIComponent(item.bundle)}&topic=${encodeURIComponent(item.topic)}`;
+
   const onRepeat = (item: DueView) => {
     void (async () => {
       setBusy(item.topic);
@@ -65,6 +68,9 @@ export default function Queue(props: Props) {
                 <a href={href(item)}>{item.topic_title}</a>
                 <span data-program>{item.title}</span>
                 <time datetime={item.due}>{item.due}</time>
+                <a href={check(item)} data-check-link>
+                  {props.text.queue.check}
+                </a>
                 <button type="button" data-repeat disabled={busy() === item.topic} onClick={() => onRepeat(item)}>
                   {busy() === item.topic ? props.text.queue.repeating : props.text.queue.repeat}
                 </button>
