@@ -6,6 +6,8 @@
 )]
 #![allow(dead_code, reason = "опоры нужны не каждому тест-бинарнику")]
 
+pub mod speaking;
+
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpListener;
 use std::path::{Path, PathBuf};

@@ -718,6 +718,74 @@ export type Block = {
   src: string;
 };
 
+export type GenerateIn = {
+  subject: string;
+  level: string;
+  weekly_hours: number;
+  weeks: number | null;
+};
+
+export type GenerateOut = {
+  job: string;
+};
+
+export type GenerateStateIn = {
+  job: string;
+};
+
+export type GenerateStateOut = {
+  step: string;
+  total: number;
+  done: number;
+  attempt: number;
+  rounds: number;
+  current: string;
+  waiting: boolean;
+  finished: boolean;
+  cancelled: boolean;
+  refused: string[];
+  seconds: number;
+  tokens: number | null;
+  summary: SummaryView | null;
+};
+
+export type SummaryView = {
+  id: string;
+  title: string;
+  topics: number;
+  hours_min: number;
+  hours_max: number;
+  stages: StagedView[];
+};
+
+export type StagedView = {
+  n: number;
+  title: string;
+  topics: number;
+  first: string[];
+};
+
+export type GenerateGoIn = {
+  job: string;
+};
+
+export type GenerateGoOut = {
+  going: boolean;
+};
+
+export type GenerateStopIn = {
+  job: string;
+};
+
+export type GenerateStopOut = {
+  stopping: boolean;
+};
+
+export type GenerateAcceptIn = {
+  job: string;
+  today: string;
+};
+
 export type Commands = {
   validate: { input: ValidateIn; output: ValidateOut };
   scan: { input: ScanIn; output: ScanOut };
@@ -753,6 +821,11 @@ export type Commands = {
   offline_state: { input: OfflineStateIn; output: OfflineStateOut };
   stop_offline: { input: StopOfflineIn; output: StopOfflineOut };
   read_offline: { input: ReadOfflineIn; output: ReadOfflineOut };
+  generate: { input: GenerateIn; output: GenerateOut };
+  generate_state: { input: GenerateStateIn; output: GenerateStateOut };
+  generate_go: { input: GenerateGoIn; output: GenerateGoOut };
+  generate_stop: { input: GenerateStopIn; output: GenerateStopOut };
+  generate_accept: { input: GenerateAcceptIn; output: ImportOut };
 };
 
 export type CommandName = keyof Commands;

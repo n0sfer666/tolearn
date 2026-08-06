@@ -595,6 +595,52 @@ dto!(Block {
     src: String,
 });
 
+dto!(GenerateIn {
+    subject: String,
+    level: String,
+    weekly_hours: u32,
+    weeks: Option<u32>,
+});
+dto!(GenerateOut { job: String });
+dto!(GenerateStateIn { job: String });
+dto!(GenerateStateOut {
+    step: String,
+    total: u32,
+    done: u32,
+    attempt: u32,
+    rounds: u32,
+    current: String,
+    waiting: bool,
+    finished: bool,
+    cancelled: bool,
+    refused: Vec<String>,
+    seconds: u64,
+    tokens: Option<u32>,
+    summary: Option<SummaryView>,
+});
+dto!(SummaryView {
+    id: String,
+    title: String,
+    topics: u32,
+    hours_min: u32,
+    hours_max: u32,
+    stages: Vec<StagedView>,
+});
+dto!(StagedView {
+    n: u32,
+    title: String,
+    topics: u32,
+    first: Vec<String>,
+});
+dto!(GenerateGoIn { job: String });
+dto!(GenerateGoOut { going: bool });
+dto!(GenerateStopIn { job: String });
+dto!(GenerateStopOut { stopping: bool });
+dto!(GenerateAcceptIn {
+    job: String,
+    today: String,
+});
+
 pub fn shapes() -> Vec<Shape> {
     vec![
         ValidateIn::shape(),
@@ -706,5 +752,16 @@ pub fn shapes() -> Vec<Shape> {
         ReadOfflineIn::shape(),
         ReadOfflineOut::shape(),
         Block::shape(),
+        GenerateIn::shape(),
+        GenerateOut::shape(),
+        GenerateStateIn::shape(),
+        GenerateStateOut::shape(),
+        SummaryView::shape(),
+        StagedView::shape(),
+        GenerateGoIn::shape(),
+        GenerateGoOut::shape(),
+        GenerateStopIn::shape(),
+        GenerateStopOut::shape(),
+        GenerateAcceptIn::shape(),
     ]
 }

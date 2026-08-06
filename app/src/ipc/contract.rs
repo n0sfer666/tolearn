@@ -74,6 +74,11 @@ commands! {
     offline_state(types::OfflineStateIn) -> types::OfflineStateOut,
     stop_offline(types::StopOfflineIn) -> types::StopOfflineOut,
     read_offline(types::ReadOfflineIn) -> types::ReadOfflineOut,
+    generate(types::GenerateIn) -> types::GenerateOut,
+    generate_state(types::GenerateStateIn) -> types::GenerateStateOut,
+    generate_go(types::GenerateGoIn) -> types::GenerateGoOut,
+    generate_stop(types::GenerateStopIn) -> types::GenerateStopOut,
+    generate_accept(types::GenerateAcceptIn) -> types::ImportOut,
 }
 
 #[tauri::command]

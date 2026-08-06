@@ -7,8 +7,8 @@
 mod support;
 
 use tolearn_core::generate::{
-    Level, PROGRESS_SCHEMA, ROADMAP_SCHEMA, Request, TOPIC_SCHEMA, fenced, pick, repair, roadmap,
-    topic,
+    Level, PROGRESS_SCHEMA, ROADMAP_SCHEMA, Request, TOPIC_SCHEMA, fenced, generated, pick, repair,
+    roadmap, topic,
 };
 
 use support::bundles;
@@ -120,4 +120,20 @@ fn an_answer_cut_off_before_the_closing_fence_is_kept_for_the_validator_to_judge
     let said = "```yaml\nschema: learning-roadmap/v1\nid: x\n";
     let taken = pick(said, ROADMAP_SCHEMA).expect("the truncated block was thrown away");
     assert!(taken.contains("id: x"));
+}
+
+#[test]
+fn the_finished_program_says_its_stages_are_generated_and_changes_nothing_else() {
+    let skeleton = "stages:\n  - n: 1\n    title: generated: false в заголовке\n    \
+                    generated: false\n  - n: 2\n    generated: false\ntopics: []\n";
+    let marked = generated(skeleton);
+    assert_eq!(marked.matches("generated: true").count(), 2);
+    assert!(marked.contains("title: generated: false в заголовке"));
+    assert!(marked.ends_with("topics: []\n"));
+}
+
+#[test]
+fn a_stage_written_as_one_line_is_marked_too() {
+    let marked = generated("stages:\n  - generated: false\n");
+    assert_eq!(marked, "stages:\n  - generated: true\n");
 }
