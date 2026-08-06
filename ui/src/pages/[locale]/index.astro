@@ -1,5 +1,6 @@
 ---
 import { LOCALES, localeOf, strings } from "../../i18n";
+import Generate from "../../islands/Generate";
 import Programs from "../../islands/Programs";
 import Base from "../../layouts/Base.astro";
 
@@ -12,6 +13,11 @@ const text = strings(locale);
 ---
 
 <Base locale={locale} title={text.nav.programs}>
+  <section id="generate">
+    <h2>{text.generate.title}</h2>
+    <p>{text.generate.lead}</p>
+    <Generate text={text.generate} locale={locale} client:load />
+  </section>
   <section id="import">
     <h2>{text.programs.import}</h2>
     <p>{text.programs.importLead}</p>
