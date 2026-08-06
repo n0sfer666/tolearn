@@ -6,6 +6,7 @@ pub mod archive;
 pub mod atomic;
 pub mod bundle;
 pub mod export;
+pub mod generate;
 pub mod graph;
 pub mod history;
 pub mod link;
