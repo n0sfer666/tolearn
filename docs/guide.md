@@ -4,10 +4,14 @@
 
 ## С чего начать
 
-1. Получите программу обучения. Промпт для этого лежит в репозитории —
-   [`core/assets/generate.md`](../core/assets/generate.md): скопируйте его в
-   любой чат с LLM, ответьте на вопросы, заберите готовый бандл — папку с
-   `roadmap.yaml`, `topics/*.yaml` и `examiner.md`. Пример —
+1. Получите программу обучения. Промпты для этого лежат в репозитории —
+   [`core/assets/generate-roadmap.md`](../core/assets/generate-roadmap.md)
+   даёт скелет программы, а
+   [`core/assets/generate-topic.md`](../core/assets/generate-topic.md) — файл
+   одной темы: скопируйте первый в любой чат с LLM, допишите под ним, чему
+   хотите научиться, заберите `roadmap.yaml` и `progress.yaml`, а затем вторым
+   промптом соберите темы по одной. Получится бандл — папка с `roadmap.yaml`,
+   `topics/*.yaml` и `examiner.md`. Пример —
    [`examples/llm-agents-base`](../examples/llm-agents-base). Кнопки «взять
    промпт» в интерфейсе пока нет.
 2. На главном экране нажмите «Выбрать папку» или «Выбрать архив». Приложение

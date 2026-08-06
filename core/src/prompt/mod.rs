@@ -1,9 +1,8 @@
 mod error;
-mod generation;
+pub mod generation;
 mod values;
 
 pub use error::RenderError;
-pub use generation::generation;
 
 use crate::roadmap::Roadmap;
 use crate::topic::Topic;
