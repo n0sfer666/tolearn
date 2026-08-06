@@ -10,9 +10,9 @@ mod support;
 use std::time::Instant;
 
 use support::harness;
-use tolearn_provider::{CheckError, ask};
+use tolearn_provider::{CheckError, Said, ask};
 
-fn asked(mode: &str, timeout_secs: u32) -> Result<String, CheckError> {
+fn asked(mode: &str, timeout_secs: u32) -> Result<Said, CheckError> {
     ask(&harness(&[mode.to_owned()], timeout_secs), None, "спроси")
 }
 
@@ -20,8 +20,8 @@ fn asked(mode: &str, timeout_secs: u32) -> Result<String, CheckError> {
 fn харнесс_запускается_в_пустом_каталоге() {
     let answer = asked("cwd", 20).expect("харнесс отвечает");
 
-    assert!(answer.starts_with("0 файлов "), "{answer}");
-    assert!(!answer.contains("Cargo.toml"), "{answer}");
+    assert!(answer.text.starts_with("0 файлов "), "{}", answer.text);
+    assert!(!answer.text.contains("Cargo.toml"), "{}", answer.text);
 }
 
 #[test]
@@ -30,22 +30,26 @@ fn аргументы_доходят_до_команды() {
 
     let answer = ask(&provider, None, "спроси").expect("харнесс отвечает");
 
-    assert_eq!(answer, "--no-tools");
+    assert_eq!(answer.text, "--no-tools");
 }
 
 #[test]
 fn цветной_вывод_очищается_от_управляющих_последовательностей() {
     let answer = asked("ansi", 20).expect("харнесс отвечает");
 
-    assert_eq!(answer, "услышал: спроси");
+    assert_eq!(answer.text, "услышал: спроси");
 }
 
 #[test]
 fn баннер_остаётся_в_ответе() {
     let answer = asked("banner", 20).expect("харнесс отвечает");
 
-    assert!(answer.starts_with("добро пожаловать"), "{answer}");
-    assert!(answer.ends_with("услышал: спроси"), "{answer}");
+    assert!(
+        answer.text.starts_with("добро пожаловать"),
+        "{}",
+        answer.text
+    );
+    assert!(answer.text.ends_with("услышал: спроси"), "{}", answer.text);
 }
 
 #[test]

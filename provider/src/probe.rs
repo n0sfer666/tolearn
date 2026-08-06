@@ -20,7 +20,7 @@ pub fn probe(provider: &Provider, key: Option<&str>) -> Result<Probed, CheckErro
     let told = briefly(provider, key, PROMPT)?;
     let took = u32::try_from(started.elapsed().as_millis()).unwrap_or(u32::MAX);
     Ok(Probed {
-        said: told.said.chars().take(SAID_CHARS).collect(),
+        said: told.text.chars().take(SAID_CHARS).collect(),
         took_ms: took,
         thinking: told.thinking,
     })

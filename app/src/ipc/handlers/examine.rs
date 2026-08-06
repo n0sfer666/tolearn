@@ -20,6 +20,8 @@ pub fn run(context: &Context, input: &ExamineIn) -> Result<ExamineOut, IpcError>
     let provider = Provider::read(&context.provider()).map_err(failed)?;
     let key = context.vault().key().map_err(denied)?;
     Ok(ExamineOut {
-        text: ask(&provider, key.as_deref(), &prompt).map_err(refute)?,
+        text: ask(&provider, key.as_deref(), &prompt)
+            .map_err(refute)?
+            .text,
     })
 }

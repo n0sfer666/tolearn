@@ -39,7 +39,7 @@ fn локальная_модель_возвращает_текст_ответа(
 
     let answer = ask(&asked, None, "спроси меня").expect("локальная модель отвечает");
 
-    assert_eq!(answer, "{\"result\":\"pass\"}");
+    assert_eq!(answer.text, "{\"result\":\"pass\"}");
     let request = heard.heard().join("\n");
     assert!(request.contains("POST /api/chat"), "{request}");
     assert!(request.contains("llama3:8b"), "{request}");
@@ -57,7 +57,7 @@ fn локальный_openai_совместимый_сервер_отвечае�
 
     let answer = ask(&asked, None, "спроси меня").expect("llama.cpp отвечает");
 
-    assert_eq!(answer, "вердикт");
+    assert_eq!(answer.text, "вердикт");
     let request = heard.heard().join("\n");
     assert!(request.contains("POST /chat/completions"), "{request}");
     assert!(
@@ -76,7 +76,7 @@ fn внешний_путь_получает_ключ() {
 
     let answer = ask(&asked, Some("sk-ключ"), "спроси меня").expect("внешний отвечает");
 
-    assert_eq!(answer, "вердикт");
+    assert_eq!(answer.text, "вердикт");
     let request = heard.heard().join("\n");
     assert!(request.contains("POST /chat/completions"), "{request}");
     assert!(request.contains("Bearer sk-ключ"), "{request}");
@@ -133,7 +133,7 @@ fn харнесс_получает_промпт_через_stdin() {
 
     let answer = ask(&asked, None, "спроси меня").expect("харнесс отвечает");
 
-    assert_eq!(answer, "услышал: спроси меня");
+    assert_eq!(answer.text, "услышал: спроси меня");
 }
 
 #[test]

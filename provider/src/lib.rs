@@ -16,7 +16,7 @@ mod types;
 mod vault;
 mod wire;
 
-pub use ask::ask;
+pub use ask::{Said, ask};
 pub use check::{Checked, check};
 pub use error::{CheckError, ProviderError, VaultError};
 pub use memory::memory;
