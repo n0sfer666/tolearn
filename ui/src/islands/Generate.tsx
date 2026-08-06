@@ -3,6 +3,7 @@ import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import Ask from "../components/generate/Ask";
 import Going from "../components/generate/Going";
 import Ready from "../components/generate/Ready";
+import Tile from "../components/generate/Tile";
 import type { Dictionary } from "../i18n/ru";
 import type { GenerateIn, GenerateStateOut } from "../ipc";
 import { quiet } from "../lib/ipc";
@@ -142,51 +143,47 @@ export default function Generate(props: Props) {
   };
 
   const summary = () => live()?.summary ?? null;
+  const shown = () => asking() || job() !== "";
 
   return (
     <div data-generate>
-      <Show when={!asking() && job() === ""}>
-        <button
-          type="button"
-          data-generate-open
-          disabled={enabled() !== true}
-          onClick={() => setAsking(true)}
-        >
-          {props.text.add}
-        </button>
-        <Show when={enabled() === false}>
-          <p data-generate-off>{props.text.off}</p>
-        </Show>
+      <Show when={!shown()}>
+        <Tile text={props.text} enabled={enabled()} onOpen={() => setAsking(true)} />
       </Show>
 
-      <Show when={asking()}>
-        <Ask text={props.text} onStart={start} onClose={() => setAsking(false)} />
-      </Show>
+      <Show when={shown()}>
+        <div role="dialog" aria-modal="true" aria-label={props.text.title}>
+          <h3>{props.text.title}</h3>
 
-      <Show when={job() !== ""}>
-        <div class="sheet" role="dialog" aria-modal="true" aria-label={props.text.title}>
-          <Show
-            when={summary()}
-            fallback={
-              <Going
-                text={props.text}
-                live={live()}
-                onGo={() => tell("generate_go")}
-                onStop={() => tell("generate_stop")}
-                onClose={drop}
-              />
-            }
-          >
-            {(view) => (
-              <Ready
-                text={props.text}
-                summary={view()}
-                busy={busy()}
-                refused={refused()}
-                onAccept={accept}
-                onClose={drop}
-              />
-            )}
+          <Show when={asking()}>
+            <p>{props.text.lead}</p>
+            <Ask text={props.text} onStart={start} onClose={() => setAsking(false)} />
+          </Show>
+
+          <Show when={job() !== ""}>
+            <Show
+              when={summary()}
+              fallback={
+                <Going
+                  text={props.text}
+                  live={live()}
+                  onGo={() => tell("generate_go")}
+                  onStop={() => tell("generate_stop")}
+                  onClose={drop}
+                />
+              }
+            >
+              {(view) => (
+                <Ready
+                  text={props.text}
+                  summary={view()}
+                  busy={busy()}
+                  refused={refused()}
+                  onAccept={accept}
+                  onClose={drop}
+                />
+              )}
+            </Show>
           </Show>
         </div>
       </Show>

@@ -39,7 +39,7 @@ export const en: Dictionary = {
   generate: {
     title: "New program",
     lead: "Say what you want to learn — the model writes the plan and the topics.",
-    add: "+ Build a program",
+    add: "Build a program",
     off: "The provider is off — turn it on in the settings.",
     subject: "What do you want to learn",
     subjectHint: "In your own words: the subject, why you need it, what you already tried.",
