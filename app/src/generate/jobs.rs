@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, LazyLock, Mutex};
+use std::time::Instant;
 
 use super::made::{Made, Summary};
 
@@ -30,6 +31,7 @@ pub struct Job {
     go: AtomicBool,
     live: Mutex<Live>,
     made: Mutex<Option<Made>>,
+    since: Mutex<Option<Instant>>,
 }
 
 impl Job {
@@ -53,7 +55,19 @@ impl Job {
         self.change(|live| live.done += 1);
     }
 
-    pub fn spent(&self, seconds: u64, tokens: Option<u32>) {
+    pub fn asking(&self) {
+        if let Ok(mut since) = self.since.lock() {
+            *since = Some(Instant::now());
+        }
+    }
+
+    pub fn spent(&self, tokens: Option<u32>) {
+        let seconds = self
+            .since
+            .lock()
+            .ok()
+            .and_then(|mut since| since.take())
+            .map_or(0, |at| at.elapsed().as_secs());
         self.change(|live| {
             live.seconds += seconds;
             if let Some(counted) = tokens {
@@ -101,10 +115,22 @@ impl Job {
     }
 
     pub fn look(&self) -> Live {
-        self.live
+        let waiting = self.waited();
+        let mut live = self
+            .live
             .lock()
             .map(|live| live.clone())
-            .unwrap_or_default()
+            .unwrap_or_default();
+        live.seconds += waiting;
+        live
+    }
+
+    fn waited(&self) -> u64 {
+        self.since
+            .lock()
+            .ok()
+            .and_then(|since| *since)
+            .map_or(0, |at| at.elapsed().as_secs())
     }
 
     fn change(&self, edit: impl FnOnce(&mut Live)) {

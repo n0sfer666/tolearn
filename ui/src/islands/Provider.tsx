@@ -16,7 +16,7 @@ import type {
   ProviderOut,
   ProviderView,
 } from "../ipc";
-import { answered, reason, spoken } from "../lib/provider";
+import { answered, reason, seen, spoken } from "../lib/provider";
 import { quiet } from "../lib/ipc";
 import { toast } from "../lib/toast";
 import type { Transport } from "../lib/ipc";
@@ -179,13 +179,7 @@ export default function Provider(props: Props) {
           </Show>
 
           <Show when={checked()}>
-            {(found) => (
-              <p data-checked>
-                {found().version === null
-                  ? `${props.text.provider.checked} ${found().models.join(", ")}`
-                  : `${props.text.provider.version} ${found().version}`}
-              </p>
-            )}
+            {(found) => <p data-checked>{seen(found(), props.text)}</p>}
           </Show>
 
           <Show when={probed()}>

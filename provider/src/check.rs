@@ -1,9 +1,10 @@
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use crate::error::CheckError;
 use crate::harness;
 use crate::models::known;
-use crate::types::{Api, Http, Kind, Provider};
+use crate::probe::{PROMPT, took};
+use crate::types::{Api, Harness, Http, Kind, Provider};
 use crate::wire::{apart, broken, client, given, refused};
 
 pub const TIMEOUT: Duration = Duration::from_secs(5);
@@ -12,6 +13,7 @@ pub const TIMEOUT: Duration = Duration::from_secs(5);
 pub struct Checked {
     pub models: Vec<String>,
     pub version: Option<String>,
+    pub took_ms: Option<u32>,
 }
 
 pub fn check(provider: &Provider, key: Option<&str>) -> Result<Checked, CheckError> {
@@ -19,7 +21,7 @@ pub fn check(provider: &Provider, key: Option<&str>) -> Result<Checked, CheckErr
         return Err(CheckError::Disabled);
     }
     match provider.active {
-        Kind::Harness => harness::version(&provider.harness).map(spoke),
+        Kind::Harness => spoke(&provider.harness),
         Kind::Local => {
             let checked = listed(&provider.local, None)?;
             installed(&provider.local, &checked)?;
@@ -40,11 +42,15 @@ fn installed(http: &Http, checked: &Checked) -> Result<(), CheckError> {
     Err(CheckError::ModelMissing(asked.to_owned()))
 }
 
-fn spoke(version: String) -> Checked {
-    Checked {
+fn spoke(harness: &Harness) -> Result<Checked, CheckError> {
+    let version = harness::version(harness)?;
+    let started = Instant::now();
+    harness::ask(harness, PROMPT)?;
+    Ok(Checked {
         models: Vec::new(),
         version: Some(version),
-    }
+        took_ms: Some(took(started)),
+    })
 }
 
 fn listed(http: &Http, key: Option<&str>) -> Result<Checked, CheckError> {
@@ -69,6 +75,7 @@ fn fetch(http: &Http, key: Option<&str>) -> Result<Checked, CheckError> {
         .map(|models| Checked {
             models,
             version: None,
+            took_ms: None,
         })
         .ok_or(CheckError::BadAnswer)
 }

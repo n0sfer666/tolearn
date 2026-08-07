@@ -77,7 +77,7 @@ function mount(options = {}) {
     return Promise.resolve({
       provider: payload.save ?? { ...DEFAULTS, ...options.stored },
       has_key: payload.forget === true ? false : payload.key !== null || options.hasKey === true,
-      checked: payload.check === true ? { models: ["llama3:8b"], version: null } : null,
+      checked: payload.check === true ? (options.checked ?? { models: ["llama3:8b"], version: null, took_ms: null }) : null,
       probed:
         payload.probe === true
           ? { said: options.thinking ?? "готов", took_ms: 3680, thinking: options.thinking != null }
@@ -297,6 +297,22 @@ test("проверка соединения показывает модели", 
   assert.equal(calls[1].payload.check, true);
   assert.equal(calls[1].payload.probe, false);
   assert.match(host.querySelector("[data-checked]").textContent, /llama3:8b/);
+});
+
+test("проверка харнесса называет версию и время ответа", async () => {
+  const { host } = mount({
+    stored: { enabled: true, active: "harness" },
+    checked: { models: [], version: "2.1.220", took_ms: 5300 },
+  });
+  await settled();
+
+  host.querySelector("[data-check]").click();
+  await settled();
+
+  const said = host.querySelector("[data-checked]").textContent;
+  assert.match(said, /2\.1\.220/);
+  assert.match(said, /5\.3/);
+  assert.match(said, new RegExp(ru.provider.took));
 });
 
 test("пробный запрос показывает ответ модели", async () => {

@@ -692,6 +692,7 @@ export type AdviceView = {
 export type CheckedView = {
   models: string[];
   version: string | null;
+  took_ms: number | null;
 };
 
 export type ProbedView = {

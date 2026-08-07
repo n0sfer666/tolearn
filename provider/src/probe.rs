@@ -18,10 +18,13 @@ pub struct Probed {
 pub fn probe(provider: &Provider, key: Option<&str>) -> Result<Probed, CheckError> {
     let started = Instant::now();
     let told = briefly(provider, key, PROMPT)?;
-    let took = u32::try_from(started.elapsed().as_millis()).unwrap_or(u32::MAX);
     Ok(Probed {
         said: told.text.chars().take(SAID_CHARS).collect(),
-        took_ms: took,
+        took_ms: took(started),
         thinking: told.thinking,
     })
+}
+
+pub(crate) fn took(started: Instant) -> u32 {
+    u32::try_from(started.elapsed().as_millis()).unwrap_or(u32::MAX)
 }

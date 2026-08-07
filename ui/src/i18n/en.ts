@@ -362,6 +362,7 @@ export const en: Dictionary = {
     working: "Request is running…",
     checked: "Connected, models:",
     version: "The harness is there:",
+    took: "answered in",
     said: "The model answered:",
     thinking: "The model answers — it thinks aloud, a ready answer takes",
     seconds: "s",

@@ -1,5 +1,3 @@
-use std::time::Instant;
-
 use tolearn_core::generate::repair;
 use tolearn_provider::{Provider, ask};
 
@@ -22,10 +20,11 @@ pub fn taken<T>(
     let mut complaints = Vec::new();
     for round in 1..=ROUNDS {
         job.attempting(round);
-        let started = Instant::now();
+        job.asking();
         let said = ask(&speaker.provider, speaker.key.as_deref(), &asking)
+            .inspect_err(|_| job.spent(None))
             .map_err(|error| vec![error.to_string()])?;
-        job.spent(started.elapsed().as_secs(), said.tokens);
+        job.spent(said.tokens);
         if job.stopped() {
             return Err(Vec::new());
         }

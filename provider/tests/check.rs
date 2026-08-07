@@ -108,11 +108,19 @@ fn чужой_список_моделей_внешнего_сервиса_не_�
 }
 
 #[test]
-fn харнесс_называет_версию() {
+fn харнесс_называет_версию_и_время_ответа() {
     let checked = check(&harness(&["say".to_owned()], 20), None).unwrap();
 
     assert_eq!(checked.models, Vec::<String>::new());
     assert_eq!(checked.version, Some("fake-harness 1.0".to_owned()));
+    assert!(checked.took_ms.is_some(), "{checked:?}");
+}
+
+#[test]
+fn харнесс_с_версией_но_без_ответа_проверку_не_проходит() {
+    let failed = check(&harness(&["silent".to_owned()], 20), None).unwrap_err();
+
+    assert_eq!(failed, CheckError::BadAnswer);
 }
 
 #[test]

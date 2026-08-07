@@ -1,5 +1,5 @@
 import type { Dictionary } from "../i18n/ru";
-import type { HttpView, ProbedView, ProviderView } from "../ipc";
+import type { CheckedView, HttpView, ProbedView, ProviderView } from "../ipc";
 
 const OLLAMA_ENDPOINT = "http://127.0.0.1:11434";
 const OPENAI_ENDPOINT = "http://127.0.0.1:8080/v1";
@@ -28,6 +28,16 @@ export function numbered(said: string, most: number): number {
   const asked = Number.parseInt(said, 10);
   if (Number.isNaN(asked)) return 0;
   return Math.min(Math.max(asked, 0), most);
+}
+
+export function seen(checked: CheckedView, text: Dictionary): string {
+  if (checked.version === null) {
+    return `${text.provider.checked} ${checked.models.join(", ")}`;
+  }
+  const said = `${text.provider.version} ${checked.version}`;
+  if (checked.took_ms === null) return said;
+  const took = (checked.took_ms / 1000).toFixed(1);
+  return `${said} · ${text.provider.took} ${took} ${text.provider.seconds}`;
 }
 
 export function answered(probed: ProbedView, text: Dictionary): string {

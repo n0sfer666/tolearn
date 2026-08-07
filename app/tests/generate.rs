@@ -23,6 +23,7 @@ static CASES: AtomicUsize = AtomicUsize::new(0);
 
 const TODAY: &str = "2026-08-06";
 const BROKEN: &str = "```yaml\nschema: learning-roadmap/v1\nid: [\n```\n";
+const SLOW: Duration = Duration::from_secs(3);
 
 struct Case {
     context: Context,
@@ -241,4 +242,28 @@ fn отмена_на_сводке_не_оставляет_ни_файла() {
     assert_eq!(done["cancelled"], json!(true));
     assert_eq!(heard.heard().len(), 1);
     assert!(!bundles(&case).join("minimal-program").exists());
+}
+
+#[test]
+fn секунды_идут_пока_модель_ещё_молчит() {
+    let case = case("ticking");
+    let heard = speaking(|prompt, _| {
+        sleep(SLOW);
+        if prompt.contains("## Тема") {
+            topic()
+        } else {
+            skeleton()
+        }
+    });
+    let asked = Instant::now();
+    let job = started(&case, &heard);
+
+    let live = until(&case, &job, |live| {
+        live["seconds"].as_u64().unwrap_or(0) >= 1
+    });
+
+    assert!(asked.elapsed() < SLOW, "счётчик дождался ответа: {live}");
+    assert_eq!(live["finished"], json!(false));
+    call(&case.context, "generate_stop", &json!({ "job": job })).unwrap();
+    until(&case, &job, |live| live["finished"] == json!(true));
 }

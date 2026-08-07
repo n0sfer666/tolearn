@@ -42,6 +42,7 @@ fn checked(provider: &Provider, key: Option<&str>) -> Result<CheckedView, IpcErr
     Ok(CheckedView {
         models: checked.models,
         version: checked.version,
+        took_ms: checked.took_ms,
     })
 }
 

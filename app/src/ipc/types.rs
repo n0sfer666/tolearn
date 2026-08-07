@@ -582,6 +582,7 @@ dto!(PresetView {
 dto!(CheckedView {
     models: Vec<String>,
     version: Option<String>,
+    took_ms: Option<u32>,
 });
 dto!(ProbedView {
     said: String,
