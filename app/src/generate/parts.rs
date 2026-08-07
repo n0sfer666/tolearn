@@ -1,21 +1,28 @@
-use tolearn_core::bundle::validate;
+use tolearn_core::bundle::{Violation, ordered, tracked, validate};
 use tolearn_core::generate::{PROGRESS_SCHEMA, ROADMAP_SCHEMA, TOPIC_SCHEMA, generated, pick};
 use tolearn_core::progress::parse as read_progress;
 use tolearn_core::roadmap::{Roadmap, TopicEntry, parse as read_roadmap};
 use tolearn_core::topic::{Topic, parse as read_topic};
 
+pub struct Refused {
+    pub why: Vec<String>,
+    pub topics: Vec<String>,
+}
+
 pub fn skeleton(answer: &str) -> Result<(Roadmap, String, String), Vec<String>> {
     let map_text = block(answer, ROADMAP_SCHEMA)?;
-    let progress = block(answer, PROGRESS_SCHEMA)?;
+    let text = block(answer, PROGRESS_SCHEMA)?;
     let map = read_roadmap(&map_text).map_err(spoken)?;
-    read_progress(&progress).map_err(spoken)?;
+    let progress = read_progress(&text).map_err(spoken)?;
     refused(validate(&map, &[]))?;
-    Ok((map, map_text, progress))
+    refused(tracked(&map, &progress))?;
+    Ok((map, map_text, text))
 }
 
 pub fn one(
     map: &Roadmap,
     entry: &TopicEntry,
+    done: &[Topic],
     answer: &str,
 ) -> Result<(Topic, String), Vec<String>> {
     let text = block(answer, TOPIC_SCHEMA)?;
@@ -26,15 +33,33 @@ pub fn one(
             topic.id, entry.id
         )]);
     }
-    refused(validate(map, std::slice::from_ref(&topic)))?;
+    refused(ordered(map, std::slice::from_ref(&topic)))?;
+    let mut so_far = done.to_vec();
+    so_far.push(topic.clone());
+    refused(validate(map, &so_far))?;
     Ok((topic, text))
 }
 
-pub fn whole(map_text: &str, topics: &[Topic]) -> Result<(Roadmap, String), Vec<String>> {
+pub fn whole(map_text: &str, topics: &[Topic]) -> Result<(Roadmap, String), Refused> {
     let marked = generated(map_text);
-    let map = read_roadmap(&marked).map_err(spoken)?;
-    refused(validate(&map, topics))?;
-    Ok((map, marked))
+    let map = read_roadmap(&marked).map_err(|error| Refused {
+        why: vec![error.to_string()],
+        topics: Vec::new(),
+    })?;
+
+    let mut found = validate(&map, topics);
+    found.extend(ordered(&map, topics));
+    if found.is_empty() {
+        return Ok((map, marked));
+    }
+    Err(Refused {
+        why: found.iter().map(ToString::to_string).collect(),
+        topics: found
+            .iter()
+            .flat_map(Violation::topics)
+            .map(str::to_owned)
+            .collect(),
+    })
 }
 
 fn block(answer: &str, schema: &str) -> Result<String, Vec<String>> {
@@ -45,7 +70,7 @@ fn block(answer: &str, schema: &str) -> Result<String, Vec<String>> {
     })
 }
 
-fn refused(found: Vec<tolearn_core::bundle::Violation>) -> Result<(), Vec<String>> {
+fn refused(found: Vec<Violation>) -> Result<(), Vec<String>> {
     if found.is_empty() {
         return Ok(());
     }

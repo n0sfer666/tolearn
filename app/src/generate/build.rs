@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::sync::Arc;
 use std::thread::sleep;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use tolearn_core::generate::{Request, roadmap, topic};
 use tolearn_core::roadmap::Roadmap;
@@ -11,9 +11,8 @@ use super::draft::{self, Draft};
 use super::jobs::Job;
 use super::made::{self, Made};
 use super::parts;
-use super::steps::{Speaker, taken};
+use super::steps::{ROUNDS, Speaker, taken};
 
-const PATIENCE: Duration = Duration::from_secs(600);
 const PULSE: Duration = Duration::from_millis(100);
 
 pub fn fresh(
@@ -51,7 +50,7 @@ pub fn carry(
     root: &Path,
     draft: Draft,
 ) -> Result<(), Vec<String>> {
-    job.counted(draft.got.len(), draft.got.iter().flatten().count());
+    counted(job, &draft);
     whole(speaker, job, root, draft)
 }
 
@@ -61,38 +60,82 @@ fn whole(
     root: &Path,
     mut draft: Draft,
 ) -> Result<(), Vec<String>> {
+    let mut rounds = 0;
     loop {
         let missed = gather(speaker, job, root, &draft.map, &mut draft.got)?;
-        if missed.is_empty() {
-            break;
+        if !missed.is_empty() {
+            if !mended(job, missed) {
+                return Err(Vec::new());
+            }
+            continue;
         }
-        if !mended(job, missed) {
-            return Err(Vec::new());
+
+        let (topics, files) = collected(&draft);
+        let refused = match parts::whole(&draft.map_text, &topics) {
+            Ok((map, marked)) => {
+                let summary = made::summary(&map);
+                job.told(
+                    Made {
+                        id: map.id,
+                        title: map.title,
+                        roadmap: marked,
+                        progress: draft.progress,
+                        topics: files,
+                    },
+                    summary,
+                );
+                return Ok(());
+            }
+            Err(refused) => refused,
+        };
+
+        let blamed = blamed(&draft, &refused.topics);
+        if blamed.is_empty() {
+            return Err(refused.why);
+        }
+        for at in blamed {
+            if let Some(entry) = draft.map.topics.get(at) {
+                draft::erase(root, &entry.file);
+            }
+            draft.got[at] = None;
+        }
+        counted(job, &draft);
+
+        rounds += 1;
+        if rounds > ROUNDS {
+            if !mended(job, refused.why) {
+                return Err(Vec::new());
+            }
+            rounds = 0;
         }
     }
+}
 
+fn collected(draft: &Draft) -> (Vec<Topic>, Vec<(String, String)>) {
     let mut topics = Vec::new();
     let mut files = Vec::new();
-    for (entry, made) in draft.map.topics.iter().zip(draft.got) {
+    for (entry, made) in draft.map.topics.iter().zip(&draft.got) {
         if let Some((made, text)) = made {
-            files.push((entry.file.clone(), text));
-            topics.push(made);
+            files.push((entry.file.clone(), text.clone()));
+            topics.push(made.clone());
         }
     }
+    (topics, files)
+}
 
-    let (map, marked) = parts::whole(&draft.map_text, &topics)?;
-    let summary = made::summary(&map);
-    job.told(
-        Made {
-            id: map.id,
-            title: map.title,
-            roadmap: marked,
-            progress: draft.progress,
-            topics: files,
-        },
-        summary,
-    );
-    Ok(())
+fn blamed(draft: &Draft, named: &[String]) -> Vec<usize> {
+    draft
+        .map
+        .topics
+        .iter()
+        .enumerate()
+        .filter(|&(at, entry)| draft.got[at].is_some() && named.contains(&entry.id))
+        .map(|(at, _)| at)
+        .collect()
+}
+
+fn counted(job: &Job, draft: &Draft) {
+    job.counted(draft.got.len(), draft.got.iter().flatten().count());
 }
 
 fn gather(
@@ -112,8 +155,9 @@ fn gather(
         }
         job.stepping("topic", &entry.title);
         let asked = topic(map, entry);
+        let done: Vec<Topic> = got.iter().flatten().map(|(made, _)| made.clone()).collect();
         match taken(speaker, job, &asked, |answer| {
-            parts::one(map, entry, answer)
+            parts::one(map, entry, &done, answer)
         }) {
             Ok((made, text)) => {
                 let _ = draft::note(root, &entry.file, &text);
@@ -129,21 +173,19 @@ fn gather(
 
 fn confirmed(job: &Job) -> bool {
     job.waits();
-    let until = Instant::now() + PATIENCE;
-    while !job.allowed() && Instant::now() < until {
+    while !job.allowed() {
         sleep(PULSE);
     }
-    job.allowed() && !job.stopped()
+    !job.stopped()
 }
 
 fn mended(job: &Job, missed: Vec<String>) -> bool {
     job.stepping("missed", "");
     job.missing(missed);
-    let until = Instant::now() + PATIENCE;
-    while !job.asked() && Instant::now() < until {
+    while !job.asked() {
         sleep(PULSE);
     }
-    if !job.asked() || job.stopped() {
+    if job.stopped() {
         return false;
     }
     job.mending();

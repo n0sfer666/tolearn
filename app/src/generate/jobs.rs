@@ -93,6 +93,7 @@ impl Job {
 
     pub fn broke(&self, refused: Vec<String>) {
         self.change(|live| {
+            live.step = "stopped".to_owned();
             live.finished = true;
             live.cancelled = refused.is_empty();
             live.refused = refused;

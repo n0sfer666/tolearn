@@ -63,6 +63,62 @@ fn topic() -> String {
     )
 }
 
+fn two() -> (String, String) {
+    let map = format!(
+        "{}  - id: second-topic\n    title: Вторая тема\n    stage: 1\n    \
+         file: topics/second-topic.yaml\n    est_hours: [1, 2]\n    priority: core\n",
+        read("fixtures/valid/roadmap/minimal.yaml").replace("generated: true", "generated: false")
+    );
+    let progress = format!(
+        "{}  second-topic:\n    status: todo\n    attempts: []\n    passed_at: null\n    \
+         next_review_at: null\n    gaps: []\n",
+        read("fixtures/valid/progress/minimal.yaml")
+    );
+    (map, progress)
+}
+
+fn paired() -> String {
+    let (map, progress) = two();
+    format!("```yaml\n{map}```\n\nи прогресс:\n\n```yaml\n{progress}```\n")
+}
+
+fn looped(case: &Case) {
+    let (map, progress) = two();
+    let root = case.data.join("draft");
+    std::fs::create_dir_all(root.join("topics")).unwrap();
+    std::fs::write(root.join("roadmap.yaml"), map).unwrap();
+    std::fs::write(root.join("progress.yaml"), progress).unwrap();
+    std::fs::write(
+        root.join("topics/minimal-topic.yaml"),
+        written(
+            "minimal-topic",
+            "Минимальная тема",
+            "depends_on:\n  - second-topic",
+        ),
+    )
+    .unwrap();
+    std::fs::write(
+        root.join("topics/second-topic.yaml"),
+        written(
+            "second-topic",
+            "Вторая тема",
+            "depends_on:\n  - minimal-topic",
+        ),
+    )
+    .unwrap();
+}
+
+fn written(id: &str, title: &str, depends: &str) -> String {
+    read("fixtures/valid/topic/minimal-topic.yaml")
+        .replace("id: minimal-topic", &format!("id: {id}"))
+        .replace("title: Минимальная тема", &format!("title: {title}"))
+        .replace("depends_on: []", depends)
+}
+
+fn answered(id: &str, title: &str, depends: &str) -> String {
+    format!("```yaml\n{}```\n", written(id, title, depends))
+}
+
 fn enable(case: &Case, endpoint: &str) {
     call(
         &case.context,
@@ -372,4 +428,72 @@ fn секунды_идут_пока_модель_ещё_молчит() {
     assert_eq!(live["finished"], json!(false));
     call(&case.context, "generate_stop", &json!({ "job": job })).unwrap();
     until(&case, &job, |live| live["finished"] == json!(true));
+}
+
+#[test]
+fn зависимость_вперёд_не_доходит_до_черновика_и_тема_переспрашивается() {
+    let case = case("forward");
+    let heard = speaking(|prompt, _| {
+        if !prompt.contains("## Тема") {
+            return paired();
+        }
+        if prompt.contains("- `id`: second-topic") {
+            return answered(
+                "second-topic",
+                "Вторая тема",
+                "depends_on:\n  - minimal-topic",
+            );
+        }
+        if prompt.contains("## Прошлый ответ") {
+            return answered("minimal-topic", "Минимальная тема", "depends_on: []");
+        }
+        answered(
+            "minimal-topic",
+            "Минимальная тема",
+            "depends_on:\n  - second-topic",
+        )
+    });
+    let job = started(&case, &heard);
+
+    until(&case, &job, |live| live["waiting"] == json!(true));
+    call(&case.context, "generate_go", &json!({ "job": job })).unwrap();
+    let done = until(&case, &job, |live| live["finished"] == json!(true));
+
+    assert_eq!(done["refused"], json!([]));
+    assert_eq!(done["missed"], json!([]));
+    assert_eq!(done["done"], json!(2));
+    let told = heard.heard();
+    assert!(
+        told.iter()
+            .any(|said| said.contains("bundle.forward-dependency")),
+        "{told:?}"
+    );
+    assert_eq!(accept(&case, &job).unwrap()["ok"], json!(true));
+}
+
+#[test]
+fn кольцо_в_черновике_чинится_кругом_починки_без_человека() {
+    let case = case("cycle");
+    looped(&case);
+    let heard = speaking(|prompt, _| {
+        if prompt.contains("- `id`: second-topic") {
+            return answered(
+                "second-topic",
+                "Вторая тема",
+                "depends_on:\n  - minimal-topic",
+            );
+        }
+        answered("minimal-topic", "Минимальная тема", "depends_on: []")
+    });
+    enable(&case, &heard.endpoint);
+
+    let taken = draft(&case, true);
+    let job = taken["job"].as_str().unwrap().to_owned();
+    let done = until(&case, &job, |live| live["finished"] == json!(true));
+
+    assert_eq!(done["refused"], json!([]));
+    assert_eq!(done["missed"], json!([]));
+    assert_eq!(done["done"], json!(2));
+    assert_eq!(heard.heard().len(), 2, "переспросили лишнее");
+    assert_eq!(accept(&case, &job).unwrap()["ok"], json!(true));
 }

@@ -38,6 +38,10 @@ pub fn note(root: &Path, file: &str, text: &str) -> std::io::Result<()> {
     atomic::write(&path, text)
 }
 
+pub fn erase(root: &Path, file: &str) {
+    let _ = std::fs::remove_file(root.join(file));
+}
+
 pub fn read(root: &Path) -> Option<Draft> {
     let map_text = std::fs::read_to_string(root.join(ROADMAP)).ok()?;
     let progress = std::fs::read_to_string(root.join(PROGRESS)).ok()?;
