@@ -86,6 +86,10 @@ impl Context {
         self.data.join("unpacked")
     }
 
+    pub fn draft(&self) -> PathBuf {
+        self.data.join("draft")
+    }
+
     pub fn registry(&self) -> PathBuf {
         self.config.join("registry.yaml")
     }

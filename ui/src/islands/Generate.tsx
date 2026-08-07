@@ -3,9 +3,12 @@ import { Show, createSignal, onCleanup, onMount } from "solid-js";
 import Ask from "../components/generate/Ask";
 import Going from "../components/generate/Going";
 import Ready from "../components/generate/Ready";
+import Resume from "../components/generate/Resume";
 import Tile from "../components/generate/Tile";
 import type { Dictionary } from "../i18n/ru";
 import type { GenerateIn, GenerateStateOut } from "../ipc";
+import { accepting } from "../lib/accepting";
+import { drafting } from "../lib/drafting";
 import { quiet } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
 import { explain, toast } from "../lib/toast";
@@ -29,8 +32,6 @@ export default function Generate(props: Props) {
   const [asking, setAsking] = createSignal(false);
   const [job, setJob] = createSignal("");
   const [live, setLive] = createSignal<GenerateStateOut | null>(null);
-  const [busy, setBusy] = createSignal(false);
-  const [refused, setRefused] = createSignal<string[]>([]);
   let timer: ReturnType<typeof setInterval> | undefined;
 
   const halt = () => {
@@ -55,12 +56,26 @@ export default function Generate(props: Props) {
           probe: false,
         });
         setEnabled(out.provider.enabled);
+        peek();
       } catch (error) {
         setEnabled(false);
         broke(error);
       }
     })();
   });
+
+  const watch = (name: string) => {
+    setAsking(false);
+    clear();
+    setLive(null);
+    hide();
+    setJob(name);
+    halt();
+    timer = setInterval(look, props.step ?? STEP);
+    look();
+  };
+
+  const { draft, look: peek, take, forget: unpin, clear: hide } = drafting({ call, watch, broke });
 
   const look = () => {
     void (async () => {
@@ -79,13 +94,7 @@ export default function Generate(props: Props) {
     void (async () => {
       try {
         const out = await call()("generate", request);
-        setAsking(false);
-        setRefused([]);
-        setLive(null);
-        setJob(out.job);
-        halt();
-        timer = setInterval(look, props.step ?? STEP);
-        look();
+        watch(out.job);
       } catch (error) {
         broke(error);
       }
@@ -106,7 +115,7 @@ export default function Generate(props: Props) {
     halt();
     setJob("");
     setLive(null);
-    setRefused([]);
+    clear();
   };
 
   const drop = () => {
@@ -114,33 +123,15 @@ export default function Generate(props: Props) {
     close();
   };
 
-  const opened = async (id: string | null) => {
-    const { programs } = await call()("programs", { today: today() });
-    const card = programs.find((program) => program.id === id);
-    if (card === undefined) return `/${props.locale}/`;
-    return `/${props.locale}/program/?program=${encodeURIComponent(card.path)}`;
-  };
-
-  const accept = () => {
-    void (async () => {
-      setBusy(true);
-      setRefused([]);
-      try {
-        const done = await call()("generate_accept", { job: job(), today: today() });
-        if (!done.ok) {
-          setRefused(done.violations.map((violation) => violation.message));
-          return;
-        }
-        const href = await opened(done.id);
-        close();
-        (props.open ?? ((where: string) => window.location.assign(where)))(href);
-      } catch (error) {
-        broke(error);
-      } finally {
-        setBusy(false);
-      }
-    })();
-  };
+  const { busy, refused, accept, clear } = accepting({
+    call,
+    locale: () => props.locale,
+    today,
+    job,
+    open: (href) => (props.open ?? ((where: string) => window.location.assign(where)))(href),
+    close,
+    broke,
+  });
 
   const summary = () => live()?.summary ?? null;
   const shown = () => asking() || job() !== "";
@@ -149,6 +140,11 @@ export default function Generate(props: Props) {
     <div data-generate>
       <Show when={!shown()}>
         <Tile text={props.text} enabled={enabled()} onOpen={() => setAsking(true)} />
+        <Show when={draft()}>
+          {(kept) => (
+            <Resume text={props.text} draft={kept()} onTake={take} onDrop={unpin} />
+          )}
+        </Show>
       </Show>
 
       <Show when={shown()}>

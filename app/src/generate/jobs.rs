@@ -35,8 +35,11 @@ impl Job {
         self.change(|live| live.retry = retry);
     }
 
-    pub fn counted(&self, total: usize) {
-        self.change(|live| live.total = total);
+    pub fn counted(&self, total: usize, done: usize) {
+        self.change(|live| {
+            live.total = total;
+            live.done = done;
+        });
     }
 
     pub fn stepped(&self) {

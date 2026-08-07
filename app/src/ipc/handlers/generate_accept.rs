@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::generate::{forget, take};
+use crate::generate::{forget, take, unpin};
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
 use crate::ipc::handlers::generate_state::unknown;
@@ -24,7 +24,10 @@ pub fn run(context: &Context, input: &GenerateAcceptIn) -> Result<ImportOut, Ipc
         },
     );
     match &imported {
-        Ok(out) if out.ok => forget(&input.job),
+        Ok(out) if out.ok => {
+            forget(&input.job);
+            unpin(&context.draft());
+        }
         _ => {
             let _ = std::fs::remove_dir_all(&home);
         }

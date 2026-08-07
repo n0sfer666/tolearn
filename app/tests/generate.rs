@@ -141,6 +141,15 @@ fn accept(case: &Case, job: &str) -> Result<Value, IpcError> {
     )
 }
 
+fn draft(case: &Case, take: bool) -> Value {
+    call(
+        &case.context,
+        "generate_draft",
+        &json!({ "take": take, "drop": false }),
+    )
+    .unwrap()
+}
+
 fn bundles(case: &Case) -> PathBuf {
     case.data.join("unpacked")
 }
@@ -268,6 +277,41 @@ fn несобранная_тема_ждёт_повтора_и_не_рушит_з
     assert_eq!(done["done"], json!(1));
     assert_eq!(heard.heard().len(), 5);
     assert_eq!(accept(&case, &job).unwrap()["ok"], json!(true));
+}
+
+#[test]
+fn черновик_переживает_обрыв_и_сборка_идёт_с_места_остановки() {
+    let case = case("draft");
+    let first = speaking(|_, turn| {
+        if turn == 0 {
+            skeleton()
+        } else {
+            BROKEN.to_owned()
+        }
+    });
+    let job = started(&case, &first);
+    until(&case, &job, |live| live["waiting"] == json!(true));
+    call(&case.context, "generate_go", &json!({ "job": job })).unwrap();
+    until(&case, &job, |live| {
+        !live["missed"].as_array().unwrap().is_empty()
+    });
+
+    let kept = draft(&case, false);
+    assert_eq!(kept["draft"]["id"], json!("minimal-program"));
+    assert_eq!(kept["draft"]["total"], json!(1));
+    assert_eq!(kept["draft"]["done"], json!(0));
+
+    let second = speaking(|_, _| topic());
+    enable(&case, &second.endpoint);
+    let taken = draft(&case, true);
+    let next = taken["job"].as_str().unwrap().to_owned();
+    let done = until(&case, &next, |live| live["finished"] == json!(true));
+
+    assert_eq!(done["refused"], json!([]));
+    assert_eq!(done["done"], json!(1));
+    assert_eq!(second.heard().len(), 1, "скелет спросили заново");
+    assert_eq!(accept(&case, &next).unwrap()["ok"], json!(true));
+    assert_eq!(draft(&case, false)["draft"], json!(null));
 }
 
 #[test]

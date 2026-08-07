@@ -84,6 +84,7 @@ commands! {
     generate_go(types::GenerateGoIn) -> types::GenerateGoOut,
     generate_stop(types::GenerateStopIn) -> types::GenerateStopOut,
     generate_accept(types::GenerateAcceptIn) -> types::ImportOut,
+    generate_draft(types::GenerateDraftIn) -> types::GenerateDraftOut,
 }
 
 #[tauri::command]

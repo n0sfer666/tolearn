@@ -64,6 +64,12 @@ after(() => {
   for (const dispose of alive) dispose();
 });
 
+function kept(payload, draft) {
+  if (payload.take) return { draft: null, job: "gen-2" };
+  if (payload.drop) return { draft: null, job: null };
+  return { draft, job: null };
+}
+
 function mount(options = {}) {
   const host = document.createElement("div");
   document.body.append(host);
@@ -75,6 +81,7 @@ function mount(options = {}) {
     if (name === "provider") return Promise.resolve({ provider: { enabled: options.enabled ?? true } });
     if (name === "generate") return Promise.resolve({ job: "gen-1" });
     if (name === "generate_state") return Promise.resolve(states.length > 1 ? states.shift() : states[0]);
+    if (name === "generate_draft") return Promise.resolve(kept(payload, options.draft ?? null));
     if (name === "generate_go") return Promise.resolve({ going: true });
     if (name === "generate_stop") return Promise.resolve({ stopping: true });
     if (name === "generate_accept") return Promise.resolve(options.imported ?? IMPORTED);
@@ -119,6 +126,35 @@ test("выключенный провайдер гасит кнопку и го�
   assert.equal(host.querySelector("[data-generate-open]").disabled, true);
   assert.match(host.textContent, new RegExp(ru.generate.off));
   assert.equal(calls.filter(({ name }) => name === "generate").length, 0);
+});
+
+test("недособранный черновик зовёт продолжить с места остановки", async () => {
+  const draft = { id: "rust-core", title: "Ядро на Rust", total: 8, done: 3 };
+  const { host, calls } = mount({ draft });
+  await settled();
+
+  const said = host.querySelector("[data-generate-draft-line]").textContent;
+  assert.match(said, new RegExp(`${ru.generate.resume} «Ядро на Rust» \\(3 ${ru.generate.of} 8\\)`), said);
+
+  host.querySelector("[data-generate-take]").click();
+  await ticks();
+
+  const [, taken] = calls.filter(({ name }) => name === "generate_draft");
+  assert.equal(taken.payload.take, true);
+  assert.equal(host.querySelector("[data-generate-draft-line]"), null);
+});
+
+test("забытый черновик больше не предлагается", async () => {
+  const draft = { id: "rust-core", title: "Ядро на Rust", total: 8, done: 3 };
+  const { host, calls } = mount({ draft });
+  await settled();
+
+  host.querySelector("[data-generate-drop]").click();
+  await ticks();
+
+  const [, dropped] = calls.filter(({ name }) => name === "generate_draft");
+  assert.equal(dropped.payload.drop, true);
+  assert.equal(host.querySelector("[data-generate-draft-line]"), null);
 });
 
 test("одна фраза человека и уровень уходят в генерацию", async () => {

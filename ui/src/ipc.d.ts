@@ -837,6 +837,23 @@ export type GenerateAcceptIn = {
   today: string;
 };
 
+export type GenerateDraftIn = {
+  take: boolean;
+  drop: boolean;
+};
+
+export type GenerateDraftOut = {
+  draft: DraftView | null;
+  job: string | null;
+};
+
+export type DraftView = {
+  id: string;
+  title: string;
+  total: number;
+  done: number;
+};
+
 export type Commands = {
   validate: { input: ValidateIn; output: ValidateOut };
   scan: { input: ScanIn; output: ScanOut };
@@ -882,6 +899,7 @@ export type Commands = {
   generate_go: { input: GenerateGoIn; output: GenerateGoOut };
   generate_stop: { input: GenerateStopIn; output: GenerateStopOut };
   generate_accept: { input: GenerateAcceptIn; output: ImportOut };
+  generate_draft: { input: GenerateDraftIn; output: GenerateDraftOut };
 };
 
 export type CommandName = keyof Commands;

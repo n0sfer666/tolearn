@@ -29,7 +29,7 @@ pub fn run(context: &Context, input: &GenerateIn) -> Result<GenerateOut, IpcErro
         locale: settings::stored(context)?.locale.label().to_owned(),
     };
     Ok(GenerateOut {
-        job: start(provider, key, request),
+        job: start(provider, key, request, context.draft()),
     })
 }
 

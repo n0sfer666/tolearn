@@ -686,6 +686,20 @@ dto!(GenerateAcceptIn {
     job: String,
     today: String,
 });
+dto!(GenerateDraftIn {
+    take: bool,
+    drop: bool
+});
+dto!(GenerateDraftOut {
+    draft: Option<DraftView>,
+    job: Option<String>,
+});
+dto!(DraftView {
+    id: String,
+    title: String,
+    total: u32,
+    done: u32,
+});
 
 pub fn shapes() -> Vec<Shape> {
     vec![
@@ -815,5 +829,8 @@ pub fn shapes() -> Vec<Shape> {
         GenerateStopIn::shape(),
         GenerateStopOut::shape(),
         GenerateAcceptIn::shape(),
+        GenerateDraftIn::shape(),
+        GenerateDraftOut::shape(),
+        DraftView::shape(),
     ]
 }

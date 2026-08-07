@@ -122,6 +122,21 @@ li[data-new-program] {
   font-size: var(--font-size-sm);
 }
 
+[data-generate-draft] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  align-items: center;
+  margin-block-start: var(--spacing-3);
+}
+
+[data-generate-draft-line] {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
 [data-generate-gathered] {
   margin: 0;
   color: var(--color-warning);

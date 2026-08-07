@@ -10,6 +10,7 @@ pub mod export;
 pub mod follow;
 pub mod generate;
 pub mod generate_accept;
+pub mod generate_draft;
 pub mod generate_go;
 pub mod generate_state;
 pub mod generate_stop;
