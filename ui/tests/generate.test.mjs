@@ -304,7 +304,7 @@ test("отказ приёмки показан словами и на прогр
   assert.deepEqual(opened, []);
 });
 
-test("отмена на сводке останавливает генерацию и ничего не принимает", async () => {
+test("закрытие сводки ничего не принимает и черновик не стирает", async () => {
   const done = { ...LIVE, step: "done", total: 8, done: 8, finished: true, summary: SUMMARY };
   const { host, calls } = mount({ states: [done] });
   await settled();
@@ -312,9 +312,48 @@ test("отмена на сводке останавливает генераци
   host.querySelector("[data-generate-close]").click();
   await ticks();
 
-  assert.equal(calls.filter(({ name }) => name === "generate_stop").length, 1);
+  assert.equal(calls.filter(({ name }) => name === "generate_stop").length, 0);
   assert.equal(calls.filter(({ name }) => name === "generate_accept").length, 0);
+  const dropped = calls.filter(({ name, payload }) => name === "generate_draft" && payload.drop);
+  assert.deepEqual(dropped, []);
   assert.equal(host.querySelector("[data-generate-summary]"), null, "сводка осталась на экране");
+});
+
+test("отмена сборки сначала спрашивает, и только потом стирает черновик", async () => {
+  const live = { ...LIVE, step: "topic", total: 8, done: 2, current: "Владение" };
+  const { host, calls } = mount({ states: [live] });
+  await settled();
+  await ask(host);
+
+  host.querySelector("[data-generate-stop]").click();
+  await settled();
+
+  assert.notEqual(host.querySelector("[data-generate-abandon-ask]"), null);
+  assert.equal(calls.filter(({ name }) => name === "generate_stop").length, 0, "стёрли без спроса");
+
+  host.querySelector("[data-generate-keep]").click();
+  await settled();
+
+  assert.equal(host.querySelector("[data-generate-abandon-ask]"), null);
+
+  host.querySelector("[data-generate-stop]").click();
+  await settled();
+  host.querySelector("[data-generate-abandon]").click();
+  await ticks();
+
+  assert.equal(calls.filter(({ name }) => name === "generate_stop").length, 1);
+  const [dropped] = calls.filter(({ name, payload }) => name === "generate_draft" && payload.drop);
+  assert.notEqual(dropped, undefined, "черновик не стёрли");
+});
+
+test("счётчик тем не забегает за общее число", async () => {
+  const live = { ...LIVE, step: "topic", total: 8, done: 8, current: "Владение" };
+  const { host } = mount({ states: [live] });
+  await settled();
+  await ask(host);
+
+  const seen = host.querySelector("[data-generate-step]").textContent;
+  assert.match(seen, /Тема 8 \/ 8: Владение/, seen);
 });
 
 test("три круга брака показаны нарушениями, а принимать нечего", async () => {
@@ -332,4 +371,27 @@ test("три круга брака показаны нарушениями, а �
   assert.match(host.textContent, new RegExp(ru.generate.stopped), host.textContent);
   assert.match(host.textContent, /bundle\.unknown-topic/, host.textContent);
   assert.equal(host.querySelector("[data-generate-accept]"), null, "предлагают принять брак");
+});
+
+test("упавшая сборка называет собранное и обещает сохранённый черновик", async () => {
+  const stuck = {
+    ...LIVE,
+    step: "stopped",
+    total: 8,
+    done: 6,
+    finished: true,
+    refused: ["bundle.forward-dependency: тема `a` зависит от `b` позже себя"],
+  };
+  const { host, calls } = mount({ states: [stuck] });
+  await settled();
+  await ask(host);
+
+  const seen = host.querySelector("[data-generate-step]").textContent;
+  assert.match(seen, new RegExp(`${ru.generate.gathered}: 6 \\/ 8`), seen);
+  assert.match(host.querySelector("[data-generate-saved]").textContent, new RegExp(ru.generate.saved));
+
+  host.querySelector("[data-generate-close]").click();
+  await ticks();
+
+  assert.equal(calls.filter(({ name }) => name === "generate_stop").length, 0);
 });

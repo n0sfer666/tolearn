@@ -118,8 +118,9 @@ export default function Generate(props: Props) {
     clear();
   };
 
-  const drop = () => {
+  const abandon = () => {
     tell("generate_stop");
+    unpin();
     close();
   };
 
@@ -164,8 +165,8 @@ export default function Generate(props: Props) {
                   text={props.text}
                   live={live()}
                   onGo={() => tell("generate_go")}
-                  onStop={() => tell("generate_stop")}
-                  onClose={drop}
+                  onStop={abandon}
+                  onClose={close}
                 />
               }
             >
@@ -177,7 +178,7 @@ export default function Generate(props: Props) {
                   busy={busy()}
                   refused={refused()}
                   onAccept={accept}
-                  onClose={drop}
+                  onClose={close}
                 />
               )}
             </Show>

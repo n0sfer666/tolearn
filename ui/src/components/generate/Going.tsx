@@ -1,4 +1,4 @@
-import { For, Show } from "solid-js";
+import { For, Show, createSignal } from "solid-js";
 
 import type { Dictionary } from "../../i18n/ru";
 import type { GenerateStateOut } from "../../ipc";
@@ -13,12 +13,16 @@ interface Props {
 }
 
 export default function Going(props: Props) {
+  const [leaving, setLeaving] = createSignal(false);
+
   const where = () => {
     const live = props.live;
     if (live === null || live.step === "skeleton") return props.text.skeleton;
     if (live.step === "confirm") return props.text.confirm;
     if (live.step === "missed") return props.text.missing;
-    return `${props.text.topic} ${live.done + 1} / ${live.total}: ${live.current}`;
+    if (live.finished) return `${props.text.gathered}: ${live.done} / ${live.total}`;
+    const at = Math.min(live.done + 1, live.total);
+    return `${props.text.topic} ${at} / ${live.total}: ${live.current}`;
   };
 
   const cost = () => {
@@ -82,14 +86,21 @@ export default function Going(props: Props) {
           {props.text.go}
         </button>
       </Show>
-      <Show
-        when={done()}
-        fallback={
-          <button type="button" data-generate-stop onClick={props.onStop}>
-            {props.text.cancel}
-          </button>
-        }
-      >
+      <Show when={!done() && !leaving()}>
+        <button type="button" data-generate-stop onClick={() => setLeaving(true)}>
+          {props.text.abandon}
+        </button>
+      </Show>
+      <Show when={!done() && leaving()}>
+        <p data-generate-abandon-ask>{props.text.abandonAsk}</p>
+        <button type="button" data-generate-abandon onClick={props.onStop}>
+          {props.text.abandonYes}
+        </button>
+        <button type="button" data-generate-keep onClick={() => setLeaving(false)}>
+          {props.text.keep}
+        </button>
+      </Show>
+      <Show when={done()}>
         <p data-generate-outcome>
           {props.live?.cancelled === true ? props.text.cancelled : props.text.stopped}
         </p>
@@ -98,6 +109,7 @@ export default function Going(props: Props) {
             <For each={refused()}>{(why) => <li>{why}</li>}</For>
           </ul>
         </Show>
+        <p data-generate-saved>{props.text.saved}</p>
         <button type="button" data-generate-close onClick={props.onClose}>
           {props.text.close}
         </button>
