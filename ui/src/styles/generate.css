@@ -122,6 +122,18 @@ li[data-new-program] {
   font-size: var(--font-size-sm);
 }
 
+[data-generate-gathered] {
+  margin: 0;
+  color: var(--color-warning);
+}
+
+[data-generate-missed] {
+  margin-block: 0;
+  padding-inline-start: var(--spacing-6);
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
 [data-generate-summary] > :is(h3, h4, p) {
   margin-block: 0 var(--spacing-2);
 }

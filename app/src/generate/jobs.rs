@@ -1,19 +1,15 @@
-use std::collections::HashMap;
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{Arc, LazyLock, Mutex};
+use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
 
 use super::live::{Live, tailed};
 use super::made::{Made, Summary};
 
-static JOBS: LazyLock<Mutex<HashMap<String, Arc<Job>>>> =
-    LazyLock::new(|| Mutex::new(HashMap::new()));
-static COUNTED: AtomicUsize = AtomicUsize::new(0);
-
 #[derive(Debug, Default)]
 pub struct Job {
     stop: AtomicBool,
     go: AtomicBool,
+    again: AtomicBool,
     live: Mutex<Live>,
     made: Mutex<Option<Made>>,
     since: Mutex<Option<Instant>>,
@@ -107,11 +103,35 @@ impl Job {
 
     pub fn goes(&self) {
         self.go.store(true, Ordering::Relaxed);
+        self.again.store(true, Ordering::Relaxed);
         self.change(|live| live.waiting = false);
+    }
+
+    pub fn missing(&self, missed: Vec<String>) {
+        self.again.store(false, Ordering::Relaxed);
+        self.change(|live| live.missed = missed);
+    }
+
+    pub fn mending(&self) {
+        self.again.store(false, Ordering::Relaxed);
+        self.change(|live| live.missed = Vec::new());
+    }
+
+    pub fn stopping(&self) {
+        self.stop.store(true, Ordering::Relaxed);
+        self.goes();
+    }
+
+    pub fn made(&self) -> Option<Made> {
+        self.made.lock().ok()?.clone()
     }
 
     pub fn allowed(&self) -> bool {
         self.go.load(Ordering::Relaxed)
+    }
+
+    pub fn asked(&self) -> bool {
+        self.again.load(Ordering::Relaxed)
     }
 
     pub fn stopped(&self) -> bool {
@@ -149,46 +169,4 @@ impl Job {
             edit(&mut live);
         }
     }
-}
-
-pub fn register() -> (String, Arc<Job>) {
-    let name = format!("gen-{}", COUNTED.fetch_add(1, Ordering::Relaxed) + 1);
-    let job = Arc::new(Job::default());
-    if let Ok(mut jobs) = JOBS.lock() {
-        jobs.insert(name.clone(), Arc::clone(&job));
-    }
-    (name, job)
-}
-
-pub fn look(name: &str) -> Option<Live> {
-    found(name).map(|job| job.look())
-}
-
-pub fn go(name: &str) -> bool {
-    found(name).is_some_and(|job| {
-        job.goes();
-        true
-    })
-}
-
-pub fn stop(name: &str) -> bool {
-    found(name).is_some_and(|job| {
-        job.stop.store(true, Ordering::Relaxed);
-        job.goes();
-        true
-    })
-}
-
-pub fn take(name: &str) -> Option<Made> {
-    found(name)?.made.lock().ok()?.clone()
-}
-
-pub fn forget(name: &str) {
-    if let Ok(mut jobs) = JOBS.lock() {
-        jobs.remove(name);
-    }
-}
-
-fn found(name: &str) -> Option<Arc<Job>> {
-    JOBS.lock().ok()?.get(name).map(Arc::clone)
 }

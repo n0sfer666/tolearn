@@ -18,6 +18,7 @@ pub fn run(_context: &Context, input: &GenerateStateIn) -> Result<GenerateStateO
         finished: live.finished,
         cancelled: live.cancelled,
         refused: live.refused,
+        missed: live.missed,
         seconds: live.seconds,
         step_seconds: live.step_seconds,
         chars: live.chars,

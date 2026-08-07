@@ -14,6 +14,7 @@ pub struct Live {
     pub finished: bool,
     pub cancelled: bool,
     pub refused: Vec<String>,
+    pub missed: Vec<String>,
     pub seconds: u64,
     pub step_seconds: u64,
     pub chars: u64,

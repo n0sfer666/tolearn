@@ -28,6 +28,7 @@ const LIVE = {
   finished: false,
   cancelled: false,
   refused: [],
+  missed: [],
   seconds: 4,
   step_seconds: 2,
   chars: 0,
@@ -193,6 +194,29 @@ test("оборванная связь называет себя и номер п
 
   const said = host.querySelector("[data-generate-retry]").textContent;
   assert.match(said, new RegExp(`${ru.generate.reconnect} 2 \\/ 3`), said);
+});
+
+test("несобранные темы названы, а кнопка зовёт повторить только их", async () => {
+  const stuck = {
+    ...LIVE,
+    step: "missed",
+    total: 8,
+    done: 6,
+    missed: ["Владение: в ответе нет блока", "Заимствование: `id` темы — `x`"],
+  };
+  const { host, calls } = mount({ states: [stuck] });
+  await settled();
+  await ask(host);
+
+  const seen = host.querySelector("[data-generating]").textContent;
+  assert.match(seen, new RegExp(ru.generate.missing), seen);
+  assert.match(seen, new RegExp(`${ru.generate.gathered}: 6 \\/ 8`), seen);
+  assert.equal(host.querySelectorAll("[data-generate-missed] li").length, 2);
+
+  host.querySelector("[data-generate-again]").click();
+  await settled();
+
+  assert.equal(calls.filter(({ name }) => name === "generate_go").length, 1);
 });
 
 test("сводка говорит, сколько заняла сборка", async () => {

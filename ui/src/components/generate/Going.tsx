@@ -17,6 +17,7 @@ export default function Going(props: Props) {
     const live = props.live;
     if (live === null || live.step === "skeleton") return props.text.skeleton;
     if (live.step === "confirm") return props.text.confirm;
+    if (live.step === "missed") return props.text.missing;
     return `${props.text.topic} ${live.done + 1} / ${live.total}: ${live.current}`;
   };
 
@@ -39,6 +40,8 @@ export default function Going(props: Props) {
   };
   const asks = () => props.live?.waiting === true && !done();
   const refused = () => props.live?.refused ?? [];
+  const missed = () => props.live?.missed ?? [];
+  const stuck = () => missed().length > 0 && !done();
 
   return (
     <div data-generating>
@@ -59,6 +62,17 @@ export default function Going(props: Props) {
       <p data-generate-cost>{cost()}</p>
       <Show when={shown().length > 0}>
         <pre data-generate-tail>{shown().join("\n")}</pre>
+      </Show>
+      <Show when={stuck()}>
+        <p data-generate-gathered>
+          {props.text.gathered}: {props.live?.done} / {props.live?.total}
+        </p>
+        <ul data-generate-missed>
+          <For each={missed()}>{(why) => <li>{why}</li>}</For>
+        </ul>
+        <button type="button" data-generate-again onClick={props.onGo}>
+          {props.text.again}
+        </button>
       </Show>
       <Show when={asks()}>
         <p data-generate-estimate>

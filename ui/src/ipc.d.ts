@@ -790,6 +790,7 @@ export type GenerateStateOut = {
   finished: boolean;
   cancelled: boolean;
   refused: string[];
+  missed: string[];
   seconds: number;
   step_seconds: number;
   chars: number;

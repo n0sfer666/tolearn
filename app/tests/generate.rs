@@ -241,6 +241,36 @@ fn три_обрыва_подряд_останавливают_генераци�
 }
 
 #[test]
+fn несобранная_тема_ждёт_повтора_и_не_рушит_задание() {
+    let case = case("missed");
+    let heard = speaking(|_, turn| match turn {
+        0 => skeleton(),
+        1..=3 => BROKEN.to_owned(),
+        _ => topic(),
+    });
+    let job = started(&case, &heard);
+
+    until(&case, &job, |live| live["waiting"] == json!(true));
+    call(&case.context, "generate_go", &json!({ "job": job })).unwrap();
+    let stuck = until(&case, &job, |live| {
+        !live["missed"].as_array().unwrap().is_empty()
+    });
+
+    assert_eq!(stuck["finished"], json!(false));
+    assert_eq!(stuck["done"], json!(0));
+    assert_eq!(stuck["step"], json!("missed"));
+
+    call(&case.context, "generate_go", &json!({ "job": job })).unwrap();
+    let done = until(&case, &job, |live| live["finished"] == json!(true));
+
+    assert_eq!(done["refused"], json!([]));
+    assert_eq!(done["missed"], json!([]));
+    assert_eq!(done["done"], json!(1));
+    assert_eq!(heard.heard().len(), 5);
+    assert_eq!(accept(&case, &job).unwrap()["ok"], json!(true));
+}
+
+#[test]
 fn три_круга_брака_останавливают_генерацию_без_файлов() {
     let case = case("stuck");
     let heard = speaking(|_, _| BROKEN.to_owned());
