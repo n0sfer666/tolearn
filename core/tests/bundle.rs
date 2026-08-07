@@ -24,9 +24,14 @@ fn a_repeated_topic_id_is_reported_once_by_id() {
 
     assert_eq!(
         validate(&map, &topics),
-        [Violation::DuplicateTopicId {
-            id: "model-selection".to_owned(),
-        }]
+        [
+            Violation::DuplicateTopicId {
+                id: "model-selection".to_owned(),
+            },
+            Violation::DuplicateTopicFile {
+                file: "topics/model-selection.yaml".to_owned(),
+            }
+        ]
     );
 }
 

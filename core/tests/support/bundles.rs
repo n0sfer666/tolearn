@@ -79,7 +79,11 @@ pub fn a_question() -> Question {
 }
 
 pub fn recorded(pairs: &[(&str, &str)]) -> Progress {
-    let head = "schema: learning-roadmap/progress/v1\nroadmap_id: corpus-program\ntopics:";
+    recorded_for("corpus-program", pairs)
+}
+
+pub fn recorded_for(program: &str, pairs: &[(&str, &str)]) -> Progress {
+    let head = format!("schema: learning-roadmap/progress/v1\nroadmap_id: {program}\ntopics:");
     let mut source = format!("{head}{}\n", if pairs.is_empty() { " {}" } else { "" });
     for (id, status) in pairs {
         source.push_str(&format!(

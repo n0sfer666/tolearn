@@ -1,4 +1,5 @@
 use std::collections::{BTreeSet, HashMap};
+use std::path::{Component, Path};
 
 use super::violation::Violation;
 use crate::roadmap::Roadmap;
@@ -12,6 +13,7 @@ pub fn check(roadmap: &Roadmap, topics: &[Topic], found: &mut Vec<Violation>) {
         found.push(Violation::EmptyTopics);
     }
     duplicates(roadmap, found);
+    files(roadmap, found);
     stages(roadmap, found);
     checkpoints(roadmap, found);
     documents(roadmap, topics, found);
@@ -29,6 +31,33 @@ fn duplicates(roadmap: &Roadmap, found: &mut Vec<Violation>) {
             });
         }
     }
+}
+
+fn files(roadmap: &Roadmap, found: &mut Vec<Violation>) {
+    let mut seen = BTreeSet::new();
+    let mut reported = BTreeSet::new();
+    for entry in &roadmap.topics {
+        if !contained(&entry.file) {
+            found.push(Violation::UnsafeTopicFile {
+                topic: entry.id.clone(),
+                file: entry.file.clone(),
+            });
+        }
+        if !seen.insert(&entry.file) && reported.insert(&entry.file) {
+            found.push(Violation::DuplicateTopicFile {
+                file: entry.file.clone(),
+            });
+        }
+    }
+}
+
+fn contained(file: &str) -> bool {
+    let path = Path::new(file);
+    !file.contains('\\')
+        && path.components().next().is_some()
+        && path
+            .components()
+            .all(|part| matches!(part, Component::Normal(_)))
 }
 
 fn stages(roadmap: &Roadmap, found: &mut Vec<Violation>) {

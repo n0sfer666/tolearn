@@ -42,7 +42,14 @@ pub fn topic(roadmap: &Roadmap, entry: &TopicEntry) -> String {
             roadmap.defaults.revalidate_after_days.volatile
         ),
         listed("Закреплённые версии", &pins(roadmap)),
-        listed("Остальные темы программы", &others(roadmap, entry)),
+        listed(
+            "Темы раньше этой по плану — только их и можно ставить в `depends_on`",
+            &earlier(roadmap, entry),
+        ),
+        listed(
+            "Темы позже этой по плану — ставить их в `depends_on` нельзя",
+            &later(roadmap, entry),
+        ),
     ];
     section(generation::topic(), "## Тема", &told.join("\n"))
 }
@@ -85,11 +92,27 @@ fn pins(roadmap: &Roadmap) -> Vec<String> {
         .collect()
 }
 
-fn others(roadmap: &Roadmap, entry: &TopicEntry) -> Vec<String> {
-    roadmap
-        .topics
-        .iter()
-        .filter(|other| other.id != entry.id)
+fn earlier(roadmap: &Roadmap, entry: &TopicEntry) -> Vec<String> {
+    named(
+        roadmap
+            .topics
+            .iter()
+            .take_while(|other| other.id != entry.id),
+    )
+}
+
+fn later(roadmap: &Roadmap, entry: &TopicEntry) -> Vec<String> {
+    named(
+        roadmap
+            .topics
+            .iter()
+            .skip_while(|other| other.id != entry.id)
+            .skip(1),
+    )
+}
+
+fn named<'a>(entries: impl Iterator<Item = &'a TopicEntry>) -> Vec<String> {
+    entries
         .map(|other| format!("`{}` — {} (этап {})", other.id, other.title, other.stage))
         .collect()
 }
