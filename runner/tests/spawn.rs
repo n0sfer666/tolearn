@@ -70,6 +70,7 @@ fn the_prompt_reaches_the_program_through_its_stdin() {
         &directory,
         "ГОТОВ",
         limits(10_000, 64 * 1024),
+        None,
     )
     .unwrap();
 
@@ -87,6 +88,7 @@ fn a_program_sees_only_the_directory_it_was_given() {
         &directory,
         "",
         limits(10_000, 64 * 1024),
+        None,
     )
     .unwrap();
 
@@ -105,6 +107,7 @@ fn a_program_that_does_not_stop_is_cut_off_by_the_timeout() {
         &directory,
         "",
         limits(600, 64 * 1024),
+        None,
     )
     .unwrap();
 
@@ -116,7 +119,15 @@ fn a_program_that_does_not_stop_is_cut_off_by_the_timeout() {
 fn a_talkative_program_is_cut_at_the_limit_and_says_so() {
     let directory = scratch("flood");
 
-    let run = spawn(SHELL.0, &args(FLOOD), &directory, "", limits(20_000, 2_000)).unwrap();
+    let run = spawn(
+        SHELL.0,
+        &args(FLOOD),
+        &directory,
+        "",
+        limits(20_000, 2_000),
+        None,
+    )
+    .unwrap();
 
     assert!(run.truncated);
     assert!(run.stdout.len() <= 2_000);
@@ -132,6 +143,7 @@ fn a_program_that_fails_keeps_its_code_and_its_complaint() {
         &directory,
         "",
         limits(10_000, 64 * 1024),
+        None,
     )
     .unwrap();
 
@@ -149,6 +161,7 @@ fn a_program_that_is_not_installed_is_an_error_not_a_run() {
         &directory,
         "",
         limits(10_000, 64 * 1024),
+        None,
     )
     .unwrap_err();
 
@@ -165,6 +178,7 @@ fn a_directory_that_is_not_there_is_an_error_not_a_run() {
         &directory,
         "",
         limits(10_000, 64 * 1024),
+        None,
     )
     .unwrap_err();
 
@@ -188,6 +202,7 @@ fn the_children_of_a_program_die_with_it() {
         &directory,
         "",
         limits(800, 64 * 1024),
+        None,
     )
     .unwrap();
 

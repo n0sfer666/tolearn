@@ -45,7 +45,7 @@ fn installed(http: &Http, checked: &Checked) -> Result<(), CheckError> {
 fn spoke(harness: &Harness) -> Result<Checked, CheckError> {
     let version = harness::version(harness)?;
     let started = Instant::now();
-    harness::ask(harness, PROMPT)?;
+    harness::ask(harness, PROMPT, None)?;
     Ok(Checked {
         models: Vec::new(),
         version: Some(version),

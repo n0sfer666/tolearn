@@ -789,6 +789,10 @@ export type GenerateStateOut = {
   cancelled: boolean;
   refused: string[];
   seconds: number;
+  step_seconds: number;
+  chars: number;
+  ticks: number;
+  tail: string;
   tokens: number | null;
   summary: SummaryView | null;
 };

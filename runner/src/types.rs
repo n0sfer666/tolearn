@@ -1,4 +1,7 @@
+use std::sync::Arc;
 use std::time::Duration;
+
+pub type Seen = Arc<dyn Fn(&str) + Send + Sync>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Limits {

@@ -177,6 +177,7 @@ export default function Generate(props: Props) {
                 <Ready
                   text={props.text}
                   summary={view()}
+                  seconds={live()?.seconds ?? 0}
                   busy={busy()}
                   refused={refused()}
                   onAccept={accept}

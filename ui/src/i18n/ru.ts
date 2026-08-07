@@ -55,6 +55,26 @@ export const ru = {
     attempt: "попытка",
     spent: "потрачено",
     seconds: "с",
+    minutes: "мин",
+    hoursShort: "ч",
+    letters: "знаков",
+    here: "на шаге",
+    whole: "всего",
+    built: "Собрано за",
+    crunch: [
+      "Обдумываю",
+      "Разбираю",
+      "Сочиняю",
+      "Прикидываю",
+      "Выстраиваю",
+      "Уточняю",
+      "Перебираю",
+      "Сверяю",
+      "Копаю",
+      "Раскладываю",
+      "Плету",
+      "Собираю",
+    ],
     tokens: "токенов",
     silent: "провайдер не считает токены",
     confirm: "План готов",
@@ -410,7 +430,13 @@ export const ru = {
 export type Dictionary = {
   readonly [K in keyof typeof ru]: (typeof ru)[K] extends string
     ? string
-    : { readonly [F in keyof (typeof ru)[K]]: (typeof ru)[K][F] extends string ? string : Plural };
+    : {
+        readonly [F in keyof (typeof ru)[K]]: (typeof ru)[K][F] extends string
+          ? string
+          : (typeof ru)[K][F] extends readonly string[]
+            ? readonly string[]
+            : Plural;
+      };
 };
 
 export type Plural = {

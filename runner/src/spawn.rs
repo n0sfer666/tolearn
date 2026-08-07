@@ -3,7 +3,7 @@ use std::path::Path;
 use std::process::{ChildStdin, Command, Stdio};
 
 use super::error::RunError;
-use super::types::{Limits, Run};
+use super::types::{Limits, Run, Seen};
 use super::{drain, group, wait};
 
 pub fn spawn(
@@ -12,6 +12,7 @@ pub fn spawn(
     directory: &Path,
     input: &str,
     limits: Limits,
+    seen: Option<Seen>,
 ) -> Result<Run, RunError> {
     if !directory.is_dir() {
         return Err(RunError::NoDirectory(directory.to_owned()));
@@ -27,8 +28,8 @@ pub fn spawn(
         .spawn()
         .map_err(RunError::NotStarted)?;
 
-    let out = drain::start(child.stdout.take(), limits.output_bytes);
-    let err = drain::start(child.stderr.take(), limits.output_bytes);
+    let out = drain::start(child.stdout.take(), limits.output_bytes, seen);
+    let err = drain::start(child.stderr.take(), limits.output_bytes, None);
     feed(child.stdin.take(), input);
     let outcome = wait::until_end(&mut child, limits.timeout)?;
     let (stdout, cut_out) = drain::done(out);

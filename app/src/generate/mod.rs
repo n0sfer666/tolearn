@@ -1,12 +1,15 @@
 mod jobs;
+mod live;
 mod made;
 mod parts;
 mod steps;
 
-pub use jobs::{Live, forget, go, look, stop, take};
+pub use jobs::{forget, go, look, stop, take};
+pub use live::Live;
 pub use made::{Made, Staged, Summary};
 pub use steps::ROUNDS;
 
+use std::sync::Arc;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
@@ -26,7 +29,7 @@ pub fn start(provider: Provider, key: Option<String>, request: Request) -> Strin
     name
 }
 
-fn run(speaker: &Speaker, request: &Request, job: &Job) {
+fn run(speaker: &Speaker, request: &Request, job: &Arc<Job>) {
     match build(speaker, request, job) {
         Ok(()) => {}
         Err(_) if job.stopped() => job.broke(Vec::new()),
@@ -34,7 +37,7 @@ fn run(speaker: &Speaker, request: &Request, job: &Job) {
     }
 }
 
-fn build(speaker: &Speaker, request: &Request, job: &Job) -> Result<(), Vec<String>> {
+fn build(speaker: &Speaker, request: &Request, job: &Arc<Job>) -> Result<(), Vec<String>> {
     job.stepping("skeleton", "");
     let (map, map_text, progress) = taken(speaker, job, &roadmap(request), parts::skeleton)?;
     job.counted(map.topics.len());

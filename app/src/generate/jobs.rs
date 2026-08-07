@@ -3,27 +3,12 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, LazyLock, Mutex};
 use std::time::Instant;
 
+use super::live::{Live, tailed};
 use super::made::{Made, Summary};
 
 static JOBS: LazyLock<Mutex<HashMap<String, Arc<Job>>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 static COUNTED: AtomicUsize = AtomicUsize::new(0);
-
-#[derive(Debug, Clone, Default)]
-pub struct Live {
-    pub step: String,
-    pub total: usize,
-    pub done: usize,
-    pub attempt: u32,
-    pub current: String,
-    pub waiting: bool,
-    pub finished: bool,
-    pub cancelled: bool,
-    pub refused: Vec<String>,
-    pub seconds: u64,
-    pub tokens: Option<u32>,
-    pub summary: Option<Summary>,
-}
 
 #[derive(Debug, Default)]
 pub struct Job {
@@ -32,10 +17,12 @@ pub struct Job {
     live: Mutex<Live>,
     made: Mutex<Option<Made>>,
     since: Mutex<Option<Instant>>,
+    stepped: Mutex<Option<Instant>>,
 }
 
 impl Job {
     pub fn stepping(&self, step: &str, current: &str) {
+        self.mark(&self.stepped);
         self.change(|live| {
             step.clone_into(&mut live.step);
             current.clone_into(&mut live.current);
@@ -56,9 +43,21 @@ impl Job {
     }
 
     pub fn asking(&self) {
-        if let Ok(mut since) = self.since.lock() {
-            *since = Some(Instant::now());
-        }
+        self.mark(&self.since);
+        self.change(|live| {
+            live.chars = 0;
+            live.ticks = 0;
+            live.tail = String::new();
+        });
+    }
+
+    pub fn heard(&self, piece: &str) {
+        let letters = u64::try_from(piece.chars().count()).unwrap_or_default();
+        self.change(|live| {
+            live.chars += letters;
+            live.ticks += 1;
+            live.tail = tailed(&live.tail, piece);
+        });
     }
 
     pub fn spent(&self, tokens: Option<u32>) {
@@ -115,21 +114,28 @@ impl Job {
     }
 
     pub fn look(&self) -> Live {
-        let waiting = self.waited();
+        let waiting = self.waited(&self.since);
+        let stepping = self.waited(&self.stepped);
         let mut live = self
             .live
             .lock()
             .map(|live| live.clone())
             .unwrap_or_default();
         live.seconds += waiting;
+        live.step_seconds = stepping;
         live
     }
 
-    fn waited(&self) -> u64 {
-        self.since
-            .lock()
+    fn mark(&self, at: &Mutex<Option<Instant>>) {
+        if let Ok(mut at) = at.lock() {
+            *at = Some(Instant::now());
+        }
+    }
+
+    fn waited(&self, at: &Mutex<Option<Instant>>) -> u64 {
+        at.lock()
             .ok()
-            .and_then(|since| *since)
+            .and_then(|at| *at)
             .map_or(0, |at| at.elapsed().as_secs())
     }
 

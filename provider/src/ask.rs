@@ -4,7 +4,7 @@ use serde_json::json;
 
 use crate::error::CheckError;
 use crate::harness;
-use crate::types::{Api, Http, Kind, Provider};
+use crate::types::{Api, Http, Kind, Provider, Watch};
 use crate::wire::{apart, broken, client, given, refused};
 
 pub const PATIENCE: Duration = Duration::from_secs(180);
@@ -25,7 +25,16 @@ pub struct Said {
 }
 
 pub fn ask(provider: &Provider, key: Option<&str>, prompt: &str) -> Result<Said, CheckError> {
-    told(provider, key, prompt, Length::Full)
+    told(provider, key, prompt, Length::Full, None)
+}
+
+pub fn watched(
+    provider: &Provider,
+    key: Option<&str>,
+    prompt: &str,
+    watch: Watch,
+) -> Result<Said, CheckError> {
+    told(provider, key, prompt, Length::Full, Some(watch))
 }
 
 pub(crate) fn briefly(
@@ -33,7 +42,7 @@ pub(crate) fn briefly(
     key: Option<&str>,
     prompt: &str,
 ) -> Result<Said, CheckError> {
-    told(provider, key, prompt, Length::Brief)
+    told(provider, key, prompt, Length::Brief, None)
 }
 
 fn told(
@@ -41,25 +50,18 @@ fn told(
     key: Option<&str>,
     prompt: &str,
     length: Length,
+    watch: Option<Watch>,
 ) -> Result<Said, CheckError> {
     if !provider.enabled {
         return Err(CheckError::Disabled);
     }
     match provider.active {
-        Kind::Harness => harness::ask(&provider.harness, prompt).map(plainly),
+        Kind::Harness => harness::ask(&provider.harness, prompt, watch),
         Kind::Local => spoken(&provider.local, None, prompt, length),
         Kind::Remote => {
             let key = given(key).ok_or(CheckError::NoKey)?;
             spoken(&provider.remote, Some(key), prompt, length)
         }
-    }
-}
-
-fn plainly(text: String) -> Said {
-    Said {
-        text,
-        thinking: false,
-        tokens: None,
     }
 }
 

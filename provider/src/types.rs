@@ -1,4 +1,8 @@
+use std::sync::Arc;
+
 use crate::preset::CLAUDE;
+
+pub type Watch = Arc<dyn Fn(&str) + Send + Sync>;
 
 pub const DEFAULT_ENDPOINT: &str = "http://127.0.0.1:11434";
 pub const OPENAI_ENDPOINT: &str = "http://127.0.0.1:8080/v1";

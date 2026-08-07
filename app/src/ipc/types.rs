@@ -654,6 +654,10 @@ dto!(GenerateStateOut {
     cancelled: bool,
     refused: Vec<String>,
     seconds: u64,
+    step_seconds: u64,
+    chars: u64,
+    ticks: u64,
+    tail: String,
     tokens: Option<u32>,
     summary: Option<SummaryView>,
 });

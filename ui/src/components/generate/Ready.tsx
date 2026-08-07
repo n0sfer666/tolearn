@@ -2,10 +2,12 @@ import { For, Show } from "solid-js";
 
 import type { Dictionary } from "../../i18n/ru";
 import type { SummaryView } from "../../ipc";
+import { spell } from "../../lib/crunch";
 
 interface Props {
   text: Dictionary["generate"];
   summary: SummaryView;
+  seconds: number;
   busy: boolean;
   refused: string[];
   onAccept: () => void;
@@ -22,6 +24,9 @@ export default function Ready(props: Props) {
     <div data-generate-summary>
       <h3>{props.text.summary}</h3>
       <p data-generate-title>{props.summary.title}</p>
+      <p data-generate-beat>
+        ✻ {props.text.built} {spell(props.seconds, props.text)}
+      </p>
       <p data-generate-total>
         {props.summary.topics} {props.text.topics}, {hours()} {props.text.hours}
       </p>

@@ -83,10 +83,26 @@ li[data-new-program] {
 }
 
 [data-generate-attempt],
+[data-generate-beat],
 [data-generate-cost] {
   color: var(--color-fg-muted);
   font-size: var(--font-size-sm);
   font-variant-numeric: tabular-nums;
+}
+
+[data-generate-tail] {
+  max-width: 100%;
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+[data-generate-summary] [data-generate-beat] {
+  color: var(--color-fg-muted);
 }
 
 [data-generate-outcome] {

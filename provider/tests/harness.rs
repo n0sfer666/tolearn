@@ -7,10 +7,11 @@
 
 mod support;
 
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use support::harness;
-use tolearn_provider::{CheckError, Said, ask};
+use tolearn_provider::{CheckError, Said, Watch, ask, watched};
 
 fn asked(mode: &str, timeout_secs: u32) -> Result<Said, CheckError> {
     ask(&harness(&[mode.to_owned()], timeout_secs), None, "спроси")
@@ -50,6 +51,32 @@ fn баннер_остаётся_в_ответе() {
         answer.text
     );
     assert!(answer.text.ends_with("услышал: спроси"), "{}", answer.text);
+}
+
+#[test]
+fn поток_приходит_кусками_и_приносит_расход_токенов() {
+    let seen: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    let heard = Arc::clone(&seen);
+    let watch: Watch = Arc::new(move |piece: &str| {
+        heard.lock().unwrap().push(piece.to_owned());
+    });
+
+    let answer = watched(&harness(&["stream".to_owned()], 20), None, "спроси", watch)
+        .expect("харнесс отвечает");
+
+    assert_eq!(answer.text, "услышал: спроси");
+    assert_eq!(answer.tokens, Some(17));
+    let pieces = seen.lock().unwrap().clone();
+    assert!(pieces.len() > 1, "поток пришёл одним куском: {pieces:?}");
+    assert_eq!(pieces.concat(), "услышал: спроси");
+}
+
+#[test]
+fn чужой_json_не_выдаёт_себя_за_поток_и_ответ_остаётся_текстом() {
+    let answer = asked("jsonish", 20).expect("харнесс отвечает");
+
+    assert!(answer.text.ends_with("услышал: спроси"), "{}", answer.text);
+    assert_eq!(answer.tokens, None);
 }
 
 #[test]

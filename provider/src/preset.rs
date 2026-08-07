@@ -21,7 +21,15 @@ impl Preset {
 pub const CLAUDE: Preset = Preset {
     id: "claude",
     command: "claude",
-    args: &["-p", "--output-format", "text", "--allowedTools", ""],
+    args: &[
+        "-p",
+        "--output-format",
+        "stream-json",
+        "--verbose",
+        "--include-partial-messages",
+        "--allowedTools",
+        "",
+    ],
 };
 
 pub const PRESETS: [Preset; 4] = [

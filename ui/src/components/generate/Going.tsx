@@ -2,6 +2,7 @@ import { For, Show } from "solid-js";
 
 import type { Dictionary } from "../../i18n/ru";
 import type { GenerateStateOut } from "../../ipc";
+import { crunching, tail } from "../../lib/crunch";
 
 interface Props {
   text: Dictionary["generate"];
@@ -22,12 +23,20 @@ export default function Going(props: Props) {
   const cost = () => {
     const live = props.live;
     if (live === null) return "";
-    const time = `${props.text.spent}: ${live.seconds} ${props.text.seconds}`;
-    if (live.tokens === null) return `${time}, ${props.text.silent}`;
-    return `${time}, ${live.tokens} ${props.text.tokens}`;
+    if (live.tokens === null) return props.text.silent;
+    return `${props.text.spent}: ${live.tokens} ${props.text.tokens}`;
   };
 
   const done = () => props.live?.finished === true;
+  const beat = () => {
+    const live = props.live;
+    if (live === null || done()) return "";
+    return crunching(live, props.text);
+  };
+  const shown = () => {
+    const live = props.live;
+    return live === null || done() ? [] : tail(live);
+  };
   const asks = () => props.live?.waiting === true && !done();
   const refused = () => props.live?.refused ?? [];
 
@@ -39,7 +48,13 @@ export default function Going(props: Props) {
           {props.text.attempt} {props.live?.attempt} / {props.live?.rounds}
         </p>
       </Show>
+      <Show when={beat() !== ""}>
+        <p data-generate-beat>{beat()}</p>
+      </Show>
       <p data-generate-cost>{cost()}</p>
+      <Show when={shown().length > 0}>
+        <pre data-generate-tail>{shown().join("\n")}</pre>
+      </Show>
       <Show when={asks()}>
         <p data-generate-estimate>
           {props.text.estimate}: {props.live?.total}

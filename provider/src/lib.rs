@@ -12,11 +12,12 @@ mod probe;
 mod render;
 mod scratch;
 mod store;
+mod stream;
 mod types;
 mod vault;
 mod wire;
 
-pub use ask::{Said, ask};
+pub use ask::{Said, ask, watched};
 pub use check::{Checked, check};
 pub use error::{CheckError, ProviderError, VaultError};
 pub use memory::memory;
@@ -25,6 +26,6 @@ pub use preset::{PRESETS, Preset, preset};
 pub use probe::{Probed, probe};
 pub use types::{
     Api, DEFAULT_ENDPOINT, DEFAULT_TEMPERATURE_TENTHS, DEFAULT_TIMEOUT_SECS, Harness, Http, Kind,
-    NUM_CTX_MAX, OPENAI_ENDPOINT, Provider, TEMPERATURE_TENTHS_MAX,
+    NUM_CTX_MAX, OPENAI_ENDPOINT, Provider, TEMPERATURE_TENTHS_MAX, Watch,
 };
 pub use vault::{Keychain, Remembered, Vault};

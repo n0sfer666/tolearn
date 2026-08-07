@@ -17,6 +17,10 @@ pub fn run(_context: &Context, input: &GenerateStateIn) -> Result<GenerateStateO
         cancelled: live.cancelled,
         refused: live.refused,
         seconds: live.seconds,
+        step_seconds: live.step_seconds,
+        chars: live.chars,
+        ticks: live.ticks,
+        tail: live.tail,
         tokens: live.tokens,
         summary: live.summary.map(seen),
     })

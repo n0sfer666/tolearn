@@ -27,6 +27,10 @@ const LIVE = {
   cancelled: false,
   refused: [],
   seconds: 4,
+  step_seconds: 2,
+  chars: 0,
+  ticks: 0,
+  tail: "",
   tokens: 320,
   summary: null,
 };
@@ -149,6 +153,45 @@ test("прогресс называет тему, круг починки и ц�
   assert.match(seen, /Тема 3 \/ 8: Владение/, seen);
   assert.match(seen, new RegExp(`${ru.generate.attempt} 2 \\/ 3`), seen);
   assert.match(seen, new RegExp(ru.generate.silent), seen);
+});
+
+test("пока модель печатает, окно называет объём, время шага и хвост ответа", async () => {
+  const live = {
+    ...LIVE,
+    step: "topic",
+    total: 8,
+    done: 2,
+    current: "Владение",
+    seconds: 269,
+    step_seconds: 72,
+    chars: 2413,
+    ticks: 9,
+    tail: "первая строка\nвторая строка\nтретья строка\nчетвёртая строка\nпятая строка",
+  };
+  const { host } = mount({ states: [live] });
+  await settled();
+  await ask(host);
+
+  const beat = host.querySelector("[data-generate-beat]").textContent;
+  assert.match(beat, new RegExp(`2413 ${ru.generate.letters}`), beat);
+  assert.match(beat, new RegExp(`${ru.generate.here} 1 ${ru.generate.minutes} 12 ${ru.generate.seconds}`), beat);
+  assert.match(beat, new RegExp(`${ru.generate.whole} 4 ${ru.generate.minutes} 29 ${ru.generate.seconds}`), beat);
+  assert.equal(beat.startsWith(`✻ ${ru.generate.crunch[3]}`), true, beat);
+
+  const tail = host.querySelector("[data-generate-tail]").textContent;
+  assert.equal(tail.includes("первая строка"), false, tail);
+  assert.equal(tail.includes("пятая строка"), true, tail);
+});
+
+test("сводка говорит, сколько заняла сборка", async () => {
+  const done = { ...LIVE, step: "done", finished: true, seconds: 1790, summary: SUMMARY };
+  const { host } = mount({ states: [done] });
+  await settled();
+  await ask(host);
+
+  const beat = host.querySelector("[data-generate-beat]").textContent;
+  assert.match(beat, new RegExp(`${ru.generate.built} 29 ${ru.generate.minutes} 50 ${ru.generate.seconds}`), beat);
+  assert.equal(host.querySelector("[data-generate-tail]"), null);
 });
 
 test("сводка показывается до записи, «Принять» уводит на новую программу", async () => {
