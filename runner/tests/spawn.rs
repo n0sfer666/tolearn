@@ -39,6 +39,21 @@ const LIST: &str = "ls";
 #[cfg(windows)]
 const LIST: &str = "dir /B";
 
+#[cfg(unix)]
+const CHATTY: &str = "i=0; while [ $i -lt 12 ]; do echo tick; sleep 0.1; i=$((i+1)); done";
+#[cfg(windows)]
+const CHATTY: &str = "for /L %i in (1,1,6) do @(echo tick& ping -n 2 127.0.0.1 >nul)";
+
+#[cfg(unix)]
+const STALL: &str = "echo tick; sleep 30";
+#[cfg(windows)]
+const STALL: &str = "echo tick& ping -n 31 127.0.0.1 >nul";
+
+#[cfg(unix)]
+const MUTE: &str = "sleep 2; echo done";
+#[cfg(windows)]
+const MUTE: &str = "ping -n 3 127.0.0.1 >nul& echo done";
+
 fn scratch(name: &str) -> PathBuf {
     let directory =
         std::env::temp_dir().join(format!("tolearn-spawn-{name}-{}", std::process::id()));
@@ -56,8 +71,74 @@ fn args(script: &str) -> Vec<String> {
 fn limits(millis: u64, bytes: usize) -> Limits {
     Limits {
         timeout: Duration::from_millis(millis),
+        silence: None,
         output_bytes: bytes,
     }
+}
+
+fn patient(millis: u64, silence: u64) -> Limits {
+    Limits {
+        silence: Some(Duration::from_millis(silence)),
+        ..limits(millis, 64 * 1024)
+    }
+}
+
+#[test]
+fn a_program_that_keeps_printing_is_not_cut_off_by_the_silence() {
+    let directory = scratch("chatty");
+
+    let run = spawn(
+        SHELL.0,
+        &args(CHATTY),
+        &directory,
+        "",
+        patient(20_000, 3_000),
+        None,
+    )
+    .unwrap();
+
+    assert_eq!(run.outcome, Outcome::Finished { code: Some(0) });
+    assert!(run.stdout.contains("tick"));
+}
+
+#[test]
+fn a_program_that_starts_talking_and_falls_silent_is_cut_off() {
+    let directory = scratch("stall");
+    let started = Instant::now();
+
+    let run = spawn(
+        SHELL.0,
+        &args(STALL),
+        &directory,
+        "",
+        patient(20_000, 500),
+        None,
+    )
+    .unwrap();
+
+    assert_eq!(run.outcome, Outcome::WentQuiet);
+    assert!(
+        started.elapsed() < Duration::from_secs(10),
+        "раннер дождался общего потолка вместо тишины"
+    );
+}
+
+#[test]
+fn a_program_that_says_nothing_until_the_end_keeps_the_whole_timeout() {
+    let directory = scratch("mute");
+
+    let run = spawn(
+        SHELL.0,
+        &args(MUTE),
+        &directory,
+        "",
+        patient(20_000, 500),
+        None,
+    )
+    .unwrap();
+
+    assert_eq!(run.outcome, Outcome::Finished { code: Some(0) });
+    assert!(run.stdout.contains("done"));
 }
 
 #[test]

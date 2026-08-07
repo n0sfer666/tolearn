@@ -7,6 +7,7 @@ use tolearn_runner::{Limits, Outcome, run};
 
 const LIMITS: Limits = Limits {
     timeout: Duration::from_secs(120),
+    silence: None,
     output_bytes: 64 * 1024,
 };
 
@@ -32,7 +33,7 @@ fn one(check: &Check, root: &Path) -> Value {
             "id": check.id,
             "expect": check.expect,
             "passed": finished.outcome == Outcome::Finished { code: Some(0) },
-            "timed_out": finished.outcome == Outcome::TimedOut,
+            "timed_out": matches!(finished.outcome, Outcome::TimedOut | Outcome::WentQuiet),
             "stdout": finished.stdout,
             "stderr": finished.stderr,
             "truncated": finished.truncated,

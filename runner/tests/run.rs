@@ -22,6 +22,7 @@ fn scratch(name: &str) -> PathBuf {
 fn limits(millis: u64) -> Limits {
     Limits {
         timeout: Duration::from_millis(millis),
+        silence: None,
         output_bytes: 64 * 1024,
     }
 }
@@ -105,6 +106,7 @@ fn a_talkative_command_is_cut_at_the_limit_and_says_so() {
     let directory = scratch("flood");
     let limits = Limits {
         timeout: Duration::from_secs(10),
+        silence: None,
         output_bytes: 2_000,
     };
 

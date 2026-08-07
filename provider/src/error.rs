@@ -56,6 +56,7 @@ pub enum CheckError {
     NotFound(String),
     Failed { code: Option<i32>, said: String },
     TimedOut(u32),
+    WentQuiet(u32),
     Truncated,
 }
 
@@ -73,6 +74,7 @@ impl CheckError {
             Self::NotFound(_) => "harness.not-found",
             Self::Failed { .. } => "harness.failed",
             Self::TimedOut(_) => "harness.timeout",
+            Self::WentQuiet(_) => "harness.silence",
             Self::Truncated => "harness.truncated",
         }
     }
@@ -100,6 +102,9 @@ impl fmt::Display for CheckError {
                 None => write!(out, "харнесс убит сигналом: {said}"),
             },
             Self::TimedOut(seconds) => write!(out, "харнесс не ответил за {seconds} с"),
+            Self::WentQuiet(seconds) => {
+                write!(out, "харнесс начал отвечать и замолчал на {seconds} с")
+            }
             Self::Truncated => write!(out, "харнесс напечатал больше, чем разрешено принять"),
         }
     }

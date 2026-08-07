@@ -6,7 +6,7 @@ pub type Watch = Arc<dyn Fn(&str) + Send + Sync>;
 
 pub const DEFAULT_ENDPOINT: &str = "http://127.0.0.1:11434";
 pub const OPENAI_ENDPOINT: &str = "http://127.0.0.1:8080/v1";
-pub const DEFAULT_TIMEOUT_SECS: u32 = 300;
+pub const DEFAULT_TIMEOUT_SECS: u32 = 900;
 pub const DEFAULT_TEMPERATURE_TENTHS: u32 = 7;
 pub const TEMPERATURE_TENTHS_MAX: u32 = 20;
 pub const NUM_CTX_MAX: u32 = 1_048_576;

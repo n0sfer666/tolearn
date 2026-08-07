@@ -10,6 +10,7 @@ use crate::ipc::types::{RunCheckIn, RunCheckOut};
 
 const LIMITS: Limits = Limits {
     timeout: Duration::from_secs(120),
+    silence: None,
     output_bytes: 64 * 1024,
 };
 
@@ -45,7 +46,7 @@ fn finished(check: &Check, root: &std::path::Path) -> Result<RunCheckOut, IpcErr
         command: check.check.clone(),
         expect: check.expect.clone(),
         code: code_of(done.outcome),
-        timed_out: done.outcome == Outcome::TimedOut,
+        timed_out: matches!(done.outcome, Outcome::TimedOut | Outcome::WentQuiet),
         stdout: done.stdout,
         stderr: done.stderr,
         truncated: done.truncated,
@@ -55,7 +56,7 @@ fn finished(check: &Check, root: &std::path::Path) -> Result<RunCheckOut, IpcErr
 fn code_of(outcome: Outcome) -> Option<i32> {
     match outcome {
         Outcome::Finished { code } => code,
-        Outcome::TimedOut => None,
+        Outcome::TimedOut | Outcome::WentQuiet => None,
     }
 }
 

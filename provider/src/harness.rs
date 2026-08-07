@@ -13,6 +13,7 @@ use crate::types::{Harness, Watch};
 
 pub const OUTPUT_BYTES: usize = 1024 * 1024;
 pub const VERSION_TIMEOUT: Duration = Duration::from_secs(20);
+pub const SILENCE: Duration = Duration::from_secs(120);
 
 const COMPLAINT_LINES: usize = 3;
 const COMPLAINT_CHARS: usize = 300;
@@ -22,7 +23,7 @@ pub fn version(harness: &Harness) -> Result<String, CheckError> {
         harness,
         &["--version".to_owned()],
         "",
-        VERSION_TIMEOUT,
+        bounded(VERSION_TIMEOUT, None),
         None,
     )?;
     Ok(first(&said).unwrap_or_else(|| first(&complained).unwrap_or_default()))
@@ -35,7 +36,7 @@ pub fn ask(harness: &Harness, prompt: &str, watch: Option<Watch>) -> Result<Said
         harness,
         &harness.args,
         prompt,
-        patience,
+        bounded(patience, Some(SILENCE)),
         Some(watcher(&tape, watch)),
     )?;
     let said = tape
@@ -71,11 +72,19 @@ fn plainly(text: String) -> Said {
     }
 }
 
+fn bounded(timeout: Duration, silence: Option<Duration>) -> Limits {
+    Limits {
+        timeout,
+        silence,
+        output_bytes: OUTPUT_BYTES,
+    }
+}
+
 fn ran(
     harness: &Harness,
     args: &[String],
     input: &str,
-    timeout: Duration,
+    limits: Limits,
     seen: Option<Seen>,
 ) -> Result<(String, String), CheckError> {
     let command = harness.command.trim();
@@ -83,15 +92,14 @@ fn ran(
         return Err(CheckError::NotFound(String::new()));
     }
     let scratch = Scratch::new().map_err(|error| CheckError::Unreachable(error.to_string()))?;
-    let limits = Limits {
-        timeout,
-        output_bytes: OUTPUT_BYTES,
-    };
 
     let run = spawn(command, args, scratch.path(), input, limits, seen)
         .map_err(|error| broken(command, error))?;
     match run.outcome {
-        Outcome::TimedOut => Err(CheckError::TimedOut(seconds(timeout))),
+        Outcome::WentQuiet => Err(CheckError::WentQuiet(seconds(
+            limits.silence.unwrap_or_default(),
+        ))),
+        Outcome::TimedOut => Err(CheckError::TimedOut(seconds(limits.timeout))),
         Outcome::Finished { code } if code != Some(0) => Err(CheckError::Failed {
             code,
             said: complaint(&run.stderr),

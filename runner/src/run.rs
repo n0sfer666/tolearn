@@ -1,6 +1,8 @@
 use std::path::Path;
 use std::process::{Command, Stdio};
+use std::sync::Arc;
 
+use super::beat::Beat;
 use super::error::RunError;
 use super::types::{Limits, Run};
 use super::{drain, group, wait};
@@ -21,9 +23,20 @@ pub fn run(command: &str, directory: &Path, limits: Limits) -> Result<Run, RunEr
         .spawn()
         .map_err(RunError::NotStarted)?;
 
-    let out = drain::start(child.stdout.take(), limits.output_bytes, None);
-    let err = drain::start(child.stderr.take(), limits.output_bytes, None);
-    let outcome = wait::until_end(&mut child, limits.timeout)?;
+    let beat = Arc::new(Beat::default());
+    let out = drain::start(
+        child.stdout.take(),
+        limits.output_bytes,
+        None,
+        Arc::clone(&beat),
+    );
+    let err = drain::start(
+        child.stderr.take(),
+        limits.output_bytes,
+        None,
+        Arc::clone(&beat),
+    );
+    let outcome = wait::until_end(&mut child, limits, &beat)?;
     let (stdout, cut_out) = drain::done(out);
     let (stderr, cut_err) = drain::done(err);
 

@@ -61,6 +61,7 @@ export function reason(error: unknown, text: Dictionary): string {
     "harness.not-found": text.provider.notFound,
     "harness.failed": text.provider.harnessFailed,
     "harness.timeout": text.provider.timedOut,
+    "harness.silence": text.provider.wentQuiet,
     "harness.truncated": text.provider.truncated,
   };
   return problems[code(error)] ?? text.provider.failed;

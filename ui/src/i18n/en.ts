@@ -400,6 +400,7 @@ export const en: Dictionary = {
     notFound: "Command not found: run `which` and paste the full path",
     harnessFailed: "The harness exited with an error — see the refusal text",
     timedOut: "The harness did not answer in time",
+    wentQuiet: "The harness started answering and fell silent — the link broke",
     truncated: "The harness printed too much — the answer was cut",
   },
   status: {

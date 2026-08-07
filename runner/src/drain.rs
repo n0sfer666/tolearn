@@ -1,6 +1,8 @@
 use std::io::Read;
+use std::sync::Arc;
 use std::thread::{JoinHandle, spawn};
 
+use super::beat::Beat;
 use super::types::Seen;
 
 const CHUNK: usize = 8 * 1024;
@@ -11,6 +13,7 @@ pub fn start(
     pipe: Option<impl Read + Send + 'static>,
     limit: usize,
     seen: Option<Seen>,
+    beat: Arc<Beat>,
 ) -> Drained {
     spawn(move || {
         let Some(mut pipe) = pipe else {
@@ -24,6 +27,7 @@ pub fn start(
             match pipe.read(&mut chunk) {
                 Ok(0) | Err(_) => break,
                 Ok(read) => {
+                    beat.hit();
                     if let Some(seen) = seen.as_ref() {
                         pending.extend_from_slice(&chunk[..read]);
                         let text = whole(&mut pending);

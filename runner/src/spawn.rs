@@ -1,7 +1,9 @@
 use std::io::Write;
 use std::path::Path;
 use std::process::{ChildStdin, Command, Stdio};
+use std::sync::Arc;
 
+use super::beat::Beat;
 use super::error::RunError;
 use super::types::{Limits, Run, Seen};
 use super::{drain, group, wait};
@@ -28,10 +30,21 @@ pub fn spawn(
         .spawn()
         .map_err(RunError::NotStarted)?;
 
-    let out = drain::start(child.stdout.take(), limits.output_bytes, seen);
-    let err = drain::start(child.stderr.take(), limits.output_bytes, None);
+    let beat = Arc::new(Beat::default());
+    let out = drain::start(
+        child.stdout.take(),
+        limits.output_bytes,
+        seen,
+        Arc::clone(&beat),
+    );
+    let err = drain::start(
+        child.stderr.take(),
+        limits.output_bytes,
+        None,
+        Arc::clone(&beat),
+    );
     feed(child.stdin.take(), input);
-    let outcome = wait::until_end(&mut child, limits.timeout)?;
+    let outcome = wait::until_end(&mut child, limits, &beat)?;
     let (stdout, cut_out) = drain::done(out);
     let (stderr, cut_err) = drain::done(err);
 

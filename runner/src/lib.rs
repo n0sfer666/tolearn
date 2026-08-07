@@ -1,3 +1,4 @@
+mod beat;
 mod drain;
 mod error;
 mod group;

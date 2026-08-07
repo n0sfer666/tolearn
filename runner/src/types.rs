@@ -6,6 +6,7 @@ pub type Seen = Arc<dyn Fn(&str) + Send + Sync>;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Limits {
     pub timeout: Duration,
+    pub silence: Option<Duration>,
     pub output_bytes: usize,
 }
 
@@ -13,6 +14,7 @@ pub struct Limits {
 pub enum Outcome {
     Finished { code: Option<i32> },
     TimedOut,
+    WentQuiet,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
