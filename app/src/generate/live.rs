@@ -8,6 +8,7 @@ pub struct Live {
     pub total: usize,
     pub done: usize,
     pub attempt: u32,
+    pub retry: u32,
     pub current: String,
     pub waiting: bool,
     pub finished: bool,

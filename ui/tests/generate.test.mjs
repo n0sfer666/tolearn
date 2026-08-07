@@ -21,6 +21,8 @@ const LIVE = {
   done: 0,
   attempt: 1,
   rounds: 3,
+  retry: 0,
+  tries: 3,
   current: "",
   waiting: false,
   finished: false,
@@ -181,6 +183,16 @@ test("пока модель печатает, окно называет объё
   const tail = host.querySelector("[data-generate-tail]").textContent;
   assert.equal(tail.includes("первая строка"), false, tail);
   assert.equal(tail.includes("пятая строка"), true, tail);
+});
+
+test("оборванная связь называет себя и номер попытки", async () => {
+  const live = { ...LIVE, step: "topic", total: 8, done: 2, current: "Владение", retry: 2 };
+  const { host } = mount({ states: [live] });
+  await settled();
+  await ask(host);
+
+  const said = host.querySelector("[data-generate-retry]").textContent;
+  assert.match(said, new RegExp(`${ru.generate.reconnect} 2 \\/ 3`), said);
 });
 
 test("сводка говорит, сколько заняла сборка", async () => {

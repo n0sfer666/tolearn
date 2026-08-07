@@ -55,6 +55,7 @@ export const en: Dictionary = {
     skeleton: "Drafting the plan",
     topic: "Topic",
     attempt: "attempt",
+    reconnect: "the link broke, trying again:",
     spent: "spent",
     seconds: "s",
     minutes: "m",

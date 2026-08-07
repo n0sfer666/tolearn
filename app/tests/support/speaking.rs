@@ -18,6 +18,14 @@ impl Speaking {
 }
 
 pub fn speaking(answer: impl Fn(&str, usize) -> String + Send + 'static) -> Speaking {
+    served(move |prompt, turn| Some(answer(prompt, turn)))
+}
+
+pub fn breaking(answer: impl Fn(&str, usize) -> Option<String> + Send + 'static) -> Speaking {
+    served(answer)
+}
+
+fn served(answer: impl Fn(&str, usize) -> Option<String> + Send + 'static) -> Speaking {
     let listener = TcpListener::bind("127.0.0.1:0").expect("порт не даётся");
     let endpoint = format!("http://{}", listener.local_addr().expect("нет адреса"));
     let heard = Arc::new(Mutex::new(Vec::new()));
@@ -31,7 +39,9 @@ pub fn speaking(answer: impl Fn(&str, usize) -> String + Send + 'static) -> Spea
             seen.lock()
                 .unwrap_or_else(PoisonError::into_inner)
                 .push(prompt.clone());
-            let said = answer(&prompt, turn.fetch_add(1, Ordering::Relaxed));
+            let Some(said) = answer(&prompt, turn.fetch_add(1, Ordering::Relaxed)) else {
+                continue;
+            };
             let body = serde_json::json!({
                 "message": { "content": said },
                 "eval_count": 11,

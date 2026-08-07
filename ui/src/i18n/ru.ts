@@ -53,6 +53,7 @@ export const ru = {
     skeleton: "Составляю план",
     topic: "Тема",
     attempt: "попытка",
+    reconnect: "связь оборвалась, пробуем снова:",
     spent: "потрачено",
     seconds: "с",
     minutes: "мин",

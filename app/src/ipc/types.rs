@@ -648,6 +648,8 @@ dto!(GenerateStateOut {
     done: u32,
     attempt: u32,
     rounds: u32,
+    retry: u32,
+    tries: u32,
     current: String,
     waiting: bool,
     finished: bool,

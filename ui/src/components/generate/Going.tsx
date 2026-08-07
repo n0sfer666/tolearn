@@ -48,6 +48,11 @@ export default function Going(props: Props) {
           {props.text.attempt} {props.live?.attempt} / {props.live?.rounds}
         </p>
       </Show>
+      <Show when={(props.live?.retry ?? 0) > 1 && !done()}>
+        <p data-generate-retry>
+          {props.text.reconnect} {props.live?.retry} / {props.live?.tries}
+        </p>
+      </Show>
       <Show when={beat() !== ""}>
         <p data-generate-beat>{beat()}</p>
       </Show>

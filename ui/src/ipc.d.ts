@@ -783,6 +783,8 @@ export type GenerateStateOut = {
   done: number;
   attempt: number;
   rounds: number;
+  retry: number;
+  tries: number;
   current: string;
   waiting: boolean;
   finished: boolean;

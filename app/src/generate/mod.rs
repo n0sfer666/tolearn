@@ -7,7 +7,7 @@ mod steps;
 pub use jobs::{forget, go, look, stop, take};
 pub use live::Live;
 pub use made::{Made, Staged, Summary};
-pub use steps::ROUNDS;
+pub use steps::{ROUNDS, TRIES};
 
 use std::sync::Arc;
 use std::thread::sleep;

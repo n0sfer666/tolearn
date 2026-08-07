@@ -15,7 +15,7 @@ use std::time::{Duration, Instant};
 
 use serde_json::{Value, json};
 use support::repository;
-use support::speaking::{Speaking, speaking};
+use support::speaking::{Speaking, breaking, speaking};
 use tolearn_app::ipc::{Context, IpcError, call};
 use tolearn_provider::{Remembered, Vault};
 
@@ -206,6 +206,38 @@ fn брак_возвращается_модели_с_перечнем_наруш
     let mended = &heard.heard()[1];
     assert!(mended.contains("## Что в нём не так"), "{mended}");
     assert!(mended.contains("## Прошлый ответ"), "{mended}");
+}
+
+#[test]
+fn оборванный_запрос_повторяется_и_сборка_доходит_до_конца() {
+    let case = case("broken-link");
+    let heard = breaking(|prompt, turn| match turn {
+        0 => None,
+        _ if prompt.contains("## Тема") => Some(topic()),
+        _ => Some(skeleton()),
+    });
+    let job = started(&case, &heard);
+
+    until(&case, &job, |live| live["waiting"] == json!(true));
+    call(&case.context, "generate_go", &json!({ "job": job })).unwrap();
+    let done = until(&case, &job, |live| live["finished"] == json!(true));
+
+    assert_eq!(done["refused"], json!([]));
+    assert_eq!(done["done"], json!(1));
+    assert_eq!(heard.heard().len(), 3, "оборванный запрос не повторили");
+}
+
+#[test]
+fn три_обрыва_подряд_останавливают_генерацию() {
+    let case = case("broken-dead");
+    let heard = breaking(|_, _| None);
+    let job = started(&case, &heard);
+
+    let done = until(&case, &job, |live| live["finished"] == json!(true));
+
+    assert_eq!(done["cancelled"], json!(false));
+    assert!(!done["refused"].as_array().unwrap().is_empty(), "{done}");
+    assert_eq!(heard.heard().len(), 3);
 }
 
 #[test]

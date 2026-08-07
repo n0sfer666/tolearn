@@ -78,6 +78,24 @@ impl CheckError {
             Self::Truncated => "harness.truncated",
         }
     }
+
+    pub fn transient(&self) -> bool {
+        match self {
+            Self::Unreachable(_)
+            | Self::BadAnswer
+            | Self::Failed { .. }
+            | Self::TimedOut(_)
+            | Self::WentQuiet(_) => true,
+            Self::Answered(status) => *status >= 500,
+            Self::Disabled
+            | Self::NoKey
+            | Self::NoModel
+            | Self::Rejected
+            | Self::ModelMissing(_)
+            | Self::NotFound(_)
+            | Self::Truncated => false,
+        }
+    }
 }
 
 impl fmt::Display for CheckError {

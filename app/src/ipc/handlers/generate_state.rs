@@ -11,6 +11,8 @@ pub fn run(_context: &Context, input: &GenerateStateIn) -> Result<GenerateStateO
         done: count(live.done),
         attempt: live.attempt,
         rounds: crate::generate::ROUNDS,
+        retry: live.retry,
+        tries: crate::generate::TRIES,
         current: live.current,
         waiting: live.waiting,
         finished: live.finished,

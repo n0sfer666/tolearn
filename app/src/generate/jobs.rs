@@ -27,11 +27,16 @@ impl Job {
             step.clone_into(&mut live.step);
             current.clone_into(&mut live.current);
             live.attempt = 1;
+            live.retry = 0;
         });
     }
 
     pub fn attempting(&self, attempt: u32) {
         self.change(|live| live.attempt = attempt);
+    }
+
+    pub fn retrying(&self, retry: u32) {
+        self.change(|live| live.retry = retry);
     }
 
     pub fn counted(&self, total: usize) {
