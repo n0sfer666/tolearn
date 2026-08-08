@@ -11,6 +11,7 @@ publish.workspace = true
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
+speech = ["dep:tolearn-speech", "tolearn-speech/speech"]
 
 [dependencies]
 tolearn-core.workspace = true
@@ -18,6 +19,7 @@ tolearn-offline.workspace = true
 tolearn-provider.workspace = true
 tolearn-runner.workspace = true
 tolearn-gestures.workspace = true
+tolearn-speech = { workspace = true, optional = true }
 serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true

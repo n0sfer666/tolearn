@@ -22,6 +22,7 @@ struct Layer {
 }
 
 const SHELL_MARKERS: &[&str] = &["tauri", "wry", "webkit", "objc"];
+const WEBVIEW_MARKERS: &[&str] = &["tauri", "wry", "webkit"];
 const NON_CRATE_DIRS: &[&str] = &["ui", "docs", "examples", "fixtures"];
 const INHERITED_FIELDS: &[&str] = &[
     "version",
@@ -69,6 +70,13 @@ const LAYERS: &[Layer] = &[
         own_lints: true,
     },
     Layer {
+        dir: "speech",
+        package: "tolearn-speech",
+        allowed_internal: &[],
+        forbidden_markers: WEBVIEW_MARKERS,
+        own_lints: true,
+    },
+    Layer {
         dir: "cli",
         package: "tolearn-cli",
         allowed_internal: &["tolearn-core", "tolearn-runner", "tolearn-offline"],
@@ -84,6 +92,7 @@ const LAYERS: &[Layer] = &[
             "tolearn-offline",
             "tolearn-provider",
             "tolearn-gestures",
+            "tolearn-speech",
         ],
         forbidden_markers: &[],
         own_lints: false,

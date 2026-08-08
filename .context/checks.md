@@ -180,6 +180,27 @@ WCAG — 4.5:1 для текста, 3:1 для `--color-border-strong` и `--col
 просадка только в тёмной находится отдельным тестом. Посмотреть —
 `pnpm -C ui tokens`, гейтом гоняется и там, и внутри `pnpm -C ui test`.
 
+## Распознавание речи
+
+В `checks.json` этого нет намеренно: прогон требует сабмодуля whisper.cpp,
+сборки его через cmake и весов модели вне репозитория — на каждом коммите такое
+не гоняют.
+
+```
+git submodule update --init --recursive
+cargo clippy -p tolearn-speech --features speech --all-targets -- -D warnings
+TOLEARN_WHISPER_MODEL=~/.cache/tolearn/models/ggml-small-q5_1.bin cargo test -p tolearn-speech --features speech -- --nocapture
+```
+
+Без `--features speech` крейт собирается пустым, и его тесты (`wav`, `wer`,
+`attribution`, `memory`) идут в общем `cargo test --workspace`. С фичей
+добавляются `listen` и `corpus`; без весов оба пропускаются, печатая, чего не
+хватает, — «зелено» без модели ничего не доказывает, смотреть надо на
+`--nocapture`. Числа бюджетов печатает сам `corpus`.
+
+Nushell: переменная окружения ставится через `with-env`, а не префиксом —
+`with-env {TOLEARN_WHISPER_MODEL: ...} { cargo test ... }`.
+
 ## Появятся позже
 
 | Когда | Что добавится в `checks.json` |
@@ -198,7 +219,10 @@ WCAG — 4.5:1 для текста, 3:1 для `--color-border-strong` и `--col
 
 - job `format` — `cargo fmt --all -- --check`, одна ОС;
 - job `check` — `cargo clippy --workspace --all-targets --locked -- -D warnings`
-  и `cargo test --workspace --locked` на матрице ubuntu / macos / windows.
+  и `cargo test --workspace --locked` на матрице ubuntu / macos / windows;
+- job `speech` — сабмодуль, скачивание весов со сверкой sha256 и прогон
+  `tolearn-speech` под фичей `speech` на ubuntu / macos. Windows подключается в
+  S58 вместе с упаковкой варианта `-with-speech`.
 
 `--locked` обязателен: `Cargo.lock` в репозитории, и молча разъехавшийся lock —
 это уже не та сборка, которую проверяли. Гейт веса JS живёт в `ui/` (job `ui`: `pnpm -C ui lint` и `pnpm -C ui test`,

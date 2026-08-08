@@ -46,6 +46,43 @@ jobs:
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - run: cargo test --workspace --locked
 
+  speech:
+    name: speech (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          submodules: recursive
+      - name: install toolchain from rust-toolchain.toml
+        run: rustup show active-toolchain
+      - uses: Swatinem/rust-cache@v2.9.1
+        with:
+          key: speech-${{ matrix.os }}
+      - uses: actions/cache@v4.2.4
+        id: weights
+        with:
+          path: models
+          key: whisper-small-q5_1-ae85e4a9
+      - name: download whisper weights
+        if: steps.weights.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p models
+          curl -fL --retry 3 -o models/ggml-small-q5_1.bin \
+            https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q5_1.bin
+      - name: verify whisper weights
+        run: |
+          echo "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb  models/ggml-small-q5_1.bin" > models/sha256
+          shasum -a 256 -c models/sha256
+      - run: cargo clippy -p tolearn-speech --features speech --all-targets --locked -- -D warnings
+      - run: cargo test -p tolearn-speech --features speech --locked -- --nocapture
+        env:
+          TOLEARN_WHISPER_MODEL: ${{ github.workspace }}/models/ggml-small-q5_1.bin
+
   ui:
     name: ui
     runs-on: ubuntu-latest

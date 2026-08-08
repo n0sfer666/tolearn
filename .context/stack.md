@@ -35,7 +35,10 @@
 | git-клон материалов | `gix` | — | `offline/` | [003](../docs/adr/003-offline-monolith.md) |
 | индекс кэша | SQLite | — | `offline/` | [005](../docs/adr/005-cache-outside-bundle.md) |
 | шифрование конспектов | `rage` (age) | MIT/Apache-2.0 | S53 | — |
-| распознавание речи | whisper.cpp | MIT | S55, отдельная сборка | [010](../docs/adr/010-speech-distribution.md) |
+| распознавание речи | whisper.cpp (сабмодуль `speech/vendor/`, v1.9.2) | MIT | `speech/` (S55), только под фичей `speech` | [010](../docs/adr/010-speech-distribution.md) |
+| веса распознавания | `ggml-small-q5_1.bin`, 190 085 487 байт | MIT | вне репозитория, путь в `TOLEARN_WHISPER_MODEL` | [010](../docs/adr/010-speech-distribution.md) |
+| микрофон | `cpal` 0.18 | Apache-2.0 | `speech/` (S55), только под фичей `speech` | — |
+| сборка whisper.cpp и шима | `cc` 1, `cmake` 0.1 (build-deps) | MIT/Apache-2.0 | `speech/build.rs` | — |
 | ключ провайдера в системном хранилище | `keyring` 4 | MIT/Apache-2.0 | `provider/` (S41) | — |
 | запрос к провайдеру | `reqwest` 0.12 (blocking, default-tls) | MIT/Apache-2.0 | `provider/` (S41) | — |
 
