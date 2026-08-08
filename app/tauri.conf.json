@@ -7,8 +7,8 @@
   "build": {
     "frontendDist": "../ui/dist",
     "devUrl": "http://localhost:4321",
-    "beforeDevCommand": "pnpm -C ../ui dev",
-    "beforeBuildCommand": "pnpm -C ../ui build"
+    "beforeDevCommand": "pnpm -C ui dev",
+    "beforeBuildCommand": "pnpm -C ui build"
   },
   "app": {
     "windows": [
@@ -24,14 +24,29 @@
       "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; img-src 'self' data:"
     }
   },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": [
+          "tolearn"
+        ]
+      }
+    }
+  },
   "bundle": {
     "active": true,
     "targets": [
       "app",
-      "dmg"
+      "dmg",
+      "msi",
+      "deb"
     ],
     "icon": [
-      "icons/icon.png"
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
     ],
     "macOS": {
       "entitlements": "entitlements.plist"

@@ -18,7 +18,7 @@ mod unpack;
 mod vaulted;
 pub(crate) mod verdict;
 
-pub use context::Context;
+pub use context::{Context, of};
 pub use contract::{Descriptor, NAMES, call, descriptors};
 pub use error::IpcError;
 pub(crate) use provider::{denied, failed, refute};

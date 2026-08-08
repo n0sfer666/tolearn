@@ -6,6 +6,7 @@ import type { Card, ImportOut, Merged } from "../ipc";
 import { matches } from "../lib/filter";
 import { drops as listen, pick as choose, pickArchive as chooseArchive, transport } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
+import { query } from "../lib/query";
 import { toast } from "../lib/toast";
 
 interface Props {
@@ -70,6 +71,7 @@ export default function Programs(props: Props) {
   };
 
   onMount(() => {
+    toast("error", query("refused"));
     void list();
     (props.drops ?? listen)((paths) => {
       const [first] = paths;

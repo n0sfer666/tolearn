@@ -239,15 +239,48 @@ pnpm -C ui dev
 терминал, а не браузер; в собранном приложении просит приложение (`app/Info.plist`).
 Стенд убрать за собой: `rm -rf $stand`, мост и dev-сервер погасить.
 
-## Появятся позже
+## Упаковка
 
-| Когда | Что добавится в `checks.json` |
+| Что | Команда |
 |---|---|
-| S57 | гейт веса установщика |
+| собрать установщик своей ОС | `cd app; cargo tauri build` |
+| взвесить собранное | `sh scripts/weigh.sh` |
 
-Добавлять команду в `checks.json` **только** когда она реально существует и
-зелёная: хук выполняет её на каждом коммите, несуществующая команда блокирует
-работу.
+`cargo tauri build` требует `cargo install tauri-cli --version 2.11.4 --locked`
+(в CI ставится джобой `package` и кладётся в кэш). Цели берёт из
+`app/tauri.conf.json` и фильтрует по хозяйской ОС: macOS — `app` + `dmg`,
+Windows — `msi`, Linux — `deb`. Кросс-сборки нет: каждую ОС пакует свой раннер.
+
+`scripts/weigh.sh` печатает вес каждого артефакта и потолок из
+[бюджетов](../docs/architecture.md#бюджеты), возвращает 1 при перевесе и при
+пустом `target/release/bundle` — гейт, которому нечего взвешивать, зелёным не
+считается. В `checks.json` он не идёт: это релизная сборка на минуты, а не
+проверка на каждый коммит. Замер 2026-08-09 на macOS arm64:
+`tolearn_0.1.0_aarch64.dmg` — 9.6 МБ при потолке 12 МБ.
+
+### Ссылка `tolearn://` вживую (руками)
+
+Регистрацию схемы в ОС делает установщик, поэтому из кода она не наблюдаема:
+тесты `app/tests/packaging.rs` держат только объявление, а `CFBundleURLSchemes`
+в собранном `tolearn.app` проверяется командой
+
+```
+plutil -extract CFBundleURLTypes json -o - target/release/bundle/macos/tolearn.app/Contents/Info.plist
+```
+
+Сквозной сценарий (после установки собранного пакета, приложение запущено, в
+реестре есть программа `llm-agents-base`):
+
+1. `open "tolearn://topic?roadmap=llm-agents-base&topic=local-runtime"` — окно
+   поднимается из фона и показывает тему `local-runtime`, второй копии приложения
+   не появляется.
+2. `open "tolearn://topic?roadmap=нет-такой&topic=local-runtime"` — окно
+   поднимается, показывает список программ и тост «программа `нет-такой` не в
+   реестре».
+3. То же при закрытом приложении — запускается и приезжает на ту же тему.
+
+На Windows и Linux ссылка приходит аргументом командной строки, а не событием:
+шаги те же, но команда — `start tolearn://…` и `xdg-open tolearn://…`.
 
 ## CI
 
@@ -260,8 +293,11 @@ pnpm -C ui dev
   и `cargo test --workspace --locked` на матрице ubuntu / macos / windows;
 - job `speech` — сабмодуль, скачивание весов со сверкой sha256 и прогон
   `tolearn-speech` под фичей `speech` на ubuntu / macos. Windows подключается в
-  S58 вместе с упаковкой варианта `-with-speech`.
+  S58 вместе с упаковкой варианта `-with-speech`;
+- job `package` — `cargo tauri build` и `sh scripts/weigh.sh` на матрице
+  ubuntu / macos / windows: dmg, msi и deb собираются каждый на своей ОС, и
+  перевес роняет джобу.
 
 `--locked` обязателен: `Cargo.lock` в репозитории, и молча разъехавшийся lock —
 это уже не та сборка, которую проверяли. Гейт веса JS живёт в `ui/` (job `ui`: `pnpm -C ui lint` и `pnpm -C ui test`,
-последний сам собирает `dist/`; там же шаг `pnpm -C ui markdown`); гейт веса установщика добавляется в S57.
+последний сам собирает `dist/`; там же шаг `pnpm -C ui markdown`); гейт веса установщика — в job `package`.
