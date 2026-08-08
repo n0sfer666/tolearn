@@ -48,6 +48,7 @@ fn filled(active: Kind) -> Provider {
             args: vec!["-p".to_owned(), "--allowedTools".to_owned(), String::new()],
             timeout_secs: 42,
         },
+        journal: false,
     }
 }
 
@@ -66,6 +67,36 @@ fn по_умолчанию_провайдер_выключен() {
     assert_eq!(provider.harness.command, "claude");
     assert_eq!(provider.harness.args, Vec::<String>::new());
     assert_eq!(provider.harness.timeout_secs, DEFAULT_TIMEOUT_SECS);
+    assert!(!provider.journal);
+}
+
+#[test]
+fn журнал_переживает_запись_и_чтение() {
+    let file = path("journal");
+    let mut provider = filled(Kind::Local);
+    provider.journal = true;
+    provider.save(&file).unwrap();
+
+    assert!(Provider::read(&file).unwrap().journal);
+}
+
+#[test]
+fn конфиг_без_журнала_читается_как_выключенный() {
+    let file = path("v2-no-journal");
+    std::fs::write(
+        &file,
+        concat!(
+            "schema: tolearn/provider/v2\n",
+            "enabled: true\n",
+            "active: local\n",
+            "local:\n  endpoint: http://127.0.0.1:11434\n  api: ollama\n  model: qwen3:8b\n",
+            "remote:\n  endpoint: https://api.example.test/v1\n  api: openai\n  model: gpt-4o-mini\n",
+            "harness:\n  id: claude\n  command: claude\n  args:\n    - -p\n  timeout_secs: 180\n",
+        ),
+    )
+    .unwrap();
+
+    assert!(!Provider::read(&file).unwrap().journal);
 }
 
 #[test]

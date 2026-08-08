@@ -391,6 +391,12 @@ export const en: Dictionary = {
     argsWarning:
       "Do not put keys here: the field is stored as plain text. The harness takes authorisation from its own login.",
     timeout: "Timeout, seconds",
+    journal: "Keep a log of requests",
+    journalLead:
+      "The prompt and the model's answer are written to files on this machine — you can see what went out and what came back. The last 20 requests are kept.",
+    journalKept: "Records in the log:",
+    journalOpen: "Open the folder",
+    journalClear: "Clear the log",
     save: "Save",
     check: "Check",
     probe: "Trial request",

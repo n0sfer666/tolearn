@@ -7,11 +7,13 @@ pub fn text(provider: &Provider) -> String {
         "schema: {SCHEMA}\n\
          enabled: {}\n\
          active: {}\n\
+         journal: {}\n\
          local:\n{}\
          remote:\n{}\
          harness:\n{}",
         provider.enabled,
         provider.active.label(),
+        provider.journal,
         http(&provider.local),
         http(&provider.remote),
         harness(&provider.harness),

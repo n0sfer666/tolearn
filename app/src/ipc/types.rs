@@ -532,6 +532,15 @@ dto!(HitView {
     snippet: String,
 });
 
+dto!(LlmLogIn {
+    open: bool,
+    clear: bool,
+});
+dto!(LlmLogOut {
+    room: String,
+    records: u32,
+});
+
 dto!(ProviderIn {
     save: Option<ProviderView>,
     key: Option<String>,
@@ -557,6 +566,7 @@ dto!(AdviceView {
 dto!(ProviderView {
     enabled: bool,
     active: String,
+    journal: bool,
     local: HttpView,
     remote: HttpView,
     harness: HarnessView,
@@ -834,5 +844,7 @@ pub fn shapes() -> Vec<Shape> {
         GenerateDraftIn::shape(),
         GenerateDraftOut::shape(),
         DraftView::shape(),
+        LlmLogIn::shape(),
+        LlmLogOut::shape(),
     ]
 }

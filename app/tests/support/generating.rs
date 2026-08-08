@@ -43,6 +43,7 @@ pub fn enable(case: &Case, endpoint: &str) {
             "save": {
                 "enabled": true,
                 "active": "local",
+                "journal": false,
                 "local": {
                     "endpoint": endpoint,
                     "api": "ollama",

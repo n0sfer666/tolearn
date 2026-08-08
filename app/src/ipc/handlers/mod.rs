@@ -18,6 +18,7 @@ pub mod graph;
 pub mod history;
 pub mod history_diff;
 pub mod import;
+pub mod llm_log;
 pub mod note;
 pub mod offline_state;
 pub mod parse_verdict;

@@ -12,6 +12,7 @@ pub fn view(provider: &Provider) -> ProviderView {
     ProviderView {
         enabled: provider.enabled,
         active: provider.active.label().to_owned(),
+        journal: provider.journal,
         local: seen(&provider.local),
         remote: seen(&provider.remote),
         harness: HarnessView {
@@ -72,6 +73,7 @@ pub fn taken(view: &ProviderView) -> Result<Provider, IpcError> {
     Ok(Provider {
         enabled: view.enabled,
         active,
+        journal: view.journal,
         local: told(&view.local)?,
         remote: told(&view.remote)?,
         harness: Harness {

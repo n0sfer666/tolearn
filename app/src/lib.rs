@@ -1,6 +1,7 @@
 pub mod exam;
 pub mod generate;
 pub mod ipc;
+pub mod journal;
 pub mod offline;
 pub mod prerender;
 

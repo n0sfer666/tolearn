@@ -18,6 +18,7 @@ pub struct Provider {
     pub local: Http,
     pub remote: Http,
     pub harness: Harness,
+    pub journal: bool,
 }
 
 impl Default for Provider {
@@ -28,6 +29,7 @@ impl Default for Provider {
             local: Http::local(),
             remote: Http::remote(),
             harness: CLAUDE.bare(),
+            journal: false,
         }
     }
 }

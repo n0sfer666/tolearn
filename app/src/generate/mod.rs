@@ -20,12 +20,23 @@ use tolearn_core::Date;
 use tolearn_core::generate::Request;
 use tolearn_provider::Provider;
 
+use crate::journal::Journal;
 use jobs::Job;
 use steps::Speaker;
 
-pub fn start(provider: Provider, key: Option<String>, request: Request, root: PathBuf) -> String {
+pub fn start(
+    provider: Provider,
+    key: Option<String>,
+    journal: Journal,
+    request: Request,
+    root: PathBuf,
+) -> String {
     let (name, job) = registry::register();
-    let speaker = Speaker { provider, key };
+    let speaker = Speaker {
+        provider,
+        key,
+        journal,
+    };
     std::thread::spawn(move || ended(build::fresh(&speaker, &request, &job, &root), &job));
     name
 }
@@ -33,12 +44,17 @@ pub fn start(provider: Provider, key: Option<String>, request: Request, root: Pa
 pub fn carry(
     provider: Provider,
     key: Option<String>,
+    journal: Journal,
     root: PathBuf,
     today: Date,
 ) -> Option<String> {
     let draft = draft::read(&root)?;
     let (name, job) = registry::register();
-    let speaker = Speaker { provider, key };
+    let speaker = Speaker {
+        provider,
+        key,
+        journal,
+    };
     std::thread::spawn(move || ended(build::carry(&speaker, &job, &root, draft, today), &job));
     Some(name)
 }

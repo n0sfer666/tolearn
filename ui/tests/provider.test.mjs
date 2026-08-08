@@ -21,6 +21,7 @@ before(
 const DEFAULTS = {
   enabled: false,
   active: "local",
+  journal: false,
   local: {
     endpoint: "http://127.0.0.1:11434",
     api: "ollama",
@@ -60,7 +61,14 @@ function mount(options = {}) {
   const host = document.createElement("div");
   document.body.append(host);
   const calls = [];
+  const logs = [];
+  const logged = { room: "/данные/llm-log", records: options.records ?? 0 };
   const call = (name, payload) => {
+    if (name === "llm_log") {
+      logs.push(payload);
+      if (payload.clear === true) logged.records = 0;
+      return Promise.resolve({ ...logged });
+    }
     calls.push({ name, payload });
     if (name !== "provider") throw new Error(`лишняя команда ${name}`);
     if (payload.save === null && payload.forget === false) {
@@ -90,7 +98,7 @@ function mount(options = {}) {
   };
   const said = toasts(document.defaultView);
   render(() => Provider({ text: ru, locale: "ru", call }), host);
-  return { host, calls, said };
+  return { host, calls, logs, said };
 }
 
 function input(host, selector, value) {
@@ -504,4 +512,56 @@ test("неизвестный код отказа не оставляет экр�
   await settled();
 
   assert.deepEqual(said.at(-1), { tone: "error", text: ru.provider.failed });
+});
+
+test("журнал выключен по умолчанию и показывает счётчик с путём", async () => {
+  const { host, logs } = mount({ records: 3 });
+  await settled();
+
+  assert.equal(host.querySelector("[data-journal]").checked, false);
+  assert.deepEqual(logs, [{ open: false, clear: false }]);
+  assert.equal(
+    host.querySelector("[data-journal-room]").textContent,
+    `${ru.provider.journalKept} 3 · /данные/llm-log`,
+  );
+});
+
+test("галочка журнала уходит в сохранение провайдера", async () => {
+  const { host, calls } = mount();
+  await settled();
+
+  host.querySelector("[data-journal]").click();
+  await settled();
+  host.querySelector("[data-save]").click();
+  await settled();
+
+  assert.equal(calls.at(-1).payload.save.journal, true);
+});
+
+test("очистка журнала обнуляет счётчик", async () => {
+  const { host, logs } = mount({ records: 7 });
+  await settled();
+
+  host.querySelector("[data-journal-clear]").click();
+  await settled();
+
+  assert.deepEqual(logs.at(-1), { open: false, clear: true });
+  assert.equal(
+    host.querySelector("[data-journal-room]").textContent,
+    `${ru.provider.journalKept} 0 · /данные/llm-log`,
+  );
+});
+
+test("открытие папки журнала не трогает записи", async () => {
+  const { host, logs } = mount({ records: 2 });
+  await settled();
+
+  host.querySelector("[data-journal-open]").click();
+  await settled();
+
+  assert.deepEqual(logs.at(-1), { open: true, clear: false });
+  assert.equal(
+    host.querySelector("[data-journal-room]").textContent,
+    `${ru.provider.journalKept} 2 · /данные/llm-log`,
+  );
 });

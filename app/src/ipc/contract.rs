@@ -73,6 +73,7 @@ commands! {
     settings(types::SettingsIn) -> types::SettingsView,
     search(types::SearchIn) -> types::SearchOut,
     provider(types::ProviderIn) -> types::ProviderOut,
+    llm_log(types::LlmLogIn) -> types::LlmLogOut,
     encryption(types::EncryptionIn) -> types::EncryptionOut,
     follow(types::FollowIn) -> types::FollowOut,
     save_offline(types::SaveOfflineIn) -> types::SaveOfflineOut,

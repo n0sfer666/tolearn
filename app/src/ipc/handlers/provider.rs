@@ -1,9 +1,12 @@
-use tolearn_provider::{Provider, check, probe};
+use tolearn_provider::{PROBE_PROMPT, Provider, check, probe};
 
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
 use crate::ipc::provider::{advice, denied, failed, presets, refute, taken, view};
 use crate::ipc::types::{CheckedView, ProbedView, ProviderIn, ProviderOut};
+use crate::journal::Journal;
+
+const KIND: &str = "Пробный запрос";
 
 pub fn run(context: &Context, input: &ProviderIn) -> Result<ProviderOut, IpcError> {
     let mut provider = Provider::read(&context.provider()).map_err(failed)?;
@@ -24,7 +27,11 @@ pub fn run(context: &Context, input: &ProviderIn) -> Result<ProviderOut, IpcErro
         false => None,
     };
     let probed = match input.probe {
-        true => Some(probed(&provider, key.as_deref())?),
+        true => Some(probed(
+            &provider,
+            key.as_deref(),
+            &Journal::new(context.llm_log(), provider.journal),
+        )?),
         false => None,
     };
     Ok(ProviderOut {
@@ -46,8 +53,20 @@ fn checked(provider: &Provider, key: Option<&str>) -> Result<CheckedView, IpcErr
     })
 }
 
-fn probed(provider: &Provider, key: Option<&str>) -> Result<ProbedView, IpcError> {
-    let probed = probe(provider, key).map_err(refute)?;
+fn probed(
+    provider: &Provider,
+    key: Option<&str>,
+    journal: &Journal,
+) -> Result<ProbedView, IpcError> {
+    let probed = match probe(provider, key) {
+        Ok(probed) => probed,
+        Err(error) => {
+            let refused = refute(error);
+            journal.refused(KIND, PROBE_PROMPT, &refused.message);
+            return Err(refused);
+        }
+    };
+    journal.said(KIND, PROBE_PROMPT, &probed.said);
     Ok(ProbedView {
         said: probed.said,
         took_ms: probed.took_ms,

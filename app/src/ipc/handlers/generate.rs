@@ -8,6 +8,7 @@ use crate::ipc::error::IpcError;
 use crate::ipc::provider::{denied, failed, refute};
 use crate::ipc::settings;
 use crate::ipc::types::{GenerateIn, GenerateOut};
+use crate::journal::Journal;
 
 pub fn run(context: &Context, input: &GenerateIn) -> Result<GenerateOut, IpcError> {
     let provider = Provider::read(&context.provider()).map_err(failed)?;
@@ -31,8 +32,9 @@ pub fn run(context: &Context, input: &GenerateIn) -> Result<GenerateOut, IpcErro
         locale: settings::stored(context)?.locale.label().to_owned(),
         today: day,
     };
+    let journal = Journal::new(context.llm_log(), provider.journal);
     Ok(GenerateOut {
-        job: start(provider, key, request, context.draft()),
+        job: start(provider, key, journal, request, context.draft()),
     })
 }
 

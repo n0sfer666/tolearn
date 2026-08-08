@@ -86,6 +86,7 @@ fn settings(endpoint: &str, active: &str) -> Value {
     json!({
         "enabled": true,
         "active": active,
+        "journal": false,
         "local": http("ollama"),
         "remote": http("openai"),
         "harness": harness("claude"),

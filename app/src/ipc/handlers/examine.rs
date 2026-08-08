@@ -6,6 +6,9 @@ use crate::ipc::error::IpcError;
 use crate::ipc::open;
 use crate::ipc::provider::{denied, failed, refute};
 use crate::ipc::types::{ExamineIn, ExamineOut};
+use crate::journal::Journal;
+
+const KIND: &str = "Зачёт";
 
 pub fn run(context: &Context, input: &ExamineIn) -> Result<ExamineOut, IpcError> {
     let scan = open::read(&input.bundle)?;
@@ -19,9 +22,16 @@ pub fn run(context: &Context, input: &ExamineIn) -> Result<ExamineOut, IpcError>
 
     let provider = Provider::read(&context.provider()).map_err(failed)?;
     let key = context.vault().key().map_err(denied)?;
-    Ok(ExamineOut {
-        text: ask(&provider, key.as_deref(), &prompt)
-            .map_err(refute)?
-            .text,
-    })
+    let journal = Journal::new(context.llm_log(), provider.journal);
+    match ask(&provider, key.as_deref(), &prompt) {
+        Ok(said) => {
+            journal.said(KIND, &prompt, &said.text);
+            Ok(ExamineOut { text: said.text })
+        }
+        Err(error) => {
+            let refused = refute(error);
+            journal.refused(KIND, &prompt, &refused.message);
+            Err(refused)
+        }
+    }
 }

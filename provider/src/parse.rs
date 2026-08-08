@@ -27,6 +27,10 @@ fn current(node: &Reader<'_>) -> Result<Provider, ParseError> {
         local: http(&node.field("local")?, Api::Ollama)?,
         remote: http(&node.field("remote")?, Api::OpenAi)?,
         harness: harness(&node.field("harness")?)?,
+        journal: match node.optional_field("journal")? {
+            Some(field) => field.flag()?,
+            None => false,
+        },
     })
 }
 

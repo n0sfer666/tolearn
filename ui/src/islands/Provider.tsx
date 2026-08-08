@@ -3,6 +3,7 @@ import { Show, createSignal, onMount } from "solid-js";
 import Apis from "../components/settings/Apis";
 import HarnessFields from "../components/settings/HarnessFields";
 import HttpFields from "../components/settings/HttpFields";
+import Journal from "../components/settings/Journal";
 import KeyField from "../components/settings/KeyField";
 import Kinds from "../components/settings/Kinds";
 import Models from "../components/settings/Models";
@@ -171,6 +172,13 @@ export default function Provider(props: Props) {
               onChange={(harness) => change({ harness })}
             />
           </Show>
+
+          <Journal
+            text={props.text}
+            call={call()}
+            on={current().journal}
+            onToggle={(journal) => change({ journal })}
+          />
 
           <button type="button" data-save disabled={busy()} onClick={() => send(false, false, false)}>
             {props.text.provider.save}

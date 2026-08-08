@@ -6,15 +6,18 @@ use tolearn_core::generate::repair;
 use tolearn_provider::{Provider, Said, Watch, watched};
 
 use super::jobs::Job;
+use crate::journal::Journal;
 
 pub const ROUNDS: u32 = 3;
 pub const TRIES: u32 = 3;
 
 const PAUSE: Duration = Duration::from_secs(2);
+const KIND: &str = "Генерация";
 
 pub struct Speaker {
     pub provider: Provider,
     pub key: Option<String>,
+    pub journal: Journal,
 }
 
 pub fn taken<T>(
@@ -61,12 +64,14 @@ fn heard(
         left -= 1;
         let error = match answer {
             Ok(said) => {
+                speaker.journal.said(KIND, asking, &said.text);
                 job.spent(said.tokens);
                 job.retrying(0);
                 return Ok(said);
             }
             Err(error) => error,
         };
+        speaker.journal.refused(KIND, asking, &error.to_string());
         job.spent(None);
         if left == 0 || job.stopped() || !error.transient() {
             return Err(vec![error.to_string()]);

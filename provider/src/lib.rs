@@ -23,7 +23,7 @@ pub use error::{CheckError, ProviderError, VaultError};
 pub use memory::memory;
 pub use models::{Advice, advised, known};
 pub use preset::{PRESETS, Preset, preset};
-pub use probe::{Probed, probe};
+pub use probe::{PROMPT as PROBE_PROMPT, Probed, probe};
 pub use types::{
     Api, DEFAULT_ENDPOINT, DEFAULT_TEMPERATURE_TENTHS, DEFAULT_TIMEOUT_SECS, Harness, Http, Kind,
     NUM_CTX_MAX, OPENAI_ENDPOINT, Provider, TEMPERATURE_TENTHS_MAX, Watch,

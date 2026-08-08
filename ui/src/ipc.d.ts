@@ -655,6 +655,7 @@ export type ProviderOut = {
 export type ProviderView = {
   enabled: boolean;
   active: string;
+  journal: boolean;
   local: HttpView;
   remote: HttpView;
   harness: HarnessView;
@@ -856,6 +857,16 @@ export type DraftView = {
   done: number;
 };
 
+export type LlmLogIn = {
+  open: boolean;
+  clear: boolean;
+};
+
+export type LlmLogOut = {
+  room: string;
+  records: number;
+};
+
 export type Commands = {
   validate: { input: ValidateIn; output: ValidateOut };
   scan: { input: ScanIn; output: ScanOut };
@@ -890,6 +901,7 @@ export type Commands = {
   settings: { input: SettingsIn; output: SettingsView };
   search: { input: SearchIn; output: SearchOut };
   provider: { input: ProviderIn; output: ProviderOut };
+  llm_log: { input: LlmLogIn; output: LlmLogOut };
   encryption: { input: EncryptionIn; output: EncryptionOut };
   follow: { input: FollowIn; output: FollowOut };
   save_offline: { input: SaveOfflineIn; output: SaveOfflineOut };

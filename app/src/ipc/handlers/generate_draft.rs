@@ -6,6 +6,7 @@ use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
 use crate::ipc::provider::{denied, failed, refute};
 use crate::ipc::types::{DraftView, GenerateDraftIn, GenerateDraftOut};
+use crate::journal::Journal;
 
 pub fn run(context: &Context, input: &GenerateDraftIn) -> Result<GenerateDraftOut, IpcError> {
     let root = context.draft();
@@ -28,7 +29,8 @@ pub fn run(context: &Context, input: &GenerateDraftIn) -> Result<GenerateDraftOu
     }
     let day = Date::parse(&input.today).ok_or_else(|| IpcError::malformed_date(&input.today))?;
     let key = context.vault().key().map_err(denied)?;
-    let job = carry(provider, key, root, day).ok_or_else(gone)?;
+    let journal = Journal::new(context.llm_log(), provider.journal);
+    let job = carry(provider, key, journal, root, day).ok_or_else(gone)?;
     Ok(GenerateDraftOut {
         draft: None,
         job: Some(job),

@@ -44,6 +44,7 @@ rm -rf ~/.config/tolearn ~/.local/share/tolearn
 | [provider/01-local-model.md](provider/01-local-model.md) | локальная модель по HTTP: проверка, пробный запрос, совет по моделям |
 | [provider/02-cli-harness.md](provider/02-cli-harness.md) | CLI-харнесс: пресеты, аргументы, подсказка `(?)`, отказ харнесса |
 | [provider/03-remote-key.md](provider/03-remote-key.md) | внешний сервис: ключ в системном хранилище и его забывание |
+| [provider/04-journal.md](provider/04-journal.md) | журнал запросов: запись, ротация, очистка, открытие папки |
 | [generate/01-full-run.md](generate/01-full-run.md) | сборка программы живой моделью от вопроса до принятия |
 | [generate/02-draft-and-cancel.md](generate/02-draft-and-cancel.md) | черновик переживает перезапуск; отмена и повтор несобранного |
 | [bundle/01-import.md](bundle/01-import.md) | импорт папкой и архивом, перегенерация и отчёт о слиянии |
