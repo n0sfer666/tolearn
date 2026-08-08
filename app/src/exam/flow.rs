@@ -151,6 +151,6 @@ pub fn artifact(dialog: &Dialog, topic: &Topic) -> Artifact {
         .unwrap_or(Artifact::None)
 }
 
-fn refused(error: tolearn_core::exam::StepError) -> IpcError {
+pub fn refused(error: tolearn_core::exam::StepError) -> IpcError {
     IpcError::new(error.code(), error.to_string())
 }

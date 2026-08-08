@@ -583,6 +583,65 @@ export type ExamFinishIn = {
   today: string;
 };
 
+export type SweepPickView = {
+  topic: string;
+  title: string;
+  due: string | null;
+  overdue: boolean;
+};
+
+export type SweepLegView = {
+  topic: string;
+  title: string;
+  asked: number;
+  total: number;
+  verdict: string | null;
+};
+
+export type SweepStateOut = {
+  open: boolean;
+  stale: boolean;
+  done: boolean;
+  stage: string;
+  asked: number;
+  total: number;
+  hint_ready: boolean;
+  ready: SweepPickView[];
+  legs: SweepLegView[];
+  log: ExamLineView[];
+  seconds: number;
+  tokens: number;
+};
+
+export type SweepStateIn = {
+  bundle: string;
+  today: string;
+};
+
+export type SweepStartIn = {
+  bundle: string;
+  today: string;
+  topics: number;
+  restart: boolean;
+};
+
+export type SweepSayIn = {
+  bundle: string;
+  today: string;
+  text: string;
+};
+
+export type SweepSettledView = {
+  topic: string;
+  title: string;
+  result: string;
+  status: string;
+};
+
+export type SweepAcceptOut = {
+  settled: SweepSettledView[];
+};
+
 export type SettingsIn = {
   save: SettingsView | null;
 };
@@ -886,6 +945,12 @@ export type Commands = {
   exam_say: { input: ExamSayIn; output: ExamStateOut };
   exam_hint: { input: ExamStateIn; output: ExamStateOut };
   exam_finish: { input: ExamFinishIn; output: ExamStateOut };
+  sweep_state: { input: SweepStateIn; output: SweepStateOut };
+  sweep_start: { input: SweepStartIn; output: SweepStateOut };
+  sweep_say: { input: SweepSayIn; output: SweepStateOut };
+  sweep_hint: { input: SweepStateIn; output: SweepStateOut };
+  sweep_finish: { input: SweepStateIn; output: SweepStateOut };
+  sweep_accept: { input: SweepStateIn; output: SweepAcceptOut };
   practice: { input: PracticeIn; output: PracticeOut };
   programs: { input: ProgramsIn; output: ProgramsOut };
   plan: { input: PlanIn; output: PlanOut };

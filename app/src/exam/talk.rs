@@ -8,6 +8,7 @@ use crate::journal::Journal;
 
 const KIND: &str = "Диалог";
 
+#[derive(Debug)]
 pub struct Speaker {
     provider: Provider,
     key: Option<String>,
@@ -43,6 +44,7 @@ impl Speaker {
     }
 }
 
+#[derive(Debug)]
 pub struct Heard {
     pub text: String,
     pub seconds: u64,

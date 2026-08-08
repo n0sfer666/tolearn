@@ -80,30 +80,38 @@ impl Dialog {
     }
 
     pub fn answers(&self) -> Vec<Answer> {
-        self.graded
-            .iter()
-            .map(|grade| Answer {
-                id: grade.id.clone(),
-                outcome: Outcome::read(&grade.result).unwrap_or(Outcome::Miss),
-                quote: grade.quote.clone(),
-                missed: grade.missed.clone(),
-                signal_extension: grade.signal_extension,
-            })
-            .collect()
+        answers(&self.graded)
     }
 
     pub fn grade(&mut self, answer: &Answer) {
-        self.graded.push(Grade {
-            id: answer.id.clone(),
-            result: answer.outcome.label().to_owned(),
-            quote: answer.quote.clone(),
-            missed: answer.missed.clone(),
-            signal_extension: answer.signal_extension,
-        });
+        self.graded.push(scored(answer));
     }
 }
 
-fn fingerprint(topic: &Topic) -> String {
+pub fn answers(graded: &[Grade]) -> Vec<Answer> {
+    graded
+        .iter()
+        .map(|grade| Answer {
+            id: grade.id.clone(),
+            outcome: Outcome::read(&grade.result).unwrap_or(Outcome::Miss),
+            quote: grade.quote.clone(),
+            missed: grade.missed.clone(),
+            signal_extension: grade.signal_extension,
+        })
+        .collect()
+}
+
+pub fn scored(answer: &Answer) -> Grade {
+    Grade {
+        id: answer.id.clone(),
+        result: answer.outcome.label().to_owned(),
+        quote: answer.quote.clone(),
+        missed: answer.missed.clone(),
+        signal_extension: answer.signal_extension,
+    }
+}
+
+pub fn fingerprint(topic: &Topic) -> String {
     let mut digest = Sha256::new();
     digest.update(topic.id.as_bytes());
     digest.update(topic.title.as_bytes());

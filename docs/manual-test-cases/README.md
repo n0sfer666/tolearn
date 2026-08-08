@@ -51,5 +51,6 @@ rm -rf ~/.config/tolearn ~/.local/share/tolearn
 | [offline/01-save-and-read.md](offline/01-save-and-read.md) | офлайн-выгрузка материалов и чтение без сети |
 | [learning/01-exam-dialog.md](learning/01-exam-dialog.md) | диалоговый зачёт живой моделью и запись статуса |
 | [learning/02-practice-runner.md](learning/02-practice-runner.md) | запуск check-команд, таймаут, таймер практики |
+| [learning/03-program-exam.md](learning/03-program-exam.md) | сквозной зачёт по программе: чередование тем, вердикты, приёмка |
 | [platform/01-notes-encryption.md](platform/01-notes-encryption.md) | шифрование конспектов ключом устройства и фразой |
 | [platform/02-restart-state.md](platform/02-restart-state.md) | настройки, тема, язык и реестр программ после перезапуска |

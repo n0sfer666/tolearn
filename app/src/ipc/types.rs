@@ -504,6 +504,56 @@ dto!(ExamFinishIn {
     today: String
 });
 
+dto!(SweepPickView {
+    topic: String,
+    title: String,
+    due: Option<String>,
+    overdue: bool
+});
+dto!(SweepLegView {
+    topic: String,
+    title: String,
+    asked: u32,
+    total: u32,
+    verdict: Option<String>
+});
+dto!(SweepStateOut {
+    open: bool,
+    stale: bool,
+    done: bool,
+    stage: String,
+    asked: u32,
+    total: u32,
+    hint_ready: bool,
+    ready: Vec<SweepPickView>,
+    legs: Vec<SweepLegView>,
+    log: Vec<ExamLineView>,
+    seconds: u32,
+    tokens: u32
+});
+dto!(SweepStateIn {
+    bundle: String,
+    today: String
+});
+dto!(SweepStartIn {
+    bundle: String,
+    today: String,
+    topics: u32,
+    restart: bool
+});
+dto!(SweepSayIn {
+    bundle: String,
+    today: String,
+    text: String
+});
+dto!(SweepSettledView {
+    topic: String,
+    title: String,
+    result: String,
+    status: String
+});
+dto!(SweepAcceptOut { settled: Vec<SweepSettledView> });
+
 dto!(SettingsIn { save: Option<SettingsView> });
 dto!(SettingsView {
     disk_budget_mb: u32,
@@ -802,6 +852,14 @@ pub fn shapes() -> Vec<Shape> {
         ExamStartIn::shape(),
         ExamSayIn::shape(),
         ExamFinishIn::shape(),
+        SweepPickView::shape(),
+        SweepLegView::shape(),
+        SweepStateOut::shape(),
+        SweepStateIn::shape(),
+        SweepStartIn::shape(),
+        SweepSayIn::shape(),
+        SweepSettledView::shape(),
+        SweepAcceptOut::shape(),
         SettingsIn::shape(),
         SettingsView::shape(),
         SearchIn::shape(),

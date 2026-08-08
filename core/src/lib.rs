@@ -31,6 +31,7 @@ pub mod stale;
 pub mod stats;
 pub mod status;
 pub mod summary;
+pub mod sweep;
 pub mod topic;
 pub mod verdict;
 pub mod yaml;

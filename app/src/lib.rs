@@ -4,6 +4,7 @@ pub mod ipc;
 pub mod journal;
 pub mod offline;
 pub mod prerender;
+pub mod sweep;
 
 pub fn run() -> Result<(), tauri::Error> {
     tauri::Builder::default()

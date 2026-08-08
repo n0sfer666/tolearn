@@ -4,9 +4,10 @@ mod store;
 mod talk;
 mod words;
 
-pub use dialog::Dialog;
-pub use flow::{Stage, stage};
-pub use store::forget;
+pub use dialog::{Dialog, Grade, Kept, answers, fingerprint, scored};
+pub use flow::{Stage, refused, stage};
+pub use store::{forget, safe};
+pub use talk::Speaker;
 
 use tolearn_core::exam::{Collected, verdict};
 use tolearn_core::prompt::render;
@@ -15,8 +16,6 @@ use tolearn_core::topic::Topic;
 
 use crate::ipc::open;
 use crate::ipc::{Context, IpcError};
-
-use talk::Speaker;
 
 #[derive(Debug)]
 pub struct Seen {

@@ -39,6 +39,7 @@ pub enum Artifact {
     Shown,
     Passed,
     Skipped,
+    Aside,
 }
 
 impl Artifact {
@@ -48,13 +49,20 @@ impl Artifact {
             Self::Shown => "shown",
             Self::Passed => "passed",
             Self::Skipped => "skipped",
+            Self::Aside => "aside",
         }
     }
 
     pub fn read(label: &str) -> Option<Self> {
-        [Self::None, Self::Shown, Self::Passed, Self::Skipped]
-            .into_iter()
-            .find(|artifact| artifact.label() == label)
+        [
+            Self::None,
+            Self::Shown,
+            Self::Passed,
+            Self::Skipped,
+            Self::Aside,
+        ]
+        .into_iter()
+        .find(|artifact| artifact.label() == label)
     }
 
     pub fn told(self) -> &'static str {
@@ -63,6 +71,10 @@ impl Artifact {
             Self::Shown => "артефакт предъявлен, но приёмка не сошлась",
             Self::Passed => "артефакт предъявлен и принят",
             Self::Skipped => "практика артефакта не требует",
+            Self::Aside => {
+                "практика в этом прогоне не проверялась и на вердикт не влияет: \
+                 считай её в порядке, `blocked` за неё не ставь"
+            }
         }
     }
 }

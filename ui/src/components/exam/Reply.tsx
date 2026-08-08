@@ -1,11 +1,19 @@
 import { Show } from "solid-js";
 
 import type { Dictionary } from "../../i18n/ru";
-import type { ExamStateOut } from "../../ipc";
+
+interface Live {
+  stage: string;
+  asked: number;
+  total: number;
+  hint_ready: boolean;
+  seconds: number;
+  tokens: number;
+}
 
 interface Props {
   text: Dictionary["dialog"];
-  view: ExamStateOut;
+  view: Live;
   draft: string;
   busy: boolean;
   onDraft: (text: string) => void;

@@ -33,7 +33,7 @@ fn file(context: &Context, roadmap: &str, topic: &str) -> PathBuf {
         .join(format!("{}.json", safe(topic)))
 }
 
-fn safe(name: &str) -> String {
+pub fn safe(name: &str) -> String {
     name.chars()
         .map(|symbol| match symbol {
             'a'..='z' | 'A'..='Z' | '0'..='9' | '-' | '_' => symbol,

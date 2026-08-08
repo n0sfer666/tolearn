@@ -78,6 +78,10 @@ impl Context {
         self.data.join("dialogs")
     }
 
+    pub fn sweeps(&self) -> PathBuf {
+        self.data.join("sweeps")
+    }
+
     pub fn llm_log(&self) -> PathBuf {
         self.data.join("llm-log")
     }

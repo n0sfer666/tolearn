@@ -11,11 +11,12 @@ pub(crate) mod open;
 mod provider;
 mod settings;
 mod shape;
+mod sweeping;
 pub mod types;
 pub mod typescript;
 mod unpack;
 mod vaulted;
-mod verdict;
+pub(crate) mod verdict;
 
 pub use context::Context;
 pub use contract::{Descriptor, NAMES, call, descriptors};
