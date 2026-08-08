@@ -1,27 +1,30 @@
-span[data-hint] {
-  position: relative;
-  display: inline-block;
-  margin-inline-start: var(--spacing-2);
+span[data-args-label],
+span[data-endpoint-label] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
 }
 
-span[data-hint] > button[data-hint-open] {
-  width: 1.5rem;
-  height: 1.5rem;
+button[data-hint-open] {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  min-block-size: 0;
   padding: 0;
   border-radius: 50%;
+  aspect-ratio: 1;
   color: var(--color-fg-muted);
   font-size: var(--font-size-sm);
   line-height: 1;
 }
 
 span[data-hint-body] {
-  position: absolute;
-  inset-inline-start: 0;
-  top: calc(100% + var(--spacing-1));
-  z-index: var(--z-popover);
   display: block;
-  width: max-content;
-  max-width: min(36rem, 80vw);
+  flex: 1 0 100%;
   padding: var(--spacing-3);
   border: var(--border-width) solid var(--color-border-strong);
   border-radius: var(--radius-md);
@@ -64,10 +67,4 @@ span[data-hint-arg] > code {
 span[data-hint-why] {
   display: block;
   color: var(--color-fg-muted);
-}
-
-span[data-args-label],
-span[data-endpoint-label] {
-  display: flex;
-  align-items: center;
 }
