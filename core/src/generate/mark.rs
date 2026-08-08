@@ -1,5 +1,22 @@
 const PENDING: &str = "generated: false";
 const DONE: &str = "generated: true";
+const STAMP: &str = "generated_at:";
+
+pub fn stamped(roadmap: &str, today: &str) -> String {
+    let mut fixed = String::with_capacity(roadmap.len());
+    for line in roadmap.split_inclusive('\n') {
+        let body = line.trim_end_matches(['\n', '\r']);
+        if body.starts_with(STAMP) {
+            fixed.push_str(STAMP);
+            fixed.push(' ');
+            fixed.push_str(today);
+            fixed.push_str(&line[body.len()..]);
+        } else {
+            fixed.push_str(line);
+        }
+    }
+    fixed
+}
 
 pub fn generated(roadmap: &str) -> String {
     let mut marked = String::with_capacity(roadmap.len());

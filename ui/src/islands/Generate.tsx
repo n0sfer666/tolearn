@@ -75,7 +75,13 @@ export default function Generate(props: Props) {
     look();
   };
 
-  const { draft, look: peek, take, forget: unpin, clear: hide } = drafting({ call, watch, broke });
+  const {
+    draft,
+    look: peek,
+    take,
+    forget: unpin,
+    clear: hide,
+  } = drafting({ call, today, watch, broke });
 
   const look = () => {
     void (async () => {
@@ -90,10 +96,10 @@ export default function Generate(props: Props) {
     })();
   };
 
-  const start = (request: GenerateIn) => {
+  const start = (request: Omit<GenerateIn, "today">) => {
     void (async () => {
       try {
-        const out = await call()("generate", request);
+        const out = await call()("generate", { ...request, today: today() });
         watch(out.job);
       } catch (error) {
         broke(error);

@@ -167,6 +167,19 @@ test("одна фраза человека и уровень уходят в г�
   assert.equal(started.payload.level, "basics");
   assert.equal(started.payload.weekly_hours, 6);
   assert.equal(started.payload.weeks, 10);
+  assert.equal(started.payload.today, "2026-08-06");
+});
+
+test("сегодняшняя дата уходит и в сборку черновика — у модели своих часов нет", async () => {
+  const draft = { id: "rust-core", title: "Ядро на Rust", total: 8, done: 3 };
+  const { host, calls } = mount({ draft });
+  await settled();
+  host.querySelector("[data-generate-take]").click();
+  await ticks();
+
+  for (const { payload } of calls.filter(({ name }) => name === "generate_draft")) {
+    assert.equal(payload.today, "2026-08-06");
+  }
 });
 
 test("после скелета экран показывает объём и ждёт подтверждения", async () => {

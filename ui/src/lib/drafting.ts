@@ -5,6 +5,7 @@ import type { Transport } from "./ipc";
 
 interface Terms {
   call: () => Transport;
+  today: () => string;
   watch: (job: string) => void;
   broke: (error: unknown) => void;
 }
@@ -15,7 +16,7 @@ export function drafting(terms: Terms) {
   const ask = (take: boolean, drop: boolean) => {
     void (async () => {
       try {
-        const out = await terms.call()("generate_draft", { take, drop });
+        const out = await terms.call()("generate_draft", { take, drop, today: terms.today() });
         setDraft(out.draft);
         if (out.job !== null) terms.watch(out.job);
       } catch (error) {

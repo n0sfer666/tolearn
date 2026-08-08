@@ -9,7 +9,7 @@ type Level = (typeof LEVELS)[number];
 
 interface Props {
   text: Dictionary["generate"];
-  onStart: (request: GenerateIn) => void;
+  onStart: (request: Omit<GenerateIn, "today">) => void;
   onClose: () => void;
 }
 

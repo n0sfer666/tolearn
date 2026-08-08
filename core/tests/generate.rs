@@ -8,10 +8,12 @@ mod support;
 
 use tolearn_core::generate::{
     Level, PROGRESS_SCHEMA, ROADMAP_SCHEMA, Request, TOPIC_SCHEMA, fenced, generated, pick, repair,
-    roadmap, topic,
+    roadmap, stamped, topic,
 };
 
 use support::bundles;
+
+const TODAY: &str = "2026-08-08";
 
 fn request() -> Request {
     Request {
@@ -20,6 +22,7 @@ fn request() -> Request {
         weekly_hours: 6,
         weeks: Some(10),
         locale: "ru".to_owned(),
+        today: TODAY.to_owned(),
     }
 }
 
@@ -51,7 +54,7 @@ fn a_request_without_a_deadline_says_so_instead_of_leaving_a_hole() {
 fn the_topic_prompt_repeats_what_the_skeleton_already_fixed() {
     let (map, _) = bundles::reference();
     let entry = map.topics[bundles::entry(&map, "local-runtime")].clone();
-    let asked = topic(&map, &entry);
+    let asked = topic(&map, &entry, TODAY);
     let (rules, told) = asked.rsplit_once("## Тема").expect("no topic section");
     assert!(
         rules.contains("`questions[].id`"),
@@ -70,7 +73,7 @@ fn the_topic_prompt_repeats_what_the_skeleton_already_fixed() {
 fn the_topic_prompt_lists_the_other_topics_so_dependencies_have_somewhere_to_point() {
     let (map, _) = bundles::reference();
     let entry = map.topics[bundles::entry(&map, "local-runtime")].clone();
-    let told = topic(&map, &entry);
+    let told = topic(&map, &entry, TODAY);
     for other in &map.topics {
         assert_eq!(
             told.contains(&format!("`{}` — {}", other.id, other.title)),
@@ -136,4 +139,29 @@ fn the_finished_program_says_its_stages_are_generated_and_changes_nothing_else()
 fn a_stage_written_as_one_line_is_marked_too() {
     let marked = generated("stages:\n  - generated: false\n");
     assert_eq!(marked, "stages:\n  - generated: true\n");
+}
+
+#[test]
+fn both_prompts_hand_the_model_todays_date_because_its_own_clock_is_wrong() {
+    assert!(roadmap(&request()).contains(&format!("- Сегодня: {TODAY}")));
+    let (map, _) = bundles::reference();
+    let entry = map.topics[bundles::entry(&map, "local-runtime")].clone();
+    assert!(topic(&map, &entry, TODAY).contains(&format!("- Сегодня: {TODAY}")));
+}
+
+#[test]
+fn a_date_the_model_made_up_is_overwritten_by_the_one_we_were_given() {
+    let said = "schema: learning-roadmap/v1\ngenerated_at: 2024-01-15\n\
+                title: generated_at: 2024-01-15 в заголовке\ngenerated_by: claude\n";
+    let fixed = stamped(said, TODAY);
+    assert!(fixed.contains(&format!("generated_at: {TODAY}\n")));
+    assert!(!fixed.contains("generated_at: 2024-01-15\n"));
+    assert!(fixed.contains("title: generated_at: 2024-01-15 в заголовке"));
+    assert!(fixed.ends_with("generated_by: claude\n"));
+}
+
+#[test]
+fn a_roadmap_without_a_stamp_is_left_exactly_as_it_came() {
+    let said = "schema: learning-roadmap/v1\nid: x\n";
+    assert_eq!(stamped(said, TODAY), said);
 }

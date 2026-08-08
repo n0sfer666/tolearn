@@ -22,7 +22,9 @@ pub fn fresh(
     root: &Path,
 ) -> Result<(), Vec<String>> {
     job.stepping("skeleton", "");
-    let (map, map_text, progress) = taken(speaker, job, &roadmap(request), parts::skeleton)?;
+    let (map, map_text, progress) = taken(speaker, job, &roadmap(request), |answer| {
+        parts::skeleton(answer, &request.today)
+    })?;
     let _ = draft::keep(root, &map_text, &progress);
     job.counted(map.topics.len(), 0);
 
@@ -41,6 +43,7 @@ pub fn fresh(
             progress,
             got,
         },
+        &request.today,
     )
 }
 
@@ -49,9 +52,10 @@ pub fn carry(
     job: &Arc<Job>,
     root: &Path,
     draft: Draft,
+    today: &str,
 ) -> Result<(), Vec<String>> {
     counted(job, &draft);
-    whole(speaker, job, root, draft)
+    whole(speaker, job, root, draft, today)
 }
 
 fn whole(
@@ -59,10 +63,11 @@ fn whole(
     job: &Arc<Job>,
     root: &Path,
     mut draft: Draft,
+    today: &str,
 ) -> Result<(), Vec<String>> {
     let mut rounds = 0;
     loop {
-        let missed = gather(speaker, job, root, &draft.map, &mut draft.got)?;
+        let missed = gather(speaker, job, root, &draft.map, &mut draft.got, today)?;
         if !missed.is_empty() {
             if !mended(job, missed) {
                 return Err(Vec::new());
@@ -144,6 +149,7 @@ fn gather(
     root: &Path,
     map: &Roadmap,
     got: &mut [Option<(Topic, String)>],
+    today: &str,
 ) -> Result<Vec<String>, Vec<String>> {
     let mut missed = Vec::new();
     for (at, entry) in map.topics.iter().enumerate() {
@@ -154,7 +160,7 @@ fn gather(
             return Err(Vec::new());
         }
         job.stepping("topic", &entry.title);
-        let asked = topic(map, entry);
+        let asked = topic(map, entry, today);
         let done: Vec<Topic> = got.iter().flatten().map(|(made, _)| made.clone()).collect();
         match taken(speaker, job, &asked, |answer| {
             parts::one(map, entry, &done, answer)

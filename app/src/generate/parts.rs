@@ -1,5 +1,7 @@
 use tolearn_core::bundle::{Violation, ordered, tracked, validate};
-use tolearn_core::generate::{PROGRESS_SCHEMA, ROADMAP_SCHEMA, TOPIC_SCHEMA, generated, pick};
+use tolearn_core::generate::{
+    PROGRESS_SCHEMA, ROADMAP_SCHEMA, TOPIC_SCHEMA, generated, pick, stamped,
+};
 use tolearn_core::progress::parse as read_progress;
 use tolearn_core::roadmap::{Roadmap, TopicEntry, parse as read_roadmap};
 use tolearn_core::topic::{Topic, parse as read_topic};
@@ -9,8 +11,8 @@ pub struct Refused {
     pub topics: Vec<String>,
 }
 
-pub fn skeleton(answer: &str) -> Result<(Roadmap, String, String), Vec<String>> {
-    let map_text = block(answer, ROADMAP_SCHEMA)?;
+pub fn skeleton(answer: &str, today: &str) -> Result<(Roadmap, String, String), Vec<String>> {
+    let map_text = stamped(&block(answer, ROADMAP_SCHEMA)?, today);
     let text = block(answer, PROGRESS_SCHEMA)?;
     let map = read_roadmap(&map_text).map_err(spoken)?;
     let progress = read_progress(&text).map_err(spoken)?;

@@ -639,6 +639,7 @@ dto!(GenerateIn {
     level: String,
     weekly_hours: u32,
     weeks: Option<u32>,
+    today: String,
 });
 dto!(GenerateOut { job: String });
 dto!(GenerateStateIn { job: String });
@@ -688,7 +689,8 @@ dto!(GenerateAcceptIn {
 });
 dto!(GenerateDraftIn {
     take: bool,
-    drop: bool
+    drop: bool,
+    today: String
 });
 dto!(GenerateDraftOut {
     draft: Option<DraftView>,

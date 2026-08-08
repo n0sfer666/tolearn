@@ -767,6 +767,7 @@ export type GenerateIn = {
   level: string;
   weekly_hours: number;
   weeks: number | null;
+  today: string;
 };
 
 export type GenerateOut = {
@@ -840,6 +841,7 @@ export type GenerateAcceptIn = {
 export type GenerateDraftIn = {
   take: boolean;
   drop: boolean;
+  today: string;
 };
 
 export type GenerateDraftOut = {

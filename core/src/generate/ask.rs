@@ -14,11 +14,12 @@ pub fn roadmap(request: &Request) -> String {
         format!("- Часов в неделю: {}", request.weekly_hours),
         format!("- Срок: {deadline}"),
         format!("- Язык программы: {}", request.locale),
+        format!("- Сегодня: {}", request.today),
     ];
     section(generation::roadmap(), "## Запрос", &asked.join("\n"))
 }
 
-pub fn topic(roadmap: &Roadmap, entry: &TopicEntry) -> String {
+pub fn topic(roadmap: &Roadmap, entry: &TopicEntry, today: &str) -> String {
     let stage = roadmap
         .stages
         .iter()
@@ -35,6 +36,7 @@ pub fn topic(roadmap: &Roadmap, entry: &TopicEntry) -> String {
         format!("- `priority`: {}", entry.priority.label()),
         format!("- Язык программы: {}", roadmap.locale),
         format!("- Цель программы: {}", roadmap.goal),
+        format!("- Сегодня: {today}"),
         format!(
             "- `defaults.revalidate_after_days`: stable {}, evolving {}, volatile {}",
             roadmap.defaults.revalidate_after_days.stable,

@@ -1,3 +1,4 @@
+use tolearn_core::Date;
 use tolearn_core::generate::{Level, Request};
 use tolearn_provider::{CheckError, Provider};
 
@@ -20,6 +21,7 @@ pub fn run(context: &Context, input: &GenerateIn) -> Result<GenerateOut, IpcErro
             "не сказано, чему учиться".to_owned(),
         ));
     }
+    let day = Date::parse(&input.today).ok_or_else(|| IpcError::malformed_date(&input.today))?;
     let key = context.vault().key().map_err(denied)?;
     let request = Request {
         subject: input.subject.trim().to_owned(),
@@ -27,6 +29,7 @@ pub fn run(context: &Context, input: &GenerateIn) -> Result<GenerateOut, IpcErro
         weekly_hours: input.weekly_hours,
         weeks: input.weeks,
         locale: settings::stored(context)?.locale.label().to_owned(),
+        today: day.to_string(),
     };
     Ok(GenerateOut {
         job: start(provider, key, request, context.draft()),

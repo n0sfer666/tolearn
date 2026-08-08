@@ -29,11 +29,16 @@ pub fn start(provider: Provider, key: Option<String>, request: Request, root: Pa
     name
 }
 
-pub fn carry(provider: Provider, key: Option<String>, root: PathBuf) -> Option<String> {
+pub fn carry(
+    provider: Provider,
+    key: Option<String>,
+    root: PathBuf,
+    today: String,
+) -> Option<String> {
     let draft = draft::read(&root)?;
     let (name, job) = registry::register();
     let speaker = Speaker { provider, key };
-    std::thread::spawn(move || ended(build::carry(&speaker, &job, &root, draft), &job));
+    std::thread::spawn(move || ended(build::carry(&speaker, &job, &root, draft, &today), &job));
     Some(name)
 }
 
