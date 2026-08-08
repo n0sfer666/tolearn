@@ -177,7 +177,9 @@ test("сегодняшняя дата уходит и в сборку черно
   host.querySelector("[data-generate-take]").click();
   await ticks();
 
-  for (const { payload } of calls.filter(({ name }) => name === "generate_draft")) {
+  const asked = calls.filter(({ name }) => name === "generate_draft");
+  assert.ok(asked.length > 0, "черновик вообще не спрашивали");
+  for (const { payload } of asked) {
     assert.equal(payload.today, "2026-08-06");
   }
 });

@@ -399,6 +399,20 @@ test("текст отказа харнесса виден на экране, а 
   assert.equal(host.querySelector("[data-refusal]"), null, "прошлый отказ остался висеть");
 });
 
+test("не-харнессный отказ на экран дословно не выносится", async () => {
+  const { host } = mount({
+    stored: { enabled: true, active: "local" },
+    refuse: "provider.unreachable",
+    refusal: "connection refused",
+  });
+  await settled();
+
+  host.querySelector("[data-check]").click();
+  await settled();
+
+  assert.equal(host.querySelector("[data-refusal]"), null);
+});
+
 test("совет по моделям называет размер, годность и команду установки", async () => {
   const { host } = mount();
   await settled();

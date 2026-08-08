@@ -92,6 +92,7 @@ export function preset(id: string, text: Dictionary): string {
 }
 
 export function told(error: unknown): string {
+  if (code(error) !== "harness.failed") return "";
   if (error instanceof Object && "message" in error && typeof error.message === "string") {
     return error.message.trim();
   }

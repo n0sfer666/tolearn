@@ -1,3 +1,4 @@
+use crate::date::Date;
 use crate::prompt::generation;
 use crate::roadmap::{Roadmap, TopicEntry};
 
@@ -19,7 +20,7 @@ pub fn roadmap(request: &Request) -> String {
     section(generation::roadmap(), "## Запрос", &asked.join("\n"))
 }
 
-pub fn topic(roadmap: &Roadmap, entry: &TopicEntry, today: &str) -> String {
+pub fn topic(roadmap: &Roadmap, entry: &TopicEntry, today: Date) -> String {
     let stage = roadmap
         .stages
         .iter()

@@ -1,4 +1,5 @@
-use super::generating::Case;
+use std::path::Path;
+
 use super::repository;
 
 pub const BROKEN: &str = "```yaml\nschema: learning-roadmap/v1\nid: [\n```\n";
@@ -40,9 +41,9 @@ pub fn paired() -> String {
     format!("```yaml\n{map}```\n\nи прогресс:\n\n```yaml\n{progress}```\n")
 }
 
-pub fn looped(case: &Case) {
+pub fn looped(data: &Path) {
     let (map, progress) = two();
-    let root = case.data.join("draft");
+    let root = data.join("draft");
     std::fs::create_dir_all(root.join("topics")).unwrap();
     std::fs::write(root.join("roadmap.yaml"), map).unwrap();
     std::fs::write(root.join("progress.yaml"), progress).unwrap();

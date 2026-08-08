@@ -28,7 +28,7 @@ pub fn run(context: &Context, input: &GenerateDraftIn) -> Result<GenerateDraftOu
     }
     let day = Date::parse(&input.today).ok_or_else(|| IpcError::malformed_date(&input.today))?;
     let key = context.vault().key().map_err(denied)?;
-    let job = carry(provider, key, root, day.to_string()).ok_or_else(gone)?;
+    let job = carry(provider, key, root, day).ok_or_else(gone)?;
     Ok(GenerateDraftOut {
         draft: None,
         job: Some(job),

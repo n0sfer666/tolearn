@@ -16,6 +16,7 @@ pub use steps::{ROUNDS, TRIES};
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use tolearn_core::Date;
 use tolearn_core::generate::Request;
 use tolearn_provider::Provider;
 
@@ -33,12 +34,12 @@ pub fn carry(
     provider: Provider,
     key: Option<String>,
     root: PathBuf,
-    today: String,
+    today: Date,
 ) -> Option<String> {
     let draft = draft::read(&root)?;
     let (name, job) = registry::register();
     let speaker = Speaker { provider, key };
-    std::thread::spawn(move || ended(build::carry(&speaker, &job, &root, draft, &today), &job));
+    std::thread::spawn(move || ended(build::carry(&speaker, &job, &root, draft, today), &job));
     Some(name)
 }
 

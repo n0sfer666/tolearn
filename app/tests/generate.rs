@@ -86,6 +86,42 @@ fn выдуманная_моделью_дата_сборки_заменяетс�
 }
 
 #[test]
+fn непонятная_дата_отвергается_до_всякого_запроса_к_модели() {
+    let case = case("bad-date");
+    enable(&case, "http://127.0.0.1:9");
+
+    let refused = call(
+        &case.context,
+        "generate",
+        &json!({
+            "subject": "поднять локальную модель",
+            "level": "basics",
+            "weekly_hours": 6,
+            "weeks": 10,
+            "today": "вчера",
+        }),
+    )
+    .unwrap_err();
+    assert_eq!(refused.code, "date.malformed");
+
+    let refused = call(
+        &case.context,
+        "generate_draft",
+        &json!({ "take": true, "drop": false, "today": "вчера" }),
+    )
+    .unwrap_err();
+    assert_eq!(refused.code, "date.malformed");
+
+    let looked = call(
+        &case.context,
+        "generate_draft",
+        &json!({ "take": false, "drop": false, "today": "вчера" }),
+    )
+    .expect("без продолжения дата не нужна");
+    assert_eq!(looked["draft"], json!(null));
+}
+
+#[test]
 fn черновик_переживает_обрыв_и_сборка_идёт_с_места_остановки() {
     let case = case("draft");
     let first = speaking(|_, turn| {

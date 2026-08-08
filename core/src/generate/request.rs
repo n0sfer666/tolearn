@@ -1,3 +1,5 @@
+use crate::date::Date;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Request {
     pub subject: String,
@@ -5,7 +7,7 @@ pub struct Request {
     pub weekly_hours: u32,
     pub weeks: Option<u32>,
     pub locale: String,
-    pub today: String,
+    pub today: Date,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

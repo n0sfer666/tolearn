@@ -159,7 +159,7 @@ fn зависимость_вперёд_не_доходит_до_черновик
 #[test]
 fn кольцо_в_черновике_чинится_кругом_починки_без_человека() {
     let case = case("cycle");
-    looped(&case);
+    looped(&case.data);
     let heard = speaking(|prompt, _| {
         if prompt.contains("- `id`: second-topic") {
             return answered(

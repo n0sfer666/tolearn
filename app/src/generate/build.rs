@@ -3,6 +3,7 @@ use std::sync::Arc;
 use std::thread::sleep;
 use std::time::Duration;
 
+use tolearn_core::Date;
 use tolearn_core::generate::{Request, roadmap, topic};
 use tolearn_core::roadmap::Roadmap;
 use tolearn_core::topic::Topic;
@@ -23,7 +24,7 @@ pub fn fresh(
 ) -> Result<(), Vec<String>> {
     job.stepping("skeleton", "");
     let (map, map_text, progress) = taken(speaker, job, &roadmap(request), |answer| {
-        parts::skeleton(answer, &request.today)
+        parts::skeleton(answer, request.today)
     })?;
     let _ = draft::keep(root, &map_text, &progress);
     job.counted(map.topics.len(), 0);
@@ -43,7 +44,7 @@ pub fn fresh(
             progress,
             got,
         },
-        &request.today,
+        request.today,
     )
 }
 
@@ -52,7 +53,7 @@ pub fn carry(
     job: &Arc<Job>,
     root: &Path,
     draft: Draft,
-    today: &str,
+    today: Date,
 ) -> Result<(), Vec<String>> {
     counted(job, &draft);
     whole(speaker, job, root, draft, today)
@@ -63,7 +64,7 @@ fn whole(
     job: &Arc<Job>,
     root: &Path,
     mut draft: Draft,
-    today: &str,
+    today: Date,
 ) -> Result<(), Vec<String>> {
     let mut rounds = 0;
     loop {
@@ -76,7 +77,7 @@ fn whole(
         }
 
         let (topics, files) = collected(&draft);
-        let refused = match parts::whole(&draft.map_text, &topics) {
+        let refused = match parts::whole(&draft.map_text, &topics, today) {
             Ok((map, marked)) => {
                 let summary = made::summary(&map);
                 job.told(
@@ -149,7 +150,7 @@ fn gather(
     root: &Path,
     map: &Roadmap,
     got: &mut [Option<(Topic, String)>],
-    today: &str,
+    today: Date,
 ) -> Result<Vec<String>, Vec<String>> {
     let mut missed = Vec::new();
     for (at, entry) in map.topics.iter().enumerate() {

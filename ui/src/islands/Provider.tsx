@@ -66,6 +66,7 @@ export default function Provider(props: Props) {
   const change = (next: Partial<ProviderView>) => {
     const current = draft();
     if (current === null) return;
+    setRefusal("");
     setDraft({ ...current, ...next });
   };
 

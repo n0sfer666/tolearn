@@ -1,3 +1,4 @@
+use tolearn_core::Date;
 use tolearn_core::bundle::{Violation, ordered, tracked, validate};
 use tolearn_core::generate::{
     PROGRESS_SCHEMA, ROADMAP_SCHEMA, TOPIC_SCHEMA, generated, pick, stamped,
@@ -11,7 +12,7 @@ pub struct Refused {
     pub topics: Vec<String>,
 }
 
-pub fn skeleton(answer: &str, today: &str) -> Result<(Roadmap, String, String), Vec<String>> {
+pub fn skeleton(answer: &str, today: Date) -> Result<(Roadmap, String, String), Vec<String>> {
     let map_text = stamped(&block(answer, ROADMAP_SCHEMA)?, today);
     let text = block(answer, PROGRESS_SCHEMA)?;
     let map = read_roadmap(&map_text).map_err(spoken)?;
@@ -42,8 +43,8 @@ pub fn one(
     Ok((topic, text))
 }
 
-pub fn whole(map_text: &str, topics: &[Topic]) -> Result<(Roadmap, String), Refused> {
-    let marked = generated(map_text);
+pub fn whole(map_text: &str, topics: &[Topic], today: Date) -> Result<(Roadmap, String), Refused> {
+    let marked = generated(&stamped(map_text, today));
     let map = read_roadmap(&marked).map_err(|error| Refused {
         why: vec![error.to_string()],
         topics: Vec::new(),
