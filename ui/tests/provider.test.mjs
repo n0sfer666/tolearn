@@ -73,7 +73,9 @@ function mount(options = {}) {
         advised: ADVISED,
       });
     }
-    if (options.refuse !== undefined) return Promise.reject({ code: options.refuse });
+    if (options.refuse !== undefined) {
+      return Promise.reject({ code: options.refuse, message: options.refusal ?? "" });
+    }
     return Promise.resolve({
       provider: payload.save ?? { ...DEFAULTS, ...options.stored },
       has_key: payload.forget === true ? false : payload.key !== null || options.hasKey === true,
@@ -261,6 +263,23 @@ test("аргументы правятся построчно", async () => {
   assert.deepEqual(calls[1].payload.save.harness.args, ["-p", "--allowedTools", ""]);
 });
 
+test("пустой аргумент виден в перечне того, что уйдёт харнессу", async () => {
+  const { host } = mount({ stored: { active: "harness" } });
+  await settled();
+
+  input(host, "[data-args]", "-p\n--allowedTools\n");
+  await settled();
+  const shown = host.querySelector("[data-args-seen]").textContent;
+  assert.match(shown, /3/);
+  assert.match(shown, /\(пусто\)/);
+
+  input(host, "[data-args]", "-p\n--allowedTools");
+  await settled();
+  const short = host.querySelector("[data-args-seen]").textContent;
+  assert.match(short, /2/);
+  assert.doesNotMatch(short, /\(пусто\)/);
+});
+
 test("ключ уходит отдельным полем и не остаётся в форме", async () => {
   const { host, calls } = mount({ stored: { active: "remote" } });
   await settled();
@@ -360,6 +379,24 @@ test("отказ харнесса объясняется своими слова
   await settled();
 
   assert.deepEqual(said.at(-1), { tone: "error", text: ru.provider.notFound });
+});
+
+test("текст отказа харнесса виден на экране, а не только в тосте", async () => {
+  const complaint = "харнесс завершился с кодом 1: error: option '--allowedTools' argument missing";
+  const { host } = mount({
+    stored: { enabled: true, active: "harness" },
+    refuse: "harness.failed",
+    refusal: complaint,
+  });
+  await settled();
+
+  host.querySelector("[data-check]").click();
+  await settled();
+
+  assert.equal(host.querySelector("[data-refusal]").textContent, complaint);
+
+  host.querySelector("[data-check]").click();
+  assert.equal(host.querySelector("[data-refusal]"), null, "прошлый отказ остался висеть");
 });
 
 test("совет по моделям называет размер, годность и команду установки", async () => {

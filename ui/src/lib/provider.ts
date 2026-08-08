@@ -46,6 +46,12 @@ export function answered(probed: ProbedView, text: Dictionary): string {
   return `${text.provider.thinking} ${took} ${text.provider.seconds}`;
 }
 
+export function argued(args: string[], text: Dictionary): string {
+  if (args.length === 0) return text.provider.argsNone;
+  const shown = args.map((arg) => (arg === "" ? text.provider.argsEmpty : arg));
+  return `${text.provider.argsSeen} ${args.length} — ${shown.join(" · ")}`;
+}
+
 export function reason(error: unknown, text: Dictionary): string {
   const problems: Record<string, string> = {
     "provider.disabled": text.provider.disabled,
@@ -83,6 +89,13 @@ export function preset(id: string, text: Dictionary): string {
     custom: text.provider.presetCustom,
   };
   return names[id] ?? id;
+}
+
+export function told(error: unknown): string {
+  if (error instanceof Object && "message" in error && typeof error.message === "string") {
+    return error.message.trim();
+  }
+  return "";
 }
 
 function code(error: unknown): string {

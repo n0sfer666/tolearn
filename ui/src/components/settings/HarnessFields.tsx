@@ -2,7 +2,7 @@ import { For } from "solid-js";
 
 import type { Dictionary } from "../../i18n/ru";
 import type { HarnessView, PresetView } from "../../ipc";
-import { preset } from "../../lib/provider";
+import { argued, preset } from "../../lib/provider";
 
 interface Props {
   text: Dictionary;
@@ -58,6 +58,7 @@ export default function HarnessFields(props: Props) {
           onInput={(event) => props.onChange({ ...props.value, args: lines(event.currentTarget.value) })}
         />
       </label>
+      <p data-args-seen>{argued(props.value.args, props.text)}</p>
       <p data-args-warning>{props.text.provider.argsWarning}</p>
 
       <label>

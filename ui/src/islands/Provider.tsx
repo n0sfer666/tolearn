@@ -16,7 +16,7 @@ import type {
   ProviderOut,
   ProviderView,
 } from "../ipc";
-import { answered, reason, seen, spoken } from "../lib/provider";
+import { answered, reason, seen, spoken, told } from "../lib/provider";
 import { quiet } from "../lib/ipc";
 import { toast } from "../lib/toast";
 import type { Transport } from "../lib/ipc";
@@ -37,6 +37,7 @@ export default function Provider(props: Props) {
   const [checked, setChecked] = createSignal<CheckedView | null>(null);
   const [probed, setProbed] = createSignal<ProbedView | null>(null);
   const [advised, setAdvised] = createSignal<AdviceView[]>([]);
+  const [refusal, setRefusal] = createSignal("");
   const [busy, setBusy] = createSignal(false);
 
   const took = (answer: ProviderOut) => {
@@ -73,6 +74,7 @@ export default function Provider(props: Props) {
     if (current === null || busy()) return;
     const given = key().trim();
     setBusy(true);
+    setRefusal("");
     void (async () => {
       try {
         took(
@@ -89,6 +91,7 @@ export default function Provider(props: Props) {
       } catch (error) {
         setChecked(null);
         setProbed(null);
+        setRefusal(told(error));
         toast("error", reason(error, props.text));
       }
       setBusy(false);
@@ -176,6 +179,11 @@ export default function Provider(props: Props) {
 
           <Show when={busy()}>
             <p data-working>{props.text.provider.working}</p>
+          </Show>
+
+          <Show when={refusal() !== ""}>
+            <p data-refusal-title>{props.text.provider.refusal}</p>
+            <pre data-refusal>{refusal()}</pre>
           </Show>
 
           <Show when={checked()}>
