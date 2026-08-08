@@ -238,18 +238,43 @@ test("у внешнего сервиса выбора API нет", async () => {
   assert.equal(host.querySelector("[data-key]").value, "");
 });
 
-test("пресет харнесса подставляет команду и аргументы", async () => {
+test("пресет харнесса подставляет команду, а поле аргументов оставляет пустым", async () => {
   const { host, calls } = mount({ stored: { active: "harness" } });
   await settled();
 
   const preset = host.querySelector("[data-preset]");
   preset.value = "opencode";
   preset.dispatchEvent(new document.defaultView.Event("change", { bubbles: true }));
-  host.querySelector("[data-save]").click();
   await settled();
 
   assert.equal(host.querySelector("[data-command]").value, "opencode");
-  assert.deepEqual(calls[1].payload.save.harness.args, ["run"]);
+  assert.equal(host.querySelector("[data-args]").value, "");
+
+  host.querySelector("[data-save]").click();
+  await settled();
+  assert.deepEqual(calls[1].payload.save.harness.args, []);
+});
+
+test("рекомендованные аргументы подставляются кнопкой, а не сами", async () => {
+  const { host, calls } = mount({
+    stored: { active: "harness", harness: { ...DEFAULTS.harness, args: [] } },
+  });
+  await settled();
+
+  host.querySelector("[data-args-advise]").click();
+  await settled();
+
+  assert.equal(host.querySelector("[data-args]").value, "-p");
+  host.querySelector("[data-save]").click();
+  await settled();
+  assert.deepEqual(calls[1].payload.save.harness.args, ["-p"]);
+});
+
+test("своей команде подставлять нечего — кнопка выключена", async () => {
+  const { host } = mount({ stored: { active: "harness", harness: { ...DEFAULTS.harness, id: "custom" } } });
+  await settled();
+
+  assert.equal(host.querySelector("[data-args-advise]").disabled, true);
 });
 
 test("аргументы правятся построчно", async () => {

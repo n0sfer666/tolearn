@@ -384,7 +384,7 @@ export const en: Dictionary = {
     presetPi: "pi",
     presetCustom: "Own command",
     command: "Command",
-    args: "Arguments, one per line; an empty line is an empty value",
+    args: "Arguments",
     argsSeen: "Arguments sent:",
     argsEmpty: "(empty)",
     argsNone: "No arguments will be sent",

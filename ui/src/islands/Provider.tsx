@@ -6,7 +6,7 @@ import HttpFields from "../components/settings/HttpFields";
 import KeyField from "../components/settings/KeyField";
 import Kinds from "../components/settings/Kinds";
 import Models from "../components/settings/Models";
-import type { Locale } from "../i18n";
+import { type Locale, hints } from "../i18n";
 import type { Dictionary } from "../i18n/ru";
 import type {
   AdviceView,
@@ -29,6 +29,7 @@ interface Props {
 
 export default function Provider(props: Props) {
   const call = () => props.call ?? quiet;
+  const advice = () => hints(props.locale);
 
   const [draft, setDraft] = createSignal<ProviderView | null>(null);
   const [stored, setStored] = createSignal(false);
@@ -130,6 +131,7 @@ export default function Provider(props: Props) {
             />
             <HttpFields
               text={props.text}
+              hints={advice()}
               value={current().local}
               local
               onChange={(local) => change({ local })}
@@ -146,6 +148,7 @@ export default function Provider(props: Props) {
           <Show when={current().active === "remote"}>
             <HttpFields
               text={props.text}
+              hints={advice()}
               value={current().remote}
               local={false}
               onChange={(remote) => change({ remote })}
@@ -162,6 +165,7 @@ export default function Provider(props: Props) {
           <Show when={current().active === "harness"}>
             <HarnessFields
               text={props.text}
+              hints={advice()}
               value={current().harness}
               presets={presets()}
               onChange={(harness) => change({ harness })}

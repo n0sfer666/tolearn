@@ -1,11 +1,15 @@
 import { Show } from "solid-js";
 
+import type { Hints } from "../../i18n/hints/shape";
 import type { Dictionary } from "../../i18n/ru";
 import type { HttpView } from "../../ipc";
 import { heat, numbered, tenths } from "../../lib/provider";
+import Hint from "../Hint";
+import HintLines from "../HintLines";
 
 interface Props {
   text: Dictionary;
+  hints: Hints;
   value: HttpView;
   local: boolean;
   onChange: (next: HttpView) => void;
@@ -17,7 +21,12 @@ export default function HttpFields(props: Props) {
   return (
     <>
       <label>
-        {props.text.provider.endpoint}
+        <span data-endpoint-label>
+          {props.text.provider.endpoint}
+          <Hint label={props.hints.open}>
+            <HintLines lines={props.local ? props.hints.local : props.hints.remote} />
+          </Hint>
+        </span>
         <input
           data-endpoint
           type="url"

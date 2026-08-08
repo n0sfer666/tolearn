@@ -64,6 +64,7 @@ fn по_умолчанию_провайдер_выключен() {
     assert_eq!(provider.remote.api, Api::OpenAi);
     assert_eq!(provider.harness.id, "claude");
     assert_eq!(provider.harness.command, "claude");
+    assert_eq!(provider.harness.args, Vec::<String>::new());
     assert_eq!(provider.harness.timeout_secs, DEFAULT_TIMEOUT_SECS);
 }
 

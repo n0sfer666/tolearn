@@ -8,13 +8,17 @@ pub struct Preset {
 }
 
 impl Preset {
-    pub fn harness(&self) -> Harness {
+    pub fn bare(&self) -> Harness {
         Harness {
             id: self.id.to_owned(),
             command: self.command.to_owned(),
-            args: self.args.iter().map(|arg| (*arg).to_owned()).collect(),
+            args: Vec::new(),
             timeout_secs: DEFAULT_TIMEOUT_SECS,
         }
+    }
+
+    pub fn advised(&self) -> Vec<String> {
+        self.args.iter().map(|arg| (*arg).to_owned()).collect()
     }
 }
 

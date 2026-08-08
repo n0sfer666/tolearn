@@ -29,7 +29,7 @@ pub fn presets() -> Vec<PresetView> {
         .map(|preset| PresetView {
             id: preset.id.to_owned(),
             command: preset.command.to_owned(),
-            args: preset.args.iter().map(|arg| (*arg).to_owned()).collect(),
+            args: preset.advised(),
         })
         .collect()
 }

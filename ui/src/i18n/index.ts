@@ -1,4 +1,7 @@
 import { en } from "./en.ts";
+import { hints as enHints } from "./hints/en.ts";
+import { hints as ruHints } from "./hints/ru.ts";
+import type { Hints } from "./hints/shape.ts";
 import { type Dictionary, type Plural, ru } from "./ru.ts";
 
 export const LOCALES = ["ru", "en"] as const;
@@ -20,6 +23,12 @@ export function localeOf(value: string | undefined): Locale {
 
 export function strings(locale: Locale): Dictionary {
   return DICTIONARIES[locale];
+}
+
+const ADVICE: Record<Locale, Hints> = { ru: ruHints, en: enHints };
+
+export function hints(locale: Locale): Hints {
+  return ADVICE[locale];
 }
 
 export function plural(locale: Locale, count: number, forms: Plural): string {

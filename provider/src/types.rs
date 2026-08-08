@@ -27,7 +27,7 @@ impl Default for Provider {
             active: Kind::Local,
             local: Http::local(),
             remote: Http::remote(),
-            harness: CLAUDE.harness(),
+            harness: CLAUDE.bare(),
         }
     }
 }
