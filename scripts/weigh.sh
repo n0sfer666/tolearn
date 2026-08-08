@@ -2,6 +2,7 @@
 set -eu
 
 bundle=${1:-target/release/bundle}
+variant=${2:-base}
 mib=1048576
 found=0
 status=0
@@ -15,6 +16,11 @@ weigh() {
         size=$(wc -c <"$file")
         size=$((size))
         tenths=$((size * 10 / mib))
+        if [ "$variant" != "base" ]; then
+            printf '%s — %s.%s МБ, потолка нет\n' \
+                "$(basename "$file")" "$((tenths / 10))" "$((tenths % 10))"
+            continue
+        fi
         printf '%s — %s.%s МБ при потолке %s МБ\n' \
             "$(basename "$file")" "$((tenths / 10))" "$((tenths % 10))" "$limit"
         if [ "$size" -gt "$((limit * mib))" ]; then

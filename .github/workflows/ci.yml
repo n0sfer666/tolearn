@@ -53,7 +53,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -70,34 +70,39 @@ jobs:
           key: whisper-small-q5_1-ae85e4a9
       - name: download whisper weights
         if: steps.weights.outputs.cache-hit != 'true'
+        shell: bash
         run: |
           mkdir -p models
           curl -fL --retry 3 -o models/ggml-small-q5_1.bin \
             https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q5_1.bin
       - name: verify whisper weights
+        shell: bash
         run: |
           echo "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb  models/ggml-small-q5_1.bin" > models/sha256
-          shasum -a 256 -c models/sha256
+          if command -v sha256sum >/dev/null; then sha256sum -c models/sha256; else shasum -a 256 -c models/sha256; fi
       - run: cargo clippy -p tolearn-speech --features speech --all-targets --locked -- -D warnings
       - run: cargo test -p tolearn-speech --features speech --locked -- --nocapture
         env:
           TOLEARN_WHISPER_MODEL: ${{ github.workspace }}/models/ggml-small-q5_1.bin
 
   package:
-    name: package (${{ matrix.os }})
+    name: package (${{ matrix.variant }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:
       fail-fast: true
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        variant: [base, with-speech]
     steps:
       - uses: actions/checkout@v7.0.1
+        with:
+          submodules: ${{ matrix.variant == 'with-speech' && 'recursive' || 'false' }}
       - name: install toolchain from rust-toolchain.toml
         run: rustup show active-toolchain
       - uses: Swatinem/rust-cache@v2.9.1
         with:
-          key: package-${{ matrix.os }}
+          key: package-${{ matrix.variant }}-${{ matrix.os }}
       - name: install linux bundling dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -124,11 +129,37 @@ jobs:
         run: cargo install tauri-cli --version 2.11.4 --locked
         env:
           RUSTFLAGS: ""
+      - uses: actions/cache@v4.2.4
+        if: matrix.variant == 'with-speech'
+        id: weights
+        with:
+          path: models
+          key: whisper-small-q5_1-ae85e4a9
+      - name: download whisper weights
+        if: matrix.variant == 'with-speech' && steps.weights.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          mkdir -p models
+          curl -fL --retry 3 -o models/ggml-small-q5_1.bin \
+            https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q5_1.bin
+      - name: put verified weights into the bundle resources
+        if: matrix.variant == 'with-speech'
+        shell: bash
+        run: |
+          echo "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb  models/ggml-small-q5_1.bin" > models/sha256
+          if command -v sha256sum >/dev/null; then sha256sum -c models/sha256; else shasum -a 256 -c models/sha256; fi
+          mkdir -p app/models
+          cp models/ggml-small-q5_1.bin app/models/ggml-small-q5_1.bin
       - name: bundle
+        if: matrix.variant == 'base'
         run: cargo tauri build
         working-directory: app
+      - name: bundle with speech
+        if: matrix.variant == 'with-speech'
+        run: cargo tauri build --features speech --config tauri.with-speech.conf.json
+        working-directory: app
       - name: weigh the installer
-        run: sh scripts/weigh.sh
+        run: sh scripts/weigh.sh target/release/bundle ${{ matrix.variant }}
         shell: bash
 
   ui:

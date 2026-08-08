@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "tolearn-with-speech",
+  "bundle": {
+    "resources": {
+      "models/ggml-small-q5_1.bin": "ggml-small-q5_1.bin"
+    },
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    }
+  }
+}

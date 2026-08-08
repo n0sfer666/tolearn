@@ -11,8 +11,8 @@ LLM строит программу обучения — набор тем с м
 **Статус: работает из исходников.** Импорт программы, темы, практика с таймером,
 зачёт через копипаст и через провайдера, конспекты с поиском и шифрованием,
 офлайн-архив, граф, история версий, экспорт в Markdown, плагин Obsidian — готовы.
-Не готово: установщики под ОС (S57), варианты дистрибутива (S58) и голосовой
-зачёт (S55–S56). Пока приложение собирается и запускается вручную.
+Голосовой зачёт и установщики под macOS, Windows и Linux — тоже готовы; каким
+вариантом ставить и сколько он весит — [docs/release.md](docs/release.md).
 
 [English below](#installation-from-source) · Руководство пользователя —
 [docs/guide.md](docs/guide.md).
@@ -78,8 +78,9 @@ The Obsidian plugin is built separately: `pnpm -C obsidian install && pnpm -C
 obsidian build`, then copy the `obsidian/` directory (`main.js` and
 `manifest.json` are required) into `<vault>/.obsidian/plugins/tolearn/`.
 
-Installers for macOS, Windows and Linux are not built yet (S57); until then the
-source build above is the way to run the app. The user guide is in Russian —
+Installers for macOS, Windows and Linux are built by CI in two variants,
+`tolearn` and `tolearn-with-speech`; the difference and the measured sizes are in
+[docs/release.md](docs/release.md) (Russian). The user guide is in Russian —
 [docs/guide.md](docs/guide.md).
 
 ## Принципы
@@ -103,9 +104,10 @@ source build above is the way to run the app. The user guide is in Russian —
 
 Подробнее — [docs/architecture.md](docs/architecture.md).
 
-Сборок планируется две: `tolearn` и `tolearn-with-speech`. Вторая принимает
-зачёт голосом, распознавая речь локально, и весит заметно больше за счёт модели
-([ADR-010](docs/adr/010-speech-distribution.md)).
+Сборок две: `tolearn` и `tolearn-with-speech`. Вторая принимает зачёт голосом,
+распознавая речь локально, и весит заметно больше за счёт модели
+([ADR-010](docs/adr/010-speech-distribution.md)); чем они отличаются и сколько
+весят — [docs/release.md](docs/release.md).
 
 ## Формат программы
 
@@ -118,7 +120,7 @@ source build above is the way to run the app. The user guide is in Russian —
 
 ## Документация
 
-- [Руководство пользователя](docs/guide.md)
+- [Руководство пользователя](docs/guide.md) · [Какой вариант скачивать](docs/release.md)
 - [Архитектура: ограничения, бюджеты, структура](docs/architecture.md) · [Решения (ADR)](docs/adr/)
 - [Спецификации](docs/specs/README.md)
 - [Протокол зачёта](docs/protocol.md)

@@ -243,20 +243,33 @@ pnpm -C ui dev
 
 | Что | Команда |
 |---|---|
-| собрать установщик своей ОС | `cd app; cargo tauri build` |
-| взвесить собранное | `sh scripts/weigh.sh` |
+| собрать базовый установщик своей ОС | `cd app; cargo tauri build` |
+| собрать вариант с речью | `cd app; cargo tauri build --features speech --config tauri.with-speech.conf.json` |
+| взвесить собранное | `sh scripts/weigh.sh target/release/bundle base` (или `with-speech`) |
 
 `cargo tauri build` требует `cargo install tauri-cli --version 2.11.4 --locked`
 (в CI ставится джобой `package` и кладётся в кэш). Цели берёт из
 `app/tauri.conf.json` и фильтрует по хозяйской ОС: macOS — `app` + `dmg`,
 Windows — `msi`, Linux — `deb`. Кросс-сборки нет: каждую ОС пакует свой раннер.
 
+Вариант с речью отличается одним флагом и оверлеем `app/tauri.with-speech.conf.json`
+(переименование продукта, веса ресурсом, `minimumSystemVersion` 10.15 — ниже
+whisper.cpp не собирается). Ему нужны сабмодуль `speech/vendor/whisper.cpp` и
+файл `app/models/ggml-small-q5_1.bin` (каталог в `.gitignore`; в CI веса кладёт
+туда джоба `package` после сверки sha256). Правили оверлей или флаги сборки —
+`cargo clean -p tolearn-speech --release` перед сборкой: CMake кэширует
+`CMAKE_OSX_DEPLOYMENT_TARGET`, и старый кэш молча вернёт старый таргет.
+
 `scripts/weigh.sh` печатает вес каждого артефакта и потолок из
 [бюджетов](../docs/architecture.md#бюджеты), возвращает 1 при перевесе и при
 пустом `target/release/bundle` — гейт, которому нечего взвешивать, зелёным не
-считается. В `checks.json` он не идёт: это релизная сборка на минуты, а не
-проверка на каждый коммит. Замер 2026-08-09 на macOS arm64:
-`tolearn_0.1.0_aarch64.dmg` — 9.6 МБ при потолке 12 МБ.
+считается. Второй аргумент — вариант: у `with-speech` потолка установщика нет
+(ADR-010), вес печатается без проверки. В `checks.json` он не идёт: это релизная
+сборка на минуты, а не проверка на каждый коммит. Замеры 2026-08-09 на
+macOS arm64: `tolearn_0.1.0_aarch64.dmg` — 9.6 МБ при потолке 12 МБ,
+`tolearn-with-speech_0.1.0_aarch64.dmg` — 187.7 МБ. Числа с обеих сборок живут на
+[странице релиза](../docs/release.md), и `app/tests/release.rs` держит её в
+согласии с бюджетами и с флагом из CI.
 
 ### Ссылка `tolearn://` вживую (руками)
 
@@ -292,11 +305,11 @@ plutil -extract CFBundleURLTypes json -o - target/release/bundle/macos/tolearn.a
 - job `check` — `cargo clippy --workspace --all-targets --locked -- -D warnings`
   и `cargo test --workspace --locked` на матрице ubuntu / macos / windows;
 - job `speech` — сабмодуль, скачивание весов со сверкой sha256 и прогон
-  `tolearn-speech` под фичей `speech` на ubuntu / macos. Windows подключается в
-  S58 вместе с упаковкой варианта `-with-speech`;
+  `tolearn-speech` под фичей `speech` на ubuntu / macos / windows;
 - job `package` — `cargo tauri build` и `sh scripts/weigh.sh` на матрице
-  ubuntu / macos / windows: dmg, msi и deb собираются каждый на своей ОС, и
-  перевес роняет джобу.
+  вариант × ОС (`base` и `with-speech` × ubuntu / macos / windows, шесть сборок):
+  dmg, msi и deb собираются каждый на своей ОС, перевес базового варианта роняет
+  джобу, вес варианта с речью печатается для страницы релиза.
 
 `--locked` обязателен: `Cargo.lock` в репозитории, и молча разъехавшийся lock —
 это уже не та сборка, которую проверяли. Гейт веса JS живёт в `ui/` (job `ui`: `pnpm -C ui lint` и `pnpm -C ui test`,
