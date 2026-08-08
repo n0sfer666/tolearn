@@ -591,6 +591,15 @@ dto!(LlmLogOut {
     records: u32,
 });
 
+dto!(SpeechStateIn { bundle: String });
+dto!(SpeechStateOut {
+    available: bool,
+    listening: bool,
+    language: String,
+});
+dto!(SpeechStopIn { bundle: String });
+dto!(SpeechStopOut { text: String });
+
 dto!(ProviderIn {
     save: Option<ProviderView>,
     key: Option<String>,
@@ -904,5 +913,9 @@ pub fn shapes() -> Vec<Shape> {
         DraftView::shape(),
         LlmLogIn::shape(),
         LlmLogOut::shape(),
+        SpeechStateIn::shape(),
+        SpeechStateOut::shape(),
+        SpeechStopIn::shape(),
+        SpeechStopOut::shape(),
     ]
 }

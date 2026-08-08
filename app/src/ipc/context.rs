@@ -15,6 +15,7 @@ const NOTES: &str = "notes";
 pub struct Context {
     config: PathBuf,
     data: PathBuf,
+    resources: PathBuf,
     vault: Arc<dyn Vault>,
     keys: Arc<dyn Vault>,
 }
@@ -28,9 +29,15 @@ impl Context {
         Self {
             config: config.to_path_buf(),
             data: data.to_path_buf(),
+            resources: data.to_path_buf(),
             vault: Arc::new(Keychain::new(SERVICE, ACCOUNT)),
             keys: Arc::new(Keychain::new(SERVICE, NOTES)),
         }
+    }
+
+    pub fn shipped(mut self, resources: &Path) -> Self {
+        self.resources = resources.to_path_buf();
+        self
     }
 
     pub fn with_vault(data: &Path, vault: Arc<dyn Vault>) -> Self {
@@ -41,9 +48,14 @@ impl Context {
         Self {
             config: data.to_path_buf(),
             data: data.to_path_buf(),
+            resources: data.to_path_buf(),
             vault,
             keys,
         }
+    }
+
+    pub fn resources(&self) -> &Path {
+        &self.resources
     }
 
     pub fn vault(&self) -> &dyn Vault {
@@ -117,5 +129,9 @@ pub fn of(app: &tauri::AppHandle) -> Result<Context, IpcError> {
         layout::migrate(&old, &places)
             .map_err(|error| IpcError::unwritable(&places.data, &error.to_string()))?;
     }
-    Ok(Context::split(&places.config, &places.data))
+    let context = Context::split(&places.config, &places.data);
+    Ok(match app.path().resource_dir() {
+        Ok(resources) => context.shipped(&resources),
+        Err(_) => context,
+    })
 }

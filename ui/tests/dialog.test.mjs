@@ -3,7 +3,7 @@ import test, { after, before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled } from "./support/dom.mjs";
+import { browser, settled, toasts } from "./support/dom.mjs";
 
 let Dialog;
 let render;
@@ -80,6 +80,18 @@ function mount(options = {}) {
     }
     if (name.startsWith("exam_")) {
       return Promise.resolve(states.length > 1 ? states.shift() : states[0]);
+    }
+    if (name === "speech_state" || name === "speech_start") {
+      return Promise.resolve({
+        available: options.voice ?? false,
+        listening: name === "speech_start",
+        language: "ru",
+      });
+    }
+    if (name === "speech_stop") {
+      return options.deaf
+        ? Promise.reject({ code: "speech.silent", message: "записи нет" })
+        : Promise.resolve({ text: options.heard ?? "Слои разложились на CPU." });
     }
     throw new Error(`лишняя команда ${name}`);
   };
@@ -169,6 +181,66 @@ test("завершение разбирает вердикт и даёт при�
   const [used] = calls.filter(({ name }) => name === "apply_verdict");
   assert.equal(used.payload.today, "2026-08-06");
   assert.match(host.querySelector("[data-applied]").textContent, new RegExp(ru.exam.applied));
+});
+
+test("надиктованное дописывается в конец набранного и правится руками", async () => {
+  const { host, calls } = mount({ states: [GOING], voice: true });
+  await ticks();
+
+  const field = host.querySelector("[data-answer]");
+  field.value = "Веса легли в память.";
+  field.dispatchEvent(new Event("input", { bubbles: true }));
+  await settled();
+
+  const voice = host.querySelector("[data-voice]");
+  assert.equal(voice.disabled, false);
+  voice.click();
+  await ticks();
+
+  assert.equal(host.querySelector("[data-voice]").getAttribute("data-listening"), "true");
+  host.querySelector("[data-voice]").click();
+  await ticks();
+
+  assert.equal(
+    host.querySelector("[data-answer]").value,
+    "Веса легли в память. Слои разложились на CPU.",
+  );
+  assert.equal(host.querySelector("[data-answer]").disabled, false);
+  assert.equal(calls.filter(({ name }) => name === "speech_start").length, 1);
+  assert.equal(calls.filter(({ name }) => name === "speech_stop").length, 1);
+});
+
+test("без распознавания точка входа видна, неактивна и уводит на второй вариант", async () => {
+  const { host } = mount({ states: [GOING] });
+  await ticks();
+
+  const voice = host.querySelector("[data-voice]");
+  assert.notEqual(voice, null);
+  assert.equal(voice.disabled, true);
+  assert.match(host.querySelector("[data-voice-off]").textContent, /в разработке/);
+  assert.equal(
+    host.querySelector("[data-voice-variant]").getAttribute("href"),
+    "https://github.com/n0sfer666/tolearn/releases",
+  );
+});
+
+test("отказ распознавания говорит причину и не трогает поле", async () => {
+  const said = toasts(document.defaultView);
+  const { host } = mount({ states: [GOING], voice: true, deaf: true });
+  await ticks();
+
+  const field = host.querySelector("[data-answer]");
+  field.value = "Уже набрано.";
+  field.dispatchEvent(new Event("input", { bubbles: true }));
+  await settled();
+  host.querySelector("[data-voice]").click();
+  await ticks();
+  host.querySelector("[data-voice]").click();
+  await ticks();
+
+  assert.equal(host.querySelector("[data-answer]").value, "Уже набрано.");
+  assert.equal(said.at(-1).tone, "error");
+  assert.match(said.at(-1).text, /записи нет/);
 });
 
 test("устаревшая тема видна и перезапуск идёт с флагом", async () => {

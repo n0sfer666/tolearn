@@ -926,6 +926,24 @@ export type LlmLogOut = {
   records: number;
 };
 
+export type SpeechStateIn = {
+  bundle: string;
+};
+
+export type SpeechStateOut = {
+  available: boolean;
+  listening: boolean;
+  language: string;
+};
+
+export type SpeechStopIn = {
+  bundle: string;
+};
+
+export type SpeechStopOut = {
+  text: string;
+};
+
 export type Commands = {
   validate: { input: ValidateIn; output: ValidateOut };
   scan: { input: ScanIn; output: ScanOut };
@@ -967,6 +985,9 @@ export type Commands = {
   search: { input: SearchIn; output: SearchOut };
   provider: { input: ProviderIn; output: ProviderOut };
   llm_log: { input: LlmLogIn; output: LlmLogOut };
+  speech_state: { input: SpeechStateIn; output: SpeechStateOut };
+  speech_start: { input: SpeechStateIn; output: SpeechStateOut };
+  speech_stop: { input: SpeechStopIn; output: SpeechStopOut };
   encryption: { input: EncryptionIn; output: EncryptionOut };
   follow: { input: FollowIn; output: FollowOut };
   save_offline: { input: SaveOfflineIn; output: SaveOfflineOut };

@@ -3,9 +3,11 @@ import { Show, createSignal, onMount } from "solid-js";
 import Parsed from "../components/exam/Parsed";
 import Reply from "../components/exam/Reply";
 import Talk from "../components/exam/Talk";
+import Voice from "../components/exam/Voice";
 import type { Dictionary } from "../i18n/ru";
 import type { Locale } from "../i18n";
 import type { ApplyVerdictOut, ExamStateOut, VerdictView } from "../ipc";
+import { appended } from "../lib/dictation";
 import { explain, toast } from "../lib/toast";
 import { label } from "../components/status";
 import { query } from "../lib/query";
@@ -34,6 +36,8 @@ export default function Dialog(props: Props) {
   const [busy, setBusy] = createSignal(false);
   const [parsed, setParsed] = createSignal<VerdictView | null>(null);
   const [applied, setApplied] = createSignal<ApplyVerdictOut | null>(null);
+  const [voiced, setVoiced] = createSignal(false);
+  const [listening, setListening] = createSignal(false);
 
   const broke = (error: unknown) => toast("error", explain(error) || props.text.toast.broke);
   const where = () => ({ bundle: program(), topic: id() });
@@ -82,8 +86,37 @@ export default function Dialog(props: Props) {
         broke(error);
       }
     })();
+    void (async () => {
+      try {
+        const out = await call()("speech_state", { bundle: program() });
+        setVoiced(out.available);
+      } catch (error) {
+        broke(error);
+      }
+    })();
     step(() => call()("exam_state", where()));
   });
+
+  const dictate = () => {
+    void (async () => {
+      if (!listening()) {
+        try {
+          await call()("speech_start", { bundle: program() });
+          setListening(true);
+        } catch (error) {
+          broke(error);
+        }
+        return;
+      }
+      setListening(false);
+      try {
+        const out = await call()("speech_stop", { bundle: program() });
+        setDraft(appended(draft(), out.text));
+      } catch (error) {
+        broke(error);
+      }
+    })();
+  };
 
   const start = (restart: boolean) => {
     setParsed(null);
@@ -148,7 +181,15 @@ export default function Dialog(props: Props) {
                 onHint={() => step(() => call()("exam_hint", where()))}
                 onFinish={() => step(() => call()("exam_finish", { ...where(), today: today() }))}
                 onRestart={() => start(true)}
-              />
+              >
+                <Voice
+                  text={words()}
+                  available={voiced()}
+                  listening={listening()}
+                  busy={busy()}
+                  onToggle={dictate}
+                />
+              </Reply>
             </Show>
           </Show>
         )}

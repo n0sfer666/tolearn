@@ -201,6 +201,44 @@ TOLEARN_WHISPER_MODEL=~/.cache/tolearn/models/ggml-small-q5_1.bin cargo test -p 
 Nushell: переменная окружения ставится через `with-env`, а не префиксом —
 `with-env {TOLEARN_WHISPER_MODEL: ...} { cargo test ... }`.
 
+## Голосовой ответ вживую (руками)
+
+Диктовку проверяет человек: микрофон, разрешение ОС и собственный голос из кода
+не наблюдаются. Стенд — тот же мост `app/examples/bridge.rs`, что и для прочих
+живых прогонов; каталоги подменяются через XDG, а не через `HOME` (подменённый
+`HOME` уводит кейчейн и кэш cargo).
+
+```
+let stand = (mktemp -d)
+mkdir $"($stand)/data/tolearn/dialogs/llm-agents-base"
+'{"topic":"local-runtime","fingerprint":"seed","artifact":null,"failed_checks":[],"at":0,"lines":[],"log":[{"side":"examiner","text":"Откуда взялось 9.8 GB?"}],"graded":[],"hinted":[],"followed":false,"exchanges":0,"seconds":12,"tokens":340,"verdict":null}' | save -f $"($stand)/data/tolearn/dialogs/llm-agents-base/local-runtime.json"
+cargo build -p tolearn-app --example bridge --features speech
+with-env {XDG_CONFIG_HOME: $"($stand)/config", XDG_DATA_HOME: $"($stand)/data", TOLEARN_WHISPER_MODEL: $"($env.HOME)/.cache/tolearn/models/ggml-small-q5_1.bin"} { ./target/debug/examples/bridge }
+pnpm -C ui dev
+```
+
+Подложенный диалог заменяет живого экзаменатора: без него зачёт открывается
+только через провайдера, а поля ответа на экране нет. Открыть
+`http://localhost:4321/ru/exam/dialog/?program=<путь к бандлу>&topic=local-runtime`
+и пройти по шагам:
+
+1. Кнопка «Надиктовать» активна — вариант собран с фичей. Неактивна и рядом
+   пометка «в разработке» со ссылкой на `tolearn-with-speech` — собран базовый
+   вариант, дальше проверять нечего.
+2. Набрать в поле ответа «Веса легли в память.», нажать «Надиктовать» — система
+   спрашивает доступ к микрофону (первый раз), надпись меняется на «Закончить
+   запись».
+3. Сказать вслух фразу и нажать «Закончить запись». Ожидаемо: набранное
+   осталось, расшифровка дописана в конец через пробел, поле по-прежнему
+   правится руками. Язык — русский: `speech_state` на эталонном бандле отвечает
+   `language: "ru"` (`locale` программы), английская программа даёт `en`.
+4. Нажать «Закончить запись», ничего не сказав, — тост с причиной, поле не
+   тронуто.
+
+Сама расшифровка идёт в процессе моста, поэтому разрешение на микрофон просит
+терминал, а не браузер; в собранном приложении просит приложение (`app/Info.plist`).
+Стенд убрать за собой: `rm -rf $stand`, мост и dev-сервер погасить.
+
 ## Появятся позже
 
 | Когда | Что добавится в `checks.json` |

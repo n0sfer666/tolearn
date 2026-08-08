@@ -158,6 +158,10 @@ export const en: Dictionary = {
     tokens: "tokens",
     off: "The provider is off — the exam runs by copy-paste.",
     paper: "Open the copy-paste exam",
+    voice: "Dictate",
+    hush: "Stop recording",
+    voiceOff: "The spoken answer is under development in this build —",
+    variant: "download tolearn-with-speech",
   },
   sweep: {
     title: "Exam across the program",

@@ -113,6 +113,23 @@ impl From<RenderError> for IpcError {
     }
 }
 
+impl From<tolearn_speech::SpeechError> for IpcError {
+    fn from(error: tolearn_speech::SpeechError) -> Self {
+        use tolearn_speech::SpeechError as Mute;
+        let code = match &error {
+            Mute::Off => "speech.off",
+            Mute::NoModel => "speech.no-model",
+            Mute::Unreadable { .. } => "speech.unreadable",
+            Mute::Unsupported(_) => "speech.unsupported",
+            Mute::Rejected { .. } => "speech.rejected",
+            Mute::Deaf(_) => "speech.deaf",
+            Mute::Silent => "speech.silent",
+            Mute::Failed(_) => "speech.failed",
+        };
+        Self::new(code, error.to_string())
+    }
+}
+
 impl From<RegistryError> for IpcError {
     fn from(error: RegistryError) -> Self {
         let code = match error {

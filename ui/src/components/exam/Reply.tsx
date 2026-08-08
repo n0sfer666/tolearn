@@ -1,4 +1,5 @@
 import { Show } from "solid-js";
+import type { JSX } from "solid-js";
 
 import type { Dictionary } from "../../i18n/ru";
 
@@ -21,6 +22,7 @@ interface Props {
   onHint: () => void;
   onFinish: () => void;
   onRestart: () => void;
+  children?: JSX.Element;
 }
 
 export default function Reply(props: Props) {
@@ -45,6 +47,7 @@ export default function Reply(props: Props) {
         />
       </label>
       <p class="row">
+        {props.children}
         <button
           type="button"
           data-say
