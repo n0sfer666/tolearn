@@ -5,15 +5,19 @@
     reason = "offline gate: a panic here is the report"
 )]
 
-use std::path::PathBuf;
-
 use tolearn_offline::page::{AsFetched, Fetching, PageError, Prerenderer, Source, save};
+use url::Url;
 
 struct Disk;
 
 impl Source for Disk {
     fn fetch(&self, url: &str) -> Result<Vec<u8>, PageError> {
-        let path = url.strip_prefix("file://").unwrap_or(url);
+        let path = Url::parse(url)
+            .ok()
+            .and_then(|address| address.to_file_path().ok())
+            .ok_or_else(|| {
+                PageError::Unreachable(url.to_string(), "адрес не ведёт к файлу".to_string())
+            })?;
         std::fs::read(path)
             .map_err(|error| PageError::Unreachable(url.to_string(), error.to_string()))
     }
@@ -41,8 +45,8 @@ impl Prerenderer for Marking {
 }
 
 fn fixture() -> String {
-    let path: PathBuf = std::fs::canonicalize("../fixtures/valid/page/index.html").unwrap();
-    format!("file://{}", path.display())
+    let path = std::fs::canonicalize("../fixtures/valid/page/index.html").unwrap();
+    Url::from_file_path(path).unwrap().to_string()
 }
 
 fn sealed() -> Fetching {
