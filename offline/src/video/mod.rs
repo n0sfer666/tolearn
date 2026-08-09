@@ -1,4 +1,5 @@
 mod error;
+mod group;
 mod percent;
 mod tools;
 
@@ -6,7 +7,6 @@ pub use error::VideoError;
 pub use tools::{Absent, Os, Tool, Tools, ready};
 
 use std::io::{BufRead, BufReader};
-use std::os::unix::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -40,7 +40,8 @@ pub fn download(
     stop: &AtomicBool,
 ) -> Result<Saved, VideoError> {
     let height = wanted.height;
-    let mut child = Command::new(&tools.ytdlp)
+    let mut command = Command::new(&tools.ytdlp);
+    command
         .args(["--newline", "--no-playlist", "--ffmpeg-location"])
         .arg(&tools.ffmpeg)
         .arg("--format")
@@ -50,8 +51,8 @@ pub fn download(
         .arg(url)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .process_group(0)
+        .stderr(Stdio::piped());
+    let mut child = group::lead(&mut command)
         .spawn()
         .map_err(VideoError::NotStarted)?;
 
@@ -116,10 +117,6 @@ fn finish(mut child: Child, into: &Path) -> Result<Saved, VideoError> {
 }
 
 fn kill(child: &mut Child) {
-    let _ = Command::new("kill")
-        .args(["-9", &format!("-{}", child.id())])
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status();
+    group::tree(child.id());
     let _ = child.wait();
 }

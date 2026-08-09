@@ -89,7 +89,7 @@ fn system() {
             }
             println!("cargo::rustc-link-lib=dylib=c++");
         }
-        "windows" => {}
+        "windows" => println!("cargo::rustc-link-lib=dylib=advapi32"),
         _ => println!("cargo::rustc-link-lib=dylib=stdc++"),
     }
 }

@@ -33,7 +33,10 @@ fn file(path: &Path, body: &str) {
 }
 
 fn rooms(root: &Path) -> Places {
-    let made = places(root);
+    let made = Places {
+        config: root.join("config/tolearn"),
+        data: root.join("data/tolearn"),
+    };
     std::fs::create_dir_all(&made.config).unwrap();
     std::fs::create_dir_all(&made.data).unwrap();
     made

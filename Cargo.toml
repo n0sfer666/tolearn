@@ -47,6 +47,9 @@ tauri-plugin-dialog = "2"
 tauri-plugin-deep-link = "2"
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 
+[profile.release]
+strip = "symbols"
+
 [profile.dev]
 debug = "line-tables-only"
 
