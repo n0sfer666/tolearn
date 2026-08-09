@@ -7,8 +7,8 @@
 )]
 
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Mutex, MutexGuard, PoisonError};
 
 use tolearn_offline::video::{VideoError, Wanted, download, ready};
 
@@ -61,8 +61,15 @@ fn silent() -> impl FnMut(f32) {
     |_| {}
 }
 
+fn alone() -> MutexGuard<'static, ()> {
+    static GATE: Mutex<()> = Mutex::new(());
+
+    GATE.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
 #[test]
 fn скачивание_показывает_прогресс() {
+    let _alone = alone();
     let at = root("progress");
     put(&at, "yt-dlp", YTDLP);
     put(&at, "ffmpeg", YTDLP);
@@ -86,6 +93,7 @@ fn скачивание_показывает_прогресс() {
 
 #[test]
 fn по_умолчанию_не_выше_720p() {
+    let _alone = alone();
     let at = root("height");
     put(&at, "yt-dlp", YTDLP);
     put(&at, "ffmpeg", YTDLP);
@@ -115,6 +123,7 @@ fn по_умолчанию_не_выше_720p() {
 
 #[test]
 fn отмена_прерывает_скачивание() {
+    let _alone = alone();
     let at = root("cancel");
     put(&at, "yt-dlp", SLOW);
     put(&at, "ffmpeg", YTDLP);
@@ -141,6 +150,7 @@ fn отмена_прерывает_скачивание() {
 
 #[test]
 fn провал_бинарника_это_ошибка() {
+    let _alone = alone();
     let at = root("broken");
     put(&at, "yt-dlp", BROKEN);
     put(&at, "ffmpeg", YTDLP);
@@ -164,6 +174,7 @@ fn провал_бинарника_это_ошибка() {
 
 #[test]
 fn успех_без_файла_это_ошибка() {
+    let _alone = alone();
     let at = root("empty");
     put(&at, "yt-dlp", EMPTY);
     put(&at, "ffmpeg", EMPTY);
