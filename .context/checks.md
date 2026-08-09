@@ -317,10 +317,24 @@ plutil -extract CFBundleURLTypes json -o - target/release/bundle/macos/tolearn.a
   `cargo test --workspace --locked` на матрице ubuntu / macos / windows;
 - job `speech` — сабмодуль, скачивание весов со сверкой sha256 и прогон
   `tolearn-speech` под фичей `speech` на ubuntu / macos / windows;
-- job `package` — `cargo tauri build` и `sh scripts/weigh.sh` на матрице
-  вариант × ОС (`base` и `with-speech` × ubuntu / macos / windows, шесть сборок):
-  dmg, msi и deb собираются каждый на своей ОС, перевес базового варианта роняет
-  джобу, вес варианта с речью печатается для страницы релиза.
+- job `package` — вызов `.github/workflows/package.yml`: `cargo tauri build` и
+  `sh scripts/weigh.sh` на матрице вариант × ОС (`base` и `with-speech` ×
+  ubuntu / macos / windows, шесть сборок): dmg, msi и deb собираются каждый на
+  своей ОС, перевес базового варианта роняет джобу, вес варианта с речью
+  печатается для страницы релиза.
+
+Матрица сборки вынесена в отдельный `package.yml` (`workflow_call`), потому что её
+зовут двое: CI на каждый push и `release.yml` на тег. Копия матрицы в релизном
+workflow означала бы, что релиз собирают не тем, чем проверяли, — и разъезд
+обнаружился бы на установщике у пользователя. Входной параметр один — `upload`:
+CI ничего не сохраняет, релиз просит сложить установщики артефактами прогона.
+
+`.github/workflows/release.yml`, на push тега `v*`, три джобы подряд:
+`gate` (тег совпадает с `version` из `app/tauri.conf.json`, а CI на этом коммите
+зелёный), `build` (та же плита с `upload: true`) и `publish` (скачивает шесть
+артефактов и делает **черновик** релиза). Гейт стоит перед сборкой намеренно:
+проверка стоит секунды, а шесть сборок — сорок минут. Публикует черновик человек:
+workflow до последней кнопки не доходит.
 
 Фронт в `check` собирается не для красоты: `tauri::generate_context!` вшивает
 `ui/dist` в `tolearn-app` на этапе компиляции, и без каталога падает сама

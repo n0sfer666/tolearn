@@ -10,6 +10,8 @@ use serde_json::Value;
 
 const PAGE: &str = "docs/release.md";
 const OVERLAY: &str = "app/tauri.with-speech.conf.json";
+const PACKAGE: &str = ".github/workflows/package.yml";
+const RELEASE: &str = ".github/workflows/release.yml";
 
 fn root(name: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join(name)
@@ -58,14 +60,34 @@ fn веса_едут_внутри_установщика() {
 #[test]
 fn ci_собирает_оба_варианта() {
     let ci = read(".github/workflows/ci.yml");
+    let package = read(PACKAGE);
 
     assert!(
-        ci.contains("variant: [base, with-speech]"),
+        ci.contains(&format!("uses: ./{PACKAGE}")),
+        "CI не зовёт плиту сборки: установщики собираются мимо неё"
+    );
+    assert!(
+        package.contains("variant: [base, with-speech]"),
         "в джобе `package` нет матрицы вариантов"
     );
     assert!(
-        ci.contains("cargo tauri build --features speech --config tauri.with-speech.conf.json"),
+        package
+            .contains("cargo tauri build --features speech --config tauri.with-speech.conf.json"),
         "CI не собирает вариант с речью тем же флагом, что описан на странице релиза"
+    );
+}
+
+#[test]
+fn релиз_собирает_ту_же_матрицу_и_оставляет_черновик() {
+    let release = read(RELEASE);
+
+    assert!(
+        release.contains(&format!("uses: ./{PACKAGE}")),
+        "релиз собирает установщики своей копией матрицы, а не той же плитой, что CI"
+    );
+    assert!(
+        release.contains("--draft"),
+        "релиз публикуется сам: человеку нечего подтверждать"
     );
 }
 

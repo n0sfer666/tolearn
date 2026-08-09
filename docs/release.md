@@ -16,6 +16,26 @@
 вариант. Всё остальное — программы, темы, практика, конспекты, офлайн-архив,
 граф, экспорт — одинаково.
 
+## Где скачать
+
+Установщики лежат на [странице релизов](https://github.com/n0sfer666/tolearn/releases):
+шесть файлов на релиз — по одному на вариант и ОС.
+
+| Вариант | ОС | Файл |
+|---|---|---|
+| `tolearn` | macOS arm64 | `tolearn_<версия>_aarch64.dmg` |
+| `tolearn` | Windows x64 | `tolearn_<версия>_x64_en-US.msi` |
+| `tolearn` | Linux x64 | `tolearn_<версия>_amd64.deb` |
+| `tolearn-with-speech` | macOS arm64 | `tolearn-with-speech_<версия>_aarch64.dmg` |
+| `tolearn-with-speech` | Windows x64 | `tolearn-with-speech_<версия>_x64_en-US.msi` |
+| `tolearn-with-speech` | Linux x64 | `tolearn-with-speech_<версия>_amd64.deb` |
+
+Собирает их не человек: тег `v<версия>` запускает workflow `release`, тот прогоняет
+ту же матрицу сборки, что и CI, и складывает шесть установщиков в черновик релиза.
+Тег на коммит с незелёным CI или несовпадающий с `version` из `app/tauri.conf.json`
+отвергается до сборки. Черновик публикует человек — до этого ссылки выше ведут в
+пустоту.
+
 ## Сколько весят
 
 Числа — не оценка, а замер: их печатает `scripts/weigh.sh` в джобе `package`
