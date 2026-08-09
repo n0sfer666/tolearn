@@ -68,7 +68,10 @@ fn zip_импортируется_как_папка() {
     assert_eq!(programs.len(), 1, "{programs:?}");
     assert_eq!(
         programs[0]["path"].as_str().unwrap(),
-        data.join("unpacked/llm-agents-base").display().to_string()
+        data.join("unpacked")
+            .join("llm-agents-base")
+            .display()
+            .to_string()
     );
     assert!(data.join("unpacked/llm-agents-base/roadmap.yaml").is_file());
     assert!(leftovers(&data).is_empty(), "остался рабочий каталог");
