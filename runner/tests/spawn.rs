@@ -20,6 +20,11 @@ const ECHO_STDIN: &str = "cat";
 const ECHO_STDIN: &str = "findstr \"^\"";
 
 #[cfg(unix)]
+const PROMPT: &str = "ГОТОВ\n";
+#[cfg(windows)]
+const PROMPT: &str = "READY\r\n";
+
+#[cfg(unix)]
 const SLEEP: &str = "sleep 30";
 #[cfg(windows)]
 const SLEEP: &str = "ping -n 31 127.0.0.1 >nul";
@@ -149,14 +154,14 @@ fn the_prompt_reaches_the_program_through_its_stdin() {
         SHELL.0,
         &args(ECHO_STDIN),
         &directory,
-        "ГОТОВ",
+        PROMPT,
         limits(10_000, 64 * 1024),
         None,
     )
     .unwrap();
 
     assert_eq!(run.outcome, Outcome::Finished { code: Some(0) });
-    assert_eq!(run.stdout.trim(), "ГОТОВ");
+    assert_eq!(run.stdout.trim(), PROMPT.trim());
 }
 
 #[test]
