@@ -51,6 +51,13 @@ fn корпус_расшифровывается_в_бюджет_ошибок_и
     );
 
     assert!(rate <= WORST, "WER {rate:.3} выше бюджета {WORST}");
+    if !support::timed() {
+        support::skipped(&format!(
+            "бюджет времени не проверен: {} объявляет машину общей, замер {slowdown:.2}",
+            support::SHARED
+        ));
+        return;
+    }
     assert!(
         slowdown <= SLOWEST,
         "на секунду речи ушло {slowdown:.2} с при бюджете {SLOWEST}"

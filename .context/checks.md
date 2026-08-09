@@ -198,6 +198,15 @@ TOLEARN_WHISPER_MODEL=~/.cache/tolearn/models/ggml-small-q5_1.bin cargo test -p 
 хватает, — «зелено» без модели ничего не доказывает, смотреть надо на
 `--nocapture`. Числа бюджетов печатает сам `corpus`.
 
+Бюджет времени (≤ 60 с на минуту речи) назначен железу пользователя, а не общей
+виртуалке. Переменная `TOLEARN_SPEECH_SHARED_CPU=1` объявляет машину общей:
+`corpus` тогда печатает замер и не проверяет его, WER проверяется всегда. Ставит
+её только CI на ubuntu и windows-раннерах — там whisper на четырёх vCPU выдаёт
+1.7 с на секунду речи, и это свойство раннера, а не продукта. На своём железе
+переменную не ставить: это и есть та машина, для которой бюджет написан. Из
+этого следует ручной прогон — команда выше без переменной на живом Linux и живом
+Windows; ожидаемый вывод: строка `корпус: … замедление ≤ 1.00` и зелёный тест.
+
 Nushell: переменная окружения ставится через `with-env`, а не префиксом —
 `with-env {TOLEARN_WHISPER_MODEL: ...} { cargo test ... }`.
 
@@ -302,14 +311,26 @@ plutil -extract CFBundleURLTypes json -o - target/release/bundle/macos/tolearn.a
 не нужен):
 
 - job `format` — `cargo fmt --all -- --check`, одна ОС;
-- job `check` — `cargo clippy --workspace --all-targets --locked -- -D warnings`
-  и `cargo test --workspace --locked` на матрице ubuntu / macos / windows;
+- job `check` — `pnpm -C ui build`, затем
+  `cargo clippy --workspace --all-targets --locked -- -D warnings` и
+  `cargo test --workspace --locked` на матрице ubuntu / macos / windows;
 - job `speech` — сабмодуль, скачивание весов со сверкой sha256 и прогон
   `tolearn-speech` под фичей `speech` на ubuntu / macos / windows;
 - job `package` — `cargo tauri build` и `sh scripts/weigh.sh` на матрице
   вариант × ОС (`base` и `with-speech` × ubuntu / macos / windows, шесть сборок):
   dmg, msi и deb собираются каждый на своей ОС, перевес базового варианта роняет
   джобу, вес варианта с речью печатается для страницы релиза.
+
+Фронт в `check` собирается не для красоты: `tauri::generate_context!` вшивает
+`ui/dist` в `tolearn-app` на этапе компиляции, и без каталога падает сама
+процедура развёртывания макроса — не тест, а `cargo clippy`. Локально каталог
+остаётся от прошлой сборки, поэтому пробел виден только на чистой машине.
+
+Джоба `ui` собирает `tolearn-cli` для экспорта и берёт системный OpenSSL
+(`OPENSSL_NO_VENDOR=1` плюс `libssl-dev`): vendored-сборка openssl из исходников
+занимает там две минуты и однажды уронила gcc внутренней ошибкой на
+`x509v3.h`. Установщики это не затрагивает — джоба `package` собирает
+`vendored-openssl`, как и раньше, чтобы бандл не зависел от системной библиотеки.
 
 Системные зависимости ставятся тремя разными шагами, потому что нужны разное:
 `check` на ubuntu — webkit2gtk, gtk3 и librsvg (без них не собирается `app`, а он

@@ -25,6 +25,20 @@ pub fn skipped(why: &str) {
     eprintln!("пропущено: {why}");
 }
 
+#[allow(
+    dead_code,
+    reason = "каждый тестовый бинарь берёт из записи свою часть"
+)]
+pub const SHARED: &str = "TOLEARN_SPEECH_SHARED_CPU";
+
+#[allow(
+    dead_code,
+    reason = "каждый тестовый бинарь берёт из записи свою часть"
+)]
+pub fn timed() -> bool {
+    std::env::var_os(SHARED).is_none()
+}
+
 pub fn model() -> Option<PathBuf> {
     match model::located(&root()) {
         Ok(path) => Some(path),

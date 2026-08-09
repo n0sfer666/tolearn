@@ -1,5 +1,6 @@
 pub mod exam;
 pub mod generate;
+pub mod gestures;
 pub mod ipc;
 pub mod journal;
 pub mod link;
@@ -16,7 +17,6 @@ pub fn run() -> Result<(), tauri::Error> {
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
-            use tauri::Manager as _;
             use tauri_plugin_deep_link::DeepLinkExt as _;
 
             let handle = app.handle().clone();
@@ -26,10 +26,7 @@ pub fn run() -> Result<(), tauri::Error> {
                 app.handle().clone(),
                 prerender::Settling::default(),
             )));
-            if let Some(webview) = app.get_webview_window("main") {
-                webview
-                    .with_webview(|platform| tolearn_gestures::back_forward(platform.inner()))?;
-            }
+            gestures::enable(app)?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![ipc::contract::command])
