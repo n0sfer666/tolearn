@@ -102,7 +102,6 @@ jobs:
           echo "ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb  models/ggml-small-q5_1.bin" > models/sha256
           if command -v sha256sum >/dev/null; then sha256sum -c models/sha256; else shasum -a 256 -c models/sha256; fi
       - name: declare the runner a shared vm
-        if: matrix.os != 'macos-latest'
         shell: bash
         run: echo "TOLEARN_SPEECH_SHARED_CPU=1" >> "$GITHUB_ENV"
       - run: cargo clippy -p tolearn-speech --features speech --all-targets --locked -- -D warnings

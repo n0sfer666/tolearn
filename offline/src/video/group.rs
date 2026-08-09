@@ -18,7 +18,7 @@ pub fn lead(command: &mut Command) -> &mut Command {
 
 #[cfg(unix)]
 pub fn tree(leader: u32) {
-    quietly(Command::new("kill").args(["-9", &format!("-{leader}")]));
+    quietly(Command::new("kill").args(["-9", "--", &format!("-{leader}")]));
 }
 
 #[cfg(windows)]
