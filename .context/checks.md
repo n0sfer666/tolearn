@@ -311,6 +311,18 @@ plutil -extract CFBundleURLTypes json -o - target/release/bundle/macos/tolearn.a
   dmg, msi и deb собираются каждый на своей ОС, перевес базового варианта роняет
   джобу, вес варианта с речью печатается для страницы релиза.
 
+Системные зависимости ставятся тремя разными шагами, потому что нужны разное:
+`check` на ubuntu — webkit2gtk, gtk3 и librsvg (без них не собирается `app`, а он
+в `--workspace`), `speech` на ubuntu — `libasound2-dev` (`cpal` тянет `alsa-sys`),
+`package` на ubuntu — и то, и другое плюс `patchelf` для deb. На macOS и Windows
+всё это есть в образе.
+
+У `speech` и `package` `fail-fast: false` — вопреки общему правилу. Пробелы там
+платформенные и независимые: отменённая по чужому падению джоба скрывает, что
+whisper.cpp не собрался под MSVC или что deb не влез в потолок, и следующий
+прогон стоит ещё двенадцать минут. У `check` `fail-fast` остаётся `true`: падение
+там почти всегда общее для всех ОС.
+
 `--locked` обязателен: `Cargo.lock` в репозитории, и молча разъехавшийся lock —
 это уже не та сборка, которую проверяли. Гейт веса JS живёт в `ui/` (job `ui`: `pnpm -C ui lint` и `pnpm -C ui test`,
 последний сам собирает `dist/`; там же шаг `pnpm -C ui markdown`); гейт веса установщика — в job `package`.
