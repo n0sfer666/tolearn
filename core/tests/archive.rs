@@ -259,6 +259,7 @@ fn имя_файла_формат_не_решает() {
 }
 
 #[test]
+#[cfg(unix)]
 fn подменённый_каталог_уводит_распаковку_и_потому_отвергается() {
     let room = workspace("planted");
     let archive = zipped(&room, &bundle());

@@ -4,7 +4,7 @@ mod percent;
 mod tools;
 
 pub use error::VideoError;
-pub use tools::{Absent, Os, Tool, Tools, ready};
+pub use tools::{Absent, Os, Tool, Tools, ready, separator};
 
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};

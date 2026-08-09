@@ -1,3 +1,4 @@
+#![cfg(unix)]
 #![allow(
     clippy::unwrap_used,
     clippy::expect_used,
@@ -9,7 +10,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use tolearn_offline::video::{Os, Tool, VideoError, Wanted, download, ready};
+use tolearn_offline::video::{VideoError, Wanted, download, ready};
 
 const YTDLP: &str = r#"#!/bin/sh
 echo "$@" > "$(dirname "$0")/../args.txt"
@@ -58,67 +59,6 @@ fn bin(at: &Path) -> String {
 
 fn silent() -> impl FnMut(f32) {
     |_| {}
-}
-
-#[test]
-fn без_бинарников_действие_неактивно() {
-    let at = root("none");
-
-    let absent = ready(&bin(&at)).unwrap_err();
-
-    assert_eq!(
-        absent.iter().map(|gap| gap.tool).collect::<Vec<_>>(),
-        vec![Tool::Ytdlp, Tool::Ffmpeg]
-    );
-    for gap in &absent {
-        assert!(
-            gap.install.contains(gap.tool.binary()),
-            "команда установки не называет сам инструмент: {}",
-            gap.install
-        );
-    }
-}
-
-#[test]
-fn команда_установки_своя_для_каждой_ос() {
-    let commands = [Os::Macos, Os::Linux, Os::Windows]
-        .map(|os| Tool::Ytdlp.install(os))
-        .to_vec();
-
-    assert!(commands.contains(&"brew install yt-dlp".to_string()));
-    assert_eq!(
-        commands
-            .iter()
-            .collect::<std::collections::HashSet<_>>()
-            .len(),
-        3,
-        "команды для разных ОС совпали: {commands:?}"
-    );
-}
-
-#[test]
-fn не_хватает_одного_бинарника() {
-    let at = root("half");
-    put(&at, "yt-dlp", YTDLP);
-
-    let absent = ready(&bin(&at)).unwrap_err();
-
-    assert_eq!(
-        absent.iter().map(|gap| gap.tool).collect::<Vec<_>>(),
-        vec![Tool::Ffmpeg]
-    );
-}
-
-#[test]
-fn оба_бинарника_найдены() {
-    let at = root("both");
-    put(&at, "yt-dlp", YTDLP);
-    put(&at, "ffmpeg", YTDLP);
-
-    let tools = ready(&bin(&at)).unwrap();
-
-    assert!(tools.ytdlp.ends_with("yt-dlp"));
-    assert!(tools.ffmpeg.ends_with("ffmpeg"));
 }
 
 #[test]

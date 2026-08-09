@@ -33,6 +33,10 @@ impl Tool {
         }
     }
 
+    pub fn file(self) -> String {
+        format!("{}{}", self.binary(), std::env::consts::EXE_SUFFIX)
+    }
+
     pub fn install(self, os: Os) -> String {
         let binary = self.binary();
         match os {
@@ -73,10 +77,14 @@ pub fn ready(path: &str) -> Result<Tools, Vec<Absent>> {
     }
 }
 
+pub fn separator() -> char {
+    if cfg!(windows) { ';' } else { ':' }
+}
+
 fn look(tool: Tool, path: &str) -> Option<PathBuf> {
-    path.split(':')
+    path.split(separator())
         .filter(|part| !part.is_empty())
-        .map(|part| PathBuf::from(part).join(tool.binary()))
+        .map(|part| PathBuf::from(part).join(tool.file()))
         .find(|candidate| candidate.is_file())
 }
 
@@ -86,8 +94,22 @@ mod tests {
 
     #[test]
     fn пустой_путь_ничего_не_находит() {
+        let empty = format!("{0}{0}", separator());
+
         assert!(look(Tool::Ytdlp, "").is_none());
-        assert!(look(Tool::Ytdlp, "::").is_none());
+        assert!(look(Tool::Ytdlp, &empty).is_none());
+    }
+
+    #[test]
+    fn имя_файла_несёт_расширение_своей_ос() {
+        let name = Tool::Ytdlp.file();
+
+        assert!(name.starts_with("yt-dlp"), "{name}");
+        assert_eq!(
+            name.ends_with(".exe"),
+            cfg!(windows),
+            "{name} не по правилам этой ОС"
+        );
     }
 
     #[test]
