@@ -83,10 +83,9 @@ fn рабочее_дерево_разложено() {
 
     let cloned = clone(source.to_str().unwrap(), &into, 16 * 1024 * 1024).unwrap();
 
-    assert_eq!(
-        std::fs::read_to_string(cloned.path.join("README.md")).unwrap(),
-        "второй заход\n"
-    );
+    let laid = std::fs::read_to_string(cloned.path.join("README.md")).unwrap();
+
+    assert_eq!(laid.replace("\r\n", "\n"), "второй заход\n");
 }
 
 #[test]
