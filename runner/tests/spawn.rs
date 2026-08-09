@@ -17,7 +17,7 @@ const SHELL: (&str, &str) = ("cmd", "/C");
 #[cfg(unix)]
 const ECHO_STDIN: &str = "cat";
 #[cfg(windows)]
-const ECHO_STDIN: &str = "findstr \"^\"";
+const ECHO_STDIN: &str = "findstr /R .";
 
 #[cfg(unix)]
 const PROMPT: &str = "ГОТОВ\n";
@@ -160,7 +160,13 @@ fn the_prompt_reaches_the_program_through_its_stdin() {
     )
     .unwrap();
 
-    assert_eq!(run.outcome, Outcome::Finished { code: Some(0) });
+    assert_eq!(
+        run.outcome,
+        Outcome::Finished { code: Some(0) },
+        "вывод {:?}, жалоба {:?}",
+        run.stdout,
+        run.stderr
+    );
     assert_eq!(run.stdout.trim(), PROMPT.trim());
 }
 
