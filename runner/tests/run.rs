@@ -76,6 +76,7 @@ fn a_command_that_does_not_stop_is_cut_off_by_the_timeout() {
 }
 
 #[test]
+#[cfg(unix)]
 fn the_children_of_a_command_die_with_it() {
     let directory = scratch("tree");
     let pid = directory.join("child.pid");
@@ -153,6 +154,7 @@ fn a_command_of_the_reference_bundle_runs_as_it_is_written() {
 }
 
 #[test]
+#[cfg(unix)]
 fn a_command_killed_by_a_signal_is_finished_without_a_code() {
     let directory = scratch("signal");
 
