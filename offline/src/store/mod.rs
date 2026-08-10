@@ -123,6 +123,10 @@ impl Store {
         self.index.size()
     }
 
+    pub fn spare(&self) -> Result<u64, StoreError> {
+        self.index.spare()
+    }
+
     pub fn sweep(&mut self) -> Result<Vec<String>, StoreError> {
         let mut total = self.index.size()?;
         let mut evicted = Vec::new();

@@ -1,12 +1,18 @@
+mod cost;
 mod jobs;
+mod marks;
 mod noted;
+mod piece;
 mod renderer;
 mod saver;
 mod seen;
+mod sight;
 mod state;
 mod watched;
 
-pub use jobs::{Live, look, stop};
+pub use cost::{Cost, cost};
+pub use jobs::{Left, Live, look, stop};
+pub use piece::{Piece, every, of};
 pub use renderer::install;
 pub use seen::{Seen, label, seen};
 pub use state::state;
@@ -32,14 +38,9 @@ pub enum Mode {
     Refresh,
 }
 
-pub fn start(
-    root: &Path,
-    budget: u64,
-    program: &str,
-    materials: Vec<Material>,
-    mode: Mode,
-) -> String {
-    let (name, job) = jobs::register(materials.len());
+pub fn start(root: &Path, budget: u64, program: &str, pieces: Vec<Piece>, mode: Mode) -> String {
+    let (materials, marks) = marks::split(pieces);
+    let (name, job) = jobs::register(materials.len(), marks);
     let root = root.to_path_buf();
     let program = program.to_owned();
     std::thread::spawn(move || run(&root, budget, &program, &materials, mode, &job));
@@ -52,7 +53,7 @@ pub fn opened(root: &Path, budget: u64, url: &str) -> Option<Held> {
 
 pub fn failed(name: &str) -> Vec<String> {
     look(name)
-        .map(|live| live.failed.into_iter().map(|(url, _)| url).collect())
+        .map(|live| live.failed.into_iter().map(|left| left.url).collect())
         .unwrap_or_default()
 }
 

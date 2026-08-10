@@ -4,32 +4,52 @@ use std::sync::{Arc, LazyLock, Mutex};
 
 use tolearn_offline::queue::Report;
 
+use super::marks::Marks;
+
 static JOBS: LazyLock<Mutex<HashMap<String, Arc<Job>>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
 static COUNTED: AtomicUsize = AtomicUsize::new(0);
+
+#[derive(Debug, Clone, Default)]
+pub struct Left {
+    pub url: String,
+    pub title: String,
+    pub why: String,
+}
 
 #[derive(Debug, Clone, Default)]
 pub struct Live {
     pub total: usize,
     pub done: usize,
     pub current: String,
+    pub title: String,
+    pub topic: String,
+    pub topic_at: usize,
+    pub topics: usize,
     pub finished: bool,
     pub cancelled: bool,
     pub bytes: u64,
     pub saved: Vec<String>,
-    pub skipped: Vec<(String, String)>,
-    pub failed: Vec<(String, String)>,
+    pub skipped: Vec<Left>,
+    pub failed: Vec<Left>,
 }
 
 #[derive(Debug)]
 pub struct Job {
     pub stop: AtomicBool,
+    marks: Marks,
     live: Mutex<Live>,
 }
 
 impl Job {
     pub fn starting(&self, url: &str) {
-        self.change(|live| url.clone_into(&mut live.current));
+        let mark = self.marks.of(url);
+        self.change(|live| {
+            url.clone_into(&mut live.current);
+            live.title = mark.title;
+            live.topic = mark.topic;
+            live.topic_at = mark.topic_at;
+        });
     }
 
     pub fn stepped(&self) {
@@ -46,18 +66,35 @@ impl Job {
             live.skipped = report
                 .skipped
                 .iter()
-                .map(|(url, why)| (url.clone(), why.name().to_owned()))
+                .map(|(url, why)| self.left(url, why.name()))
                 .collect();
-            live.failed = report.failed.clone();
+            live.failed = report
+                .failed
+                .iter()
+                .map(|(url, why)| self.left(url, why))
+                .collect();
         });
     }
 
     pub fn broke(&self, why: &str) {
         self.change(|live| {
             live.finished = true;
-            live.failed.push((live.current.clone(), why.to_owned()));
+            let left = Left {
+                url: live.current.clone(),
+                title: live.title.clone(),
+                why: why.to_owned(),
+            };
+            live.failed.push(left);
             live.current = String::new();
         });
+    }
+
+    fn left(&self, url: &str, why: &str) -> Left {
+        Left {
+            url: url.to_owned(),
+            title: self.marks.title(url),
+            why: why.to_owned(),
+        }
     }
 
     pub fn look(&self) -> Live {
@@ -74,14 +111,16 @@ impl Job {
     }
 }
 
-pub fn register(total: usize) -> (String, Arc<Job>) {
+pub fn register(total: usize, marks: Marks) -> (String, Arc<Job>) {
     let name = format!("job-{}", COUNTED.fetch_add(1, Ordering::Relaxed) + 1);
     let job = Arc::new(Job {
         stop: AtomicBool::new(false),
         live: Mutex::new(Live {
             total,
+            topics: marks.topics(),
             ..Live::default()
         }),
+        marks,
     });
     if let Ok(mut jobs) = JOBS.lock() {
         jobs.insert(name.clone(), Arc::clone(&job));

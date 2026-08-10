@@ -668,11 +668,25 @@ dto!(SaveOfflineOut {
     job: String,
     total: u32
 });
+dto!(OfflineCostIn { bundle: String });
+dto!(OfflineCostOut {
+    materials: u32,
+    held: u32,
+    used: u64,
+    budget: u64,
+    spare: u64,
+    need: u64,
+    tight: bool,
+});
 dto!(OfflineStateIn { job: String });
 dto!(OfflineStateOut {
     total: u32,
     done: u32,
     current: String,
+    title: String,
+    topic: String,
+    topic_at: u32,
+    topics: u32,
     finished: bool,
     cancelled: bool,
     bytes: u64,
@@ -682,6 +696,7 @@ dto!(OfflineStateOut {
 });
 dto!(LeftView {
     url: String,
+    title: String,
     why: String
 });
 dto!(StopOfflineIn { job: String });
@@ -889,6 +904,8 @@ pub fn shapes() -> Vec<Shape> {
         ProbedView::shape(),
         SaveOfflineIn::shape(),
         SaveOfflineOut::shape(),
+        OfflineCostIn::shape(),
+        OfflineCostOut::shape(),
         OfflineStateIn::shape(),
         OfflineStateOut::shape(),
         LeftView::shape(),

@@ -131,6 +131,22 @@ impl Index {
         Ok(total)
     }
 
+    pub(super) fn spare(&self) -> Result<u64, StoreError> {
+        let spare = self.db.query_row(
+            "select coalesce(sum(o.size), 0) from objects o
+             where exists (select 1 from urls u where u.hash = o.hash)
+               and not exists (
+                   select 1 from urls u
+                   join holders h on h.url = u.url
+                   join programs p on p.program = h.program
+                   where u.hash = o.hash and p.protected = 1
+               )",
+            [],
+            |row| row.get(0),
+        )?;
+        Ok(spare)
+    }
+
     pub(super) fn loose(&self) -> Result<Vec<(String, Found)>, StoreError> {
         let mut query = self.db.prepare(&format!(
             "select {COLUMNS}, u.url from urls u join objects o on o.hash = u.hash

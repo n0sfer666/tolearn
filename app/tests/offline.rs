@@ -13,6 +13,7 @@ use std::time::{Duration, Instant};
 use serde_json::{Value, json};
 use support::copied;
 use tolearn_app::ipc::{Context, call};
+use tolearn_core::scan::scan;
 use tolearn_offline::store::{Fetched, Store};
 
 const URL: &str = "https://docs.ollama.com/faq";
@@ -147,6 +148,50 @@ fn выгрузка_заводится_отчитывается_и_остана�
 
     let stopped = call(&context, "stop_offline", &json!({ "job": job })).unwrap();
     assert_eq!(stopped["stopping"], json!(true));
+}
+
+#[test]
+fn материал_из_двух_тем_едет_в_очередь_один_раз() {
+    let bundle = copied("offline-every");
+    let scan = scan(&bundle).unwrap();
+    let pieces = tolearn_app::offline::every(&scan);
+
+    let all: usize = scan.topics.iter().map(|topic| topic.materials.len()).sum();
+    let mut urls: Vec<&str> = pieces
+        .iter()
+        .map(|piece| piece.material.url.as_str())
+        .collect();
+    urls.sort_unstable();
+    urls.dedup();
+
+    assert!(all > pieces.len(), "в программе нет общих материалов");
+    assert_eq!(urls.len(), pieces.len(), "материал уехал в очередь дважды");
+    assert!(
+        pieces.iter().all(|piece| !piece.topic.is_empty()),
+        "материал поехал без темы-владельца"
+    );
+}
+
+#[test]
+fn цена_всей_программы_называется_до_старта() {
+    let bundle = copied("offline-cost");
+    let (context, root) = context("cost");
+    saved(&root, "llm-agents-base");
+
+    let cost = call(
+        &context,
+        "offline_cost",
+        &json!({ "bundle": bundle.display().to_string() }),
+    )
+    .unwrap();
+
+    let scan = scan(&bundle).unwrap();
+    let materials = tolearn_app::offline::every(&scan).len();
+    assert_eq!(cost["materials"], json!(materials));
+    assert_eq!(cost["held"], json!(1), "уже сохранённое не сосчиталось");
+    assert!(cost["used"].as_u64().unwrap() > 0);
+    assert!(cost["need"].as_u64().unwrap() > 0, "цена вышла нулевой");
+    assert_eq!(cost["tight"], json!(false), "бюджет по умолчанию не жмёт");
 }
 
 #[test]

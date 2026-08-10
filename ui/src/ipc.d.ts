@@ -772,6 +772,20 @@ export type SaveOfflineOut = {
   total: number;
 };
 
+export type OfflineCostIn = {
+  bundle: string;
+};
+
+export type OfflineCostOut = {
+  materials: number;
+  held: number;
+  used: number;
+  budget: number;
+  spare: number;
+  need: number;
+  tight: boolean;
+};
+
 export type OfflineStateIn = {
   job: string;
 };
@@ -780,6 +794,10 @@ export type OfflineStateOut = {
   total: number;
   done: number;
   current: string;
+  title: string;
+  topic: string;
+  topic_at: number;
+  topics: number;
   finished: boolean;
   cancelled: boolean;
   bytes: number;
@@ -790,6 +808,7 @@ export type OfflineStateOut = {
 
 export type LeftView = {
   url: string;
+  title: string;
   why: string;
 };
 
@@ -991,6 +1010,7 @@ export type Commands = {
   encryption: { input: EncryptionIn; output: EncryptionOut };
   follow: { input: FollowIn; output: FollowOut };
   save_offline: { input: SaveOfflineIn; output: SaveOfflineOut };
+  offline_cost: { input: OfflineCostIn; output: OfflineCostOut };
   offline_state: { input: OfflineStateIn; output: OfflineStateOut };
   stop_offline: { input: StopOfflineIn; output: StopOfflineOut };
   read_offline: { input: ReadOfflineIn; output: ReadOfflineOut };

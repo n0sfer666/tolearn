@@ -2,11 +2,12 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 
 use tolearn_core::topic::Material;
-use tolearn_offline::fresh::{Kept, Probe, WINDOW, weighed};
+use tolearn_offline::fresh::{Kept, Probe, weighed};
 use tolearn_offline::queue::{Checker, Look, Step, Strategy, plan};
 use tolearn_offline::store::{Checked, Held, Store};
 
 use super::jobs::Job;
+use super::sight::{Sight, sight};
 
 pub struct Watched<'a> {
     store: &'a RefCell<Store>,
@@ -45,15 +46,16 @@ impl<'a> Watched<'a> {
     }
 
     fn looked(&self, url: &str, how: Strategy) -> Result<Look, String> {
-        if !how.checkable() {
-            return Ok(Look::Unchecked);
+        let held = self.held(url);
+        match (sight(how, held.as_ref(), self.at), held) {
+            (Sight::Ask, Some(held)) => self.asked(url, held),
+            (Sight::Fetch, _) | (Sight::Ask, None) => Ok(Look::Fetch),
+            (Sight::Fresh, _) => Ok(Look::Same),
+            (Sight::Unchecked, _) => Ok(Look::Unchecked),
         }
-        let Some(held) = self.held(url) else {
-            return Ok(Look::Fetch);
-        };
-        if recent(&held, self.at) {
-            return Ok(Look::Same);
-        }
+    }
+
+    fn asked(&self, url: &str, held: Held) -> Result<Look, String> {
         let kept = kept(held);
         let answer = self
             .probe
@@ -76,6 +78,7 @@ impl<'a> Watched<'a> {
 
 impl Checker for Watched<'_> {
     fn look(&self, material: &Material, how: Strategy) -> Result<Look, String> {
+        self.job.starting(&material.url);
         let looked = self.looked(&material.url, how);
         if !matches!(looked, Ok(Look::Fetch)) {
             self.job.stepped();
@@ -92,10 +95,6 @@ impl std::fmt::Debug for Watched<'_> {
 
 fn watchable(material: &Material) -> bool {
     matches!(plan(material), Step::Take(how) if how.checkable())
-}
-
-fn recent(held: &Held, at: i64) -> bool {
-    held.checked_at.is_some_and(|checked| at - checked < WINDOW)
 }
 
 fn kept(held: Held) -> Kept {

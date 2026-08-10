@@ -219,3 +219,36 @@ fn индекс_переживает_аварийное_завершение() {
         "защита программы не пережила перезапуск"
     );
 }
+
+#[test]
+fn вытеснить_можно_только_незащищённое() {
+    let root = root("spare");
+    let mut store = Store::open(&root, 1024 * 1024).unwrap();
+    store
+        .put(
+            "https://a.test/kept",
+            "offline-on",
+            &fetched(b"0123456789"),
+            10,
+        )
+        .unwrap();
+    store
+        .put(
+            "https://a.test/loose",
+            "offline-off",
+            &fetched(b"01234"),
+            10,
+        )
+        .unwrap();
+    store.protect("offline-on", true).unwrap();
+
+    assert_eq!(
+        store.spare().unwrap(),
+        5,
+        "объём вытесняемого посчитан не по защите"
+    );
+
+    store.protect("offline-off", true).unwrap();
+
+    assert_eq!(store.spare().unwrap(), 0);
+}

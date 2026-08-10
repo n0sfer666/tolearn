@@ -34,4 +34,18 @@ impl Seen {
     pub fn opened(&mut self, url: &str, at: i64) -> Option<Held> {
         self.store.as_mut()?.get(url, at).ok().flatten()
     }
+
+    pub fn size(&self) -> u64 {
+        self.store
+            .as_ref()
+            .and_then(|store| store.size().ok())
+            .unwrap_or_default()
+    }
+
+    pub fn spare(&self) -> u64 {
+        self.store
+            .as_ref()
+            .and_then(|store| store.spare().ok())
+            .unwrap_or_default()
+    }
 }

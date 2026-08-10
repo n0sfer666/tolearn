@@ -1,10 +1,11 @@
-import { For, Show, createSignal, onCleanup } from "solid-js";
+import { For, Show } from "solid-js";
 
 import type { Dictionary } from "../../i18n/ru";
-import type { MaterialView, OfflineStateOut, UnloadView } from "../../ipc";
-import { explain, toast } from "../../lib/toast";
+import type { MaterialView, UnloadView } from "../../ipc";
+import { megabytes } from "../../lib/size";
 import { moment } from "../../lib/moment";
 import { quiet } from "../../lib/ipc";
+import { unloading } from "../../lib/unload";
 import type { Transport } from "../../lib/ipc";
 
 interface Props {
@@ -17,87 +18,19 @@ interface Props {
   onDone?: () => void;
 }
 
-const STEP = 300;
-const MEGABYTE = 1024 * 1024;
-
-const megabytes = (bytes: number) => Math.max(1, Math.round(bytes / MEGABYTE));
-
 export default function Unload(props: Props) {
   const call = () => props.call ?? quiet;
-  const [job, setJob] = createSignal("");
-  const [state, setState] = createSignal<OfflineStateOut | null>(null);
-  let timer: ReturnType<typeof setInterval> | undefined;
+  const run = unloading(call, props.text.toast.broke, () => props.onDone?.());
 
-  const halt = () => {
-    clearInterval(timer);
-    timer = undefined;
-  };
-  onCleanup(halt);
-
-  const broke = (error: unknown) => {
-    halt();
-    toast("error", explain(error) || props.text.toast.broke);
-  };
-
-  const look = () => {
-    void (async () => {
-      try {
-        const out = await call()("offline_state", { job: job() });
-        setState(out);
-        if (!out.finished) return;
-        halt();
-        props.onDone?.();
-      } catch (error) {
-        setJob("");
-        broke(error);
-      }
-    })();
-  };
-
-  const start = () => {
-    const again = broken() ? job() : null;
-    void (async () => {
-      try {
-        const out = await call()("save_offline", {
-          bundle: props.bundle,
-          topic: props.topic,
-          again,
-        });
-        setJob(out.job);
-        setState(null);
-        halt();
-        timer = setInterval(look, STEP);
-        look();
-      } catch (error) {
-        broke(error);
-      }
-    })();
-  };
-
-  const stop = () => {
-    void (async () => {
-      try {
-        await call()("stop_offline", { job: job() });
-      } catch (error) {
-        broke(error);
-      }
-    })();
-  };
-
-  const done = () => {
-    const out = state();
-    return out !== null && out.finished ? out : null;
-  };
-  const running = () => job() !== "" && done() === null;
-  const broken = () => (done()?.failed.length ?? 0) > 0;
+  const start = () => run.start({ bundle: props.bundle, topic: props.topic });
   const stamp = () => (props.unload.state === "fresh" ? props.unload.checked_at : null);
-  const locked = () => !broken() && stamp() !== null;
+  const locked = () => !run.broken() && stamp() !== null;
   const kept = () => props.unload.state === "stale" || props.unload.state === "unchecked";
   const named = (url: string) =>
     props.materials.find((material) => material.url === url)?.title ?? url;
 
   const label = () => {
-    if (broken()) return props.text.offline.again;
+    if (run.broken()) return props.text.offline.again;
     const at = stamp();
     if (at !== null) return `${props.text.offline.actual} ${moment(at)}`;
     return kept() ? props.text.offline.update : props.text.offline.save;
@@ -106,7 +39,7 @@ export default function Unload(props: Props) {
   return (
     <div data-unload>
       <Show
-        when={running()}
+        when={run.running()}
         fallback={
           <button
             type="button"
@@ -120,13 +53,13 @@ export default function Unload(props: Props) {
         }
       >
         <span data-unload-progress>
-          {props.text.offline.saving} {state()?.done ?? 0}/{state()?.total ?? 0}
+          {props.text.offline.saving} {run.state()?.done ?? 0}/{run.state()?.total ?? 0}
         </span>
-        <button type="button" data-unload-stop onClick={stop}>
+        <button type="button" data-unload-stop onClick={run.stop}>
           {props.text.offline.stop}
         </button>
       </Show>
-      <Show when={done()}>
+      <Show when={run.done()}>
         {(out) => (
           <>
             <span data-unload-report>
