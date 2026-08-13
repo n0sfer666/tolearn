@@ -1,4 +1,6 @@
 ---
+import icon from "@design/icon.svg?url";
+
 import "@design/tokens.css";
 import "../styles/base.css";
 import "../styles/layout.css";
@@ -43,6 +45,7 @@ const named = entity(route(here, locale));
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href={icon} />
     <title>{title} — {text.app}</title>
     <EarlyTheme />
   </head>
