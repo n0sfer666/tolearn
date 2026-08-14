@@ -29,6 +29,13 @@ fn markdown(dir: &Path, found: &mut Vec<PathBuf>) {
     }
 }
 
+fn url(page: &Path) -> String {
+    page.components()
+        .map(|part| part.as_os_str().to_string_lossy().into_owned())
+        .collect::<Vec<_>>()
+        .join("/")
+}
+
 fn pages(locale: &str) -> Vec<PathBuf> {
     let base = root().join("docs").join(locale);
     let mut found = Vec::new();
@@ -60,7 +67,7 @@ fn деревья_локалей_зеркальны() {
             assert!(
                 root().join("docs").join(twin).join(&page).exists(),
                 "у docs/{locale}/{} нет пары в docs/{twin}",
-                page.display()
+                url(&page)
             );
         }
     }
@@ -74,12 +81,12 @@ fn каждая_страница_ведёт_на_свою_пару() {
             let text = std::fs::read_to_string(&path).unwrap();
             let depth = page.components().count();
             let up = "../".repeat(depth);
-            let target = format!("({up}{twin}/{})", page.display());
+            let target = format!("({up}{twin}/{})", url(&page));
 
             assert!(
                 text.contains(&target),
                 "docs/{locale}/{} не ссылается на свою пару `{target}`",
-                page.display()
+                url(&page)
             );
         }
     }
