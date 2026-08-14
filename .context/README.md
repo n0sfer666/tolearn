@@ -15,15 +15,26 @@
 | ограничения, бюджеты, структура крейтов | [docs/architecture.md](../docs/architecture.md) |
 | принятые решения и отвергнутые альтернативы | [docs/adr/](../docs/adr/) — 10 файлов |
 | что делаем и в каком порядке | [docs/specs/README.md](../docs/specs/README.md) — 58 спек |
-| вердикт → статус, форма попытки | [docs/protocol.md](../docs/protocol.md) |
-| конспекты, шифрование, осиротевшие | [docs/notes.md](../docs/notes.md) |
-| офлайн: стратегии по типам материалов, кэш | [docs/offline.md](../docs/offline.md) |
+| вердикт → статус, форма попытки | [docs/ru/protocol.md](../docs/ru/protocol.md) |
+| конспекты, шифрование, осиротевшие | [docs/ru/notes.md](../docs/ru/notes.md) |
+| офлайн: стратегии по типам материалов, кэш | [docs/ru/offline.md](../docs/ru/offline.md) |
 | цвет, глифы, токены, модель видимости | [docs/design/visual-system.md](../docs/design/visual-system.md) |
 | порядок экранов и секций | [docs/design/navigation.md](../docs/design/navigation.md) |
 | дизайн-токены (единственный источник значений) | [docs/design/tokens.css](../docs/design/tokens.css) |
 
 Эталонный бандл `examples/llm-agents-base/` — одновременно пример формата и
 главная тестовая фикстура. Менять его нельзя: тесты пиннят его содержимое.
+
+## Языки документации
+
+Пользовательская документация двуязычна и живёт зеркальными деревьями
+`docs/ru/` и `docs/en/` (`guide`, `release`, `offline`, `notes`, `protocol`,
+`install/*`); корневой `README.md` — английский, `README.ru.md` — русский.
+Правишь одну локаль — правь пару в том же коммите: `app/tests/docs.rs` держит
+зеркальность, шапку `**Русский** · [English](…)` и то, что ни одна ссылка в
+`docs/` не ведёт в пустоту. Всё внутреннее (`architecture.md`, `fields.md`,
+`adr/`, `specs/`, `design/`, `schemas/`, `manual-test-cases/`) остаётся русским
+и лежит на месте.
 
 ## Как ведётся работа
 

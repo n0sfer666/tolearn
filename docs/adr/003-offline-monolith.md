@@ -1,6 +1,6 @@
 # ADR-003. Офлайн: monolith как библиотека + собственный WebView как рендерер
 
-Подробности — [offline.md](../offline.md). Кратко:
+Подробности — [offline.md](../ru/offline.md). Кратко:
 
 - Статьи, доки, спеки → [monolith](https://github.com/Y2Z/monolith) (Rust, CC0,
   используется как библиотека) инлайнит CSS, картинки и шрифты в один HTML.

@@ -47,7 +47,7 @@ golden/                            вывод, совпадение с кото�
 бандл, а не про эту папку. Собранному бандлу место в `examples/`.
 
 Даты `next_review_at` посчитаны по правилу из
-[protocol.md](../docs/protocol.md#next_review_at-по-retention), и корпус
+[protocol.md](../docs/ru/protocol.md#next_review_at-по-retention), и корпус
 показывает обе базы: `by_schedule` считает от `passed_at`
 (`stale-knowledge`: `2026-06-01 + 30`), `by_use` — от `verified_at` темы
 (`local-runtime`: `2026-07-26 + 90`, `offline-edge`: `2026-07-20 + 90`).

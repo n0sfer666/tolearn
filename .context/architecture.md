@@ -274,7 +274,7 @@ headless-окружении без GUI.
 -> Applied { state, retry, split_suggested }`. Чистая функция: старое состояние
 не мутируется, запись в файл остаётся за `Document` (S06).
 
-- Таблица «вердикт → статус» из [protocol.md](../docs/protocol.md) покрыта
+- Таблица «вердикт → статус» из [protocol.md](../docs/ru/protocol.md) покрыта
   целиком. `pass` ставит `passed_at` (дата вердикта, а если её нет — день
   применения) и `next_review_at` по `retention`; `partial` возвращает очередь
   вопросов с `result != ok`; `fail` переносит `gaps` вердикта в состояние;

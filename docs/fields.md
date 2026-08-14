@@ -74,7 +74,7 @@
 | `revalidate_after_days` | логика | перекрывает `defaults`, если есть |
 | `verified_at` | логика | база срока годности: из неё выводится `stale_passed`, а при `retention: by_use` — и `next_review_at` |
 | `confidence` | рендер | насколько генератор уверен в теме |
-| `retention` | логика | выбирает базу отсчёта `next_review_at` и решает, ставится ли дата вообще ([протокол](protocol.md#next_review_at-по-retention)) |
+| `retention` | логика | выбирает базу отсчёта `next_review_at` и решает, ставится ли дата вообще ([протокол](ru/protocol.md#next_review_at-по-retention)) |
 | `version_context` | рендер | какие закреплённые версии важны для темы |
 | `outcomes` | рендер | что человек сможет после темы |
 | `misconceptions` | рендер | типичные заблуждения, подставляются в промпт |
@@ -151,7 +151,7 @@
 | `topics.*.attempts[].next_action` | логика | что предложить дальше |
 | `topics.*.attempts[].retry_after_days` | логика | через сколько дней повторять; без `next_action` не имеет смысла |
 | `topics.*.attempts[].raw` | игнор | исходный текст вердикта: хранится дословно, чтобы будущая версия протокола пересобрала историю |
-| `topics.*.passed_at` | логика | база `next_review_at` при `retention: by_schedule` ([протокол](protocol.md#next_review_at-по-retention)) |
+| `topics.*.passed_at` | логика | база `next_review_at` при `retention: by_schedule` ([протокол](ru/protocol.md#next_review_at-по-retention)) |
 | `topics.*.next_review_at` | логика | срок следующего возврата к теме; очередь повторений строится по нему |
 | `topics.*.gaps` | рендер | накопленные пробелы по теме |
 | `topics.*.practice` | логика | запись практики: сколько времени заняла и истёк ли таймбокс; отдельно от `attempts[]`, потому что попытка появляется только по вердикту, а таймбокс истекает раньше |

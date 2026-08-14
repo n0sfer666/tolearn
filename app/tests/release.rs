@@ -8,7 +8,10 @@ use std::path::{Path, PathBuf};
 
 use serde_json::Value;
 
-const PAGE: &str = "docs/release.md";
+const PAGES: [(&str, [&str; 2]); 2] = [
+    ("docs/ru/release.md", ["12 МБ", "14 МБ"]),
+    ("docs/en/release.md", ["12 MB", "14 MB"]),
+];
 const OVERLAY: &str = "app/tauri.with-speech.conf.json";
 const PACKAGE: &str = ".github/workflows/package.yml";
 const RELEASE: &str = ".github/workflows/release.yml";
@@ -93,33 +96,43 @@ fn релиз_собирает_ту_же_матрицу_и_оставляет_ч
 
 #[test]
 fn страница_релиза_называет_оба_варианта() {
-    let page = read(PAGE);
+    for (name, _) in PAGES {
+        let page = read(name);
 
-    for variant in ["`tolearn`", "`tolearn-with-speech`"] {
+        for variant in ["`tolearn`", "`tolearn-with-speech`"] {
+            assert!(
+                page.contains(variant),
+                "на странице релиза {name} не назван вариант {variant}"
+            );
+        }
         assert!(
-            page.contains(variant),
-            "на странице релиза не назван вариант {variant}"
+            page.contains(
+                "cargo tauri build --features speech --config tauri.with-speech.conf.json"
+            ),
+            "страница релиза {name} не показывает, каким флагом собирается вариант с речью"
         );
     }
-    assert!(
-        page.contains("cargo tauri build --features speech --config tauri.with-speech.conf.json"),
-        "страница релиза не показывает, каким флагом собирается вариант с речью"
-    );
 }
 
 #[test]
 fn страница_релиза_повторяет_потолки_из_бюджетов() {
-    let page = read(PAGE);
     let budgets = read("docs/architecture.md");
 
-    for (row, limit) in [
-        ("| Установщик, macOS arm64 | ≤ 12 МБ |", "12 МБ"),
-        ("| Установщик, Windows x64 | ≤ 14 МБ |", "14 МБ"),
+    for row in [
+        "| Установщик, macOS arm64 | ≤ 12 МБ |",
+        "| Установщик, Windows x64 | ≤ 14 МБ |",
     ] {
         assert!(budgets.contains(row), "в бюджетах пропала строка `{row}`");
-        assert!(
-            page.contains(limit),
-            "страница релиза разошлась с бюджетом: нет потолка `{limit}`"
-        );
+    }
+
+    for (name, limits) in PAGES {
+        let page = read(name);
+
+        for limit in limits {
+            assert!(
+                page.contains(limit),
+                "страница релиза {name} разошлась с бюджетом: нет потолка `{limit}`"
+            );
+        }
     }
 }
