@@ -24,7 +24,9 @@ notarisation. The first launch of a downloaded file is stopped by Gatekeeper wit
 a dialog saying «"tolearn" Not Opened — Apple could not verify "tolearn" is free
 of malware», offering "Move to Trash" and "Done". The way through:
 
-1. Press **"Done"** in the dialog — not "Move to Trash".
+1. Press **"Done"** in the dialog — not "Move to Trash". Careful: "Move to Trash"
+   is the default button here, so an Enter pressed out of habit deletes the app
+   and you get to install it again.
 2. Open System Settings → Privacy & Security and scroll down to the "Security"
    section: a line about `tolearn` being blocked and an **"Open Anyway"** button
    will be waiting there.

@@ -46,14 +46,14 @@ OS.
 
 | Variant | OS | Format | Weight | Ceiling |
 |---|---|---|---|---|
-| `tolearn` | macOS arm64 | `.dmg` | 8.6 MB | 12 MB |
-| `tolearn` | Windows x64 | `.msi` | 9.5 MB | 14 MB |
+| `tolearn` | macOS arm64 | `.dmg` | 8.7 MB | 12 MB |
+| `tolearn` | Windows x64 | `.msi` | 9.6 MB | 14 MB |
 | `tolearn` | Linux x64 | `.deb` | 12.8 MB | 14 MB |
-| `tolearn-with-speech` | macOS arm64 | `.dmg` | 186.5 MB | no ceiling |
-| `tolearn-with-speech` | Windows x64 | `.msi` | 185.8 MB | no ceiling |
+| `tolearn-with-speech` | macOS arm64 | `.dmg` | 186.6 MB | no ceiling |
+| `tolearn-with-speech` | Windows x64 | `.msi` | 186.0 MB | no ceiling |
 | `tolearn-with-speech` | Linux x64 | `.deb` | 189.0 MB | no ceiling |
 
-All six numbers are from 2026-08-09, version 0.1.0, all from the `package` job of
+All six numbers are from 2026-08-17, version 0.2.1, all from the `package` job of
 a single green run. When the weight changes, so does this table: it holds the
 latest measurement, not the first one.
 

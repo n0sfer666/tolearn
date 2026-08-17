@@ -45,14 +45,14 @@
 
 | Вариант | ОС | Формат | Вес | Потолок |
 |---|---|---|---|---|
-| `tolearn` | macOS arm64 | `.dmg` | 8.6 МБ | 12 МБ |
-| `tolearn` | Windows x64 | `.msi` | 9.5 МБ | 14 МБ |
+| `tolearn` | macOS arm64 | `.dmg` | 8.7 МБ | 12 МБ |
+| `tolearn` | Windows x64 | `.msi` | 9.6 МБ | 14 МБ |
 | `tolearn` | Linux x64 | `.deb` | 12.8 МБ | 14 МБ |
-| `tolearn-with-speech` | macOS arm64 | `.dmg` | 186.5 МБ | потолка нет |
-| `tolearn-with-speech` | Windows x64 | `.msi` | 185.8 МБ | потолка нет |
+| `tolearn-with-speech` | macOS arm64 | `.dmg` | 186.6 МБ | потолка нет |
+| `tolearn-with-speech` | Windows x64 | `.msi` | 186.0 МБ | потолка нет |
 | `tolearn-with-speech` | Linux x64 | `.deb` | 189.0 МБ | потолка нет |
 
-Все шесть чисел — 2026-08-09, версия 0.1.0, все из джобы `package` одного зелёного
+Все шесть чисел — 2026-08-17, версия 0.2.1, все из джобы `package` одного зелёного
 прогона. Меняется вес — меняется и эта таблица: она хранит последний замер, а не
 первый.
 
