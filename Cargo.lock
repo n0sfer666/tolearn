@@ -6950,7 +6950,7 @@ dependencies = [
 
 [[package]]
 name = "tolearn-app"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "flate2",
  "serde",
@@ -6973,7 +6973,7 @@ dependencies = [
 
 [[package]]
 name = "tolearn-cli"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "jsonschema",
  "saphyr",
@@ -6986,7 +6986,7 @@ dependencies = [
 
 [[package]]
 name = "tolearn-core"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "age",
  "flate2",
@@ -6999,7 +6999,7 @@ dependencies = [
 
 [[package]]
 name = "tolearn-gestures"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "objc2",
  "objc2-web-kit",
@@ -7007,7 +7007,7 @@ dependencies = [
 
 [[package]]
 name = "tolearn-offline"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "base64 0.22.1",
  "dom_smoothie",
@@ -7024,7 +7024,7 @@ dependencies = [
 
 [[package]]
 name = "tolearn-provider"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "keyring",
  "reqwest 0.12.28",
@@ -7035,14 +7035,14 @@ dependencies = [
 
 [[package]]
 name = "tolearn-runner"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "tolearn-core",
 ]
 
 [[package]]
 name = "tolearn-speech"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "cc",
  "cmake",

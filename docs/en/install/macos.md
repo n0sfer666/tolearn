@@ -17,17 +17,22 @@ by the app).
 2. Open the `.dmg` with a double click and drag `tolearn` into Applications.
 3. The image can be ejected and deleted — the app is already copied.
 
-## First launch: "cannot verify the developer"
+## First launch: "Apple could not verify the app"
 
-The installer is neither signed with an Apple certificate nor notarised, so
-Gatekeeper will refuse to open it on a double click. To get past it:
+The app is signed ad-hoc — that is, without an Apple certificate and without
+notarisation. The first launch of a downloaded file is stopped by Gatekeeper with
+a dialog saying «"tolearn" Not Opened — Apple could not verify "tolearn" is free
+of malware», offering "Move to Trash" and "Done". The way through:
 
-- **right-click** `tolearn` in Applications → "Open" → "Open" once more in the
-  dialog. The system remembers the choice, and afterwards the app launches the
-  usual way;
-- if the dialog has no "Open" item — System Settings → Privacy & Security, near
-  the bottom there will be a line about `tolearn` being blocked and an "Open
-  Anyway" button.
+1. Press **"Done"** in the dialog — not "Move to Trash".
+2. Open System Settings → Privacy & Security and scroll down to the "Security"
+   section: a line about `tolearn` being blocked and an **"Open Anyway"** button
+   will be waiting there.
+3. Confirm with your password or Touch ID, then press "Open" in the next dialog.
+
+After that the app launches on a plain double click — the decision is remembered.
+Right-click → "Open" no longer gets you past this on recent macOS versions; go
+through the settings.
 
 Do this only for a file downloaded from the project's releases page.
 
