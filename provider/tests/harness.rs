@@ -1,0 +1,124 @@
+#![allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::panic,
+    reason = "provider gate: a panic here is the report"
+)]
+
+mod support;
+
+use std::sync::{Arc, Mutex};
+use std::time::Instant;
+
+use support::harness;
+use tolearn_provider::{CheckError, Said, Watch, ask, watched};
+
+fn asked(mode: &str, timeout_secs: u32) -> Result<Said, CheckError> {
+    ask(&harness(&[mode.to_owned()], timeout_secs), None, "спроси")
+}
+
+#[test]
+fn харнесс_запускается_в_пустом_каталоге() {
+    let answer = asked("cwd", 20).expect("харнесс отвечает");
+
+    assert!(answer.text.starts_with("0 файлов "), "{}", answer.text);
+    assert!(!answer.text.contains("Cargo.toml"), "{}", answer.text);
+}
+
+#[test]
+fn аргументы_доходят_до_команды() {
+    let provider = harness(&["args".to_owned(), "--no-tools".to_owned()], 20);
+
+    let answer = ask(&provider, None, "спроси").expect("харнесс отвечает");
+
+    assert_eq!(answer.text, "--no-tools");
+}
+
+#[test]
+fn цветной_вывод_очищается_от_управляющих_последовательностей() {
+    let answer = asked("ansi", 20).expect("харнесс отвечает");
+
+    assert_eq!(answer.text, "услышал: спроси");
+}
+
+#[test]
+fn баннер_остаётся_в_ответе() {
+    let answer = asked("banner", 20).expect("харнесс отвечает");
+
+    assert!(
+        answer.text.starts_with("добро пожаловать"),
+        "{}",
+        answer.text
+    );
+    assert!(answer.text.ends_with("услышал: спроси"), "{}", answer.text);
+}
+
+#[test]
+fn поток_приходит_кусками_и_приносит_расход_токенов() {
+    let seen: Arc<Mutex<Vec<String>>> = Arc::new(Mutex::new(Vec::new()));
+    let heard = Arc::clone(&seen);
+    let watch: Watch = Arc::new(move |piece: &str| {
+        heard.lock().unwrap().push(piece.to_owned());
+    });
+
+    let answer = watched(&harness(&["stream".to_owned()], 20), None, "спроси", watch)
+        .expect("харнесс отвечает");
+
+    assert_eq!(answer.text, "услышал: спроси");
+    assert_eq!(answer.tokens, Some(17));
+    let pieces = seen.lock().unwrap().clone();
+    assert!(pieces.len() > 1, "поток пришёл одним куском: {pieces:?}");
+    assert_eq!(pieces.concat(), "услышал: спроси");
+}
+
+#[test]
+fn чужой_json_не_выдаёт_себя_за_поток_и_ответ_остаётся_текстом() {
+    let answer = asked("jsonish", 20).expect("харнесс отвечает");
+
+    assert!(answer.text.ends_with("услышал: спроси"), "{}", answer.text);
+    assert_eq!(answer.tokens, None);
+}
+
+#[test]
+fn пустой_вывод_при_нулевом_коде_отвергается() {
+    assert_eq!(asked("silent", 20), Err(CheckError::BadAnswer));
+}
+
+#[test]
+fn ненулевой_код_приносит_жалобу_из_stderr() {
+    let failed = asked("fail", 20).expect_err("харнесс падает");
+
+    assert_eq!(failed.code(), "harness.failed");
+    let said = failed.to_string();
+    assert!(said.contains("не залогинен"), "{said}");
+    assert!(said.contains("кодом 3"), "{said}");
+    assert!(!said.contains("строка четыре"), "{said}");
+}
+
+#[test]
+fn слишком_длинный_вывод_не_идёт_в_разбор() {
+    let failed = asked("flood", 60).expect_err("вывод превысил потолок");
+
+    assert_eq!(failed.code(), "harness.truncated");
+}
+
+#[test]
+fn зависший_харнесс_убивается_по_таймауту() {
+    let started = Instant::now();
+
+    let failed = asked("hang", 1).expect_err("харнесс висит");
+
+    assert_eq!(failed.code(), "harness.timeout");
+    assert!(started.elapsed().as_secs() < 10, "{:?}", started.elapsed());
+    assert!(failed.to_string().contains('1'), "{failed}");
+}
+
+#[test]
+fn пустая_команда_не_запускает_ничего() {
+    let mut provider = harness(&["say".to_owned()], 20);
+    provider.harness.command = "   ".to_owned();
+
+    let failed = ask(&provider, None, "спроси").expect_err("команды нет");
+
+    assert_eq!(failed.code(), "harness.not-found");
+}

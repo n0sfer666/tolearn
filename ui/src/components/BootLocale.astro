@@ -1,0 +1,7 @@
+<script>
+  import { boot } from "../lib/boot";
+  import { quiet } from "../lib/ipc";
+  import { landing } from "../lib/landing";
+
+  void boot(quiet).then((locale) => location.replace(landing(locale, location.search)));
+</script>

@@ -1,0 +1,39 @@
+<script is:inline>
+  (() => {
+    const NAMES = "tolearn.names";
+    const here = new URLSearchParams(location.search);
+    const store = typeof localStorage === "undefined" ? null : localStorage;
+
+    const current = (kind) => {
+      const inUrl = here.get(kind) ?? "";
+      if (inUrl !== "" || kind !== "program" || store === null) return inUrl;
+      return store.getItem("tolearn.program") ?? "";
+    };
+
+    const known = () => {
+      if (store === null) return {};
+      try {
+        return JSON.parse(store.getItem(NAMES) ?? "{}") ?? {};
+      } catch {
+        return {};
+      }
+    };
+
+    const show = (kind, id, title) => {
+      if (id === "" || title === "" || id !== current(kind)) return;
+      document.querySelectorAll(`[data-name="${kind}"]`).forEach((slot) => {
+        slot.textContent = title;
+        slot.setAttribute("title", title);
+      });
+    };
+
+    for (const kind of ["program", "topic"]) {
+      const named = known()[kind];
+      if (named) show(kind, named.id ?? "", named.title ?? "");
+    }
+
+    addEventListener("tolearn:name", (event) => {
+      show(event.detail.kind, event.detail.id, event.detail.title);
+    });
+  })();
+</script>

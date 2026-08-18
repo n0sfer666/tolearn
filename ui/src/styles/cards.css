@@ -1,0 +1,231 @@
+ul:has(> li[data-program]),
+ol[data-materials],
+ul:has(> li[data-topic]),
+ul:has(> li[data-due]),
+ul:has(> li[data-expired]),
+ul:has(> li[data-aging]),
+ul:has(> li[data-hit]),
+ul:has(> li[data-node]),
+ul:has(> li[data-question]),
+ul:has(> li[data-answer]),
+ul:has(> li[data-check]) {
+  display: grid;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li[data-program],
+li[data-material],
+li[data-topic],
+li[data-due],
+li[data-expired],
+li[data-aging],
+li[data-hit],
+li[data-node],
+li[data-question],
+li[data-answer],
+li[data-check] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2) var(--spacing-3);
+  max-width: none;
+  margin: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-raised);
+  transition:
+    background var(--duration) var(--easing),
+    border-color var(--duration) var(--easing);
+}
+
+:is(
+  li[data-program],
+  li[data-material],
+  li[data-topic],
+  li[data-due],
+  li[data-expired],
+  li[data-aging],
+  li[data-hit],
+  li[data-node]
+):has(> a):hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-subtle);
+}
+
+:is(li[data-topic], li[data-due], li[data-expired], li[data-aging], li[data-hit], li[data-node]) > a {
+  flex: 1 1 auto;
+}
+
+li[data-material] > a,
+li[data-program] > a,
+:is(li[data-topic], li[data-due], li[data-expired], li[data-aging], li[data-hit]) > a {
+  display: inline-flex;
+  align-items: center;
+}
+
+ol[data-materials] {
+  counter-reset: material;
+}
+
+li[data-material]::before {
+  content: counter(material);
+  counter-increment: material;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+li[data-material] [data-note] {
+  flex: 0 0 100%;
+  max-width: none;
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+ul[data-hits] {
+  margin-block-start: var(--spacing-4);
+}
+
+li[data-hit] [data-snippet] {
+  flex: 0 0 100%;
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+li[data-checkpoint] {
+  border-inline-start: var(--focus-ring) solid var(--color-accent);
+}
+
+section[data-overdue] li[data-due] {
+  border-inline-start: var(--focus-ring) solid var(--color-warning);
+}
+
+ol[data-graph] {
+  display: grid;
+  gap: var(--spacing-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li[data-node] {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-1);
+}
+
+li[data-node] > a[data-open] {
+  margin-block-end: var(--spacing-1);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li[data-program] {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-2);
+}
+
+li[data-question],
+li[data-answer] {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-1);
+}
+
+li[data-question] > p,
+li[data-answer] > p {
+  max-width: none;
+  margin: 0;
+}
+
+li[data-question] > p:first-child {
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+li[data-program] a {
+  font-size: var(--font-size-lg);
+  text-decoration: none;
+}
+
+li[data-program] p {
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+.unreachable {
+  color: var(--color-warning);
+}
+
+article[data-stage] {
+  margin-block-end: var(--spacing-6);
+}
+
+.intake {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-6);
+  border: var(--border-width) dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+}
+
+.intake p {
+  flex: 1 1 auto;
+  margin: 0;
+  color: var(--color-fg-muted);
+}
+
+.grid {
+  display: grid;
+  gap: var(--spacing-4);
+}
+
+.grid astro-island,
+.grid [data-cards] {
+  display: contents;
+}
+
+.grid > :is(section, article),
+.grid > astro-island > :is(section, article),
+.grid [data-cards] > section {
+  margin: 0;
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-raised);
+}
+
+.grid [data-cards] > p {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+@media (min-width: 640px) {
+  .cards {
+    grid-template-columns: repeat(auto-fill, minmax(var(--width-card), 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

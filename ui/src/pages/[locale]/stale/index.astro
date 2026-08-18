@@ -1,0 +1,19 @@
+---
+import { LOCALES, localeOf, strings } from "../../../i18n";
+import Base from "../../../layouts/Base.astro";
+import Stale from "../../../islands/Stale";
+
+export function getStaticPaths() {
+  return LOCALES.map((locale) => ({ params: { locale } }));
+}
+
+const locale = localeOf(Astro.params.locale);
+const text = strings(locale);
+---
+
+<Base locale={locale} title={text.stale.title} back={{ href: "/", text: text.nav.programs }}>
+  <section id="stale">
+    <p>{text.stale.lead}</p>
+    <Stale text={text} locale={locale} client:load />
+  </section>
+</Base>

@@ -1,0 +1,51 @@
+schema: learning-roadmap/topic/v1
+id: minimal-topic
+title: Минимальная тема
+stage: 1
+depends_on:
+  - cycle-a
+  - cycle-a
+est_hours: [1, 2]
+volatility: stable
+revalidate_after_days: 730
+verified_at: "2026-07-27"
+confidence: low
+retention: none
+version_context: []
+outcomes:
+  - |
+    Может объяснить, какие поля темы обязательны, и назвать то единственное,
+    что тема обязана содержать: проверяемую приёмку практики.
+misconceptions: []
+materials: []
+practice:
+  kind: analysis
+  tier: P2
+  time_box_min: 30
+  task: |
+    Разбери на этой же фикстуре, что в теме обязательно, а что генератор вправе
+    оставить пустым списком.
+  deliverable: |
+    Файл minimal.md с перечнем обязательных полей и причиной обязательности.
+  starting_point: null
+  fallback: null
+  smoke_checked: true
+  constraints: []
+  acceptance:
+    - id: a1
+      claim: |
+        Перечень обязательных полей совпадает с `required` схемы темы.
+      check: |
+        bash -c 'grep -c "^- " minimal.md'
+      expect: |
+        Число не меньше 18.
+questions: []
+exam:
+  focus: |
+    Понимает ли человек разницу между «поля нет» и «поле пустое»: пустой список
+    в теме — это утверждение генератора, а не пропуск.
+  traps:
+    - |
+      Предложить считать пустой `materials` признаком несгенерированной темы.
+  artifact_required: false
+  max_exchanges: 3

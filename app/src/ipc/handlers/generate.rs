@@ -1,0 +1,46 @@
+use tolearn_core::Date;
+use tolearn_core::generate::{Level, Request};
+use tolearn_provider::{CheckError, Provider};
+
+use crate::generate::start;
+use crate::ipc::context::Context;
+use crate::ipc::error::IpcError;
+use crate::ipc::provider::{denied, failed, refute};
+use crate::ipc::settings;
+use crate::ipc::types::{GenerateIn, GenerateOut};
+use crate::journal::Journal;
+
+pub fn run(context: &Context, input: &GenerateIn) -> Result<GenerateOut, IpcError> {
+    let provider = Provider::read(&context.provider()).map_err(failed)?;
+    if !provider.enabled {
+        return Err(refute(CheckError::Disabled));
+    }
+    let level = Level::read(&input.level).ok_or_else(|| unknown(&input.level))?;
+    if input.subject.trim().is_empty() {
+        return Err(IpcError::new(
+            "generate.no-subject",
+            "не сказано, чему учиться".to_owned(),
+        ));
+    }
+    let day = Date::parse(&input.today).ok_or_else(|| IpcError::malformed_date(&input.today))?;
+    let key = context.vault().key().map_err(denied)?;
+    let request = Request {
+        subject: input.subject.trim().to_owned(),
+        level,
+        weekly_hours: input.weekly_hours,
+        weeks: input.weeks,
+        locale: settings::stored(context)?.locale.label().to_owned(),
+        today: day,
+    };
+    let journal = Journal::new(context.llm_log(), provider.journal);
+    Ok(GenerateOut {
+        job: start(provider, key, journal, request, context.draft()),
+    })
+}
+
+fn unknown(level: &str) -> IpcError {
+    IpcError::new(
+        "generate.unknown-level",
+        format!("`{level}` — не уровень подготовки"),
+    )
+}

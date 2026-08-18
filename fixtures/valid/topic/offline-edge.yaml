@@ -1,0 +1,231 @@
+schema: learning-roadmap/topic/v1
+id: offline-edge
+title: Материалы, которые офлайн не тянутся
+stage: 2
+depends_on:
+  - stale-knowledge
+est_hours: [1, 3]
+volatility: volatile
+revalidate_after_days: 90
+verified_at: "2026-07-20"
+confidence: high
+retention: by_use
+version_context:
+  - yt_dlp
+  - monolith
+outcomes:
+  - |
+    Может по одному полю `liveness` сказать, что произойдёт при попытке скачать
+    материал, и почему приложение обязано показать это до попытки, а не после.
+  - |
+    Различает «материал недоступен» и «материал устарел»: первое про доступ,
+    второе про содержание.
+misconceptions:
+  - |
+    «Пейвол — это ошибка сети» — нет: сеть работает, отказ приходит от сервиса,
+    и повторная попытка ничего не изменит.
+  - |
+    «Видео можно сохранить так же, как страницу» — страница и видео уходят в
+    разные инструменты, и оба могут отсутствовать в системе.
+materials:
+  - title: Официальная документация формата
+    url: https://example.org/docs/format
+    type: docs
+    tier: T1
+    lang: en
+    liveness: ok
+    published: "2026-07-01"
+    covers_version: "2026.07.01"
+    checked_at: "2026-07-20"
+    stale: false
+    delta: null
+    note: |
+      Первоисточник: описывает поля, на которые ссылаются остальные материалы.
+  - title: Разбор за пейволом
+    url: https://example.com/paid/deep-dive
+    type: article
+    tier: T2
+    lang: en
+    liveness: paywall
+    published: "2026-06-15"
+    covers_version: null
+    checked_at: "2026-07-20"
+    stale: false
+    delta: null
+    note: |
+      Полный текст закрыт подпиской: офлайн-сохранение вернёт страницу-заглушку,
+      а не материал.
+  - title: Обсуждение в закрытом сообществе
+    url: https://example.net/community/thread
+    type: post
+    tier: T3
+    lang: ru
+    liveness: login_required
+    published: "2026-05"
+    covers_version: null
+    checked_at: "2026-07-20"
+    stale: false
+    delta: null
+    note: |
+      Нужен вход в аккаунт: приложение не логинится и не должно предлагать это.
+  - title: Спецификация протокола
+    url: https://example.org/spec/v3
+    type: spec
+    tier: T1
+    lang: en
+    liveness: ok
+    published: "2025"
+    covers_version: "v3"
+    checked_at: "2026-07-20"
+    stale: true
+    delta: |
+      Спецификация описывает v3, а закреплённая версия инструмента уже читает v4:
+      расхождение в разделе про метаданные.
+    note: |
+      Читать вместе с первоисточником: расхождение важно для практики.
+  - title: RFC про кэширование
+    url: https://example.org/rfc/7234
+    type: rfc
+    tier: T1
+    lang: en
+    liveness: ok
+    published: null
+    covers_version: null
+    checked_at: "2026-07-20"
+    stale: false
+    delta: null
+    note: |
+      Дата публикации неизвестна — поле оставлено пустым намеренно, это не пропуск.
+  - title: Доклад с конференции
+    url: https://example.org/video/talk
+    type: video
+    tier: T2
+    lang: en
+    liveness: ok
+    published: "2026-04-02"
+    covers_version: null
+    checked_at: "2026-07-20"
+    stale: false
+    delta: null
+    note: |
+      Видео: сохраняется отдельным инструментом, и его может не быть в системе.
+  - title: Статья про устойчивость ссылок
+    url: https://example.org/paper/link-rot
+    type: paper
+    tier: T2
+    lang: en
+    liveness: ok
+    published: "2024-11-30"
+    covers_version: null
+    checked_at: "2026-07-20"
+    stale: false
+    delta: null
+    note: |
+      Академический разбор того, почему `checked_at` обязателен для каждой ссылки.
+  - title: Пример реализации
+    url: https://example.org/repo/example
+    type: repo
+    tier: T2
+    lang: en
+    liveness: ok
+    published: "2026-07"
+    covers_version: "v2.11.0"
+    checked_at: "2026-07-20"
+    stale: false
+    delta: null
+    note: |
+      Код под закреплённую версию: сверять с ним, а не с описанием в статьях.
+  - title: Практическое руководство
+    url: https://example.org/guide/offline
+    type: guide
+    tier: T3
+    lang: ru
+    liveness: ok
+    published: "2026-03-10"
+    covers_version: null
+    checked_at: "2026-07-20"
+    stale: false
+    delta: null
+    note: |
+      Пошаговое руководство: полезно как фоллбэк, когда первоисточник тяжёл.
+practice:
+  kind: code
+  tier: P3
+  time_box_min: 90
+  task: |
+    Пройди по списку материалов темы и разложи их на три группы: сохранятся,
+    сохранятся заглушкой, не сохранятся вовсе. Обоснуй каждую группу полем.
+  deliverable: |
+    Файл liveness.md с тремя группами и полем-обоснованием на каждый материал.
+  starting_point: |
+    Список materials этой темы; инструменты не запускать.
+  fallback: |
+    Если сомневаешься в группе — положи материал в «сохранится заглушкой» и
+    напиши, какого поля не хватило для решения.
+  smoke_checked: true
+  constraints:
+    - id: c1
+      claim: |
+        Ни один материал не скачивался: решение принято по полям бандла.
+      check: |
+        bash -c 'grep -ci "liveness" liveness.md'
+      expect: |
+        Число не меньше 1.
+    - id: c2
+      claim: |
+        Все девять материалов разложены, ни один не потерян.
+      check: |
+        bash -c 'grep -c "^- " liveness.md'
+      expect: |
+        Ровно 9.
+  acceptance:
+    - id: a1
+      claim: |
+        Материал за пейволом отнесён к заглушкам, а не к недоступным.
+      check: |
+        bash -c 'grep -c "paywall" liveness.md'
+      expect: |
+        Число не меньше 1.
+    - id: a2
+      claim: |
+        Материал с `login_required` отнесён к недоступным.
+      check: |
+        bash -c 'grep -c "login_required" liveness.md'
+      expect: |
+        Число не меньше 1.
+questions:
+  - id: q1
+    type: misconception
+    text: |
+      Материал за пейволом не скачался. Стоит ли пробовать ещё раз и почему?
+    expected_signals:
+      - |
+        Говорит, что отказ пришёл от сервиса, а не от сети, и повтор не поможет.
+    red_flags:
+      - |
+        Предлагает повторить попытку или сменить сеть.
+    follow_up: |
+      А чем этот случай отличается от обрыва соединения на середине?
+  - id: q2
+    type: diagnose
+    text: |
+      В сохранённой копии материала — страница входа вместо текста. Какое поле
+      материала предсказало бы это заранее?
+    expected_signals:
+      - |
+        Называет `liveness` со значением `login_required`.
+    red_flags:
+      - |
+        Ищет причину в настройках инструмента сохранения.
+    follow_up: null
+exam:
+  focus: |
+    Отличает ли человек недоступность материала от его устаревания и умеет ли
+    предсказывать исход сохранения по полям, не запуская инструменты.
+  traps:
+    - |
+      Предложить «просто попробовать скачать всё и посмотреть, что выйдет».
+    - |
+      Назвать `stale: true` причиной не показывать материал.
+  artifact_required: true
+  max_exchanges: 6

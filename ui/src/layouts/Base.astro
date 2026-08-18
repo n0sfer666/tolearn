@@ -1,0 +1,97 @@
+---
+import icon from "@design/icon.svg?url";
+
+import "@design/tokens.css";
+import "../styles/base.css";
+import "../styles/layout.css";
+import "../styles/controls.css";
+import "../styles/switches.css";
+import "../styles/content.css";
+import "../styles/cards.css";
+import "../styles/status.css";
+import "../styles/practice.css";
+import "../styles/graph.css";
+import "../styles/notes.css";
+import "../styles/offline.css";
+import "../styles/generate.css";
+import "../styles/hint.css";
+import "../styles/rich.css";
+import "../styles/toast.css";
+
+import Toasts from "../components/Toasts";
+import EarlyTheme from "../components/EarlyTheme.astro";
+import KeepContext from "../components/KeepContext.astro";
+import Names from "../components/Names.astro";
+import Keyboard from "../components/Keyboard.astro";
+import RememberLocale from "../components/RememberLocale.astro";
+import { type Locale, localized, strings } from "../i18n";
+import { entity, keep, route } from "../lib/context";
+
+interface Props {
+  locale: Locale;
+  title: string;
+  back?: { href: string; text: string };
+}
+
+const { locale, title, back } = Astro.props;
+const text = strings(locale);
+const here = Astro.url.pathname;
+const current = (href: string): "page" | undefined =>
+  here === localized(href, locale) ? "page" : undefined;
+const named = entity(route(here, locale));
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href={icon} />
+    <title>{title} — {text.app}</title>
+    <EarlyTheme />
+  </head>
+  <body>
+    <header class="bar">
+      <div class="bar-here">
+        {
+          back && (
+            <a
+              href={localized(back.href, locale)}
+              class="bar-back"
+              data-back
+              data-keep={keep(back.href).join(",")}
+              data-name={entity(back.href)}
+            >
+              {back.text}
+            </a>
+          )
+        }
+        <h1 class="bar-title" data-name={named}>{title}</h1>
+      </div>
+      <nav class="bar-nav" aria-label={text.nav.sections}>
+        <a href={localized("/queue/", locale)} data-queue aria-current={current("/queue/")}>
+          {text.nav.queue}
+        </a>
+        <a
+          href={localized("/search/", locale)}
+          data-search
+          data-keep={keep("/search/").join(",")}
+          aria-current={current("/search/")}
+        >
+          {text.nav.search}
+        </a>
+        <a href={localized("/settings/", locale)} data-settings aria-current={current("/settings/")}>
+          {text.nav.settings}
+        </a>
+      </nav>
+    </header>
+    <main class="page">
+      <slot />
+    </main>
+    <Toasts client:load close={text.toast.close} />
+    <RememberLocale />
+    <KeepContext />
+    <Names />
+    <Keyboard />
+  </body>
+</html>

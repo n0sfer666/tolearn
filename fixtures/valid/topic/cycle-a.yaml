@@ -1,0 +1,49 @@
+schema: learning-roadmap/topic/v1
+id: cycle-a
+title: Тема, которая ждёт вторую
+stage: 1
+depends_on:
+  - cycle-b
+est_hours: [1, 2]
+volatility: stable
+revalidate_after_days: 730
+verified_at: "2026-07-27"
+confidence: high
+retention: by_use
+version_context: []
+outcomes:
+  - |
+    Может назвать, почему замкнутая пара зависимостей блокирует обе темы
+    и почему приложение обязано сказать об этом, а не молча показать `blocked`.
+misconceptions:
+  - |
+    «Цикл рассосётся, если пройти любую из тем вручную» — ручная отметка снимает
+    следствие, но не причину: связь остаётся в бандле.
+materials: []
+practice:
+  kind: analysis
+  tier: P1
+  time_box_min: 20
+  task: |
+    Нарисуй граф зависимостей этой пары и покажи, откуда берётся цикл.
+  deliverable: |
+    Файл cycle.md с графом и одним предложением про то, что сломано.
+  starting_point: null
+  fallback: null
+  smoke_checked: true
+  constraints: []
+  acceptance:
+    - id: a1
+      claim: |
+        В графе обе стрелки, и цикл назван словом.
+      check: |
+        bash -c 'grep -c "cycle-a\|cycle-b" cycle.md'
+      expect: |
+        Число не меньше 2.
+questions: []
+exam:
+  focus: |
+    Различает ли человек цикл в графе и просто заблокированную тему.
+  traps: []
+  artifact_required: false
+  max_exchanges: 2

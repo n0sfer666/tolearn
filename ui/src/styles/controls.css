@@ -1,0 +1,165 @@
+:where(button, input, textarea, select) {
+  font-family: inherit;
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-tight);
+}
+
+:where(button) {
+  padding: var(--spacing-2) var(--spacing-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-raised);
+  color: var(--color-fg);
+  cursor: pointer;
+}
+
+:where(button):hover,
+:where(button)[aria-pressed="true"] {
+  border-color: var(--color-border-strong);
+}
+
+:where(button)[aria-pressed="true"] {
+  background: var(--color-accent-bg);
+  color: var(--color-accent);
+}
+
+:where(button):disabled {
+  border-color: var(--color-border);
+  color: var(--color-fg-muted);
+  cursor: default;
+}
+
+:where(input, textarea, select) {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-raised);
+  color: var(--color-fg);
+}
+
+:where(input, textarea, select):hover {
+  border-color: var(--color-border-strong);
+}
+
+:where(input[type="search"]) {
+  inline-size: min(100%, var(--width-card));
+}
+
+:where(input[type="number"]) {
+  inline-size: var(--width-field);
+}
+
+:where(input) + :where(input) {
+  margin-inline-start: var(--spacing-2);
+}
+
+:where(input[type="checkbox"], input[type="radio"]) {
+  min-height: auto;
+  padding: 0;
+  accent-color: var(--color-accent);
+}
+
+:where(textarea) {
+  width: 100%;
+  line-height: var(--line-height-body);
+  resize: vertical;
+}
+
+textarea[data-note] {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+}
+
+:where(label) {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  max-width: var(--measure);
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+.row :where(label) {
+  max-width: none;
+}
+
+:where(label):has(> input:not([type="checkbox"], [type="radio"]), > select, > textarea) {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-1);
+  max-width: var(--measure);
+}
+
+:where(label) + :where(label) {
+  margin-block-start: var(--spacing-3);
+}
+
+:where(label) + :where(button) {
+  margin-block-start: var(--spacing-3);
+}
+
+:where(button) + :where(button) {
+  margin-inline-start: var(--spacing-2);
+}
+
+.bar-back,
+.bar-nav a,
+nav[data-tools] a {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition:
+    background var(--duration) var(--easing),
+    border-color var(--duration) var(--easing),
+    color var(--duration) var(--easing);
+}
+
+.bar-back,
+.bar-nav a {
+  padding: var(--spacing-2) var(--spacing-3);
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+.bar-back:hover,
+.bar-nav a:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-fg);
+}
+
+.bar-back {
+  display: inline-block;
+  max-width: var(--width-crumb);
+  margin-inline-start: calc(var(--spacing-3) * -1);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+nav[data-tools] a {
+  padding: var(--spacing-2) var(--spacing-4);
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-bg-raised);
+  color: var(--color-fg);
+  font-size: var(--font-size-sm);
+}
+
+nav[data-tools] a:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-subtle);
+}
+
+nav[data-tools] > button {
+  margin-inline-start: auto;
+  font-size: var(--font-size-sm);
+}
+
+.bar-back::before {
+  content: "‹ ";
+}
+
+.bar-nav a[aria-current] {
+  color: var(--color-fg);
+}

@@ -1,0 +1,9 @@
+schema: learning-roadmap/progress/v1
+roadmap_id: minimal-program
+topics:
+  minimal-topic:
+    status: todo
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []

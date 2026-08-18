@@ -1,0 +1,12 @@
+---
+import { GLYPHS, type Status } from "./status";
+
+interface Props {
+  status: Status;
+  label: string;
+}
+
+const { status, label } = Astro.props;
+---
+
+<span class={`glyph status-${status}`} role="img" aria-label={label}>{GLYPHS[status]}</span>

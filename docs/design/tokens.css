@@ -12,6 +12,10 @@
   --line-height-tight: 1.25;
   --line-height-body: 1.6;
   --measure: 68ch;
+  --width-page: 60rem;
+  --width-card: 18rem;
+  --width-field: 10ch;
+  --width-crumb: 16rem;
 
   --spacing-1: 0.25rem;
   --spacing-2: 0.5rem;
@@ -23,6 +27,9 @@
 
   --radius-sm: 4px;
   --radius-md: 8px;
+
+  --border-width: 1px;
+  --focus-ring: 2px;
 
   --z-base: 0;
   --z-sticky: 100;
@@ -38,26 +45,28 @@
   --breakpoint-md: 640px;
   --breakpoint-lg: 1024px;
 
-  --color-bg:            light-dark(#f7f8f9, #14171a);
-  --color-bg-subtle:     light-dark(#eef0f2, #1b1f23);
-  --color-bg-raised:     light-dark(#ffffff, #21262b);
+  --color-bg:            light-dark(#f4f5f7, #1b1f24);
+  --color-bg-subtle:     light-dark(#eaecef, #22272d);
+  --color-bg-raised:     light-dark(#fafbfc, #2a3037);
 
-  --color-border:        light-dark(#d7dbe0, #333a41);
-  --color-border-strong: light-dark(#828a91, #69747e);
+  --color-border:        light-dark(#dcdfe4, #343b43);
+  --color-border-strong: light-dark(#7b8590, #727d88);
 
-  --color-fg:            light-dark(#16191d, #e8eaed);
-  --color-fg-muted:      light-dark(#565f6a, #9aa4b0);
+  --color-fg:            light-dark(#333b43, #c9d1d9);
+  --color-fg-muted:      light-dark(#5b656f, #98a3ae);
 
-  --color-neutral:       light-dark(#646c78, #8b94a0);
-  --color-accent:        light-dark(#1f5fd0, #6fa8ff);
-  --color-warning:       light-dark(#8f5a00, #e0a44a);
-  --color-critical:      light-dark(#b82a1e, #ff7b6e);
+  --color-neutral:       light-dark(#5f6973, #9aa4b0);
+  --color-accent:        light-dark(#2f62b5, #7fa9e8);
+  --color-good:          light-dark(#2c6e49, #7dc198);
+  --color-warning:       light-dark(#8a5a10, #d3a05c);
+  --color-critical:      light-dark(#b03a2e, #e08a80);
 
-  --color-accent-bg:     light-dark(#e3ecfb, #16233a);
-  --color-warning-bg:    light-dark(#f8eeda, #302510);
-  --color-critical-bg:   light-dark(#fae7e5, #351c19);
+  --color-accent-bg:     light-dark(#e6edf9, #1d2836);
+  --color-good-bg:       light-dark(#e3efe8, #1a2620);
+  --color-warning-bg:    light-dark(#f6eedd, #2c2417);
+  --color-critical-bg:   light-dark(#f8e8e6, #2f2020);
 
-  --color-focus:         light-dark(#1f5fd0, #6fa8ff);
+  --color-focus:         light-dark(#2f62b5, #7fa9e8);
 }
 
 :root[data-theme="light"] { color-scheme: light; }

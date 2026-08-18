@@ -1,0 +1,29 @@
+schema: learning-roadmap/v1
+id: minimal-program
+title: Минимальная программа — один этап, одна тема
+subject: |
+  Проверяется форма, а не содержание: программа сведена к обязательному минимуму.
+goal: |
+  Наблюдаемый критерий: файл проходит схему, не имея ни одного лишнего поля.
+generated_at: 2026-07-27
+generated_by: fixture
+locale: ru
+weekly_hours: 1
+env_constraints: []
+version_pins: {}
+calibration:
+  method: none
+  probed: 0
+  passed_out: []
+  interrupted: false
+defaults:
+  revalidate_after_days:
+    stable: 730
+    evolving: 365
+    volatile: 90
+stages:
+  - n: 1
+    title: Единственный этап
+    generated: true
+    checkpoint: minimal-topic
+topics: []

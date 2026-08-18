@@ -1,0 +1,44 @@
+[package]
+name = "tolearn-app"
+description = "Tauri shell: IPC, windows, prerenderer"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+speech = ["tolearn-speech/speech"]
+
+[dependencies]
+tolearn-core.workspace = true
+tolearn-offline.workspace = true
+tolearn-provider.workspace = true
+tolearn-runner.workspace = true
+tolearn-gestures.workspace = true
+tolearn-speech.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+tauri.workspace = true
+tauri-plugin-dialog.workspace = true
+tauri-plugin-deep-link.workspace = true
+tauri-plugin-single-instance.workspace = true
+
+[dev-dependencies]
+flate2.workspace = true
+tar.workspace = true
+zip.workspace = true
+
+[build-dependencies]
+tauri-build.workspace = true
+
+[[bin]]
+name = "tolearn-desktop"
+path = "src/main.rs"
+
+[lints]
+workspace = true

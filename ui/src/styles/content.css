@@ -1,0 +1,93 @@
+.page section > h2 {
+  padding-block-end: var(--spacing-2);
+  border-block-end: var(--border-width) solid var(--color-border);
+}
+
+.page ul,
+.page ol {
+  padding-inline-start: var(--spacing-6);
+}
+
+.page :where(li + li) {
+  margin-block-start: var(--spacing-1);
+}
+
+[data-header] > p,
+[data-steps] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+  max-width: none;
+}
+
+[data-steps] {
+  margin-block-start: var(--spacing-4);
+}
+
+[data-tools] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+}
+
+[data-tools] :where(a) {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--tap-target);
+  padding-inline: var(--spacing-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+}
+
+.row :where(button) + :where(button),
+[data-steps] :where(button) + :where(button) {
+  margin-inline-start: 0;
+}
+
+details {
+  padding: var(--spacing-2) var(--spacing-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-subtle);
+}
+
+summary {
+  color: var(--color-fg-muted);
+  cursor: pointer;
+}
+
+table {
+  margin-block: var(--spacing-4);
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: var(--spacing-2) var(--spacing-3);
+  border-block-end: var(--border-width) solid var(--color-border);
+  text-align: start;
+}
+
+thead th {
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+  font-weight: normal;
+}
+
+progress {
+  inline-size: 100%;
+  block-size: var(--spacing-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  accent-color: var(--color-accent);
+}
+
+time,
+[data-verified],
+[data-since],
+[data-expired-at] {
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}

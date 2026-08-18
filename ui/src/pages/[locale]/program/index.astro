@@ -1,0 +1,25 @@
+---
+import { LOCALES, localeOf, strings } from "../../../i18n";
+import Plan from "../../../islands/Plan";
+import Program from "../../../islands/Program";
+import Base from "../../../layouts/Base.astro";
+
+export function getStaticPaths() {
+  return LOCALES.map((locale) => ({ params: { locale } }));
+}
+
+const locale = localeOf(Astro.params.locale);
+const text = strings(locale);
+---
+
+<Base locale={locale} title={text.nav.program} back={{ href: "/", text: text.nav.programs }}>
+  <section id="plan">
+    <h2>{text.plan.title}</h2>
+    <Plan text={text} locale={locale} client:load />
+  </section>
+  <section id="stages">
+    <h2>{text.program.stages}</h2>
+    <p>{text.program.lead}</p>
+    <Program text={text} locale={locale} client:load />
+  </section>
+</Base>

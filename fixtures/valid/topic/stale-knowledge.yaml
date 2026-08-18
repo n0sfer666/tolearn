@@ -1,0 +1,99 @@
+schema: learning-roadmap/topic/v1
+id: stale-knowledge
+title: Тема со своим сроком годности
+stage: 1
+depends_on: []
+est_hours: [2, 3]
+volatility: evolving
+revalidate_after_days: 30
+verified_at: "2026-05-01"
+confidence: medium
+retention: by_schedule
+version_context:
+  - yt_dlp
+outcomes:
+  - |
+    Может объяснить, почему поле темы сильнее `defaults` роадмапа: генератор
+    знает про конкретную тему больше, чем шапка программы про класс тем.
+misconceptions:
+  - |
+    «`defaults` — это правило, а поле темы — исключение, которое можно
+    игнорировать» — наоборот: `defaults` применяется, только если поля нет.
+materials:
+  - title: Сроки ревалидации знания
+    url: https://example.org/revalidation
+    type: guide
+    tier: T2
+    lang: ru
+    liveness: ok
+    published: "2026-05"
+    covers_version: null
+    checked_at: "2026-05-01"
+    stale: true
+    delta: |
+      С момента проверки вышла версия, где срок по умолчанию считается иначе.
+    note: |
+      Материал остаётся полезным как объяснение идеи, но числа в нём устарели.
+practice:
+  kind: analysis
+  tier: P2
+  time_box_min: 45
+  task: |
+    Посчитай срок годности знания по этой теме двумя способами — по `defaults`
+    шапки и по полю темы — и покажи расхождение. Отдельно объясни, почему
+    `next_review_at` у неё считается не от `verified_at`, а от `passed_at`.
+  deliverable: |
+    Файл revalidate.md: два срока годности, вывод, какой применяется, и отдельной
+    строкой `next_review_at` с базой отсчёта.
+  starting_point: |
+    Фикстуры fixtures/valid/roadmap/corpus-program.yaml и этот файл.
+  fallback: |
+    Если считать в уме не выходит, посчитай в любом калькуляторе дат и приложи
+    вывод команды `date`.
+  smoke_checked: false
+  constraints:
+    - id: c1
+      claim: |
+        Оба срока годности посчитаны от `verified_at`, а не от сегодняшнего дня.
+      check: |
+        bash -c 'grep -c "2026-05-01" revalidate.md'
+      expect: |
+        Число не меньше 1.
+  acceptance:
+    - id: a1
+      claim: |
+        Применяемый срок годности — тот, что посчитан по полю темы: 2026-05-31.
+      check: |
+        bash -c 'grep -c "2026-05-31" revalidate.md'
+      expect: |
+        Число не меньше 1.
+    - id: a2
+      claim: |
+        `next_review_at` назван отдельной датой: 2026-07-01 от `passed_at`.
+      check: |
+        bash -c 'grep -c "2026-07-01" revalidate.md'
+      expect: |
+        Число не меньше 1.
+questions:
+  - id: q1
+    type: predict
+    text: |
+      Шапка говорит 365 дней для `evolving`, тема говорит 30. Какой срок годности
+      покажет приложение и что произойдёт, если поле темы убрать?
+    expected_signals:
+      - |
+        Называет 30 дней и говорит, что без поля темы включится 365 из `defaults`.
+    red_flags:
+      - |
+        Считает, что значения складываются или что берётся меньшее из двух.
+    follow_up: |
+      А если в шапке для `evolving` вообще нет значения — что тогда?
+exam:
+  focus: |
+    Знает ли человек порядок применения: поле темы, потом `defaults`, и никогда
+    наоборот.
+  traps:
+    - |
+      Предложить «взять минимум из двух значений, так безопаснее».
+  artifact_required: true
+  max_exchanges: 4

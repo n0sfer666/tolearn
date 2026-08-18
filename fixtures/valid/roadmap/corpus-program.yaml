@@ -1,0 +1,69 @@
+schema: learning-roadmap/v1
+id: corpus-program
+title: Программа корпуса — всё, чего нет в эталоне
+subject: |
+  Ветки, которые эталонный бандл не воспроизводит: цикл зависимостей, тема с
+  собственным сроком ревалидации, материалы за пейволом и видео.
+goal: |
+  Наблюдаемый критерий: каждая ветка, про которую спрашивают спеки S05–S11,
+  подтверждается фикстурой, а не рассуждением.
+generated_at: 2026-07-27
+generated_by: fixture
+locale: ru-RU
+weekly_hours: 4
+env_constraints:
+  - Сеть не нужна ни для одного шага
+version_pins:
+  yt_dlp: "2026.07.01"
+  monolith: "v2.11.0"
+calibration:
+  method: self-report
+  probed: 2
+  passed_out:
+    - offline-edge
+  interrupted: false
+defaults:
+  revalidate_after_days:
+    stable: 730
+    evolving: 365
+    volatile: 90
+stages:
+  - n: 1
+    title: Циклы и сроки
+    generated: true
+    checkpoint: stale-knowledge
+  - n: 2
+    title: Материалы и офлайн
+    generated: false
+    checkpoint: offline-edge
+topics:
+  - id: cycle-a
+    title: Тема, которая ждёт вторую
+    stage: 1
+    file: topics/cycle-a.yaml
+    est_hours: [1, 2]
+    priority: core
+  - id: cycle-b
+    title: Тема, которая ждёт первую
+    stage: 1
+    file: topics/cycle-b.yaml
+    est_hours: [1, 2]
+    priority: recommended
+  - id: stale-knowledge
+    title: Тема со своим сроком годности
+    stage: 1
+    file: topics/stale-knowledge.yaml
+    est_hours: [2, 3]
+    priority: core
+  - id: offline-edge
+    title: Материалы, которые офлайн не тянутся
+    stage: 2
+    file: topics/offline-edge.yaml
+    est_hours: [1, 3]
+    priority: optional
+  - id: question-shapes
+    title: Типы вопросов экзамена
+    stage: 2
+    file: topics/question-shapes.yaml
+    est_hours: [1, 2]
+    priority: recommended

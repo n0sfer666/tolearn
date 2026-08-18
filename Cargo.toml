@@ -1,0 +1,76 @@
+[workspace]
+resolver = "3"
+members = ["core", "runner", "offline", "provider", "cli", "app", "gestures", "speech"]
+
+[workspace.package]
+version = "0.3.0"
+edition = "2024"
+rust-version = "1.97"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/n0sfer666/tolearn"
+publish = false
+
+[workspace.dependencies]
+tolearn-core = { path = "core" }
+tolearn-runner = { path = "runner" }
+tolearn-offline = { path = "offline" }
+tolearn-provider = { path = "provider" }
+tolearn-gestures = { path = "gestures" }
+tolearn-speech = { path = "speech" }
+age = { version = "0.12", default-features = false }
+getrandom = "0.3"
+keyring = "4"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "default-tls"] }
+jsonschema = { version = "0.49", default-features = false }
+rusqlite = { version = "0.37", features = ["bundled"] }
+sha2 = "0.10"
+monolith = { version = "2.10", default-features = false, features = ["vendored-openssl"] }
+url = "2"
+base64 = "0.22"
+cc = "1"
+cmake = "0.1"
+cpal = "0.18"
+markup5ever_rcdom = "=0.4.0-unofficial"
+pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
+gix = { version = "0.86.0", default-features = false, features = ["blocking-network-client", "max-performance-safe", "worktree-mutation", "sha1"] }
+zip = { version = "8.6", default-features = false, features = ["deflate"] }
+tar = { version = "0.4", default-features = false }
+flate2 = { version = "1.1", default-features = false, features = ["rust_backend"] }
+saphyr = "0.0.11"
+saphyr-parser = "0.0.11"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.9"
+tauri = "2"
+tauri-build = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-deep-link = "2"
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
+
+[profile.release]
+strip = "symbols"
+
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
+
+[profile.mutants]
+inherits = "dev"
+debug = false
+strip = "debuginfo"
+incremental = false
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_debug_implementations = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+dbg_macro = "warn"
+expect_used = "warn"
+panic = "warn"
+todo = "warn"
+unwrap_used = "warn"

@@ -1,0 +1,14 @@
+[data-map] {
+  display: block;
+  width: 100%;
+  height: min(60vh, 32rem);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  touch-action: none;
+  cursor: grab;
+}
+
+[data-map]:active {
+  cursor: grabbing;
+}

@@ -1,0 +1,75 @@
+schema: learning-roadmap/progress/v1
+roadmap_id: corpus-program
+topics:
+  cycle-a:
+    status: blocked
+    attempts:
+      - at: "2026-07-27T09:00:00Z"
+        source: manual
+        verdict: blocked
+        model: null
+        hinted: false
+        practice_accepted: false
+        per_question: []
+        gaps:
+          - |
+            Тему нельзя начать: она ждёт cycle-b, а cycle-b ждёт её.
+        calibration: null
+        notes:
+          - |
+            Отметка поставлена руками после того, как приложение показало цикл.
+        next_action: split_topic
+        retry_after_days: 0
+        raw: ""
+    passed_at: null
+    next_review_at: null
+    gaps:
+      - |
+        Замкнутая пара зависимостей: разорвать её может только правка бандла.
+  cycle-b:
+    status: todo
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []
+  stale-knowledge:
+    status: stale_passed
+    attempts:
+      - at: "2026-06-01T18:30:00Z"
+        source: exam
+        verdict: pass
+        model: claude-opus-5
+        hinted: false
+        practice_accepted: true
+        failed_checks: []
+        per_question:
+          - id: q1
+            result: ok
+            quote: |
+              Возьмёт 30 дней — это поле темы; без него включились бы 365 из шапки.
+            missed: []
+            signal_extension: false
+        gaps: []
+        calibration: |
+          Ответ полный и без подсказок, уверенность высокая.
+        notes: []
+        next_action: proceed
+        raw: |
+          Приложение показало 30 дней. Это значение из самой темы, а не из шапки:
+          `defaults` применяется только там, где у темы своего срока нет. Уберу
+          поле темы — станет 365, потому что тема `evolving`.
+    passed_at: "2026-06-01"
+    next_review_at: "2026-07-01"
+    gaps: []
+  question-shapes:
+    status: todo
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []
+  offline-edge:
+    status: passed_out
+    attempts: []
+    passed_at: "2026-07-27"
+    next_review_at: "2026-10-18"
+    gaps: []

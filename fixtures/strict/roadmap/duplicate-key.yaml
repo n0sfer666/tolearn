@@ -1,0 +1,226 @@
+schema: learning-roadmap/v1
+id: llm-agents-base
+title: Работа с агентами LLM — база на готовых инструментах
+subject: |
+  Агенты LLM — CLI-агенты, MCP, RAG, локальные модели, подключение сторонних провайдеров
+goal: |
+  Собрать и эксплуатировать личный агентный стек на существующих инструментах, без написания
+  своего фреймворка. Наблюдаемый критерий цели: человек поднимает локальную модель и облачный
+  API за одним контрактом, подключает к готовому CLI-агенту MCP-серверы с осознанными правами,
+  строит RAG над своим корпусом заметок и кода, измеряет качество retrieval числом, а не на глаз,
+  и по логам объясняет, почему агент повёл себя именно так.
+generated_at: 2026-07-26
+generated_by: claude-opus-5
+locale: ru
+weekly_hours: 6
+
+env_constraints:
+  - Docker и тулчейны ставить можно, ограничений нет
+  - Локальные модели гоняются на этой машине (macOS, Apple Silicon)
+  - |
+    Платные API-ключи доступны (OpenAI / Anthropic) — практика может их использовать; ключи только
+    через переменные окружения, в файлах бандла их нет
+  - Есть куда деплоить не требуется, вся практика локальная
+  - Программа на русском, материалы преимущественно английские (помечены lang)
+  - Claude Code исключён из программы намеренно — инструмент уже освоен
+
+version_pins:
+  ollama: "v0.32.4"
+  llama_cpp: "b10107"
+  lm_studio: "0.4.20"
+  vllm: "v0.26.0"
+  litellm: "v1.93.0"
+  anthropic_api_version: "2023-06-01"
+  mcp_spec: "2025-11-25"
+  mcp_inspector: "1.0.0"
+  opencode: "v1.18.5"
+  goose: "v1.44.0"
+  codex_cli: "0.145.0"
+  gemini_cli: "v0.52.0"
+  cline: "v4.0.11"
+  docling: "v2.115.0"
+  markitdown: "v0.1.6"
+  unstructured: "0.24.1"
+  qdrant: "v1.18.3"
+  chroma: "1.5.9"
+  pgvector: "v0.8.5"
+  lancedb: "v0.32.0-beta.3"
+  llama_index: "v0.14.23"
+  open_webui: "v0.10.2"
+  ragflow: "v0.26.4"
+  txtai: "v9.11.0"
+  flagembedding: "v1.4.0"
+  promptfoo: "0.121.19"
+  deepeval: "v4.1.3"
+  ragas: "v0.4.3"
+  langfuse: "v3.224.1"
+  otel_semconv: "v1.43.0"
+  owasp_llm_top10: "2025"
+  owasp_agentic_top10: "2026"
+
+calibration:
+  method: diagnostic-probe
+  probed: 3
+  passed_out: []
+  interrupted: true
+
+defaults:
+  revalidate_after_days:
+    stable: 730
+    evolving: 365
+    volatile: 90
+
+stages:
+  - n: 1
+    title: Модели и доступ
+    generated: true
+    checkpoint: cp-gateway
+  - n: 2
+    title: Агенты и инструменты
+    generated: false
+    checkpoint: cp-agent-stack
+  - n: 3
+    title: RAG и встраивание в работу
+    generated: false
+    checkpoint: cp-personal-rag
+
+topics:
+  - id: local-runtime
+    title: Локальный рантайм — поднять модель и понять, что съело память
+    stage: 1
+    file: topics/local-runtime.yaml
+    est_hours: [4, 6]
+    priority: core
+  - id: openai-compatible-api
+    title: OpenAI-совместимый контракт как общий знаменатель
+    stage: 1
+    file: topics/openai-compatible-api.yaml
+    est_hours: [3, 5]
+    priority: core
+  - id: tokens-context-cost
+    title: Токены, окно контекста и цена запроса
+    stage: 1
+    file: topics/tokens-context-cost.yaml
+    est_hours: [3, 4]
+    priority: core
+  - id: structured-output
+    title: Машиночитаемый вывод — схемы и грамматики вместо надежды
+    stage: 1
+    file: topics/structured-output.yaml
+    est_hours: [3, 5]
+    priority: core
+  - id: model-selection
+    title: Выбор модели под задачу по своему замеру
+    stage: 1
+    file: topics/model-selection.yaml
+    est_hours: [3, 5]
+    priority: recommended
+  - id: provider-routing
+    title: Шлюз к нескольким провайдерам, фолбэки и ключи
+    stage: 1
+    file: topics/provider-routing.yaml
+    est_hours: [3, 4]
+    priority: core
+  - id: cp-gateway
+    title: Чекпоинт — единый шлюз к трём моделям с замером и фолбэком
+    stage: 1
+    file: topics/cp-gateway.yaml
+    est_hours: [2, 3]
+    priority: core
+  - id: tool-calling
+    title: Tool calling — контракт вызова инструмента и его ошибки
+    stage: 2
+    file: topics/tool-calling.yaml
+    est_hours: [4, 6]
+    priority: core
+  - id: agent-loop
+    title: Агентный цикл — где он останавливается и где зацикливается
+    stage: 2
+    file: topics/agent-loop.yaml
+    est_hours: [3, 5]
+    priority: core
+  - id: mcp-servers
+    title: MCP — подключение готовых серверов и отладка инспектором
+    stage: 2
+    file: topics/mcp-servers.yaml
+    est_hours: [4, 6]
+    priority: core
+  - id: cli-agents
+    title: Готовые CLI-агенты — настройка под свою модель и репозиторий
+    stage: 2
+    file: topics/cli-agents.yaml
+    est_hours: [3, 5]
+    priority: core
+  - id: sandbox-permissions
+    title: Права и песочница — радиус разрушения агента
+    stage: 2
+    file: topics/sandbox-permissions.yaml
+    est_hours: [3, 4]
+    priority: core
+  - id: agent-observability
+    title: Трассировка агента — почему он сделал именно это
+    stage: 2
+    file: topics/agent-observability.yaml
+    est_hours: [2, 4]
+    priority: optional
+  - id: cp-agent-stack
+    title: Чекпоинт — рабочий CLI-агент с MCP в песочнице
+    stage: 2
+    file: topics/cp-agent-stack.yaml
+    est_hours: [2, 3]
+    priority: core
+  - id: ingest-chunking
+    title: Приём корпуса — парсинг и нарезка на чанки
+    stage: 3
+    file: topics/ingest-chunking.yaml
+    est_hours: [3, 5]
+    priority: core
+  - id: embeddings-choice
+    title: Выбор эмбеддинг-модели под русский корпус и код
+    stage: 3
+    file: topics/embeddings-choice.yaml
+    est_hours: [3, 5]
+    priority: core
+  - id: vector-store-ops
+    title: Векторное хранилище — метаданные, фильтры, переиндексация
+    stage: 3
+    file: topics/vector-store-ops.yaml
+    est_hours: [4, 6]
+    priority: core
+  - id: retrieval-quality
+    title: Качество поиска — гибрид, реранкинг и диагностика промахов
+    stage: 3
+    file: topics/retrieval-quality.yaml
+    est_hours: [4, 6]
+    priority: core
+  - id: rag-turnkey
+    title: Готовые RAG-обвязки поверх своего корпуса
+    stage: 3
+    file: topics/rag-turnkey.yaml
+    est_hours: [3, 5]
+    priority: recommended
+  - id: rag-eval
+    title: Измерение качества — свой золотой набор и бинарный вердикт
+    stage: 3
+    file: topics/rag-eval.yaml
+    est_hours: [4, 6]
+    priority: recommended
+  - id: prompt-injection-safety
+    title: Инъекции через документы и инструменты — смертельная тройка
+    stage: 3
+    file: topics/prompt-injection-safety.yaml
+    est_hours: [3, 4]
+    priority: recommended
+  - id: dev-workflow-integration
+    title: Встраивание агентов в свой дев-процесс
+    stage: 3
+    file: topics/dev-workflow-integration.yaml
+    est_hours: [3, 5]
+    priority: optional
+  - id: cp-personal-rag
+    title: Чекпоинт — RAG над своим корпусом с измеренным качеством
+    stage: 3
+    file: topics/cp-personal-rag.yaml
+    est_hours: [3, 3]
+    priority: core
+locale: en

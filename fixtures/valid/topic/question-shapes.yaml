@@ -1,0 +1,116 @@
+schema: learning-roadmap/topic/v1
+id: question-shapes
+title: Типы вопросов экзамена
+stage: 2
+depends_on:
+  - offline-edge
+est_hours: [1, 2]
+volatility: stable
+revalidate_after_days: 730
+verified_at: "2026-07-20"
+confidence: high
+retention: none
+version_context: []
+outcomes:
+  - |
+    Различает пять типов вопроса по тому, что каждый проверяет: заблуждение,
+    диагноз, границу, компромисс и предсказание.
+misconceptions:
+  - |
+    «Тип вопроса — это оформление» — нет: от типа зависит, что считается
+    признаком понимания, а что красным флагом.
+materials:
+  - title: Как формулировать проверяющие вопросы
+    url: https://example.org/guide/questions
+    type: guide
+    tier: T2
+    lang: ru
+    liveness: ok
+    published: "2026-02"
+    covers_version: null
+    checked_at: "2026-07-20"
+    stale: false
+    delta: null
+    note: |
+      Разбор пяти типов с примерами формулировок и типичными ошибками.
+practice:
+  kind: ops
+  tier: P2
+  time_box_min: 45
+  task: |
+    Возьми вопросы темы offline-edge и подпиши каждому тип, не подглядывая в
+    поле `type`. Потом сверься с бандлом и объясни каждое расхождение.
+  deliverable: |
+    Файл types.md: вопрос, твой тип, тип из бандла, объяснение расхождения.
+  starting_point: |
+    Файл темы offline-edge из этой же программы.
+  fallback: |
+    Если тип не угадывается — выпиши, какой ответ считался бы полным, и подбери
+    тип по нему.
+  smoke_checked: true
+  constraints:
+    - id: c1
+      claim: |
+        Разбор сделан по всем вопросам темы, ни один не пропущен.
+      check: |
+        bash -c 'grep -c "^- " types.md'
+      expect: |
+        Число не меньше 2.
+  acceptance:
+    - id: a1
+      claim: |
+        Каждое расхождение объяснено, а не просто отмечено.
+      check: |
+        bash -c 'grep -ci "потому" types.md'
+      expect: |
+        Число не меньше 1.
+questions:
+  - id: q1
+    type: boundary
+    text: |
+      У материала `published: null`. Что это значит и чем отличается от
+      отсутствия поля `published` вообще?
+    expected_signals:
+      - |
+        Говорит, что `null` — утверждение «дата неизвестна», а отсутствие поля
+        сделало бы бандл невалидным.
+    red_flags:
+      - |
+        Считает `null` и отсутствие поля одним и тем же.
+    follow_up: |
+      Как это влияет на решение, устарел материал или нет?
+  - id: q2
+    type: tradeoff
+    text: |
+      Приложение может либо показать все материалы сразу, либо только те, что
+      точно сохранятся. Что выбрать для темы с `volatility: volatile`?
+    expected_signals:
+      - |
+        Взвешивает полноту картины против ложного обещания доступности и
+        привязывает выбор к тому, что человек работает офлайн.
+    red_flags:
+      - |
+        Отвечает без опоры на офлайн-режим.
+    follow_up: |
+      Изменится ли ответ, если тема `stable`?
+  - id: q3
+    type: predict
+    text: |
+      Инструмент для видео не установлен. Что покажет приложение при попытке
+      сохранить доклад?
+    expected_signals:
+      - |
+        Ожидает сообщение об отсутствующем инструменте, а не ошибку сети.
+    red_flags:
+      - |
+        Ожидает, что приложение установит инструмент само.
+    follow_up: null
+exam:
+  focus: |
+    Понимает ли человек, что тип вопроса задаёт критерий полного ответа, а не
+    форму фразы.
+  traps:
+    - |
+      Предложить считать `tradeoff` и `boundary` одним и тем же типом.
+  artifact_required: false
+  max_exchanges: 4

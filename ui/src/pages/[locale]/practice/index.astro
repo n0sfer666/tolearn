@@ -1,0 +1,20 @@
+---
+import { LOCALES, localeOf, strings } from "../../../i18n";
+import Base from "../../../layouts/Base.astro";
+import Practice from "../../../islands/Practice";
+
+export function getStaticPaths() {
+  return LOCALES.map((locale) => ({ params: { locale } }));
+}
+
+const locale = localeOf(Astro.params.locale);
+const text = strings(locale);
+---
+
+<Base locale={locale} title={text.topic.practice} back={{ href: "/topic/", text: text.nav.topic }}>
+  <section id="practice">
+    <h2>{text.topic.practice}</h2>
+    <p>{text.practice.lead}</p>
+    <Practice text={text} locale={locale} client:load />
+  </section>
+</Base>

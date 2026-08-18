@@ -1,0 +1,116 @@
+.bar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-2) var(--spacing-4);
+  padding: var(--spacing-2) max(var(--spacing-6), (100% - var(--width-page)) / 2);
+  border-block-end: var(--border-width) solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.bar-here {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  min-width: 0;
+}
+
+.bar-title {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--font-size-lg);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar-nav {
+  display: flex;
+  gap: var(--spacing-1);
+}
+
+.page {
+  width: 100%;
+  max-width: calc(var(--width-page) + var(--spacing-6) * 2);
+  margin-inline: auto;
+  padding: var(--spacing-8) var(--spacing-6) var(--spacing-12);
+}
+
+.page section {
+  margin-block: var(--spacing-8);
+}
+
+.page section section,
+.page li section {
+  margin-block: var(--spacing-4);
+}
+
+.page section:first-child {
+  margin-block-start: 0;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2) var(--spacing-3);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2) var(--spacing-4);
+  margin-block-end: var(--spacing-4);
+  padding-block-end: var(--spacing-2);
+  border-block-end: var(--border-width) solid var(--color-border);
+}
+
+.head > :is(h2, h3) {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.head > p {
+  max-width: none;
+  margin: 0;
+}
+
+.head > :last-child:not(h2, h3) {
+  margin-inline-start: auto;
+}
+
+.page input[type="search"] {
+  display: block;
+  margin-block: var(--spacing-4);
+}
+
+.row input[type="search"] {
+  margin-block: 0;
+}
+
+.page nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.row:has(> input[type="search"]) {
+  max-width: var(--measure);
+}
+
+.row > input[type="search"] {
+  flex: 1 1 var(--width-card);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
