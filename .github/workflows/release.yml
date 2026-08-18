@@ -62,5 +62,5 @@ jobs:
             gh release create "$GITHUB_REF_NAME" installers/* \
               --draft \
               --title "tolearn $GITHUB_REF_NAME" \
-              --notes "Какой вариант скачивать и сколько он весит — [docs/release.md](https://github.com/n0sfer666/tolearn/blob/$GITHUB_REF_NAME/docs/release.md)."
+              --notes "Какой вариант скачивать и сколько он весит — [по-русски](https://github.com/n0sfer666/tolearn/blob/$GITHUB_REF_NAME/docs/ru/release.md), [in English](https://github.com/n0sfer666/tolearn/blob/$GITHUB_REF_NAME/docs/en/release.md)."
           fi
