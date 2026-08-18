@@ -1,0 +1,60 @@
+[data-talk] > li > :where(p, ul, ol, blockquote, h3, h4, h5, h6) {
+  margin-block: var(--spacing-2);
+}
+
+[data-talk] > li > :where(h3, h4, h5, h6) {
+  margin-block-start: var(--spacing-4);
+}
+
+[data-rich] {
+  margin-block: var(--spacing-2);
+  padding-inline-start: var(--spacing-6);
+}
+
+[data-rich] > li {
+  margin-block-start: var(--spacing-1);
+}
+
+blockquote {
+  margin-inline: 0;
+  padding-inline-start: var(--spacing-3);
+  border-inline-start: var(--spacing-1) solid var(--color-border);
+  color: var(--color-fg-muted);
+}
+
+button[data-snip] {
+  min-height: 0;
+  padding: 0 var(--spacing-1);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-subtle);
+  color: inherit;
+  text-align: start;
+  vertical-align: top;
+  cursor: pointer;
+}
+
+button[data-snip]:hover {
+  border-color: var(--color-border-strong);
+}
+
+[data-rich-code] {
+  padding: 0;
+}
+
+[data-rich-code] > button[data-snip] {
+  display: block;
+  inline-size: 100%;
+  padding: var(--spacing-3);
+  border: none;
+  border-radius: var(--radius-md);
+  background: none;
+}
+
+[data-rich-code] > button[data-snip] > code {
+  white-space: pre;
+}
+
+[data-rich-code]:hover {
+  border-color: var(--color-border-strong);
+}

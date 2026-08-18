@@ -162,6 +162,9 @@ export const en: Dictionary = {
     hush: "Stop recording",
     voiceOff: "The spoken answer is under development in this build —",
     variant: "download tolearn-with-speech",
+    copyCode: "Copy",
+    copied: "copied",
+    copyManually: "the clipboard is unavailable — select the text and copy it by hand",
   },
   sweep: {
     title: "Exam across the program",
