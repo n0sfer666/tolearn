@@ -51,9 +51,9 @@ OS.
 | `tolearn` | Linux x64 | `.deb` | 12.8 MB | 14 MB |
 | `tolearn-with-speech` | macOS arm64 | `.dmg` | 186.6 MB | no ceiling |
 | `tolearn-with-speech` | Windows x64 | `.msi` | 186.0 MB | no ceiling |
-| `tolearn-with-speech` | Linux x64 | `.deb` | 189.0 MB | no ceiling |
+| `tolearn-with-speech` | Linux x64 | `.deb` | 189.1 MB | no ceiling |
 
-All six numbers are from 2026-08-17, version 0.2.1, all from the `package` job of
+All six numbers are from 2026-08-18, version 0.3.0, all from the `package` job of
 a single green run. When the weight changes, so does this table: it holds the
 latest measurement, not the first one.
 
