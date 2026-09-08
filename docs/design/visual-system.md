@@ -78,14 +78,22 @@ blocked      ⊘      failed        ✕
 совпадать с `--color-bg` и `--color-accent` тёмной темы; меняется палитра —
 меняется и файл, автоматической связи нет.
 
-Перерисовал SVG — перегенерировать растры (macOS, `qlmanage` рендерит SVG):
+Перерисовал SVG — перегенерировать растры (macOS, рендерит Chrome без окна):
 
 ```nu
-qlmanage -t -s 1024 -o /tmp docs/design/icon.svg
-cargo tauri icon /tmp/icon.svg.png -o app/icons
+$"<!doctype html><style>html,body{margin:0;background:transparent}svg{display:block}</style>(open --raw docs/design/icon.svg)" | save -f /tmp/icon.html
+^'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' --headless --hide-scrollbars --default-background-color=00000000 --window-size=1024,1024 --screenshot=/tmp/icon-1024.png file:///tmp/icon.html
+cargo tauri icon /tmp/icon-1024.png -o app/icons
 rm -r app/icons/android app/icons/ios
 rm app/icons/Square*Logo.png app/icons/StoreLogo.png app/icons/64x64.png
 ```
+
+Рендерить `qlmanage`, как здесь было раньше, нельзя: он кладёт SVG на **белый**
+лист, альфа-канал в растр не доезжает, и вместо squircle с полями получается
+белый квадрат с тёмной плашкой внутри — в Dock и в списке приложений это видно
+как рамка. Отсюда `--default-background-color=00000000` у Chrome и тест
+`app/tests/icons.rs`: у каждого объявленного PNG угловой пиксель обязан быть
+полностью прозрачным.
 
 Последние две строки убирают набор под мобильные и Windows Store: таргетов
 `ios`/`android`/`appx` в `tauri.conf.json` нет, а `cargo tauri icon` пишет их
