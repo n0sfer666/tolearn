@@ -19,6 +19,9 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
+Всё это разом — `make dev` (список берётся из `.context/checks.json`).
+Собрать и поставить себе на macOS — `make install`.
+
 Полный список и то, что появится позже, — [.context/checks.md](.context/checks.md).
 
 ## Долгие прогоны

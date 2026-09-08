@@ -17,6 +17,13 @@
 | Плагин Obsidian: типы | `pnpm -C obsidian lint` |
 | Плагин Obsidian: тесты | `pnpm -C obsidian test` |
 
+Всё это разом — `make dev`. Цель зовёт `scripts/check.sh`, а тот берёт список не
+из себя, а из [checks.json](checks.json) — того же файла, что читает
+pre-commit-хук: разъехаться им негде. Скрипт печатает `N/M` перед каждой
+проверкой, падает на первой красной и до прогона доставляет то, без чего
+проверки не поедут, — `node_modules` в `ui` и `obsidian` и сборку `ui/dist`
+(её приложение вшивает в себя).
+
 Nushell: `and` между командами не работает как в bash — команды разделяются `;`,
 проваленная прерывает конвейер сама.
 
@@ -266,6 +273,15 @@ pnpm -C ui dev
 | собрать базовый установщик своей ОС | `cd app; cargo tauri build` |
 | собрать вариант с речью | `cd app; cargo tauri build --features speech --config tauri.with-speech.conf.json` |
 | взвесить собранное | `sh scripts/weigh.sh target/release/bundle base` (или `with-speech`) |
+| собрать и поставить себе | `make install` (с речью — `make install-speech`) |
+
+`make install` — только macOS: `scripts/install-macos.sh` собирает вариант,
+монтирует получившийся `.dmg` через `hdiutil` и кладёт `.app` в `/Applications`
+тем же `ditto`, что и перетаскивание в Finder. Каталог назначения — второй
+аргумент скрипта (`sh scripts/install-macos.sh base ~/Applications`), первый —
+вариант. Уже установленное приложение заменяется; запущенное — не трогается
+вовсе, скрипт просит закрыть его и выходит. Windows и Linux ставятся своими
+установщиками, цели под них нет.
 
 `cargo tauri build` требует `cargo install tauri-cli --version 2.11.4 --locked`
 (в CI ставится джобой `package` и кладётся в кэш). Цели берёт из
