@@ -13,7 +13,7 @@
 | Вопрос | Где ответ |
 |---|---|
 | ограничения, бюджеты, структура крейтов | [docs/architecture.md](../docs/architecture.md) |
-| принятые решения и отвергнутые альтернативы | [docs/adr/](../docs/adr/) — 11 файлов |
+| принятые решения и отвергнутые альтернативы | [docs/adr/](../docs/adr/) — 12 файлов |
 | что делаем и в каком порядке | [docs/specs/README.md](../docs/specs/README.md) — 58 спек |
 | вердикт → статус, форма попытки | [docs/ru/protocol.md](../docs/ru/protocol.md) |
 | конспекты, шифрование, осиротевшие | [docs/ru/notes.md](../docs/ru/notes.md) |
