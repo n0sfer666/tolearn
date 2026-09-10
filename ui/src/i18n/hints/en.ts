@@ -30,8 +30,20 @@ export const hints: Hints = {
         why: "pieces of the answer as it is written; without them the screen stays silent to the end and the silence timeout can cut a live request",
       },
       {
-        lines: ["--allowedTools", ""],
-        why: "no tools — the app only needs text. The empty line is required: without it claude answers «option '--allowedTools' argument missing»",
+        lines: ["--tools", ""],
+        why: "no tools — the app only needs text. The empty line is required: without it claude answers «option '--tools' argument missing»",
+      },
+      {
+        lines: ["--system-prompt", "Выполни инструкцию из сообщения, ответь только результатом."],
+        why: "the system prompt is neutral to the task: the task itself travels whole through stdin, so one preset fits both generation and checking",
+      },
+      {
+        lines: ["--setting-sources", "project"],
+        why: "no global or user-level claude settings — only what sits in the call's own working directory is read",
+      },
+      {
+        lines: ["--strict-mcp-config"],
+        why: "refuses third-party MCP servers from the user config",
       },
     ],
     opencode: [

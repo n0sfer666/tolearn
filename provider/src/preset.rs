@@ -22,6 +22,9 @@ impl Preset {
     }
 }
 
+pub const CLAUDE_SYSTEM_PROMPT: &str =
+    "Выполни инструкцию из сообщения, ответь только результатом.";
+
 pub const CLAUDE: Preset = Preset {
     id: "claude",
     command: "claude",
@@ -31,8 +34,13 @@ pub const CLAUDE: Preset = Preset {
         "stream-json",
         "--verbose",
         "--include-partial-messages",
-        "--allowedTools",
+        "--tools",
         "",
+        "--system-prompt",
+        CLAUDE_SYSTEM_PROMPT,
+        "--setting-sources",
+        "project",
+        "--strict-mcp-config",
     ],
 };
 
