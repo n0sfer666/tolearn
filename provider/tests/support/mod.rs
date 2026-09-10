@@ -21,6 +21,7 @@ pub fn harness(args: &[String], timeout_secs: u32) -> Provider {
             command: env!("CARGO_BIN_EXE_fake-harness").to_owned(),
             args: args.to_vec(),
             timeout_secs,
+            dismissed_advice: None,
         },
         ..Provider::default()
     }

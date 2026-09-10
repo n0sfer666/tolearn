@@ -14,6 +14,7 @@ impl Preset {
             command: self.command.to_owned(),
             args: Vec::new(),
             timeout_secs: DEFAULT_TIMEOUT_SECS,
+            dismissed_advice: None,
         }
     }
 

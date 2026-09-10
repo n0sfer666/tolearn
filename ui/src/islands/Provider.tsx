@@ -12,6 +12,8 @@ import type { Dictionary } from "../i18n/ru";
 import type {
   AdviceView,
   CheckedView,
+  DriftView,
+  HarnessView,
   PresetView,
   ProbedView,
   ProviderOut,
@@ -39,6 +41,7 @@ export default function Provider(props: Props) {
   const [checked, setChecked] = createSignal<CheckedView | null>(null);
   const [probed, setProbed] = createSignal<ProbedView | null>(null);
   const [advised, setAdvised] = createSignal<AdviceView[]>([]);
+  const [outdated, setOutdated] = createSignal<DriftView | null>(null);
   const [refusal, setRefusal] = createSignal("");
   const [busy, setBusy] = createSignal(false);
 
@@ -49,6 +52,7 @@ export default function Provider(props: Props) {
     setAdvised(answer.advised);
     setChecked(answer.checked);
     setProbed(answer.probed);
+    setOutdated(answer.outdated);
   };
 
   onMount(() => {
@@ -99,6 +103,27 @@ export default function Provider(props: Props) {
       }
       setBusy(false);
     })();
+  };
+
+  const resolve = (harness: HarnessView) => {
+    change({ harness });
+    send(false, false, false);
+  };
+
+  const update = () => {
+    const provider = draft();
+    const found = outdated();
+    if (provider === null || found === null) return;
+    const known = presets().find((one) => one.id === provider.harness.id);
+    if (known === undefined) return;
+    resolve({ ...provider.harness, args: [...known.args], dismissed_advice: null });
+  };
+
+  const keep = () => {
+    const provider = draft();
+    const found = outdated();
+    if (provider === null || found === null) return;
+    resolve({ ...provider.harness, dismissed_advice: found.fingerprint });
   };
 
   return (
@@ -171,6 +196,29 @@ export default function Provider(props: Props) {
               presets={presets()}
               onChange={(harness) => change({ harness })}
             />
+            <Show when={outdated()}>
+              {(found) => (
+                <div data-drift>
+                  <p data-drift-title>{props.text.provider.driftTitle}</p>
+                  <Show when={found().removed.length > 0}>
+                    <p data-drift-removed>
+                      {props.text.provider.driftRemoved} {found().removed.join(", ")}
+                    </p>
+                  </Show>
+                  <Show when={found().added.length > 0}>
+                    <p data-drift-added>
+                      {props.text.provider.driftAdded} {found().added.join(", ")}
+                    </p>
+                  </Show>
+                  <button type="button" data-drift-update onClick={update}>
+                    {props.text.provider.driftUpdate}
+                  </button>
+                  <button type="button" data-drift-keep onClick={keep}>
+                    {props.text.provider.driftKeep}
+                  </button>
+                </div>
+              )}
+            </Show>
           </Show>
 
           <Journal

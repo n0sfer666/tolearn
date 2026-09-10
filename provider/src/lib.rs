@@ -1,6 +1,7 @@
 mod ansi;
 mod ask;
 mod check;
+mod drift;
 mod error;
 mod harness;
 mod legacy;
@@ -19,6 +20,7 @@ mod wire;
 
 pub use ask::{Said, ask, watched};
 pub use check::{Checked, check};
+pub use drift::{Drift, drift, fingerprint};
 pub use error::{CheckError, ProviderError, VaultError};
 pub use memory::memory;
 pub use models::{Advice, advised, known};

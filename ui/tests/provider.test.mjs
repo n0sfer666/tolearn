@@ -30,8 +30,10 @@ const DEFAULTS = {
     temperature_tenths: 7,
   },
   remote: { endpoint: "", api: "openai", model: "", num_ctx: 0, temperature_tenths: 7 },
-  harness: { id: "claude", command: "claude", args: ["-p"], timeout_secs: 180 },
+  harness: { id: "claude", command: "claude", args: ["-p"], timeout_secs: 180, dismissed_advice: null },
 };
+
+const DRIFT = { removed: ["--allowedTools"], added: ["--strict-mcp-config"], fingerprint: "abc123" };
 
 const ADVISED = [
   {
@@ -79,6 +81,7 @@ function mount(options = {}) {
         probed: null,
         presets: PRESETS,
         advised: ADVISED,
+        outdated: options.outdated ?? null,
       });
     }
     if (options.refuse !== undefined) {
@@ -94,6 +97,7 @@ function mount(options = {}) {
           : null,
       presets: PRESETS,
       advised: ADVISED,
+      outdated: null,
     });
   };
   const said = toasts(document.defaultView);
@@ -564,4 +568,52 @@ test("открытие папки журнала не трогает запис�
     host.querySelector("[data-journal-room]").textContent,
     `${ru.provider.journalKept} 2 · /данные/llm-log`,
   );
+});
+
+test("расхождение советов показано плашкой с разницей", async () => {
+  const { host } = mount({ stored: { active: "harness" }, outdated: DRIFT });
+  await settled();
+
+  assert.equal(host.querySelector("[data-drift-title]").textContent, ru.provider.driftTitle);
+  assert.match(host.querySelector("[data-drift-removed]").textContent, /--allowedTools/);
+  assert.match(host.querySelector("[data-drift-added]").textContent, /--strict-mcp-config/);
+});
+
+test("плашки нет, пока сервер не сообщил о расхождении", async () => {
+  const { host } = mount({ stored: { active: "harness" } });
+  await settled();
+
+  assert.equal(host.querySelector("[data-drift]"), null);
+});
+
+test("кнопка обновить подставляет аргументы пресета и сохраняет их сама", async () => {
+  const { host, calls } = mount({ stored: { active: "harness" }, outdated: DRIFT });
+  await settled();
+
+  host.querySelector("[data-drift-update]").click();
+  await settled();
+
+  assert.deepEqual(calls[1].payload.save.harness.args, ["-p"]);
+  assert.equal(calls[1].payload.save.harness.dismissed_advice, null);
+});
+
+test("кнопка оставить мои запоминает отпечаток совета и сохраняет его сама", async () => {
+  const { host, calls } = mount({ stored: { active: "harness" }, outdated: DRIFT });
+  await settled();
+
+  host.querySelector("[data-drift-keep]").click();
+  await settled();
+
+  assert.deepEqual(calls[1].payload.save.harness.args, DEFAULTS.harness.args);
+  assert.equal(calls[1].payload.save.harness.dismissed_advice, DRIFT.fingerprint);
+});
+
+test("после разрешения расхождения плашка гаснет", async () => {
+  const { host } = mount({ stored: { active: "harness" }, outdated: DRIFT });
+  await settled();
+
+  host.querySelector("[data-drift-keep]").click();
+  await settled();
+
+  assert.equal(host.querySelector("[data-drift]"), null);
 });

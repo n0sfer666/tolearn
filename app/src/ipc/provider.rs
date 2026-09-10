@@ -1,10 +1,12 @@
 use tolearn_provider::{
     Advice, Api, CheckError, Harness, Http, Kind, NUM_CTX_MAX, PRESETS, Provider, ProviderError,
-    TEMPERATURE_TENTHS_MAX, VaultError, advised, known, memory,
+    TEMPERATURE_TENTHS_MAX, VaultError, advised, drift, known, memory,
 };
 
 use crate::ipc::error::IpcError;
-use crate::ipc::types::{AdviceView, CheckedView, HarnessView, HttpView, PresetView, ProviderView};
+use crate::ipc::types::{
+    AdviceView, CheckedView, DriftView, HarnessView, HttpView, PresetView, ProviderView,
+};
 
 const TIMEOUT_MAX: u32 = 3_600;
 
@@ -20,8 +22,18 @@ pub fn view(provider: &Provider) -> ProviderView {
             command: provider.harness.command.clone(),
             args: provider.harness.args.clone(),
             timeout_secs: provider.harness.timeout_secs,
+            dismissed_advice: provider.harness.dismissed_advice.clone(),
         },
     }
+}
+
+pub fn outdated(harness: &Harness) -> Option<DriftView> {
+    let found = drift(harness)?;
+    Some(DriftView {
+        removed: found.removed,
+        added: found.added,
+        fingerprint: found.fingerprint,
+    })
 }
 
 pub fn presets() -> Vec<PresetView> {
@@ -81,6 +93,7 @@ pub fn taken(view: &ProviderView) -> Result<Provider, IpcError> {
             command: view.harness.command.trim().to_owned(),
             args: view.harness.args.clone(),
             timeout_secs,
+            dismissed_advice: view.harness.dismissed_advice.clone(),
         },
     })
 }

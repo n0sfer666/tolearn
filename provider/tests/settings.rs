@@ -47,6 +47,7 @@ fn filled(active: Kind) -> Provider {
             command: "/usr/local/bin/claude".to_owned(),
             args: vec!["-p".to_owned(), "--allowedTools".to_owned(), String::new()],
             timeout_secs: 42,
+            dismissed_advice: None,
         },
         journal: false,
     }

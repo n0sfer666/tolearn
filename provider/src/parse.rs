@@ -66,5 +66,9 @@ fn harness(node: &Reader<'_>) -> Result<Harness, ParseError> {
         command: node.field("command")?.any_text()?,
         args: node.field("args")?.list(Reader::any_text)?,
         timeout_secs: node.field("timeout_secs")?.bounded(1, 3_600)?,
+        dismissed_advice: match node.optional_field("dismissed_advice")? {
+            Some(field) => field.optional_text()?,
+            None => None,
+        },
     })
 }

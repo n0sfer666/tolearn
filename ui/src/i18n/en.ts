@@ -430,6 +430,11 @@ export const en: Dictionary = {
     argsNone: "No arguments will be sent",
     argsWarning:
       "Do not put keys here: the field is stored as plain text. The harness takes authorisation from its own login.",
+    driftTitle: "The preset's arguments have changed",
+    driftRemoved: "Will leave:",
+    driftAdded: "Will arrive:",
+    driftUpdate: "Update",
+    driftKeep: "Keep mine",
     timeout: "Timeout, seconds",
     journal: "Keep a log of requests",
     journalLead:

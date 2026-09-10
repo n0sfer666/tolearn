@@ -120,4 +120,5 @@ pub struct Harness {
     pub command: String,
     pub args: Vec<String>,
     pub timeout_secs: u32,
+    pub dismissed_advice: Option<String>,
 }

@@ -614,6 +614,12 @@ dto!(ProviderOut {
     probed: Option<ProbedView>,
     presets: Vec<PresetView>,
     advised: Vec<AdviceView>,
+    outdated: Option<DriftView>,
+});
+dto!(DriftView {
+    removed: Vec<String>,
+    added: Vec<String>,
+    fingerprint: String,
 });
 dto!(AdviceView {
     id: String,
@@ -642,6 +648,7 @@ dto!(HarnessView {
     command: String,
     args: Vec<String>,
     timeout_secs: u32,
+    dismissed_advice: Option<String>,
 });
 dto!(PresetView {
     id: String,
@@ -895,6 +902,7 @@ pub fn shapes() -> Vec<Shape> {
         FollowOut::shape(),
         ProviderIn::shape(),
         ProviderOut::shape(),
+        DriftView::shape(),
         ProviderView::shape(),
         HttpView::shape(),
         HarnessView::shape(),

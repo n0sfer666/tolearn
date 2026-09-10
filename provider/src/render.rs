@@ -32,12 +32,17 @@ fn http(http: &Http) -> String {
 }
 
 fn harness(harness: &Harness) -> String {
+    let dismissed_advice = harness
+        .dismissed_advice
+        .as_ref()
+        .map_or_else(|| "null".to_owned(), |value| quoted(value));
     format!(
-        "  id: {}\n  command: {}\n  args:{}\n  timeout_secs: {}\n",
+        "  id: {}\n  command: {}\n  args:{}\n  timeout_secs: {}\n  dismissed_advice: {}\n",
         quoted(&harness.id),
         quoted(&harness.command),
         args(&harness.args),
         harness.timeout_secs,
+        dismissed_advice,
     )
 }
 

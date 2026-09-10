@@ -709,6 +709,13 @@ export type ProviderOut = {
   probed: ProbedView | null;
   presets: PresetView[];
   advised: AdviceView[];
+  outdated: DriftView | null;
+};
+
+export type DriftView = {
+  removed: string[];
+  added: string[];
+  fingerprint: string;
 };
 
 export type ProviderView = {
@@ -733,6 +740,7 @@ export type HarnessView = {
   command: string;
   args: string[];
   timeout_secs: number;
+  dismissed_advice: string | null;
 };
 
 export type PresetView = {
