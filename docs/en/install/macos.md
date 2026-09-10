@@ -13,7 +13,7 @@ by the app).
    [releases page](https://github.com/n0sfer666/tolearn/releases):
    `tolearn_<version>_aarch64.dmg` or
    `tolearn-with-speech_<version>_aarch64.dmg`. Do not install both — they fight
-   over the `tolearn://` scheme.
+   over the same `dev.tolearn.app` identifier.
 2. Open the `.dmg` with a double click and drag `tolearn` into Applications.
 3. The image can be ejected and deleted — the app is already copied.
 
@@ -42,15 +42,6 @@ Do this only for a file downloaded from the project's releases page.
 
 Launch the app: a window with the home screen and the "Choose folder" / "Choose
 archive" buttons should appear. From there — the [guide](../guide.md).
-
-To check that the link scheme got registered (the app has to be running):
-
-```sh
-open "tolearn://topic?roadmap=demo&topic=demo"
-```
-
-The app comes to the front. That there is no `demo` program is fine — what is
-being checked is the handling of the link itself.
 
 ## Updating and uninstalling
 

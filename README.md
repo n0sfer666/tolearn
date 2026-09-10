@@ -14,8 +14,8 @@ back still works too.
 
 **Status: working.** Importing a program, topics, timed practice, the exam by
 copy-paste and via a provider, notes with search and encryption, the offline
-archive, the graph, version history, Markdown export, the Obsidian plugin, the
-voice exam and installers for macOS, Windows and Linux are all done.
+archive, the graph, version history, Markdown export, the voice exam and
+installers for macOS, Windows and Linux are all done.
 
 ## Installation
 

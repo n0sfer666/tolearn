@@ -685,15 +685,6 @@ export type EncryptionOut = {
   external: boolean;
 };
 
-export type FollowIn = {
-  url: string;
-};
-
-export type FollowOut = {
-  program: string;
-  topic: string;
-};
-
 export type ProviderIn = {
   save: ProviderView | null;
   key: string | null;
@@ -1016,7 +1007,6 @@ export type Commands = {
   speech_start: { input: SpeechStateIn; output: SpeechStateOut };
   speech_stop: { input: SpeechStopIn; output: SpeechStopOut };
   encryption: { input: EncryptionIn; output: EncryptionOut };
-  follow: { input: FollowIn; output: FollowOut };
   save_offline: { input: SaveOfflineIn; output: SaveOfflineOut };
   offline_cost: { input: OfflineCostIn; output: OfflineCostOut };
   offline_state: { input: OfflineStateIn; output: OfflineStateOut };

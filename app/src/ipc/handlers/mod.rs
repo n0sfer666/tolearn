@@ -7,7 +7,6 @@ pub mod exam_start;
 pub mod exam_state;
 pub mod examine;
 pub mod export;
-pub mod follow;
 pub mod generate;
 pub mod generate_accept;
 pub mod generate_draft;

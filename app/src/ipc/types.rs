@@ -225,12 +225,6 @@ dto!(EncryptionOut {
     external: bool,
 });
 
-dto!(FollowIn { url: String });
-dto!(FollowOut {
-    program: String,
-    topic: String,
-});
-
 dto!(StaleIn {
     bundle: String,
     today: String,
@@ -898,8 +892,6 @@ pub fn shapes() -> Vec<Shape> {
         HitView::shape(),
         EncryptionIn::shape(),
         EncryptionOut::shape(),
-        FollowIn::shape(),
-        FollowOut::shape(),
         ProviderIn::shape(),
         ProviderOut::shape(),
         DriftView::shape(),

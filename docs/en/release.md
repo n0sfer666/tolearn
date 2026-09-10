@@ -67,9 +67,9 @@ bytes, inside the installer, with nothing to download afterwards.
 
 Both variants are one application with one identifier, `dev.tolearn.app`, and so:
 
-- **install exactly one.** Two installed variants fight over the `tolearn://`
-  scheme and over a single window; the OS picks the winner itself, and it will not
-  be the choice you were asked about.
+- **install exactly one.** Two installed variants fight over the same
+  `dev.tolearn.app` identifier and over a single window; the OS picks the
+  winner itself, and it will not be the choice you were asked about.
 - **the data is shared and survives the switch.** Programs, progress and notes
   live outside the bundle
   ([ADR-009](../adr/009-user-data-outside-bundle.md), in Russian): remove one
@@ -78,10 +78,6 @@ Both variants are one application with one identifier, `dev.tolearn.app`, and so
 On macOS `-with-speech` requires 10.15 or newer, while the base variant makes do
 with 10.13. The bar is raised by whisper.cpp, not by the app: it is built against
 `std::filesystem`, which libc++ lacks before 10.15.
-
-The installer registers the `tolearn://` scheme itself: a link like
-`tolearn://topic?roadmap=<program>&topic=<topic>` opens that topic in the already
-running app.
 
 ## Building the variants yourself
 

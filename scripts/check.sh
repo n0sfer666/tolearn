@@ -13,7 +13,7 @@ const rows = Object.entries(listed).map(([name, command]) => name + "\t" + comma
 process.stdout.write(rows.join("\n") + "\n");
 ' >"$list"
 
-for place in ui obsidian; do
+for place in ui; do
     if [ ! -d "$place/node_modules" ]; then
         echo "== зависимости $place"
         pnpm -C "$place" install --frozen-lockfile

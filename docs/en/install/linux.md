@@ -26,7 +26,7 @@ explicitly.
 1. Download one file from the
    [releases page](https://github.com/n0sfer666/tolearn/releases):
    `tolearn_<version>_amd64.deb` or `tolearn-with-speech_<version>_amd64.deb`. Do
-   not install both — they fight over the `tolearn://` scheme.
+   not install both — they fight over the same `dev.tolearn.app` identifier.
 2. Install the package together with its dependencies:
 
    ```sh
@@ -65,15 +65,6 @@ tolearn
 
 Launch the app: a window with the home screen and the "Choose folder" / "Choose
 archive" buttons should appear. From there — the [guide](../guide.md).
-
-To check that the link scheme got registered (the app has to be running):
-
-```sh
-xdg-open "tolearn://topic?roadmap=demo&topic=demo"
-```
-
-The app comes to the front. That there is no `demo` program is fine — what is
-being checked is the handling of the link itself.
 
 ## Updating and uninstalling
 

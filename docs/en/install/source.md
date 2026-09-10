@@ -100,22 +100,11 @@ Such a run puts its data in the same place as an installed app
 The pages are embedded into the binary (the `custom-protocol` feature, on by
 default); to run against the Astro dev server, pass `--no-default-features`.
 
-## The CLI and the Obsidian plugin
+## The CLI
 
-Neither ships in the installer; both are built separately. The windowless CLI —
+It doesn't ship in the installer; it's built separately. The windowless CLI —
 validate a bundle, list topics, export Markdown:
 
 ```sh
 cargo run -p tolearn-cli --release -- validate examples/llm-agents-base
 ```
-
-The Obsidian plugin:
-
-```sh
-pnpm -C obsidian install
-pnpm -C obsidian build
-```
-
-Then copy the `obsidian/` directory (`main.js` and `manifest.json` are required)
-into `<vault>/.obsidian/plugins/tolearn/`. What it does is in
-[notes.md](../notes.md#the-obsidian-plugin).

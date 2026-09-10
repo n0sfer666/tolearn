@@ -10,7 +10,6 @@ pub mod export;
 pub mod generate;
 pub mod graph;
 pub mod history;
-pub mod link;
 pub mod merge;
 pub mod notes;
 pub mod plan;

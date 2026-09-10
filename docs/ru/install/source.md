@@ -100,22 +100,11 @@ cargo run -p tolearn-app --release --bin tolearn-desktop
 Страницы зашиваются внутрь бинарника (фича `custom-protocol`, включена по
 умолчанию); работать против dev-сервера Astro — `--no-default-features`.
 
-## CLI и плагин Obsidian
+## CLI
 
-В установщик они не входят, собираются отдельно. CLI без окна — проверить бандл,
+В установщик он не входит, собирается отдельно. Без окна — проверить бандл,
 посмотреть темы, выгрузить Markdown:
 
 ```sh
 cargo run -p tolearn-cli --release -- validate examples/llm-agents-base
 ```
-
-Плагин Obsidian:
-
-```sh
-pnpm -C obsidian install
-pnpm -C obsidian build
-```
-
-Затем скопировать каталог `obsidian/` (нужны `main.js` и `manifest.json`) в
-`<хранилище>/.obsidian/plugins/tolearn/`. Что он умеет — в
-[notes.md](../notes.md#плагин-obsidian).

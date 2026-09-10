@@ -12,7 +12,7 @@ installer installs it.
    [releases page](https://github.com/n0sfer666/tolearn/releases):
    `tolearn_<version>_x64_en-US.msi` or
    `tolearn-with-speech_<version>_x64_en-US.msi`. Do not install both — they fight
-   over the `tolearn://` scheme.
+   over the same `dev.tolearn.app` identifier.
 2. Run the `.msi` with a double click and go through the wizard. Administrator
    rights are not needed if you install for the current user.
 3. The app appears in the Start menu as `tolearn`.
@@ -31,16 +31,6 @@ unsigned installer.
 Start `tolearn` from the Start menu: a window with the home screen and the "Choose
 folder" / "Choose archive" buttons should appear. From there — the
 [guide](../guide.md).
-
-To check that the link scheme got registered (the app has to be running), in
-PowerShell:
-
-```powershell
-Start-Process "tolearn://topic?roadmap=demo&topic=demo"
-```
-
-The app comes to the front. That there is no `demo` program is fine — what is
-being checked is the handling of the link itself.
 
 ## Updating and uninstalling
 

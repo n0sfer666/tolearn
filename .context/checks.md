@@ -14,14 +14,12 @@
 | UI: токены, контраст, конвенция имён | `pnpm -C ui tokens` |
 | UI: сборка, маршруты, вес JS | `pnpm -C ui test` |
 | Экспорт: CommonMark и markdownlint | `pnpm -C ui markdown` |
-| Плагин Obsidian: типы | `pnpm -C obsidian lint` |
-| Плагин Obsidian: тесты | `pnpm -C obsidian test` |
 
 Всё это разом — `make dev`. Цель зовёт `scripts/check.sh`, а тот берёт список не
 из себя, а из [checks.json](checks.json) — того же файла, что читает
 pre-commit-хук: разъехаться им негде. Скрипт печатает `N/M` перед каждой
 проверкой, падает на первой красной и до прогона доставляет то, без чего
-проверки не поедут, — `node_modules` в `ui` и `obsidian` и сборку `ui/dist`
+проверки не поедут, — `node_modules` в `ui` и сборку `ui/dist`
 (её приложение вшивает в себя).
 
 Nushell: `and` между командами не работает как в bash — команды разделяются `;`,
@@ -188,16 +186,6 @@ Nushell: `and` между командами не работает как в bas
 не для красоты: тест-файлы поднимают `astro build` в общий `dist/`, и два
 параллельных прогона роняют сборку друг другу.
 
-## Плагин Obsidian
-
-`obsidian/` — отдельный пакет, из воркспейса `ui/` не виден и своей вёрстки не
-имеет. `pnpm -C obsidian lint` — это `tsc --noEmit`; `pnpm -C obsidian test` —
-`node --test tests/*.test.mjs`, где тесты импортируют `.ts`-исходники напрямую:
-Node снимает типы сам, отдельного шага сборки для тестов не нужно.
-`pnpm -C obsidian build` собирает `main.js` через esbuild — артефакт, в git не
-кладётся. Единственный модуль с вводом-выводом — `src/host.ts`; вся остальная
-логика чистая, потому и проверяется без Obsidian.
-
 ## Токены
 
 `ui/scripts/tokens.mjs` читает `docs/design/tokens.css` напрямую (копии в `ui/`
@@ -320,30 +308,6 @@ whisper.cpp не собирается). Ему нужны сабмодуль `sp
 потолках 12 и 14 МБ; `-with-speech` — 187.7, 185.8 и 189.1 МБ. Числа живут на
 [странице релиза](../docs/ru/release.md), и `app/tests/release.rs` держит её в
 согласии с бюджетами и с флагом из CI.
-
-### Ссылка `tolearn://` вживую (руками)
-
-Регистрацию схемы в ОС делает установщик, поэтому из кода она не наблюдаема:
-тесты `app/tests/packaging.rs` держат только объявление, а `CFBundleURLSchemes`
-в собранном `tolearn.app` проверяется командой
-
-```
-plutil -extract CFBundleURLTypes json -o - target/release/bundle/macos/tolearn.app/Contents/Info.plist
-```
-
-Сквозной сценарий (после установки собранного пакета, приложение запущено, в
-реестре есть программа `llm-agents-base`):
-
-1. `open "tolearn://topic?roadmap=llm-agents-base&topic=local-runtime"` — окно
-   поднимается из фона и показывает тему `local-runtime`, второй копии приложения
-   не появляется.
-2. `open "tolearn://topic?roadmap=нет-такой&topic=local-runtime"` — окно
-   поднимается, показывает список программ и тост «программа `нет-такой` не в
-   реестре».
-3. То же при закрытом приложении — запускается и приезжает на ту же тему.
-
-На Windows и Linux ссылка приходит аргументом командной строки, а не событием:
-шаги те же, но команда — `start tolearn://…` и `xdg-open tolearn://…`.
 
 ## CI
 
