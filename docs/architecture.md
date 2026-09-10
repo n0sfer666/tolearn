@@ -41,6 +41,7 @@
 | [ADR-015](adr/015-clarifications-outside-bundle.md) | Слой уточнений вне бандла | врезка к `id` блока в app-data, уточняет ADR-009 |
 | [ADR-016](adr/016-v2-format-no-v1-compatibility.md) | Формат v2 без совместимости с v1 | v1 уходит целиком, конвертера нет |
 | [ADR-017](adr/017-written-exam-only.md) | Зачёт только письменный | одним запросом, вердикт по `per_question`, необязателен |
+| [ADR-018](adr/018-notes-dropped.md) | Отказ от конспектов | шифрование, поиск, экспорт и плагин Obsidian уходят |
 
 ## Бюджеты
 
