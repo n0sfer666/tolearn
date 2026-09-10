@@ -214,15 +214,6 @@ dto!(ExportOut {
     bytes: u64,
 });
 
-dto!(EncryptionIn {
-    enable: Option<bool>,
-    phrase: Option<String>,
-});
-dto!(EncryptionOut {
-    enabled: bool,
-    external: bool,
-});
-
 dto!(StaleIn {
     bundle: String,
     today: String,
@@ -887,8 +878,6 @@ pub fn shapes() -> Vec<Shape> {
         SearchIn::shape(),
         SearchOut::shape(),
         HitView::shape(),
-        EncryptionIn::shape(),
-        EncryptionOut::shape(),
         ProviderIn::shape(),
         ProviderOut::shape(),
         DriftView::shape(),

@@ -2,14 +2,13 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use tauri::Manager;
-use tolearn_provider::{Keychain, Remembered, Vault};
+use tolearn_provider::{Keychain, Vault};
 
 use super::error::IpcError;
 use super::layout;
 
 const SERVICE: &str = "tolearn";
 const ACCOUNT: &str = "provider";
-const NOTES: &str = "notes";
 
 #[derive(Debug, Clone)]
 pub struct Context {
@@ -17,7 +16,6 @@ pub struct Context {
     data: PathBuf,
     resources: PathBuf,
     vault: Arc<dyn Vault>,
-    keys: Arc<dyn Vault>,
 }
 
 impl Context {
@@ -31,7 +29,6 @@ impl Context {
             data: data.to_path_buf(),
             resources: data.to_path_buf(),
             vault: Arc::new(Keychain::new(SERVICE, ACCOUNT)),
-            keys: Arc::new(Keychain::new(SERVICE, NOTES)),
         }
     }
 
@@ -41,16 +38,11 @@ impl Context {
     }
 
     pub fn with_vault(data: &Path, vault: Arc<dyn Vault>) -> Self {
-        Self::with_vaults(data, vault, Arc::new(Remembered::default()))
-    }
-
-    pub fn with_vaults(data: &Path, vault: Arc<dyn Vault>, keys: Arc<dyn Vault>) -> Self {
         Self {
             config: data.to_path_buf(),
             data: data.to_path_buf(),
             resources: data.to_path_buf(),
             vault,
-            keys,
         }
     }
 
@@ -60,10 +52,6 @@ impl Context {
 
     pub fn vault(&self) -> &dyn Vault {
         self.vault.as_ref()
-    }
-
-    pub fn keys(&self) -> &dyn Vault {
-        self.keys.as_ref()
     }
 
     pub fn provider(&self) -> PathBuf {

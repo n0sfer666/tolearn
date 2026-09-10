@@ -83,7 +83,6 @@ commands! {
     speech_state(types::SpeechStateIn) -> types::SpeechStateOut,
     speech_start(types::SpeechStateIn) -> types::SpeechStateOut,
     speech_stop(types::SpeechStopIn) -> types::SpeechStopOut,
-    encryption(types::EncryptionIn) -> types::EncryptionOut,
     save_offline(types::SaveOfflineIn) -> types::SaveOfflineOut,
     offline_cost(types::OfflineCostIn) -> types::OfflineCostOut,
     offline_state(types::OfflineStateIn) -> types::OfflineStateOut,

@@ -3,7 +3,6 @@ import { LOCALES, localeOf, strings } from "../../../i18n";
 import Base from "../../../layouts/Base.astro";
 import Settings from "../../../islands/Settings";
 import Provider from "../../../islands/Provider";
-import Encryption from "../../../islands/Encryption";
 
 export function getStaticPaths() {
   return LOCALES.map((locale) => ({ params: { locale } }));
@@ -18,6 +17,5 @@ const text = strings(locale);
   <section class="grid" aria-label={text.nav.settings}>
     <Settings text={text} locale={locale} client:load />
     <Provider text={text} locale={locale} client:load />
-    <Encryption text={text} client:load />
   </section>
 </Base>

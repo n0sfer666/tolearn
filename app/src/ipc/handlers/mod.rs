@@ -1,5 +1,4 @@
 pub mod apply_verdict;
-pub mod encryption;
 pub mod exam_finish;
 pub mod exam_hint;
 pub mod exam_say;

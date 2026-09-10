@@ -672,16 +672,6 @@ export type HitView = {
   snippet: string;
 };
 
-export type EncryptionIn = {
-  enable: boolean | null;
-  phrase: string | null;
-};
-
-export type EncryptionOut = {
-  enabled: boolean;
-  external: boolean;
-};
-
 export type ProviderIn = {
   save: ProviderView | null;
   key: string | null;
@@ -1003,7 +993,6 @@ export type Commands = {
   speech_state: { input: SpeechStateIn; output: SpeechStateOut };
   speech_start: { input: SpeechStateIn; output: SpeechStateOut };
   speech_stop: { input: SpeechStopIn; output: SpeechStopOut };
-  encryption: { input: EncryptionIn; output: EncryptionOut };
   save_offline: { input: SaveOfflineIn; output: SaveOfflineOut };
   offline_cost: { input: OfflineCostIn; output: OfflineCostOut };
   offline_state: { input: OfflineStateIn; output: OfflineStateOut };
