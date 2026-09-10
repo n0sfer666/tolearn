@@ -208,12 +208,10 @@ dto!(ExportIn {
     bundle: String,
     today: String,
     path: String,
-    directory: Option<String>,
 });
 dto!(ExportOut {
     path: String,
     bytes: u64,
-    plaintext: bool,
 });
 
 dto!(EncryptionIn {

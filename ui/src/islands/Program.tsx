@@ -63,7 +63,7 @@ export default function Program(props: Props) {
     if (chosen === null) return;
     setState("busy");
     try {
-      await call()("export", { bundle: path(), today: today(), path: chosen, directory: null });
+      await call()("export", { bundle: path(), today: today(), path: chosen });
       toast("ok", props.text.program.exported);
     } catch {
       toast("error", props.text.program.exportFailed);

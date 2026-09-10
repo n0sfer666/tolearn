@@ -80,30 +80,6 @@ fn кривая_дата_экспорт_не_запускает() {
 }
 
 #[test]
-fn конспекты_из_указанного_каталога_попадают_в_файл() {
-    let case = case("notes");
-    let outside = case.data.join("конспекты");
-    let directory = json!({ "directory": outside.display().to_string() });
-    call(
-        &case.context,
-        "save_note",
-        &json!({
-            "bundle": case.bundle.display().to_string(),
-            "topic": "local-runtime",
-            "body": "Мой текст конспекта",
-            "directory": outside.display().to_string(),
-        }),
-    )
-    .unwrap();
-
-    let out = export(&case, directory).unwrap();
-
-    let text = std::fs::read_to_string(out["path"].as_str().unwrap()).unwrap();
-    assert!(text.contains("#### Конспект"), "конспекта нет");
-    assert!(text.contains("Мой текст конспекта"), "текст не попал");
-}
-
-#[test]
 fn экспорт_бандл_не_трогает() {
     let case = case("intact");
     let before = snapshot(&case.bundle);

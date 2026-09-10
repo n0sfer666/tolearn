@@ -18,8 +18,6 @@ pub fn run(args: &Args) -> Result<Output, CliError> {
         Command::Progress { today } => progress::run(root, today.as_deref()),
         Command::Exam { .. } => exam::run(root, &args.command),
         Command::Merge { was } => merge::run(root, was),
-        Command::Export { out, notes, today } => {
-            export::run(root, out.as_deref(), notes.as_deref(), today.as_deref())
-        }
+        Command::Export { out, today } => export::run(root, out.as_deref(), today.as_deref()),
     }
 }

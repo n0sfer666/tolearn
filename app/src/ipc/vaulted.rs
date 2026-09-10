@@ -35,22 +35,11 @@ pub fn keys(context: &Context) -> Result<Keys, IpcError> {
 }
 
 impl Store {
-    pub fn index(&self) -> Result<Vec<Note>, IpcError> {
-        match self {
-            Self::Plain(root) => tolearn_core::notes::index(root).map_err(failed),
-            Self::Locked(store) => store.index().map_err(broke),
-        }
-    }
-
     pub fn read(&self, roadmap: &str, topic: &str) -> Result<Option<Note>, IpcError> {
         match self {
             Self::Plain(root) => tolearn_core::notes::read(root, roadmap, topic).map_err(failed),
             Self::Locked(store) => store.read(roadmap, topic).map_err(broke),
         }
-    }
-
-    pub fn locked(&self) -> bool {
-        matches!(self, Self::Locked(_))
     }
 
     pub fn save(

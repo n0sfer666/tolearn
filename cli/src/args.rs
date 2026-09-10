@@ -9,7 +9,7 @@ pub const USAGE: &str = "\
   tolearn progress <бандл> [--json] [--today ГГГГ-ММ-ДД]
   tolearn exam     <бандл> <тема> [--verdict <файл>] [--template <файл>] [--run-checks] [--json]
   tolearn merge    <бандл> --was <каталог> [--json]
-  tolearn export   <бандл> [--out <файл>] [--notes <каталог>] [--today ГГГГ-ММ-ДД] [--json]
+  tolearn export   <бандл> [--out <файл>] [--today ГГГГ-ММ-ДД] [--json]
 
 Check-команды бандла не выполняются никогда, кроме явного `--run-checks`.";
 
@@ -38,7 +38,6 @@ pub enum Command {
     },
     Export {
         out: Option<PathBuf>,
-        notes: Option<PathBuf>,
         today: Option<String>,
     },
 }
@@ -55,9 +54,7 @@ pub fn parse(argv: &[String]) -> Result<Args, CliError> {
         if let Some(flag) = word.strip_prefix("--") {
             let value = match flag {
                 "json" | "run-checks" => None,
-                "verdict" | "template" | "was" | "today" | "out" | "notes" => {
-                    Some(taken(flag, rest.next())?)
-                }
+                "verdict" | "template" | "was" | "today" | "out" => Some(taken(flag, rest.next())?),
                 _ => return Err(CliError::Usage(format!("неизвестный флаг `--{flag}`"))),
             };
             flags.push((flag, value));
@@ -100,7 +97,6 @@ pub fn parse(argv: &[String]) -> Result<Args, CliError> {
         },
         "export" => Command::Export {
             out: value("out").map(PathBuf::from),
-            notes: value("notes").map(PathBuf::from),
             today: value("today"),
         },
         other => return Err(CliError::Usage(format!("неизвестная команда `{other}`"))),

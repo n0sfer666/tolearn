@@ -2,14 +2,12 @@ mod anchors;
 mod ask;
 mod head;
 mod lines;
-mod note;
 mod parts;
 mod place;
 mod section;
 
 use std::collections::BTreeMap;
 
-use crate::notes::Note;
 use crate::roadmap::Roadmap;
 use crate::status::Statuses;
 use crate::topic::Topic;
@@ -40,12 +38,7 @@ pub struct Chapter {
     pub topics: Vec<Placed>,
 }
 
-pub fn markdown(
-    roadmap: &Roadmap,
-    topics: &[Topic],
-    statuses: &Statuses,
-    notes: &[Note],
-) -> String {
+pub fn markdown(roadmap: &Roadmap, topics: &[Topic], statuses: &Statuses) -> String {
     let chapters = layout(roadmap);
     let links = links(&chapters);
     let mut doc = Doc::default();
@@ -59,7 +52,6 @@ pub fn markdown(
             let sight = Sight {
                 links: &links,
                 status: statuses.get(&placed.id),
-                notes,
             };
             let document = topics.iter().find(|topic| topic.id == placed.id);
             section::section(&mut doc, entry, document, &sight);

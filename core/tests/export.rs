@@ -6,11 +6,8 @@
 
 mod support;
 
-use std::path::PathBuf;
-
 use tolearn_core::Date;
 use tolearn_core::export::markdown;
-use tolearn_core::notes::{Note, Stamp};
 use tolearn_core::status::effective;
 
 use support::bundles;
@@ -21,28 +18,15 @@ fn day() -> Date {
     Date::parse(TODAY).unwrap()
 }
 
-fn note(topic: &str, body: &str) -> Note {
-    Note {
-        roadmap: "corpus-program".to_owned(),
-        topic: topic.to_owned(),
-        path: PathBuf::from(format!("{topic}.md")),
-        body: body.to_owned(),
-        stamp: Stamp {
-            modified_nanos: 0,
-            size: 0,
-        },
-    }
-}
-
-fn exported(passed: &[(&str, &str)], notes: &[Note]) -> String {
+fn exported(passed: &[(&str, &str)]) -> String {
     let (map, topics) = bundles::corpus_whole();
     let state = bundles::recorded(passed);
     let statuses = effective(&map, &topics, &state, day());
-    markdown(&map, &topics, &statuses, notes)
+    markdown(&map, &topics, &statuses)
 }
 
 fn plain() -> String {
-    exported(&[], &[])
+    exported(&[])
 }
 
 fn anchors(text: &str) -> Vec<String> {
@@ -165,8 +149,8 @@ fn ответы_экспортируются_только_для_зачтённ�
         .unwrap();
     let signal = asked.questions[0].expected_signals[0].clone();
 
-    let closed = exported(&[], &[]);
-    let open = exported(&[(&asked.id, "passed")], &[]);
+    let closed = exported(&[]);
+    let open = exported(&[(&asked.id, "passed")]);
 
     assert!(!closed.contains(&signal), "ответ утёк из незачтённой темы");
     assert!(open.contains(&signal), "зачтённая тема лишилась ответа");
@@ -181,7 +165,7 @@ fn понижённая_тема_ответы_сохраняет() {
         .unwrap();
     let trap = asked.exam.traps[0].clone();
 
-    let open = exported(&[(&asked.id, "stale_passed")], &[]);
+    let open = exported(&[(&asked.id, "stale_passed")]);
 
     assert!(open.contains(&trap), "ловушка пропала у понижённой темы");
 }
@@ -194,46 +178,12 @@ fn незачтённая_тема_говорит_что_ответы_скрыт
 }
 
 #[test]
-fn конспект_попадает_в_документ_а_его_заголовки_опускаются() {
-    let (_, topics) = bundles::corpus_whole();
-    let topic = topics[0].id.clone();
-
-    let text = exported(&[], &[note(&topic, "# Мой заголовок\n\nтело конспекта")]);
-
-    assert!(text.contains("#### Конспект"), "конспекта нет");
-    assert!(text.contains("##### Мой заголовок"), "заголовок не опущен");
-    assert!(text.contains("тело конспекта"));
-}
-
-#[test]
-fn решётка_внутри_кода_за_заголовок_не_считается() {
-    let (_, topics) = bundles::corpus_whole();
-    let topic = topics[0].id.clone();
-
-    let text = exported(&[], &[note(&topic, "```sh\n# комментарий\n```")]);
-
-    assert!(text.contains("# комментарий"), "код переписан");
-    assert!(
-        !text.contains("##### комментарий"),
-        "код принят за заголовок"
-    );
-}
-
-#[test]
-fn конспект_чужой_темы_в_раздел_не_попадает() {
-    let text = exported(&[], &[note("нет-такой-темы", "чужое тело")]);
-
-    assert!(!text.contains("чужое тело"));
-    assert!(!text.contains("#### Конспект"));
-}
-
-#[test]
 fn несгенерированная_тема_названа_а_не_пропущена() {
     let (map, topics) = bundles::corpus();
     let state = bundles::recorded(&[]);
     let statuses = effective(&map, &topics, &state, day());
 
-    let text = markdown(&map, &topics, &statuses, &[]);
+    let text = markdown(&map, &topics, &statuses);
 
     let absent = map
         .topics
@@ -306,20 +256,9 @@ fn голый_адрес_в_тексте_бандла_становится_ав�
     let state = bundles::recorded(&[]);
     let statuses = effective(&map, &topics, &state, day());
 
-    let text = markdown(&map, &topics, &statuses, &[]);
+    let text = markdown(&map, &topics, &statuses);
 
     assert!(text.contains("<http://localhost:11434"), "адрес голый");
-}
-
-#[test]
-fn конспект_переписан_не_будет() {
-    let (_, topics) = bundles::corpus_whole();
-    let topic = topics[0].id.clone();
-    let body = "смотри http://example.org/док, там же";
-
-    let text = exported(&[], &[note(&topic, body)]);
-
-    assert!(text.contains(body), "конспект переписан");
 }
 
 #[test]
@@ -327,19 +266,6 @@ fn ссылка_материала_повторно_не_оборачивает�
     let text = plain();
 
     assert!(!text.contains("](<http"), "ссылка испорчена обёрткой");
-}
-
-#[test]
-fn адрес_внутри_кода_не_трогается() {
-    let (_, topics) = bundles::corpus_whole();
-    let topic = topics[0].id.clone();
-
-    let text = exported(&[], &[note(&topic, "`curl http://localhost:1234` вручную")]);
-
-    assert!(
-        text.contains("`curl http://localhost:1234`"),
-        "код переписан"
-    );
 }
 
 #[test]
@@ -364,7 +290,7 @@ fn две_темы_с_одним_названием_получают_разны�
     let state = bundles::recorded(&[]);
     let statuses = effective(&map, &topics, &state, day());
 
-    let text = markdown(&map, &topics, &statuses, &[]);
+    let text = markdown(&map, &topics, &statuses);
 
     let known = anchors(&text);
     let listed = targets(&contents(&text));
@@ -388,7 +314,7 @@ fn дефис_в_названии_остаётся_в_якоре() {
     let state = bundles::recorded(&[]);
     let statuses = effective(&map, &topics, &state, day());
 
-    let text = markdown(&map, &topics, &statuses, &[]);
+    let text = markdown(&map, &topics, &statuses);
 
     assert!(text.contains("(#alpha-beta-гамма)"), "якорь потерял дефис");
 }
@@ -400,7 +326,7 @@ fn адрес_в_коде_внутри_бандла_остаётся_кодом(
     let state = bundles::recorded(&[]);
     let statuses = effective(&map, &topics, &state, day());
 
-    let text = markdown(&map, &topics, &statuses, &[]);
+    let text = markdown(&map, &topics, &statuses);
 
     assert!(
         text.contains("`curl http://localhost:1234`"),

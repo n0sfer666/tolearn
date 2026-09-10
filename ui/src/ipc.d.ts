@@ -248,13 +248,11 @@ export type ExportIn = {
   bundle: string;
   today: string;
   path: string;
-  directory: string | null;
 };
 
 export type ExportOut = {
   path: string;
   bytes: number;
-  plaintext: boolean;
 };
 
 export type StaleIn = {

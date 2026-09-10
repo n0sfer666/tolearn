@@ -277,7 +277,6 @@ test("экспорт спрашивает путь и пишет файл по �
       bundle: "/programs/llm-agents-base",
       today: "2026-07-27",
       path: "/дом/программа.md",
-      directory: null,
     },
   });
   assert.deepEqual(said.at(-1), { tone: "ok", text: ru.program.exported });

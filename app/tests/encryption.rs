@@ -16,7 +16,6 @@ use tolearn_app::ipc::{Context, IpcError, call};
 use tolearn_provider::{Remembered, Vault};
 
 const PHRASE: &str = "длинная парольная фраза";
-const TODAY: &str = "2026-07-29";
 
 struct Case {
     context: Context,
@@ -219,30 +218,6 @@ fn прерванное_переключение_чинится_при_обра�
     assert_eq!(out["enabled"], json!(false));
     assert!(!case.data.join("notes.retired").exists());
     assert_eq!(case.body(&topic), "тайный абзац");
-}
-
-#[test]
-fn экспорт_из_запертого_хранилища_предупреждает_об_открытом_тексте() {
-    let case = case("export");
-    let topic = case.topic();
-    case.note(&topic, "тайный абзац");
-    case.switch(Some(true), Some(PHRASE)).unwrap();
-
-    let out = call(
-        &case.context,
-        "export",
-        &json!({
-            "bundle": case.roadmap(),
-            "today": TODAY,
-            "path": case.data.join("программа.md").display().to_string(),
-            "directory": null,
-        }),
-    )
-    .unwrap();
-
-    assert_eq!(out["plaintext"], json!(true));
-    let text = std::fs::read_to_string(out["path"].as_str().unwrap()).unwrap();
-    assert!(text.contains("тайный абзац"), "конспект не попал в экспорт");
 }
 
 #[test]

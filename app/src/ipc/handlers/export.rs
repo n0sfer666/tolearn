@@ -9,7 +9,7 @@ use crate::ipc::error::IpcError;
 use crate::ipc::open;
 use crate::ipc::types::{ExportIn, ExportOut};
 
-pub fn run(context: &Context, input: &ExportIn) -> Result<ExportOut, IpcError> {
+pub fn run(_context: &Context, input: &ExportIn) -> Result<ExportOut, IpcError> {
     let opened = open::open(&input.bundle)?;
     let day = Date::parse(&input.today).ok_or_else(|| IpcError::malformed_date(&input.today))?;
     let path = Path::new(&input.path);
@@ -25,15 +25,12 @@ pub fn run(context: &Context, input: &ExportIn) -> Result<ExportOut, IpcError> {
         opened.document.progress(),
         day,
     );
-    let store = crate::ipc::vaulted::store(context, input.directory.as_ref())?;
-    let kept = store.index()?;
-    let text = markdown(&opened.scan.roadmap, &opened.scan.topics, &statuses, &kept);
+    let text = markdown(&opened.scan.roadmap, &opened.scan.topics, &statuses);
     written(path, &text)?;
 
     Ok(ExportOut {
         path: path.display().to_string(),
         bytes: text.len() as u64,
-        plaintext: store.locked(),
     })
 }
 

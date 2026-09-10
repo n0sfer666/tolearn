@@ -1,17 +1,15 @@
 use std::collections::BTreeMap;
 
-use crate::notes::Note;
 use crate::progress::Status;
 use crate::roadmap::TopicEntry;
 use crate::topic::Topic;
 
 use super::lines::Doc;
-use super::{Link, ask, note, parts};
+use super::{Link, ask, parts};
 
 pub struct Sight<'a> {
     pub links: &'a BTreeMap<String, Link>,
     pub status: Option<Status>,
-    pub notes: &'a [Note],
 }
 
 pub fn section(doc: &mut Doc, entry: &TopicEntry, document: Option<&Topic>, sight: &Sight<'_>) {
@@ -29,7 +27,6 @@ pub fn section(doc: &mut Doc, entry: &TopicEntry, document: Option<&Topic>, sigh
     let shown = ask::open(sight.status);
     ask::questions(doc, topic, shown);
     ask::exam(doc, topic, shown);
-    note::note(doc, sight.notes, &topic.id);
 }
 
 fn about(entry: &TopicEntry, document: Option<&Topic>, sight: &Sight<'_>) -> Vec<String> {
