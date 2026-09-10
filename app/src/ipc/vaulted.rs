@@ -53,20 +53,6 @@ impl Store {
         matches!(self, Self::Locked(_))
     }
 
-    pub fn sealed(&self) -> Option<&Sealed> {
-        match self {
-            Self::Plain(_) => None,
-            Self::Locked(store) => Some(store),
-        }
-    }
-
-    pub fn root(&self) -> &std::path::Path {
-        match self {
-            Self::Plain(root) => root,
-            Self::Locked(store) => store.root(),
-        }
-    }
-
     pub fn save(
         &self,
         roadmap: &str,

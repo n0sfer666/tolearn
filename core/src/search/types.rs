@@ -6,14 +6,9 @@ use crate::notes::Stamp;
 pub enum Kind {
     Topic,
     Material,
-    Note,
 }
 
-pub(super) const KINDS: [(&str, Kind); 3] = [
-    ("topic", Kind::Topic),
-    ("material", Kind::Material),
-    ("note", Kind::Note),
-];
+pub(super) const KINDS: [(&str, Kind); 2] = [("topic", Kind::Topic), ("material", Kind::Material)];
 
 impl Kind {
     pub fn label(self) -> &'static str {

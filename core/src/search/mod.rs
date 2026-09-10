@@ -13,7 +13,6 @@ use std::io::ErrorKind;
 use std::path::Path;
 
 use crate::atomic;
-use crate::notes::Note;
 use types::Source;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -43,13 +42,8 @@ impl Index {
         })
     }
 
-    pub fn refresh(&mut self, bundle: &Path, notes: &Path) -> Result<Refresh, SearchError> {
-        let (roadmap, wanted) = collect::plan(bundle, notes)?;
-        self.rebuild(&roadmap, &wanted)
-    }
-
-    pub fn refresh_kept(&mut self, bundle: &Path, notes: &[Note]) -> Result<Refresh, SearchError> {
-        let (roadmap, wanted) = collect::kept(bundle, notes)?;
+    pub fn refresh(&mut self, bundle: &Path) -> Result<Refresh, SearchError> {
+        let (roadmap, wanted) = collect::plan(bundle)?;
         self.rebuild(&roadmap, &wanted)
     }
 

@@ -177,50 +177,6 @@ fn внешний_каталог_и_шифрование_взаимоисклю�
 }
 
 #[test]
-fn поиск_по_запертым_конспектам_находит_и_индекс_на_диске_закрыт() {
-    let case = case("search");
-    let topic = case.topic();
-    case.note(&topic, "мнемоника про кэш");
-    case.switch(Some(true), Some(PHRASE)).unwrap();
-
-    let out = call(
-        &case.context,
-        "search",
-        &json!({ "bundle": case.roadmap(), "query": "мнемоника", "directory": null, "limit": 5 }),
-    )
-    .unwrap();
-
-    let hits = out["hits"].as_array().unwrap();
-    assert!(
-        hits.iter().any(|hit| hit["kind"] == json!("note")),
-        "конспект не найден: {hits:?}"
-    );
-    for text in plain(&case.data.join("notes")) {
-        assert!(!text.contains("мнемоника"), "индекс виден на диске");
-    }
-}
-
-#[test]
-fn индекс_поиска_ложится_в_хранилище_рядом_с_конспектами() {
-    let case = case("blob");
-    let topic = case.topic();
-    case.note(&topic, "мнемоника про кэш");
-    case.switch(Some(true), Some(PHRASE)).unwrap();
-
-    call(
-        &case.context,
-        "search",
-        &json!({ "bundle": case.roadmap(), "query": "мнемоника", "directory": null, "limit": 5 }),
-    )
-    .unwrap();
-
-    let blobs = std::fs::read_dir(case.data.join("notes").join("blobs"))
-        .map(|listing| listing.flatten().count())
-        .unwrap_or_default();
-    assert!(blobs > 0, "индекс не сохранён в хранилище");
-}
-
-#[test]
 fn внешний_каталог_читается_открытым_даже_с_ключом_рядом() {
     let case = case("outside");
     let topic = case.topic();

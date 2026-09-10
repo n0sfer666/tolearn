@@ -14,7 +14,6 @@ use tolearn_core::search::{Index, Kind};
 struct Case {
     root: PathBuf,
     bundle: PathBuf,
-    notes: PathBuf,
 }
 
 fn case(name: &str) -> Case {
@@ -23,13 +22,7 @@ fn case(name: &str) -> Case {
     let bundle = root.join("bundle");
     copy(&support::root().join("examples/llm-agents-base"), &bundle);
     let _ = std::fs::remove_file(bundle.join("roadmap.json"));
-    let notes = root.join("notes");
-    std::fs::create_dir_all(&notes).unwrap();
-    Case {
-        root,
-        bundle,
-        notes,
-    }
+    Case { root, bundle }
 }
 
 fn copy(from: &Path, to: &Path) {
@@ -45,20 +38,26 @@ fn copy(from: &Path, to: &Path) {
     }
 }
 
-fn note(case: &Case, name: &str, topic: &str, body: &str) -> PathBuf {
-    let path = case.notes.join(name);
-    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-    std::fs::write(
-        &path,
-        format!("---\ntolearn:\n  roadmap: llm-agents-base\n  topic: {topic}\n---\n\n{body}\n"),
-    )
-    .unwrap();
-    path
+fn retitle(case: &Case, title: &str) {
+    let path = case.bundle.join("topics/local-runtime.yaml");
+    let text = std::fs::read_to_string(&path).unwrap();
+    let updated: String = text
+        .lines()
+        .map(|line| {
+            if line.starts_with("title: ") {
+                format!("title: {title}")
+            } else {
+                line.to_owned()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    std::fs::write(&path, updated + "\n").unwrap();
 }
 
 fn fresh(case: &Case) -> Index {
     let mut index = Index::default();
-    index.refresh(&case.bundle, &case.notes).unwrap();
+    index.refresh(&case.bundle).unwrap();
     index
 }
 
@@ -88,34 +87,14 @@ fn материал_находится_по_заголовку() {
 }
 
 #[test]
-fn конспект_находится_по_тексту() {
-    let case = case("note");
-    note(
-        &case,
-        "своя/заметка.md",
-        "local-runtime",
-        "Проверил на своём железе",
-    );
-    let index = fresh(&case);
-
-    let hits = index.find("своём железе", 10);
-
-    let first = hits.first().expect("конспект должен найтись");
-    assert_eq!(first.kind, Kind::Note);
-    assert_eq!(first.topic, "local-runtime");
-    assert!(first.snippet.contains("железе"), "{}", first.snippet);
-}
-
-#[test]
 fn нетронутые_файлы_не_перечитываются() {
     let case = case("kept");
-    note(&case, "заметка.md", "local-runtime", "Первый текст");
     let mut index = Index::default();
-    let first = index.refresh(&case.bundle, &case.notes).unwrap();
+    let first = index.refresh(&case.bundle).unwrap();
 
-    let second = index.refresh(&case.bundle, &case.notes).unwrap();
+    let second = index.refresh(&case.bundle).unwrap();
 
-    assert_eq!(first.indexed, 8);
+    assert_eq!(first.indexed, 7);
     assert_eq!(second.indexed, 0);
     assert_eq!(second.kept, first.indexed);
     assert_eq!(second.dropped, 0);
@@ -124,12 +103,12 @@ fn нетронутые_файлы_не_перечитываются() {
 #[test]
 fn правка_перечитывает_только_изменённый_файл() {
     let case = case("changed");
-    note(&case, "заметка.md", "local-runtime", "Абракадабра первая");
+    retitle(&case, "Абракадабра первая");
     let mut index = Index::default();
-    index.refresh(&case.bundle, &case.notes).unwrap();
+    index.refresh(&case.bundle).unwrap();
 
-    note(&case, "заметка.md", "local-runtime", "Тарабарщина вторая");
-    let report = index.refresh(&case.bundle, &case.notes).unwrap();
+    retitle(&case, "Тарабарщина вторая");
+    let report = index.refresh(&case.bundle).unwrap();
 
     assert_eq!(report.indexed, 1);
     assert!(!index.find("тарабарщина", 10).is_empty());
@@ -137,56 +116,36 @@ fn правка_перечитывает_только_изменённый_фа�
 }
 
 #[test]
-fn удалённый_конспект_уходит_из_индекса() {
+fn удалённая_тема_уходит_из_индекса() {
     let case = case("dropped");
-    let path = note(
-        &case,
-        "заметка.md",
-        "local-runtime",
-        "Уникальное слово абракадабра",
-    );
     let mut index = Index::default();
-    index.refresh(&case.bundle, &case.notes).unwrap();
+    index.refresh(&case.bundle).unwrap();
 
-    std::fs::remove_file(&path).unwrap();
-    let report = index.refresh(&case.bundle, &case.notes).unwrap();
+    std::fs::remove_file(case.bundle.join("topics/local-runtime.yaml")).unwrap();
+    let report = index.refresh(&case.bundle).unwrap();
 
     assert_eq!(report.dropped, 1);
     assert_eq!(report.indexed, 0);
-    assert!(index.find("абракадабра", 10).is_empty());
-}
-
-#[test]
-fn чужой_конспект_не_попадает_в_выдачу() {
-    let case = case("foreign");
-    std::fs::write(
-        case.notes.join("чужой.md"),
-        "---\ntolearn:\n  roadmap: другая-программа\n  topic: local-runtime\n---\n\nабракадабра\n",
-    )
-    .unwrap();
-    let index = fresh(&case);
-
-    assert!(index.find("абракадабра", 10).is_empty());
+    assert!(
+        index
+            .find("локальный рантайм", 10)
+            .iter()
+            .all(|hit| hit.topic != "local-runtime")
+    );
 }
 
 #[test]
 fn индекс_переживает_запись_и_чтение() {
     let case = case("saved");
-    note(
-        &case,
-        "заметка.md",
-        "local-runtime",
-        "Уникальное слово абракадабра",
-    );
     let saved = fresh(&case);
     let path = case.root.join("search.yaml");
     saved.save(&path).unwrap();
 
     let mut read = Index::read(&path).unwrap();
-    let report = read.refresh(&case.bundle, &case.notes).unwrap();
+    let report = read.refresh(&case.bundle).unwrap();
 
     assert_eq!(report.indexed, 0);
-    assert_eq!(read.find("абракадабра", 10).len(), 1);
+    assert!(!read.find("локальный рантайм", 10).is_empty());
 }
 
 #[test]
@@ -201,7 +160,7 @@ fn отсутствующий_индекс_читается_как_пустой(
 #[test]
 fn запрос_требует_все_слова() {
     let case = case("all-words");
-    note(&case, "заметка.md", "local-runtime", "абракадабра про кэш");
+    retitle(&case, "Абракадабра про кэш");
     let index = fresh(&case);
 
     assert_eq!(index.find("абракадабра кэш", 10).len(), 1);

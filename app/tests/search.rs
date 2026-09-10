@@ -33,24 +33,9 @@ fn search(case: &Case, query: &str) -> Value {
     call(
         &case.context,
         "search",
-        &json!({ "bundle": case.bundle, "query": query, "directory": null, "limit": 10 }),
+        &json!({ "bundle": case.bundle, "query": query, "limit": 10 }),
     )
     .unwrap()
-}
-
-fn note(case: &Case, body: &str) {
-    call(
-        &case.context,
-        "save_note",
-        &json!({
-            "bundle": case.bundle,
-            "topic": "local-runtime",
-            "body": body,
-            "directory": null,
-            "stamp": null,
-        }),
-    )
-    .unwrap();
 }
 
 fn hits(out: &Value) -> &Vec<Value> {
@@ -82,17 +67,6 @@ fn материал_находится_по_заголовку() {
 }
 
 #[test]
-fn сохранённый_конспект_находится_следующим_запросом() {
-    let case = case("note");
-    note(&case, "Проверил на своём железе, слово абракадабра");
-
-    let out = search(&case, "абракадабра");
-
-    assert_eq!(first(&out)["kind"], "note");
-    assert_eq!(first(&out)["topic"], "local-runtime");
-}
-
-#[test]
 fn повторный_запрос_ничего_не_перечитывает() {
     let case = case("kept");
     let first = search(&case, "рантайм");
@@ -101,20 +75,6 @@ fn повторный_запрос_ничего_не_перечитывает() 
 
     assert_eq!(first["indexed"], 7);
     assert_eq!(second["indexed"], 0);
-}
-
-#[test]
-fn правка_конспекта_видна_следующим_запросом() {
-    let case = case("changed");
-    note(&case, "Абракадабра первая");
-    search(&case, "абракадабра");
-
-    note(&case, "Тарабарщина вторая");
-    let out = search(&case, "тарабарщина");
-
-    assert_eq!(out["indexed"], 1);
-    assert_eq!(first(&out)["kind"], "note");
-    assert!(hits(&search(&case, "абракадабра")).is_empty());
 }
 
 #[test]

@@ -64,7 +64,7 @@ test("запрос уходит в ядро вместе с программой
 
   assert.deepEqual(calls[0], {
     name: "search",
-    payload: { bundle: "/bundle", query: "рантайм", directory: null, limit: 20 },
+    payload: { bundle: "/bundle", query: "рантайм", limit: 20 },
   });
 });
 

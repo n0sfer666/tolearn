@@ -29,7 +29,6 @@ export default function Search(props: Props) {
         const out = await call()("search", {
           bundle: program(),
           query: asked(),
-          directory: null,
           limit: 20,
         });
         setHits(out.hits);

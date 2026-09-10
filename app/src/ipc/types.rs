@@ -561,7 +561,6 @@ dto!(SettingsView {
 dto!(SearchIn {
     bundle: String,
     query: String,
-    directory: Option<String>,
     limit: u32,
 });
 dto!(SearchOut {

@@ -3,28 +3,19 @@ use std::time::UNIX_EPOCH;
 
 use super::error::SearchError;
 use super::types::{Document, Kind, Source};
-use crate::notes::{Note, Stamp};
+use crate::notes::Stamp;
 use crate::roadmap::{Roadmap, parse as roadmap};
 use crate::topic::{Topic, parse as topic};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Origin {
-    Topic,
-    Note,
-}
 
 #[derive(Debug, Clone)]
 pub struct Wanted {
     pub path: PathBuf,
-    pub origin: Origin,
     pub stamp: Stamp,
-    pub text: Option<String>,
 }
 
-pub fn plan(bundle: &Path, notes: &Path) -> Result<(String, Vec<Wanted>), SearchError> {
+pub fn plan(bundle: &Path) -> Result<(String, Vec<Wanted>), SearchError> {
     let map = manifest(bundle)?;
-    let mut wanted = topics(bundle, &map)?;
-    walk(notes, &mut wanted)?;
+    let wanted = topics(bundle, &map)?;
     Ok((map.id, wanted))
 }
 
@@ -33,33 +24,10 @@ fn topics(bundle: &Path, map: &Roadmap) -> Result<Vec<Wanted>, SearchError> {
     for entry in &map.topics {
         let path = bundle.join(&entry.file);
         if let Some(stamp) = stamp(&path)? {
-            wanted.push(Wanted {
-                path,
-                origin: Origin::Topic,
-                stamp,
-                text: None,
-            });
+            wanted.push(Wanted { path, stamp });
         }
     }
     Ok(wanted)
-}
-
-pub fn kept(bundle: &Path, notes: &[Note]) -> Result<(String, Vec<Wanted>), SearchError> {
-    let map = manifest(bundle)?;
-    let mut wanted = topics(bundle, &map)?;
-    for note in notes {
-        wanted.push(Wanted {
-            path: note.path.clone(),
-            origin: Origin::Note,
-            stamp: note.stamp,
-            text: Some(crate::notes::frontmatter::render(
-                &note.roadmap,
-                &note.topic,
-                &note.body,
-            )),
-        });
-    }
-    Ok((map.id, wanted))
 }
 
 pub fn roadmap_id(bundle: &Path) -> Result<String, SearchError> {
@@ -67,19 +35,12 @@ pub fn roadmap_id(bundle: &Path) -> Result<String, SearchError> {
 }
 
 pub fn source(wanted: &Wanted, roadmap: &str) -> Result<Source, SearchError> {
-    let text = match &wanted.text {
-        Some(text) => text.clone(),
-        None => read(&wanted.path)?,
-    };
-    let (owner, documents) = match wanted.origin {
-        Origin::Topic => (roadmap.to_owned(), from_topic(&text)),
-        Origin::Note => from_note(&text, roadmap),
-    };
+    let text = read(&wanted.path)?;
     Ok(Source {
         path: wanted.path.clone(),
-        roadmap: owner,
+        roadmap: roadmap.to_owned(),
         stamp: wanted.stamp,
-        documents,
+        documents: from_topic(&text),
     })
 }
 
@@ -116,50 +77,6 @@ fn about(document: &Topic) -> String {
     lines.push(document.practice.task.clone());
     lines.push(document.exam.focus.clone());
     lines.join("\n")
-}
-
-fn from_note(text: &str, roadmap: &str) -> (String, Vec<Document>) {
-    let Some(bound) = crate::notes::frontmatter::parse(text) else {
-        return (String::new(), Vec::new());
-    };
-    if bound.roadmap != roadmap {
-        return (String::new(), Vec::new());
-    }
-    let documents = vec![Document {
-        kind: Kind::Note,
-        topic: bound.topic.clone(),
-        title: bound.topic,
-        text: bound.body,
-    }];
-    (roadmap.to_owned(), documents)
-}
-
-fn walk(directory: &Path, wanted: &mut Vec<Wanted>) -> Result<(), SearchError> {
-    let listing = match std::fs::read_dir(directory) {
-        Ok(listing) => listing,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
-        Err(error) => return Err(unreadable(directory, &error)),
-    };
-
-    for entry in listing {
-        let path = entry.map_err(|error| unreadable(directory, &error))?.path();
-        if path.is_dir() {
-            walk(&path, wanted)?;
-            continue;
-        }
-        if !path.extension().is_some_and(|kind| kind == "md") {
-            continue;
-        }
-        if let Some(stamp) = stamp(&path)? {
-            wanted.push(Wanted {
-                path,
-                origin: Origin::Note,
-                stamp,
-                text: None,
-            });
-        }
-    }
-    Ok(())
 }
 
 fn stamp(path: &Path) -> Result<Option<Stamp>, SearchError> {

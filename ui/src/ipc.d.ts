@@ -658,7 +658,6 @@ export type SettingsView = {
 export type SearchIn = {
   bundle: string;
   query: string;
-  directory: string | null;
   limit: number;
 };
 
