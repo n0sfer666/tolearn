@@ -9,6 +9,8 @@ pub use error::ParseError;
 pub use failure::ParseFailure;
 pub use reader::Reader;
 
+pub(crate) use names::is_uuid;
+
 use saphyr::{LoadableYamlNode, MarkedYaml};
 
 const ONE_DOCUMENT: &str = "a bundle file holds exactly one YAML document";

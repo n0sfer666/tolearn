@@ -7,6 +7,7 @@ pub mod atomic;
 pub mod block;
 pub mod bundle;
 pub mod export;
+pub mod library;
 pub mod merge;
 pub mod program;
 pub mod progress;

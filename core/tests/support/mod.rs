@@ -5,6 +5,7 @@
 
 pub mod archives;
 pub mod bundles;
+pub mod programs;
 
 use std::fmt::Display;
 use std::path::{Path, PathBuf};

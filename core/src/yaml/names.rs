@@ -30,7 +30,7 @@ fn is_slug(text: &str) -> bool {
     })
 }
 
-fn is_uuid(text: &str) -> bool {
+pub(crate) fn is_uuid(text: &str) -> bool {
     let groups: Vec<&str> = text.split('-').collect();
     groups.iter().map(|group| group.len()).eq([8, 4, 4, 4, 12])
         && groups.iter().all(|group| {
