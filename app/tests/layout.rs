@@ -64,7 +64,6 @@ fn переезд_разносит_старую_папку_по_двум_кор�
     file(&was.join("settings.yaml"), "locale: ru\n");
     file(&was.join("provider.yaml"), "kind: ollama\n");
     file(&was.join("registry.yaml"), "programs: []\n");
-    file(&was.join("notes/local-runtime.md"), "конспект\n");
     file(&was.join("offline/index.yaml"), "urls: []\n");
     file(
         &was.join("unpacked/llm-agents-base/roadmap.yaml"),
@@ -82,7 +81,6 @@ fn переезд_разносит_старую_папку_по_двум_кор�
     );
     assert!(made.config.join("provider.yaml").is_file());
     assert!(made.config.join("registry.yaml").is_file());
-    assert!(made.data.join("notes/local-runtime.md").is_file());
     assert!(made.data.join("offline/index.yaml").is_file());
     assert!(
         made.data
@@ -92,7 +90,6 @@ fn переезд_разносит_старую_папку_по_двум_кор�
     assert!(made.data.join("history/llm-agents-base/1.yaml").is_file());
     assert!(made.data.join("search-llm-agents-base.yaml").is_file());
     assert!(!was.join("settings.yaml").exists(), "старое не убрано");
-    assert!(!was.join("notes").exists(), "старое не убрано");
 }
 
 #[test]

@@ -2,17 +2,13 @@ import { For, Show, createSignal, onMount } from "solid-js";
 
 import Header from "../components/topic/Header";
 import Materials from "../components/topic/Materials";
-import Notes from "./Notes";
 import type { Status } from "../components/status";
 import type { Dictionary } from "../i18n/ru";
 import type { Locale } from "../i18n";
 import type { TopicOut } from "../ipc";
 import { name } from "../lib/name";
-import { remember, shown } from "../lib/panel";
 import { transport } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
-
-const NOTE_PANEL = "tolearn.note-open";
 
 interface Props {
   text: Dictionary;
@@ -35,12 +31,6 @@ export default function Topic(props: Props) {
 
   const [topic, setTopic] = createSignal<TopicOut | null>(null);
   const [gone, setGone] = createSignal(false);
-  const [open, setOpen] = createSignal(shown(NOTE_PANEL, false));
-
-  const flip = (next: boolean) => {
-    setOpen(next);
-    remember(NOTE_PANEL, next);
-  };
 
   const refresh = () => {
     void (async () => {
@@ -167,29 +157,6 @@ export default function Topic(props: Props) {
                 <For each={view().misconceptions}>{(item) => <li>{item}</li>}</For>
               </ul>
             </details>
-          </Show>
-
-          <button type="button" data-note-fab aria-expanded={open()} onClick={() => flip(!open())}>
-            {props.text.topic.notes}
-          </button>
-
-          <Show when={open()}>
-            <aside data-note-panel aria-label={props.text.topic.notes}>
-              <header>
-                <h2>{props.text.topic.notes}</h2>
-                <button type="button" data-note-close onClick={() => flip(false)}>
-                  {props.text.notes.hide}
-                </button>
-              </header>
-              <Notes
-                text={props.text}
-                locale={props.locale}
-                program={program()}
-                topic={id()}
-                standalone={false}
-                call={props.call}
-              />
-            </aside>
           </Show>
         </article>
       )}

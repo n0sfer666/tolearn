@@ -80,17 +80,6 @@ test("находка ведёт на экран темы", async () => {
   assert.equal(hit.querySelector("[data-snippet]").textContent, "поднять модель");
 });
 
-test("находка в конспекте ведёт на экран конспекта", async () => {
-  const { host } = mount({ hits: [{ ...HIT, kind: "note", title: "local-runtime" }] });
-  ask(host, "рантайм");
-  await settled();
-
-  const hit = host.querySelector("[data-hit]");
-  assert.equal(hit.getAttribute("data-hit"), "note");
-  assert.equal(hit.querySelector("a").getAttribute("href"), "/ru/notes/?program=%2Fbundle&topic=local-runtime");
-  assert.equal(hit.querySelector("[data-kind]").textContent, ru.search.note);
-});
-
 test("пустая выдача говорит об этом", async () => {
   const { host } = mount({ hits: [] });
   ask(host, "тарабарщина");

@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use super::types::{Document, KINDS, Source};
-use crate::notes::Stamp;
+use crate::search::types::Stamp;
 use crate::yaml::{ParseError, Reader, read};
 
 pub fn sources(source: &str) -> Result<Vec<Source>, ParseError> {

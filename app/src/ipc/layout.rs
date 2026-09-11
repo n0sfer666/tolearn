@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 const APP: &str = "tolearn";
 const CONFIG: [&str; 3] = ["settings.yaml", "provider.yaml", "registry.yaml"];
-const DATA: [&str; 4] = ["notes", "offline", "unpacked", "history"];
+const DATA: [&str; 3] = ["offline", "unpacked", "history"];
 const INDEX: &str = "search-";
 
 #[derive(Debug, Clone)]

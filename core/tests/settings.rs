@@ -39,7 +39,6 @@ fn отсутствующий_файл_читается_как_значения_
     assert_eq!(settings, Settings::default());
     assert_eq!(settings.locale, Locale::Ru);
     assert_eq!(settings.theme, Theme::System);
-    assert_eq!(settings.notes_directory, None);
 }
 
 #[test]
@@ -47,24 +46,12 @@ fn настройки_переживают_запись_и_чтение() {
     let directory = scratch("round");
     let settings = Settings {
         disk_budget_mb: 512,
-        notes_directory: Some(PathBuf::from("/данные/конспекты")),
         locale: Locale::En,
         theme: Theme::Dark,
         ..Settings::default()
     };
 
     assert_eq!(kept(&directory, &settings), settings);
-}
-
-#[test]
-fn свой_каталог_конспектов_пишется_пустым_значением() {
-    let directory = scratch("own");
-
-    let settings = kept(&directory, &Settings::default());
-
-    let body = std::fs::read_to_string(directory.join("settings.yaml")).unwrap();
-    assert!(body.contains("notes_directory: null"), "{body}");
-    assert_eq!(settings.notes_directory, None);
 }
 
 #[test]
@@ -84,7 +71,6 @@ fn неизвестная_тема_не_читается_молча() {
         &directory,
         "schema: tolearn/settings/v1\n\
          disk_budget_mb: 128\n\
-         notes_directory: null\n\
          locale: ru\n\
          theme: неон\n",
     );
@@ -101,7 +87,6 @@ fn неизвестный_язык_не_читается_молча() {
         &directory,
         "schema: tolearn/settings/v1\n\
          disk_budget_mb: 128\n\
-         notes_directory: null\n\
          locale: fr\n\
          theme: system\n",
     );
@@ -118,23 +103,11 @@ fn нулевой_бюджет_не_читается_молча() {
         &directory,
         "schema: tolearn/settings/v1\n\
          disk_budget_mb: 0\n\
-         notes_directory: null\n\
          locale: ru\n\
          theme: system\n",
     );
 
     assert!(Settings::read(&file).is_err());
-}
-
-#[test]
-fn путь_с_кавычками_переживает_запись() {
-    let directory = scratch("quoted");
-    let settings = Settings {
-        notes_directory: Some(PathBuf::from("/данные/\"мои\" конспекты")),
-        ..Settings::default()
-    };
-
-    assert_eq!(kept(&directory, &settings), settings);
 }
 
 #[test]
@@ -160,7 +133,6 @@ fn настройки_прошлых_версий_читаются_без_пол
         &directory,
         "schema: tolearn/settings/v1\n\
          disk_budget_mb: 128\n\
-         notes_directory: null\n\
          locale: ru\n\
          theme: system\n",
     );
@@ -181,7 +153,6 @@ fn выключенная_история_читается_нулём() {
         &directory,
         "schema: tolearn/settings/v1\n\
          disk_budget_mb: 128\n\
-         notes_directory: null\n\
          locale: ru\n\
          theme: system\n\
          history_depth: 0\n\
@@ -201,7 +172,6 @@ fn доля_истории_больше_ста_процентов_не_чита�
         &directory,
         "schema: tolearn/settings/v1\n\
          disk_budget_mb: 128\n\
-         notes_directory: null\n\
          locale: ru\n\
          theme: system\n\
          history_share_percent: 101\n",

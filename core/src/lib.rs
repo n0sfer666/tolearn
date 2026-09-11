@@ -11,7 +11,6 @@ pub mod generate;
 pub mod graph;
 pub mod history;
 pub mod merge;
-pub mod notes;
 pub mod plan;
 pub mod practice;
 pub mod progress;

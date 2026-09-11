@@ -8,7 +8,6 @@ const KEEP: Record<string, readonly string[]> = {
   "/exam/": ["program", "topic"],
   "/review/": ["program", "topic"],
   "/practice/": ["program", "topic"],
-  "/notes/": ["program", "topic"],
 };
 
 export function keep(href: string): readonly string[] {

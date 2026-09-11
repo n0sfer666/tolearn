@@ -42,15 +42,12 @@ export default function Search(props: Props) {
   };
 
   const kind = (hit: HitView) => {
-    if (hit.kind === "note") return props.text.search.note;
     if (hit.kind === "material") return props.text.search.material;
     return props.text.search.topic;
   };
 
-  const href = (hit: HitView) => {
-    const where = hit.kind === "note" ? "notes" : "topic";
-    return `/${props.locale}/${where}/?program=${encodeURIComponent(program())}&topic=${encodeURIComponent(hit.topic)}`;
-  };
+  const href = (hit: HitView) =>
+    `/${props.locale}/topic/?program=${encodeURIComponent(program())}&topic=${encodeURIComponent(hit.topic)}`;
 
   return (
     <Show

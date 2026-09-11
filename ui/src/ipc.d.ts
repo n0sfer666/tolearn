@@ -419,37 +419,6 @@ export type RewrittenView = {
   demoted: boolean;
 };
 
-export type StampView = {
-  modified_nanos: string;
-  size: number;
-};
-
-export type NoteIn = {
-  bundle: string;
-  topic: string;
-  directory: string | null;
-};
-
-export type NoteOut = {
-  body: string;
-  path: string | null;
-  stamp: StampView | null;
-};
-
-export type SaveNoteIn = {
-  bundle: string;
-  topic: string;
-  body: string;
-  directory: string | null;
-  stamp: StampView | null;
-};
-
-export type SaveNoteOut = {
-  saved: boolean;
-  stamp: StampView | null;
-  theirs: string | null;
-};
-
 export type AnswerView = {
   id: string;
   outcome: string;
@@ -646,7 +615,6 @@ export type SettingsIn = {
 
 export type SettingsView = {
   disk_budget_mb: number;
-  notes_directory: string | null;
   locale: string;
   theme: string;
   history_depth: number;
@@ -956,8 +924,6 @@ export type Commands = {
   topic: { input: TopicIn; output: TopicOut };
   run_check: { input: RunCheckIn; output: RunCheckOut };
   set_status: { input: SetStatusIn; output: SetStatusOut };
-  note: { input: NoteIn; output: NoteOut };
-  save_note: { input: SaveNoteIn; output: SaveNoteOut };
   parse_verdict: { input: ParseVerdictIn; output: VerdictView };
   apply_verdict: { input: ApplyVerdictIn; output: ApplyVerdictOut };
   review: { input: ReviewIn; output: ReviewOut };

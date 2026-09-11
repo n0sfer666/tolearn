@@ -347,33 +347,6 @@ dto!(RewrittenView {
     demoted: bool,
 });
 
-dto!(StampView {
-    modified_nanos: String,
-    size: u64
-});
-dto!(NoteIn {
-    bundle: String,
-    topic: String,
-    directory: Option<String>
-});
-dto!(NoteOut {
-    body: String,
-    path: Option<String>,
-    stamp: Option<StampView>
-});
-dto!(SaveNoteIn {
-    bundle: String,
-    topic: String,
-    body: String,
-    directory: Option<String>,
-    stamp: Option<StampView>
-});
-dto!(SaveNoteOut {
-    saved: bool,
-    stamp: Option<StampView>,
-    theirs: Option<String>
-});
-
 dto!(AnswerView {
     id: String,
     outcome: String,
@@ -540,7 +513,6 @@ dto!(SweepAcceptOut { settled: Vec<SweepSettledView> });
 dto!(SettingsIn { save: Option<SettingsView> });
 dto!(SettingsView {
     disk_budget_mb: u32,
-    notes_directory: Option<String>,
     locale: String,
     theme: String,
     history_depth: u32,
@@ -841,11 +813,6 @@ pub fn shapes() -> Vec<Shape> {
         HistoryDiffIn::shape(),
         HistoryDiffOut::shape(),
         RewrittenView::shape(),
-        StampView::shape(),
-        NoteIn::shape(),
-        NoteOut::shape(),
-        SaveNoteIn::shape(),
-        SaveNoteOut::shape(),
         AnswerView::shape(),
         VerdictView::shape(),
         ParseVerdictIn::shape(),

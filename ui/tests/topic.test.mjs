@@ -283,24 +283,6 @@ test("выведенный статус руками не двигается", a
   assert.equal(host.querySelector("[data-steps-locked]").textContent, ru.steps.locked);
 });
 
-test("конспект живёт в панели, которую открывает и закрывает фаб", async () => {
-  const { host } = mount();
-  await settled();
-
-  assert.equal(host.querySelector("[data-note-panel]"), null, "панель лезет на глаза сразу");
-  assert.equal(host.querySelector("[data-note-fab]").getAttribute("aria-expanded"), "false");
-
-  host.querySelector("[data-note-fab]").click();
-  await settled();
-
-  assert.ok(host.querySelector("[data-note-panel] [data-note]"), "фаб не открыл конспект");
-
-  host.querySelector("[data-note-close]").click();
-  await settled();
-
-  assert.equal(host.querySelector("[data-note-panel]"), null, "панель не убралась");
-});
-
 test("с темы есть ход на практику и на зачёт", async () => {
   const { host } = mount();
   await settled();

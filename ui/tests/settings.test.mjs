@@ -20,7 +20,6 @@ before(
 
 const DEFAULTS = {
   disk_budget_mb: 2048,
-  notes_directory: null,
   locale: "ru",
   theme: "system",
   history_depth: 5,
@@ -47,7 +46,6 @@ function mount(options = {}) {
         text: ru,
         locale: "ru",
         call,
-        choose: () => Promise.resolve(options.chosen ?? null),
         go: (url) => went.push(url),
       }),
     host,
@@ -61,7 +59,6 @@ test("настройки читаются при открытии экрана",
 
   assert.deepEqual(calls[0], { name: "settings", payload: { save: null } });
   assert.equal(host.querySelector("[data-budget]").value, "512");
-  assert.equal(host.querySelector("[data-notes]").textContent, ru.settings.notesOwn);
   assert.equal(
     host.querySelector('[data-theme-choice="dark"]').getAttribute("aria-pressed"),
     "true",
@@ -143,29 +140,6 @@ test("доля бюджета больше ста процентов в ядро
   await settled();
 
   assert.equal(calls.length, 1, "запрос ушёл с долей больше ста процентов");
-});
-
-test("выбранный каталог конспектов сохраняется и виден", async () => {
-  const { host, calls } = mount({ chosen: "/данные/конспекты" });
-  await settled();
-
-  host.querySelector("[data-choose]").click();
-  await settled();
-
-  assert.equal(calls.at(-1).payload.save.notes_directory, "/данные/конспекты");
-  assert.equal(host.querySelector("[data-notes]").textContent, "/данные/конспекты");
-});
-
-test("отказ от внешнего каталога возвращает свой", async () => {
-  const { host, calls } = mount({ stored: { notes_directory: "/данные/конспекты" } });
-  await settled();
-
-  host.querySelector("[data-reset]").click();
-  await settled();
-
-  assert.equal(calls.at(-1).payload.save.notes_directory, null);
-  assert.equal(host.querySelector("[data-notes]").textContent, ru.settings.notesOwn);
-  assert.equal(host.querySelector("[data-reset]"), null);
 });
 
 test("переключатель темы предлагает три варианта на языке экрана", async () => {

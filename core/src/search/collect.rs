@@ -3,8 +3,8 @@ use std::time::UNIX_EPOCH;
 
 use super::error::SearchError;
 use super::types::{Document, Kind, Source};
-use crate::notes::Stamp;
 use crate::roadmap::{Roadmap, parse as roadmap};
+use crate::search::types::Stamp;
 use crate::topic::{Topic, parse as topic};
 
 #[derive(Debug, Clone)]

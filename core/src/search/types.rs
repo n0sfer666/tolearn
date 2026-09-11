@@ -1,6 +1,10 @@
 use std::path::PathBuf;
 
-use crate::notes::Stamp;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Stamp {
+    pub modified_nanos: u128,
+    pub size: u64,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Kind {

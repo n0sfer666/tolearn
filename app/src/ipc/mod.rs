@@ -6,7 +6,6 @@ mod error;
 mod handlers;
 mod history;
 pub mod layout;
-mod notes;
 pub(crate) mod open;
 mod provider;
 mod settings;
@@ -15,7 +14,6 @@ mod sweeping;
 pub mod types;
 pub mod typescript;
 mod unpack;
-mod vaulted;
 pub(crate) mod verdict;
 
 pub use context::{Context, of};

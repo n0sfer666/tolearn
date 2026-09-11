@@ -58,10 +58,6 @@ impl Context {
         self.config.join("provider.yaml")
     }
 
-    pub fn notes(&self) -> PathBuf {
-        self.data.join("notes")
-    }
-
     pub fn settings(&self) -> PathBuf {
         self.config.join("settings.yaml")
     }

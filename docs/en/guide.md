@@ -26,16 +26,16 @@ The short version of how to use the app. For installation see
 | Screen | What for |
 |---|---|
 | Program | every topic by stage, statuses, entry point into a topic |
-| Topic | materials, practice, questions, note |
+| Topic | materials, practice, questions |
 | Practice | timer for the topic's timebox, survives a restart |
 | Exam | questions, answers and the verdict |
 | Queue | what to do now: available topics and reviews that came due |
 | Review | topics whose revalidation date has arrived |
 | Stale | topics that changed after the program was regenerated |
 | Graph | topic dependencies by layer |
-| Notes · Search | all notes and search across them |
+| Search | across topics and materials of the open program |
 | Statistics | hours, statuses, history |
-| Settings | language, LLM provider, notes, encryption, offline, history |
+| Settings | language, LLM provider, offline, history |
 
 ## The exam
 
@@ -49,47 +49,25 @@ Two paths, both yours:
 The verdict is written into your program's `progress.yaml`. Nothing else in the
 bundle is ever written to.
 
-## Notes
-
-A topic note is a plain `.md` file with a `tolearn: roadmap/topic` frontmatter.
-By default notes live in the app's data directory, but settings let you point at
-your own vault — an Obsidian folder, for instance: edits made outside are then
-picked up.
-
-Encryption (Settings → "Encryption") covers the **internal** directory: files
-become unreadable from outside and the file names give away nothing. The price is
-stated right on that screen — an external editor, picking up outside edits and
-the Obsidian plugin all stop working, and losing both the passphrase and the
-device key means losing the notes. External storage is never encrypted.
-
 ## Offline
 
 A topic's materials are downloaded once and saved whole, as a single HTML file.
 After that the network is not needed: the reader shows the text from the archive.
 Nothing but an explicitly requested download ever goes online.
 
-## The Obsidian plugin
-
-It shows the program, the status of the open topic and a "time to review" mark in
-the status bar, and opens a topic in the app on command. It never writes
-anything. Point it at the app's data directory in the plugin settings. The status
-shown is the recorded one — blocking and staleness are recomputed by the app, so
-the precise answer is always there. With encryption on, the plugin sees no
-statuses and says so.
-
 ## Where your data lives
 
 - Programs stay wherever you put them; the app remembers the path in its
   registry.
-- Settings, the program registry and the store (default notes, page archives,
-  version history) live in `~/.config/tolearn` and `~/.local/share/tolearn`,
-  identically on all three operating systems; exact paths and how to move them —
+- Settings, the program registry and the store (page archives, version history)
+  live in `~/.config/tolearn` and `~/.local/share/tolearn`, identically on all
+  three operating systems; exact paths and how to move them —
   [install/](install/README.md#where-your-data-lives).
 - Uninstalling the app does not touch your data.
 
 ## Export
 
 The "Export to Markdown" button on the program screen collects the whole program
-into one file — table of contents, topics, notes. Answers and traps make it into
-the file only for topics that were passed. The export never writes inside the
+into one file — table of contents and topics. Answers and traps make it into the
+file only for topics that were passed. The export never writes inside the
 bundle itself.

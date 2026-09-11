@@ -11,10 +11,6 @@ pub fn stored(context: &Context) -> Result<Settings, IpcError> {
 pub fn view(settings: &Settings) -> SettingsView {
     SettingsView {
         disk_budget_mb: settings.disk_budget_mb,
-        notes_directory: settings
-            .notes_directory
-            .as_ref()
-            .map(|path| path.display().to_string()),
         locale: settings.locale.label().to_owned(),
         theme: settings.theme.label().to_owned(),
         history_depth: settings.history_depth,
@@ -34,11 +30,6 @@ pub fn taken(view: &SettingsView) -> Result<Settings, IpcError> {
     }
     Ok(Settings {
         disk_budget_mb: view.disk_budget_mb,
-        notes_directory: view
-            .notes_directory
-            .as_ref()
-            .filter(|path| !path.is_empty())
-            .map(Into::into),
         locale: Locale::parse(&view.locale).ok_or_else(|| refused("язык", &view.locale))?,
         theme: Theme::parse(&view.theme).ok_or_else(|| refused("тема", &view.theme))?,
         history_depth: view.history_depth,

@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 pub const DEFAULT_BUDGET_MB: u32 = 2048;
 pub const DEFAULT_HISTORY_DEPTH: u32 = 5;
 pub const DEFAULT_HISTORY_SHARE: u32 = 10;
@@ -7,7 +5,6 @@ pub const DEFAULT_HISTORY_SHARE: u32 = 10;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Settings {
     pub disk_budget_mb: u32,
-    pub notes_directory: Option<PathBuf>,
     pub locale: Locale,
     pub theme: Theme,
     pub history_depth: u32,
@@ -18,7 +15,6 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             disk_budget_mb: DEFAULT_BUDGET_MB,
-            notes_directory: None,
             locale: Locale::Ru,
             theme: Theme::System,
             history_depth: DEFAULT_HISTORY_DEPTH,
