@@ -6,6 +6,7 @@ mod refusal;
 
 pub use entry::Entry;
 pub use error::LibraryError;
+pub use examine::read;
 pub use refusal::Refusal;
 
 use std::fs;

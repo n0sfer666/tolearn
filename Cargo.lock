@@ -6133,6 +6133,7 @@ dependencies = [
  "flate2",
  "saphyr",
  "saphyr-parser",
+ "serde_json",
  "sha2",
  "tar",
  "zip",

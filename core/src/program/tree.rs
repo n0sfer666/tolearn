@@ -10,3 +10,20 @@ pub struct Tree {
     pub assets: BTreeSet<String>,
     pub children: BTreeMap<String, Tree>,
 }
+
+impl Tree {
+    pub fn files(&self) -> Vec<String> {
+        let mut files = vec!["program.yaml".to_owned()];
+        files.extend(self.stages.keys().map(|id| format!("stages/{id}.yaml")));
+        files.extend(self.assets.iter().cloned());
+        for (uuid, child) in &self.children {
+            files.extend(
+                child
+                    .files()
+                    .into_iter()
+                    .map(|file| format!("children/{uuid}/{file}")),
+            );
+        }
+        files
+    }
+}

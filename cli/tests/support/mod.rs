@@ -50,7 +50,7 @@ fn strip(directory: &Path, extension: &str) {
     }
 }
 
-fn copy(from: &Path, to: &Path) {
+pub fn copy(from: &Path, to: &Path) {
     std::fs::create_dir_all(to).unwrap();
     for entry in std::fs::read_dir(from).unwrap() {
         let entry = entry.unwrap();

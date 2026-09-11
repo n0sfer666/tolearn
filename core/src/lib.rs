@@ -9,6 +9,7 @@ pub mod bundle;
 pub mod export;
 pub mod library;
 pub mod merge;
+pub mod package;
 pub mod program;
 pub mod progress;
 pub mod prompt;

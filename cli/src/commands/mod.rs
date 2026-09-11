@@ -2,6 +2,7 @@ mod checks;
 mod exam;
 mod export;
 mod merge;
+mod pack;
 mod progress;
 mod scan;
 mod validate;
@@ -19,5 +20,6 @@ pub fn run(args: &Args) -> Result<Output, CliError> {
         Command::Exam { .. } => exam::run(root, &args.command),
         Command::Merge { was } => merge::run(root, was),
         Command::Export { out, today } => export::run(root, out.as_deref(), today.as_deref()),
+        Command::Pack { out } => pack::run(root, out),
     }
 }

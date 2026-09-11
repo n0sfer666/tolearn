@@ -8,6 +8,7 @@ pub enum CliError {
     UnknownTopic(String),
     Verdict(String),
     Write(String),
+    Package(String),
 }
 
 impl CliError {
@@ -25,6 +26,7 @@ impl fmt::Display for CliError {
             Self::UnknownTopic(id) => write!(out, "роадмап не знает темы `{id}`"),
             Self::Verdict(reason) => write!(out, "вердикт не принят: {reason}"),
             Self::Write(reason) => write!(out, "не удалось записать прогресс: {reason}"),
+            Self::Package(reason) => write!(out, "пакет не собран: {reason}"),
         }
     }
 }

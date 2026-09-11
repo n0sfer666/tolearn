@@ -3,7 +3,7 @@ use std::path::Path;
 use super::refusal::Refusal;
 use crate::program::{self, Tree};
 
-pub(super) fn read(directory: &Path) -> Result<Tree, Refusal> {
+pub fn read(directory: &Path) -> Result<Tree, Refusal> {
     let tree = program::load(directory).map_err(Refusal::Unloadable)?;
     let violations = program::validate(&tree);
     if violations.is_empty() {

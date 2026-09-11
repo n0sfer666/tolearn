@@ -10,6 +10,7 @@ pub const USAGE: &str = "\
   tolearn exam     <бандл> <тема> [--verdict <файл>] [--template <файл>] [--run-checks] [--json]
   tolearn merge    <бандл> --was <каталог> [--json]
   tolearn export   <бандл> [--out <файл>] [--today ГГГГ-ММ-ДД] [--json]
+  tolearn pack     <каталог> <файл.tolearn> [--json]
 
 Check-команды бандла не выполняются никогда, кроме явного `--run-checks`.";
 
@@ -39,6 +40,9 @@ pub enum Command {
     Export {
         out: Option<PathBuf>,
         today: Option<String>,
+    },
+    Pack {
+        out: PathBuf,
     },
 }
 
@@ -98,6 +102,12 @@ pub fn parse(argv: &[String]) -> Result<Args, CliError> {
         "export" => Command::Export {
             out: value("out").map(PathBuf::from),
             today: value("today"),
+        },
+        "pack" => Command::Pack {
+            out: free
+                .get(1)
+                .map(|file| PathBuf::from(*file))
+                .ok_or_else(|| CliError::Usage("`pack` не назвал файл пакета".to_owned()))?,
         },
         other => return Err(CliError::Usage(format!("неизвестная команда `{other}`"))),
     };

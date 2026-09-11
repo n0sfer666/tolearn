@@ -26,16 +26,8 @@ pub(super) fn install(root: &Path, source: &Path) -> Result<String, LibraryError
 
 fn copy(tree: &Tree, from: &Path, to: &Path) -> Result<(), LibraryError> {
     fs::create_dir_all(to).map_err(|error| LibraryError::unwritable(to, &error))?;
-    let stages = tree.stages.keys().map(|id| format!("stages/{id}.yaml"));
-    let files = std::iter::once("program.yaml".to_owned())
-        .chain(stages)
-        .chain(tree.assets.iter().cloned());
-    for file in files {
+    for file in tree.files() {
         carry(&from.join(&file), &to.join(&file))?;
-    }
-    for (uuid, child) in &tree.children {
-        let place = Path::new("children").join(uuid);
-        copy(child, &from.join(&place), &to.join(&place))?;
     }
     Ok(())
 }

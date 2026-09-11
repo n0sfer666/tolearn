@@ -57,8 +57,9 @@ fn assets(folder: &Path) -> Result<BTreeSet<String>, LoadError> {
     let mut found = BTreeSet::new();
     for entry in entries {
         let entry = entry.map_err(|error| unreadable(folder, &error))?;
-        if entry.path().is_file() {
-            found.insert(format!("assets/{}", entry.file_name().to_string_lossy()));
+        let name = entry.file_name().to_string_lossy().into_owned();
+        if entry.path().is_file() && !name.starts_with('.') {
+            found.insert(format!("assets/{name}"));
         }
     }
     Ok(found)
