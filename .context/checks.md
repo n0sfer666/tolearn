@@ -145,17 +145,31 @@ Nushell: `and` между командами не работает как в bas
 (`provider/src/preset.rs`): поменялся пресет — меняется и эта команда.
 
 ```nu
-"Ответь одним словом: ок" | ^claude -p --output-format stream-json --verbose --include-partial-messages --tools "" --system-prompt "Выполни инструкцию из сообщения, ответь только результатом." --setting-sources project --strict-mcp-config | lines | each { from json } | where type == "result" | first | select total_cost_usd usage modelUsage | to json
+"Ответь одним словом: ок" | ^claude -p --output-format stream-json --verbose --include-partial-messages --tools "" --system-prompt "Выполни инструкцию из сообщения, ответь только результатом." --setting-sources project --strict-mcp-config --settings '{"env":{"CLAUDE_CODE_DISABLE_TERMINAL_TITLE":"1"}}' | lines | each { from json } | where type == "result" | first | select total_cost_usd modelUsage | to json
 ```
 
-Замер 2026-09-11, `claude 2.1.268 (Claude Code)`: **473 входных токена** у основной модели
-(`usage.input_tokens` события `result`), `cache_creation_input_tokens` и
-`cache_read_input_tokens` — 0, $0,0034 за вызов. Цель DoD S70 — ≤ 1000, до правки
-(`--allowedTools` вместо `--tools`, без `--system-prompt`/`--setting-sources`/
-`--strict-mcp-config`) было ~27 тыс. В `usage` не входит побочный вызов CLI на
-`claude-haiku-4-5` — 903 входных токена, $0,00097; он виден только в `modelUsage`.
-Прошлый замер (2026-09-10, 438) шёл с `--output-format json` и другим системным
-промптом, то есть не с теми аргументами, что шлёт приложение.
+Считать по `modelUsage`, а не по `usage`: вход вызова — сумма `inputTokens +
+cacheCreationInputTokens + cacheReadInputTokens` **по всем моделям**. `usage` видит
+только основную модель, побочные вызовы CLI в него не попадают, а вход, ушедший в
+кэш, — мимо `input_tokens`.
+
+Приёмка — 5 прогонов, каждый отдельным вызовом из своего свежего `mktemp -d`: ни в
+одном `modelUsage` нет `claude-haiku-*`, сумма ≤ 1000. Один прогон ничего не
+доказывает: побочный вызов недетерминирован.
+
+Замер 2026-09-11, `claude 2.1.268 (Claude Code)`: 5 из 5 — только `claude-opus-5`,
+**521–523 входных токена**, $0,0053 с записью кэша и $0,0004 при чтении из него.
+Цель DoD S70 — ≤ 1000, до правки (`--allowedTools` вместо `--tools`, без остальных
+флагов) было ~27 тыс.
+
+Зачем `--settings`: без него CLI в 7 прогонах из 10 добавлял вызов `claude-haiku-4-5`
+на 903 входных токена — генерацию заголовка терминала, похоже, гонку фоновой задачи
+с завершением процесса. `CLAUDE_CODE_DISABLE_TERMINAL_TITLE` её гасит; env харнессу
+приложение не передаёт, поэтому переменная едет аргументом. Шире бьёт
+`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` (заодно телеметрия и автообновление),
+`DISABLE_NON_ESSENTIAL_MODEL_CALLS` не действует. Основная модель брала 467–469 в
+утренних замерах и 523 в контрольном прогоне без флага тем же днём: сдвиг — со
+стороны CLI или сервера, не от `--settings`.
 
 ## Вес JS
 

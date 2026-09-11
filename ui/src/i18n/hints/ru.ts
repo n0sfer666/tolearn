@@ -45,6 +45,10 @@ export const hints: Hints = {
         lines: ["--strict-mcp-config"],
         why: "запрет чужих MCP-серверов из пользовательского конфига",
       },
+      {
+        lines: ["--settings", "{\"env\":{\"CLAUDE_CODE_DISABLE_TERMINAL_TITLE\":\"1\"}}"],
+        why: "без побочного вызова модели на заголовок терминала: иначе claude то и дело зовёт к каждому запросу ещё и haiku — около 900 входных токенов сверху",
+      },
     ],
     opencode: [
       {

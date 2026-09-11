@@ -27,6 +27,8 @@ impl Preset {
 pub const CLAUDE_SYSTEM_PROMPT: &str =
     "Выполни инструкцию из сообщения, ответь только результатом.";
 
+pub const CLAUDE_SETTINGS: &str = r#"{"env":{"CLAUDE_CODE_DISABLE_TERMINAL_TITLE":"1"}}"#;
+
 pub const CLAUDE: Preset = Preset {
     id: "claude",
     command: "claude",
@@ -43,6 +45,8 @@ pub const CLAUDE: Preset = Preset {
         "--setting-sources",
         "project",
         "--strict-mcp-config",
+        "--settings",
+        CLAUDE_SETTINGS,
     ],
     available: true,
 };

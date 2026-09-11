@@ -45,6 +45,10 @@ export const hints: Hints = {
         lines: ["--strict-mcp-config"],
         why: "refuses third-party MCP servers from the user config",
       },
+      {
+        lines: ["--settings", "{\"env\":{\"CLAUDE_CODE_DISABLE_TERMINAL_TITLE\":\"1\"}}"],
+        why: "no side model call for the terminal title: otherwise claude now and then adds a haiku call to a request — about 900 extra input tokens",
+      },
     ],
     opencode: [
       {

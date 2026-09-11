@@ -47,6 +47,8 @@ fn пресет_claude_без_чужого_контекста() {
             "--setting-sources",
             "project",
             "--strict-mcp-config",
+            "--settings",
+            r#"{"env":{"CLAUDE_CODE_DISABLE_TERMINAL_TITLE":"1"}}"#,
         ]
     );
 }
