@@ -14,6 +14,9 @@ map:
     - uuid: b25e8f13-6d47-4a09-a3c1-9e7f2d4b8c56
       title: Инструменты сборки
       hours: [8, 12]
+    - uuid: 5c8e1f2a-7b3d-4e69-9a04-2d6f8b1c3e75
+      title: Звук и музыка
+      hours: [6, 10]
 sources:
   books: []
   pages: []

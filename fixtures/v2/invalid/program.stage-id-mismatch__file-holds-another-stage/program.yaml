@@ -1,0 +1,19 @@
+schema: tolearn/program/1
+uuid: d4000000-0000-4000-8000-000000000001
+slug: leaf
+title: Дерево leaf
+goal: Проверить чтение дерева программы.
+level: Любой.
+generation:
+  locale: ru
+  volatility: stable
+  request: Проверить чтение дерева программы.
+map:
+  stages:
+    - id: linker
+      title: Строка linker
+      hours: [1, 2]
+  children: []
+sources:
+  books: []
+  pages: []

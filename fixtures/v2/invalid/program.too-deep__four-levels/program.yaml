@@ -1,0 +1,19 @@
+schema: tolearn/program/1
+uuid: d1000000-0000-4000-8000-000000000001
+slug: level-one
+title: Дерево level-one
+goal: Проверить чтение дерева программы.
+level: Любой.
+generation:
+  locale: ru
+  volatility: stable
+  request: Проверить чтение дерева программы.
+map:
+  stages: []
+  children:
+    - uuid: d1000000-0000-4000-8000-000000000002
+      title: Строка d1000000
+      hours: [1, 2]
+sources:
+  books: []
+  pages: []

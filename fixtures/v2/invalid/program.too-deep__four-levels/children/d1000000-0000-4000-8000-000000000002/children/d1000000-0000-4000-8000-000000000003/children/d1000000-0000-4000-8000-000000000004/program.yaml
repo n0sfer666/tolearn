@@ -1,0 +1,16 @@
+schema: tolearn/program/1
+uuid: d1000000-0000-4000-8000-000000000004
+slug: level-four
+title: Дерево level-four
+goal: Проверить чтение дерева программы.
+level: Любой.
+generation:
+  locale: ru
+  volatility: stable
+  request: Проверить чтение дерева программы.
+map:
+  stages: []
+  children: []
+sources:
+  books: []
+  pages: []

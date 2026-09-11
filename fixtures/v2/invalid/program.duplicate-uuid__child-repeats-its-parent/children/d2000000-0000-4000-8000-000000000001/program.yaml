@@ -1,0 +1,16 @@
+schema: tolearn/program/1
+uuid: d2000000-0000-4000-8000-000000000001
+slug: child
+title: Дерево child
+goal: Проверить чтение дерева программы.
+level: Любой.
+generation:
+  locale: ru
+  volatility: stable
+  request: Проверить чтение дерева программы.
+map:
+  stages: []
+  children: []
+sources:
+  books: []
+  pages: []

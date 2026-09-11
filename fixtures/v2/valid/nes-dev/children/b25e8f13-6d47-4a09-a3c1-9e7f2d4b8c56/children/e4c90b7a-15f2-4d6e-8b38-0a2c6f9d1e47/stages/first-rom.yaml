@@ -8,6 +8,13 @@ blocks:
   - id: "27e110c4"
     kind: callout
     text: Без заголовка iNES эмулятор ROM не откроет.
+  - id: "5d3102a4"
+    kind: image
+    text: Один пиксель — заглушка на месте фотографии картриджа.
+    asset: assets/pixel.png
+    license: CC0-1.0
+    attribution: toLearn contributors
+    source: https://github.com/n0sfer666/tolearn
 practice:
   task:
     - id: "6a646d56"

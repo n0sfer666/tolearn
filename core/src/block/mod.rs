@@ -1,3 +1,9 @@
+mod parse;
+mod types;
+
+pub(crate) use parse::block;
+pub use types::{Block, Kind};
+
 use std::collections::BTreeMap;
 
 use sha2::{Digest, Sha256};

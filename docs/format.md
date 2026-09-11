@@ -48,16 +48,28 @@
 `fixtures/v2/broken/`.
 
 Связи между значениями и файлами схема не выражает — их проверяет чтение
-программы (S99), и документы, которые схема принимает, а чтение обязано
-отвергнуть, лежат в `fixtures/v2/strict/`:
+программы (S99, `tolearn_core::program`). Документы, которые схема принимает, а
+чтение обязано отвергнуть, лежат в `fixtures/v2/strict/`, деревья с нарушением
+между файлами — в `fixtures/v2/invalid/`. Чтение сообщает все нарушения
+дерева, а не первое, и у каждого правила свой код:
 
-- `id` блока совпадает с S97 от его текста;
-- поля блока соответствуют `kind` по таблице выше; у `image` есть `license` и
-  `attribution`;
-- файл из `asset` лежит в `assets/` той же программы;
-- у часов `min ≤ max`;
-- у узла нет этапов, у листа нет подпрограмм; глубина ≤ 3; UUID в дереве
-  уникальны, и `map.children[].uuid` совпадает с каталогом `children/<uuid>/`.
+- `program.block-id` — `id` блока не совпадает с S97 от его текста;
+- `program.foreign-block-field` — у блока поле, которого нет у его `kind` в
+  таблице выше;
+- `program.block-without-asset` — у `diagram` или `image` нет `asset`;
+- `program.unlicensed-image` — у `image` нет `license` или `attribution`;
+- `program.missing-asset` — файла из `asset` нет в `assets/` той же программы;
+- `program.hours-reversed` — у часов `min > max`;
+- `program.node-with-stages` — у одной программы и этапы, и подпрограммы;
+- `program.too-deep` — подпрограммы у программы третьего уровня;
+- `program.duplicate-uuid` — UUID повторяется в дереве;
+- `program.child-uuid-mismatch`, `program.stage-id-mismatch` — в
+  `children/<uuid>/` лежит программа с другим UUID, в `stages/<id>.yaml` — этап
+  с другим `id`.
+
+Разбор, кроме того, отвергает `uuid`, `slug`, `id` строки карты и этапа не по
+шаблону (`yaml.unknown-value`): из них собираются пути, и до проверки дерева
+такое значение не доходит.
 
 ## Роли и пути
 

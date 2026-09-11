@@ -2,6 +2,7 @@ mod dates;
 mod duplicates;
 mod error;
 mod failure;
+mod names;
 mod reader;
 
 pub use error::ParseError;
