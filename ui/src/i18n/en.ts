@@ -392,6 +392,7 @@ export const en: Dictionary = {
     presetOpencode: "opencode",
     presetPi: "pi",
     presetCustom: "Own command",
+    presetLater: "later",
     command: "Command",
     args: "Arguments",
     argsSeen: "Arguments sent:",

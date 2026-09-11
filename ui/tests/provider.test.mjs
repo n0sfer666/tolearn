@@ -53,11 +53,13 @@ const ADVISED = [
 ];
 
 const PRESETS = [
-  { id: "claude", command: "claude", args: ["-p"] },
-  { id: "opencode", command: "opencode", args: ["run"] },
-  { id: "pi", command: "pi", args: ["-p", "--no-tools"] },
-  { id: "custom", command: "", args: [] },
+  { id: "claude", command: "claude", args: ["-p"], available: true },
+  { id: "opencode", command: "opencode", args: ["run"], available: false },
+  { id: "pi", command: "pi", args: ["-p", "--no-tools"], available: false },
+  { id: "custom", command: "", args: [], available: true },
 ];
+
+const CUSTOM = { ...DEFAULTS.harness, id: "custom", command: "my-cli", args: ["--quiet"] };
 
 function mount(options = {}) {
   const host = document.createElement("div");
@@ -250,21 +252,64 @@ test("у внешнего сервиса выбора API нет", async () => {
   assert.equal(host.querySelector("[data-key]").value, "");
 });
 
-test("пресет харнесса подставляет команду, а поле аргументов оставляет пустым", async () => {
-  const { host, calls } = mount({ stored: { active: "harness" } });
-  await settled();
-
+function choose(host, id) {
   const preset = host.querySelector("[data-preset]");
-  preset.value = "opencode";
+  preset.value = id;
   preset.dispatchEvent(new document.defaultView.Event("change", { bubbles: true }));
+}
+
+test("пресет харнесса подставляет команду, а поле аргументов оставляет пустым", async () => {
+  const { host, calls } = mount({ stored: { active: "harness", harness: CUSTOM } });
   await settled();
 
-  assert.equal(host.querySelector("[data-command]").value, "opencode");
+  choose(host, "claude");
+  await settled();
+
+  assert.equal(host.querySelector("[data-command]").value, "claude");
   assert.equal(host.querySelector("[data-args]").value, "");
 
   host.querySelector("[data-save]").click();
   await settled();
   assert.deepEqual(calls[1].payload.save.harness.args, []);
+});
+
+test("opencode и pi выбрать нельзя, они помечены «позже»", async () => {
+  const { host } = mount({ stored: { active: "harness" } });
+  await settled();
+
+  const options = [...host.querySelectorAll("[data-preset] option")];
+  const closed = options.filter((option) => option.disabled);
+  assert.deepEqual(
+    closed.map((option) => option.value),
+    ["opencode", "pi"],
+  );
+  for (const option of options) {
+    assert.equal(option.textContent.includes(ru.provider.presetLater), option.disabled, option.value);
+  }
+});
+
+test("закрытый пресет не подставляется, даже если выбор до него дошёл", async () => {
+  const { host } = mount({ stored: { active: "harness", harness: CUSTOM } });
+  await settled();
+
+  choose(host, "pi");
+  await settled();
+
+  assert.equal(host.querySelector("[data-command]").value, "my-cli");
+  assert.equal(host.querySelector("[data-args]").value, "--quiet");
+});
+
+test("сохранённый opencode открывается как есть и сохраняется без правок", async () => {
+  const harness = { ...DEFAULTS.harness, id: "opencode", command: "opencode", args: ["run"] };
+  const { host, calls } = mount({ stored: { active: "harness", harness } });
+  await settled();
+
+  assert.equal(host.querySelector("[data-preset]").value, "opencode");
+  assert.equal(host.querySelector("[data-command]").value, "opencode");
+
+  host.querySelector("[data-save]").click();
+  await settled();
+  assert.deepEqual(calls[1].payload.save.harness, harness);
 });
 
 test("рекомендованные аргументы подставляются кнопкой, а не сами", async () => {

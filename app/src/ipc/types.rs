@@ -608,6 +608,7 @@ dto!(PresetView {
     id: String,
     command: String,
     args: Vec<String>,
+    available: bool,
 });
 dto!(CheckedView {
     models: Vec<String>,

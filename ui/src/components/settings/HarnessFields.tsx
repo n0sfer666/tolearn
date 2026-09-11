@@ -3,7 +3,7 @@ import { For } from "solid-js";
 import type { Hints } from "../../i18n/hints/shape";
 import type { Dictionary } from "../../i18n/ru";
 import type { HarnessView, PresetView } from "../../ipc";
-import { argued, preset } from "../../lib/provider";
+import { argued, offered } from "../../lib/provider";
 import Hint from "../Hint";
 import ArgsHint from "./ArgsHint";
 
@@ -20,7 +20,7 @@ export default function HarnessFields(props: Props) {
 
   const pick = (id: string) => {
     const known = props.presets.find((one) => one.id === id);
-    if (known === undefined) return;
+    if (known === undefined || !known.available) return;
     if (known.command === "") {
       props.onChange({ ...props.value, id, args: [] });
       return;
@@ -46,9 +46,13 @@ export default function HarnessFields(props: Props) {
     <>
       <label>
         {props.text.provider.preset}
-        <select data-preset value={props.value.id} onChange={(event) => pick(event.currentTarget.value)}>
+        <select data-preset onChange={(event) => pick(event.currentTarget.value)}>
           <For each={props.presets}>
-            {(known) => <option value={known.id}>{preset(known.id, props.text)}</option>}
+            {(known) => (
+              <option value={known.id} disabled={!known.available} selected={known.id === props.value.id}>
+                {offered(known, props.text)}
+              </option>
+            )}
           </For>
         </select>
       </label>

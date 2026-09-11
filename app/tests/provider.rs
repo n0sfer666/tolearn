@@ -122,11 +122,19 @@ fn реестр_харнессов_приходит_вместе_с_настро
     let answer = read(&case);
 
     let presets = answer["presets"].as_array().unwrap().clone();
-    let ids: Vec<&str> = presets
+    let open: Vec<(&str, bool)> = presets
         .iter()
-        .filter_map(|preset| preset["id"].as_str())
+        .filter_map(|preset| Some((preset["id"].as_str()?, preset["available"].as_bool()?)))
         .collect();
-    assert_eq!(ids, ["claude", "opencode", "pi", "custom"]);
+    assert_eq!(
+        open,
+        [
+            ("claude", true),
+            ("opencode", false),
+            ("pi", false),
+            ("custom", true)
+        ]
+    );
 }
 
 #[test]

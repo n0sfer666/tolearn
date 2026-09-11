@@ -16,3 +16,4 @@ app/models/
 .claude/.verify-state.json
 .claude/.review-state.json
 .context/notes/
+.pi/

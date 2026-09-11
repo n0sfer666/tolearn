@@ -693,6 +693,7 @@ export type PresetView = {
   id: string;
   command: string;
   args: string[];
+  available: boolean;
 };
 
 export type AdviceView = {

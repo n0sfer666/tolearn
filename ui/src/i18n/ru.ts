@@ -390,6 +390,7 @@ export const ru = {
     presetOpencode: "opencode",
     presetPi: "pi",
     presetCustom: "Своя команда",
+    presetLater: "позже",
     command: "Команда",
     args: "Аргументы",
     argsSeen: "Уйдёт аргументов:",

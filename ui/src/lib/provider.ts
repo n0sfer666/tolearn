@@ -1,5 +1,5 @@
 import type { Dictionary } from "../i18n/ru";
-import type { CheckedView, HttpView, ProbedView, ProviderView } from "../ipc";
+import type { CheckedView, HttpView, PresetView, ProbedView, ProviderView } from "../ipc";
 
 const OLLAMA_ENDPOINT = "http://127.0.0.1:11434";
 const OPENAI_ENDPOINT = "http://127.0.0.1:8080/v1";
@@ -89,6 +89,11 @@ export function preset(id: string, text: Dictionary): string {
     custom: text.provider.presetCustom,
   };
   return names[id] ?? id;
+}
+
+export function offered(known: PresetView, text: Dictionary): string {
+  const name = preset(known.id, text);
+  return known.available ? name : `${name} (${text.provider.presetLater})`;
 }
 
 export function told(error: unknown): string {

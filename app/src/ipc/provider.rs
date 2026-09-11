@@ -43,6 +43,7 @@ pub fn presets() -> Vec<PresetView> {
             id: preset.id.to_owned(),
             command: preset.command.to_owned(),
             args: preset.advised(),
+            available: preset.available,
         })
         .collect()
 }

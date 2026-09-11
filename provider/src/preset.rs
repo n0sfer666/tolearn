@@ -5,6 +5,7 @@ pub struct Preset {
     pub id: &'static str,
     pub command: &'static str,
     pub args: &'static [&'static str],
+    pub available: bool,
 }
 
 impl Preset {
@@ -43,6 +44,7 @@ pub const CLAUDE: Preset = Preset {
         "project",
         "--strict-mcp-config",
     ],
+    available: true,
 };
 
 pub const PRESETS: [Preset; 4] = [
@@ -51,16 +53,19 @@ pub const PRESETS: [Preset; 4] = [
         id: "opencode",
         command: "opencode",
         args: &["run"],
+        available: false,
     },
     Preset {
         id: "pi",
         command: "pi",
         args: &["-p", "--no-tools", "--no-session"],
+        available: false,
     },
     Preset {
         id: "custom",
         command: "",
         args: &[],
+        available: true,
     },
 ];
 

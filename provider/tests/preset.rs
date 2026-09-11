@@ -8,7 +8,25 @@
 mod support;
 
 use support::harness;
-use tolearn_provider::{ask, preset};
+use tolearn_provider::{PRESETS, ask, preset};
+
+#[test]
+fn opencode_и_pi_закрыты_до_конца_v2() {
+    let open: Vec<(&str, bool)> = PRESETS
+        .iter()
+        .map(|preset| (preset.id, preset.available))
+        .collect();
+
+    assert_eq!(
+        open,
+        [
+            ("claude", true),
+            ("opencode", false),
+            ("pi", false),
+            ("custom", true)
+        ]
+    );
+}
 
 #[test]
 fn пресет_claude_без_чужого_контекста() {
