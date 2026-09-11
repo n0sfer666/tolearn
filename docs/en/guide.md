@@ -64,6 +64,12 @@ Nothing but an explicitly requested download ever goes online.
   three operating systems; exact paths and how to move them —
   [install/](install/README.md#where-your-data-lives).
 - Uninstalling the app does not touch your data.
+- The app keeps v2 programs in its own library, in
+  `~/.local/share/tolearn/programs/`. v1 program data — the registry
+  `~/.config/tolearn/registry.yaml` and, under `~/.local/share/tolearn`, the
+  `unpacked/`, `history/` and `offline/` directories and the `search-*` search
+  index — is neither read nor removed by the app once it moves to v2: you can
+  delete it by hand.
 
 ## Export
 
