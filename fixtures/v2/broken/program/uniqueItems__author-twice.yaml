@@ -1,0 +1,39 @@
+schema: tolearn/program/1
+uuid: 3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84
+slug: chiptune
+title: "Chiptune: музыка звукового чипа NES"
+goal: >-
+  Написать и проиграть в NES-трекере короткую мелодию на двух импульсных
+  каналах и треугольнике звукового чипа NES.
+level: >-
+  Начинающий: нотная грамота не нужна, школьной алгебры хватает.
+generation:
+  locale: ru
+  volatility: stable
+  request: >-
+    Хочу понять, как NES делала музыку, и написать свой чиптюн-трек.
+map:
+  stages:
+    - id: voices
+      title: Голоса чипа
+      hours: [2, 3]
+    - id: envelope
+      title: Огибающая и громкость
+      hours: [2, 4]
+    - id: first-track
+      title: Первый трек
+      hours: [3, 4]
+  children: []
+sources:
+  books:
+    - title: >-
+        Game Sound: An Introduction to the History, Theory, and Practice of
+        Video Game Music and Sound Design
+      authors: [Karen Collins, Karen Collins]
+      isbn: "9780262033787"
+      chapter: "2. Push Start Button: The Rise of Video Games"
+      checked_at: 2026-09-11
+  pages:
+    - title: "NESdev Wiki: APU"
+      url: https://www.nesdev.org/wiki/APU
+      checked_at: 2026-09-11

@@ -3,6 +3,7 @@ pub mod corpus;
 pub mod fields;
 pub mod instance;
 pub mod paths;
+pub mod programs;
 pub mod yaml;
 
 use jsonschema::Validator;
@@ -13,7 +14,9 @@ pub use corpus::{document, fixtures, valid_documents};
 
 use crate::repo::read;
 
-pub const KINDS: [&str; 3] = ["roadmap", "topic", "progress"];
+pub const KINDS: [&str; 5] = ["roadmap", "topic", "progress", "program", "stage"];
+
+pub const V2: [&str; 2] = ["program", "stage"];
 
 pub fn schema(kind: &str) -> Value {
     let path = format!("docs/schemas/{kind}.schema.json");

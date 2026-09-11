@@ -1,0 +1,19 @@
+schema: tolearn/stage/1
+id: linker
+title: Конфиг компоновщика
+blocks:
+  - id: "e3fd4291"
+    kind: paragraph
+    text: Файл nes.cfg говорит ld65, куда в ROM класть каждый сегмент.
+practice:
+  task:
+    - id: "94d28faf"
+      kind: paragraph
+      text: Опишите в nes.cfg сегменты HEADER, CODE и VECTORS.
+  deliverable: Файл nes.cfg, с которым ld65 собирает ROM.
+  constraints: []
+  acceptance:
+    - id: a1
+      claim: ld65 принимает конфиг.
+      expect: Сборка проходит без предупреждений о сегментах.
+questions: []

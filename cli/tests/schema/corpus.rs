@@ -1,6 +1,6 @@
 use serde_json::Value;
 
-use super::yaml;
+use super::{V2, programs, yaml};
 use crate::repo::{read, root};
 
 const REFERENCE: &str = "examples/llm-agents-base";
@@ -10,9 +10,17 @@ pub fn document(path: &str) -> Value {
 }
 
 pub fn fixtures(set: &str, kind: &str) -> Vec<String> {
-    let relative = format!("fixtures/{set}/{kind}");
-    if root().join(&relative).is_dir() {
-        files(&relative, ".yaml")
+    let room = if V2.contains(&kind) {
+        "fixtures/v2"
+    } else {
+        "fixtures"
+    };
+    listed(&format!("{room}/{set}/{kind}"))
+}
+
+pub fn listed(relative: &str) -> Vec<String> {
+    if root().join(relative).is_dir() {
+        files(relative, ".yaml")
     } else {
         Vec::new()
     }
@@ -28,9 +36,16 @@ fn reference(kind: &str) -> Vec<String> {
 }
 
 pub fn valid_documents(kind: &str) -> Vec<(String, Value)> {
-    reference(kind)
+    let paths: Vec<String> = if V2.contains(&kind) {
+        programs::documents(kind)
+    } else {
+        reference(kind)
+            .into_iter()
+            .chain(fixtures("valid", kind))
+            .collect()
+    };
+    paths
         .into_iter()
-        .chain(fixtures("valid", kind))
         .map(|path| {
             let document = document(&path);
             (path, document)

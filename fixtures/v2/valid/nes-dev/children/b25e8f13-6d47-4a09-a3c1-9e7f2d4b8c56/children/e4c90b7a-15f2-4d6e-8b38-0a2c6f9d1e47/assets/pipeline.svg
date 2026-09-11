@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 40" width="300" height="40" font-family="sans-serif" font-size="12">
+  <title>Исходник проходит ca65 и ld65 и становится ROM</title>
+  <g fill="#1b1d33" text-anchor="middle">
+    <text x="30" y="24">main.s</text>
+    <text x="110" y="24">main.o</text>
+    <text x="190" y="24">ld65</text>
+    <text x="265" y="24">game.nes</text>
+  </g>
+</svg>

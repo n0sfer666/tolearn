@@ -1,0 +1,25 @@
+schema: tolearn/program/1
+uuid: e4c90b7a-15f2-4d6e-8b38-0a2c6f9d1e47
+slug: first-rom
+title: Первый ROM в cc65
+goal: Собрать ROM, который эмулятор запускает без ошибки.
+level: Программирует на любом языке, ассемблер не видел.
+generation:
+  locale: ru
+  volatility: evolving
+  request: Хочу сделать свою игру для NES.
+map:
+  stages:
+    - id: first-rom
+      title: Первый ROM
+      hours: [2, 3]
+    - id: linker
+      title: Конфиг компоновщика
+      hours: [2, 3]
+  children: []
+sources:
+  books: []
+  pages:
+    - title: cc65 Documentation Overview
+      url: https://cc65.github.io/doc/
+      checked_at: 2026-09-11

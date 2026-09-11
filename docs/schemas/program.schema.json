@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/n0sfer666/tolearn/blob/master/docs/schemas/program.schema.json",
+  "title": "tolearn/program/1",
+  "description": "Программа v2: program.yaml в каталоге программы или подпрограммы.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "uuid", "slug", "title", "goal", "level", "generation", "map", "sources"],
+  "properties": {
+    "schema": { "const": "tolearn/program/1" },
+    "uuid": { "$ref": "#/$defs/uuid" },
+    "slug": { "$ref": "#/$defs/slug" },
+    "title": { "$ref": "#/$defs/line" },
+    "goal": { "$ref": "#/$defs/text" },
+    "level": { "$ref": "#/$defs/text" },
+    "generation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["locale", "volatility", "request"],
+      "properties": {
+        "locale": { "type": "string", "pattern": "^[a-z]{2}$" },
+        "volatility": { "enum": ["stable", "evolving", "volatile"] },
+        "request": { "$ref": "#/$defs/text" }
+      }
+    },
+    "map": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stages", "children"],
+      "properties": {
+        "stages": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/stage_row" }
+        },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/child_row" }
+        }
+      }
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["books", "pages"],
+      "properties": {
+        "books": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/book" }
+        },
+        "pages": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/page" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "line": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "text": { "type": "string", "minLength": 1 },
+    "date": { "type": "string", "format": "date" },
+    "hours": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "integer", "minimum": 1 }
+    },
+    "stage_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "hours"],
+      "properties": {
+        "id": { "$ref": "#/$defs/slug" },
+        "title": { "$ref": "#/$defs/line" },
+        "hours": { "$ref": "#/$defs/hours" }
+      }
+    },
+    "child_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uuid", "title", "hours"],
+      "properties": {
+        "uuid": { "$ref": "#/$defs/uuid" },
+        "title": { "$ref": "#/$defs/line" },
+        "hours": { "$ref": "#/$defs/hours" }
+      }
+    },
+    "book": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "authors", "isbn", "chapter", "checked_at"],
+      "properties": {
+        "title": { "$ref": "#/$defs/line" },
+        "authors": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/line" }
+        },
+        "isbn": { "type": "string", "pattern": "^97[89][0-9]{10}$" },
+        "chapter": { "$ref": "#/$defs/line" },
+        "checked_at": { "$ref": "#/$defs/date" }
+      }
+    },
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "url", "checked_at"],
+      "properties": {
+        "title": { "$ref": "#/$defs/line" },
+        "url": { "type": "string", "format": "uri" },
+        "checked_at": { "$ref": "#/$defs/date" }
+      }
+    }
+  }
+}

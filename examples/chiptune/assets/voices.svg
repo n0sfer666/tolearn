@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 200" width="520" height="200" font-family="sans-serif" font-size="13">
+  <title>Четыре голоса звукового чипа сходятся в микшере</title>
+  <rect width="520" height="200" fill="#ffffff"/>
+  <g fill="#eef2ff" stroke="#3b3f73" stroke-width="1.5">
+    <rect x="10" y="10" width="130" height="34" rx="4"/>
+    <rect x="10" y="56" width="130" height="34" rx="4"/>
+    <rect x="10" y="102" width="130" height="34" rx="4"/>
+    <rect x="10" y="148" width="130" height="34" rx="4"/>
+    <rect x="200" y="79" width="100" height="34" rx="4"/>
+    <rect x="340" y="79" width="70" height="34" rx="4"/>
+    <rect x="440" y="79" width="70" height="34" rx="4"/>
+  </g>
+  <g fill="#1b1d33" text-anchor="middle">
+    <text x="75" y="32">Импульс 1</text>
+    <text x="75" y="78">Импульс 2</text>
+    <text x="75" y="124">Треугольник</text>
+    <text x="75" y="170">Шум</text>
+    <text x="250" y="101">Микшер</text>
+    <text x="375" y="101">ЦАП</text>
+    <text x="475" y="101">Динамик</text>
+  </g>
+  <g fill="none" stroke="#3b3f73" stroke-width="1.5">
+    <path d="M140 27 L200 90"/>
+    <path d="M140 73 L200 93"/>
+    <path d="M140 119 L200 99"/>
+    <path d="M140 165 L200 102"/>
+    <path d="M300 96 L340 96"/>
+    <path d="M410 96 L440 96"/>
+  </g>
+</svg>

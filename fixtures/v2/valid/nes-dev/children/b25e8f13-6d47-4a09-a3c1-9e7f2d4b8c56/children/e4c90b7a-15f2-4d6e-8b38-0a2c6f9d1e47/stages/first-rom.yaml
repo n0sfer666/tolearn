@@ -1,0 +1,55 @@
+schema: tolearn/stage/1
+id: first-rom
+title: Первый ROM
+blocks:
+  - id: "82740ebe"
+    kind: paragraph
+    text: ROM для NES собирают ассемблером ca65 и компоновщиком ld65 из набора cc65.
+  - id: "27e110c4"
+    kind: callout
+    text: Без заголовка iNES эмулятор ROM не откроет.
+practice:
+  task:
+    - id: "6a646d56"
+      kind: heading
+      text: Соберите пустой ROM
+    - id: "14b31230"
+      kind: paragraph
+      text: Соберите из одного исходника ROM, который эмулятор запускает без ошибки.
+    - id: "c65a96b7"
+      kind: diagram
+      text: |-
+        flowchart LR
+          S[main.s] --> A[ca65] --> O[main.o] --> L[ld65] --> R[game.nes]
+      asset: assets/pipeline.svg
+    - id: "5a9cbd4c"
+      kind: code
+      lang: sh
+      text: |-
+        ca65 main.s -o main.o
+        ld65 main.o -C nes.cfg -o game.nes
+    - id: "27e110c4-2"
+      kind: callout
+      text: Без заголовка iNES эмулятор ROM не откроет.
+    - id: "170b371c"
+      kind: image
+      text: Один пиксель — заглушка на месте скриншота эмулятора.
+      asset: assets/pixel.png
+      license: CC0-1.0
+      attribution: toLearn contributors
+      source: https://github.com/n0sfer666/tolearn
+  deliverable: Файл game.nes и скриншот эмулятора с запущенным ROM.
+  constraints:
+    - id: c1
+      claim: Сборка идёт из командной строки.
+      check: ca65 --version
+      expect: ca65 печатает свою версию.
+  acceptance:
+    - id: a1
+      claim: ROM собран.
+      check: ld65 main.o -C nes.cfg -o game.nes
+      expect: Рядом появился game.nes.
+questions:
+  - id: q1
+    text: Зачем ROM нужен заголовок iNES?
+    answer: По нему эмулятор узнаёт маппер и размеры банков PRG и CHR.

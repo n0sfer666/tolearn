@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 
 use serde_json::Value;
 
-use crate::schema::fields::{ROLES, rows};
+use crate::schema::fields::{ROLES, list_of, rows};
 use crate::schema::paths::{described_fields, objects};
 use crate::schema::{KINDS, schema};
 
@@ -34,13 +34,15 @@ fn every_described_field_is_classified_in_the_field_list() {
     for row in &rows {
         assert!(
             ROLES.contains(&row.role.as_str()),
-            "docs/fields.md: `{}` has role `{}`, expected one of {ROLES:?}",
+            "{}: `{}` has role `{}`, expected one of {ROLES:?}",
+            list_of(&row.kind),
             row.path,
             row.role
         );
     }
     let empty: Vec<&String> = Vec::new();
     for kind in KINDS {
+        let list = list_of(kind);
         let described = described_fields(&schema(kind));
         let classified: BTreeSet<String> = rows
             .iter()
@@ -50,12 +52,12 @@ fn every_described_field_is_classified_in_the_field_list() {
         assert_eq!(
             described.difference(&classified).collect::<Vec<_>>(),
             empty,
-            "{kind}: described by the schema, missing from docs/fields.md"
+            "{kind}: described by the schema, missing from {list}"
         );
         assert_eq!(
             classified.difference(&described).collect::<Vec<_>>(),
             empty,
-            "{kind}: classified in docs/fields.md, absent from the schema"
+            "{kind}: classified in {list}, absent from the schema"
         );
     }
 }

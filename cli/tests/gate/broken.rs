@@ -1,8 +1,24 @@
 use std::collections::BTreeSet;
 
-use crate::schema::{KINDS, codes, declared_code, document, fixtures, validator};
+use crate::schema::paths::rules;
+use crate::schema::{KINDS, V2, codes, declared_code, document, fixtures, schema, validator};
 
 const MINIMUM_CODES: usize = 12;
+
+#[test]
+fn every_rule_of_a_v2_schema_has_a_broken_fixture() {
+    for kind in V2 {
+        let broken: BTreeSet<String> = fixtures("broken", kind)
+            .iter()
+            .map(|path| declared_code(path))
+            .collect();
+        let unbroken: Vec<String> = rules(&schema(kind)).difference(&broken).cloned().collect();
+        assert!(
+            unbroken.is_empty(),
+            "{kind}: no fixture in fixtures/v2/broken/{kind} breaks {unbroken:?}"
+        );
+    }
+}
 
 #[test]
 fn every_broken_fixture_is_rejected_with_the_code_in_its_name() {

@@ -1,0 +1,19 @@
+schema: tolearn/program/1
+uuid: b25e8f13-6d47-4a09-a3c1-9e7f2d4b8c56
+slug: build-tools
+title: Инструменты сборки
+goal: Собирать ROM из исходников одной командой.
+level: Программирует на любом языке, ассемблер не видел.
+generation:
+  locale: ru
+  volatility: volatile
+  request: Хочу сделать свою игру для NES.
+map:
+  stages: []
+  children:
+    - uuid: e4c90b7a-15f2-4d6e-8b38-0a2c6f9d1e47
+      title: Первый ROM в cc65
+      hours: [4, 6]
+sources:
+  books: []
+  pages: []

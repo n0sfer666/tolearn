@@ -1,0 +1,19 @@
+schema: tolearn/program/1
+uuid: 7a1d4e90-2c3b-4f58-8d6e-1b9a0c5e7f23
+slug: nes-dev
+title: Разработка игр для NES
+goal: Собрать и запустить в эмуляторе свою небольшую игру для NES.
+level: Программирует на любом языке, ассемблер не видел.
+generation:
+  locale: ru
+  volatility: evolving
+  request: Хочу сделать свою игру для NES.
+map:
+  stages: []
+  children:
+    - uuid: b25e8f13-6d47-4a09-a3c1-9e7f2d4b8c56
+      title: Инструменты сборки
+      hours: [8, 12]
+sources:
+  books: []
+  pages: []
