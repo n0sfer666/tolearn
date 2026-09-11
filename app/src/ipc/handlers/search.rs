@@ -13,7 +13,7 @@ pub fn run(context: &Context, input: &SearchIn) -> Result<SearchOut, IpcError> {
     let roadmap = roadmap_id(bundle).map_err(failed)?;
 
     let path = context.search(&roadmap);
-    let mut index = Index::read(&path).map_err(failed)?;
+    let mut index = Index::read(&path);
     let report = index.refresh(bundle).map_err(failed)?;
     if stale(&report) {
         index.save(&path).map_err(failed)?;

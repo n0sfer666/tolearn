@@ -90,3 +90,17 @@ fn индекс_живёт_рядом_с_данными_а_не_в_бандле(
 
     assert!(!left.iter().any(|name| name.contains("search")), "{left:?}");
 }
+
+#[test]
+fn индекс_с_конспектами_из_v1_не_ломает_поиск() {
+    let case = case("legacy");
+    search(&case, "рантайм");
+    let path = case.context.search("llm-agents-base");
+    let text = std::fs::read_to_string(&path).unwrap();
+    std::fs::write(&path, text.replacen("kind: topic", "kind: note", 1)).unwrap();
+
+    let out = search(&case, "локальный рантайм");
+
+    assert_eq!(out["indexed"], 7);
+    assert_eq!(first(&out)["topic"], "local-runtime");
+}

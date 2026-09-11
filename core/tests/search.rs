@@ -137,22 +137,47 @@ fn удалённая_тема_уходит_из_индекса() {
 #[test]
 fn индекс_переживает_запись_и_чтение() {
     let case = case("saved");
+    retitle(&case, "Абракадабра");
     let saved = fresh(&case);
     let path = case.root.join("search.yaml");
     saved.save(&path).unwrap();
 
-    let mut read = Index::read(&path).unwrap();
+    let mut read = Index::read(&path);
+    assert_eq!(read, saved);
     let report = read.refresh(&case.bundle).unwrap();
 
     assert_eq!(report.indexed, 0);
+    assert_eq!(read.find("абракадабра", 10).len(), 1);
+}
+
+#[test]
+fn индекс_с_конспектами_из_v1_пересобирается() {
+    let case = case("legacy");
+    let path = case.root.join("search.yaml");
+    let text = fresh(&case).text().replacen("kind: topic", "kind: note", 1);
+    std::fs::write(&path, text).unwrap();
+
+    let mut read = Index::read(&path);
+    let report = read.refresh(&case.bundle).unwrap();
+
+    assert_eq!(report.indexed, 7);
     assert!(!read.find("локальный рантайм", 10).is_empty());
+}
+
+#[test]
+fn испорченный_индекс_читается_как_пустой() {
+    let case = case("garbage");
+    let path = case.root.join("search.yaml");
+    std::fs::write(&path, "не: [йaml").unwrap();
+
+    assert_eq!(Index::read(&path), Index::default());
 }
 
 #[test]
 fn отсутствующий_индекс_читается_как_пустой() {
     let case = case("absent");
 
-    let index = Index::read(&case.root.join("нет-такого.yaml")).unwrap();
+    let index = Index::read(&case.root.join("нет-такого.yaml"));
 
     assert!(index.find("рантайм", 10).is_empty());
 }

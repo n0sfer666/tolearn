@@ -9,7 +9,6 @@ pub use collect::roadmap_id;
 pub use error::SearchError;
 pub use types::{Hit, Kind, Refresh};
 
-use std::io::ErrorKind;
 use std::path::Path;
 
 use crate::atomic;
@@ -21,18 +20,11 @@ pub struct Index {
 }
 
 impl Index {
-    pub fn read(path: &Path) -> Result<Self, SearchError> {
-        let source = match std::fs::read_to_string(path) {
-            Ok(source) => source,
-            Err(error) if error.kind() == ErrorKind::NotFound => return Ok(Self::default()),
-            Err(error) => {
-                return Err(SearchError::Unreadable {
-                    path: path.display().to_string(),
-                    reason: error.to_string(),
-                });
-            }
-        };
-        Self::parse(&source, path)
+    pub fn read(path: &Path) -> Self {
+        std::fs::read_to_string(path)
+            .ok()
+            .and_then(|source| Self::parse(&source, path).ok())
+            .unwrap_or_default()
     }
 
     pub fn save(&self, path: &Path) -> Result<(), SearchError> {
