@@ -653,6 +653,35 @@ test("кнопка оставить мои запоминает отпечато
   assert.equal(calls[1].payload.save.harness.dismissed_advice, DRIFT.fingerprint);
 });
 
+test("пустой аргумент в разнице виден кавычками, а не пропуском", async () => {
+  const { host } = mount({ stored: { active: "harness" }, outdated: { ...DRIFT, removed: ["--tools", ""] } });
+  await settled();
+
+  assert.equal(host.querySelector("[data-drift-removed]").textContent, `${ru.provider.driftRemoved} --tools, ""`);
+});
+
+test("разошёлся только порядок — плашка говорит об этом, а не показывает пустую разницу", async () => {
+  const { host } = mount({ stored: { active: "harness" }, outdated: { ...DRIFT, removed: [], added: [] } });
+  await settled();
+
+  assert.equal(host.querySelector("[data-drift-order]").textContent, ru.provider.driftOrder);
+  assert.equal(host.querySelector("[data-drift-removed]"), null);
+  assert.equal(host.querySelector("[data-drift-added]"), null);
+});
+
+test("пока форма расходится с сохранённой, плашки нет: кнопки сохранили бы чужие правки", async () => {
+  const { host } = mount({ stored: { active: "harness" }, outdated: DRIFT });
+  await settled();
+
+  input(host, "[data-command]", "claude-beta");
+  await settled();
+  assert.ok(host.querySelector("[data-drift]") === null, "плашка видна поверх несохранённой правки");
+
+  input(host, "[data-command]", DEFAULTS.harness.command);
+  await settled();
+  assert.ok(host.querySelector("[data-drift]"), "форма снова совпала с сохранённой, а плашка не вернулась");
+});
+
 test("после разрешения расхождения плашка гаснет", async () => {
   const { host } = mount({ stored: { active: "harness" }, outdated: DRIFT });
   await settled();

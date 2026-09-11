@@ -39,6 +39,18 @@ fn расхождение_показывает_что_уйдёт_и_что_до�
 }
 
 #[test]
+fn перестановка_аргументов_тоже_расхождение() {
+    let claude = preset("claude").expect("пресет claude зарегистрирован");
+    let mut args = claude.advised();
+    args.swap(0, 1);
+
+    let found = drift(&saved("claude", args)).expect("порядок аргументов разошёлся");
+
+    assert!(found.removed.is_empty());
+    assert!(found.added.is_empty());
+}
+
+#[test]
 fn пустые_аргументы_у_пресета_с_советом_тоже_расхождение() {
     let claude = preset("claude").expect("пресет claude зарегистрирован");
 

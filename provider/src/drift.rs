@@ -23,14 +23,11 @@ pub fn fingerprint(advised: &[String]) -> String {
 
 pub fn drift(harness: &Harness) -> Option<Drift> {
     let advised = preset(&harness.id)?.advised();
-    if advised.is_empty() {
+    if advised.is_empty() || harness.args == advised {
         return None;
     }
     let removed = missing(&harness.args, &advised);
     let added = missing(&advised, &harness.args);
-    if removed.is_empty() && added.is_empty() {
-        return None;
-    }
     let fingerprint = fingerprint(&advised);
     if harness.dismissed_advice.as_deref() == Some(fingerprint.as_str()) {
         return None;

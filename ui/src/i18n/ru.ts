@@ -401,6 +401,7 @@ export const ru = {
     driftTitle: "Аргументы пресета обновились",
     driftRemoved: "Уйдёт:",
     driftAdded: "Добавится:",
+    driftOrder: "Изменился порядок",
     driftUpdate: "Обновить",
     driftKeep: "Оставить мои",
     timeout: "Таймаут, секунд",

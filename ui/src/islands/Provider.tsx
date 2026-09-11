@@ -1,6 +1,7 @@
 import { Show, createSignal, onMount } from "solid-js";
 
 import Apis from "../components/settings/Apis";
+import Drift from "../components/settings/Drift";
 import HarnessFields from "../components/settings/HarnessFields";
 import HttpFields from "../components/settings/HttpFields";
 import Journal from "../components/settings/Journal";
@@ -35,6 +36,7 @@ export default function Provider(props: Props) {
   const advice = () => hints(props.locale);
 
   const [draft, setDraft] = createSignal<ProviderView | null>(null);
+  const [saved, setSaved] = createSignal<ProviderView | null>(null);
   const [stored, setStored] = createSignal(false);
   const [key, setKey] = createSignal("");
   const [presets, setPresets] = createSignal<PresetView[]>([]);
@@ -47,6 +49,7 @@ export default function Provider(props: Props) {
 
   const took = (answer: ProviderOut) => {
     setDraft(answer.provider);
+    setSaved(answer.provider);
     setStored(answer.has_key);
     setPresets(answer.presets);
     setAdvised(answer.advised);
@@ -54,6 +57,8 @@ export default function Provider(props: Props) {
     setProbed(answer.probed);
     setOutdated(answer.outdated);
   };
+
+  const pristine = () => JSON.stringify(draft()) === JSON.stringify(saved());
 
   onMount(() => {
     void (async () => {
@@ -196,28 +201,8 @@ export default function Provider(props: Props) {
               presets={presets()}
               onChange={(harness) => change({ harness })}
             />
-            <Show when={outdated()}>
-              {(found) => (
-                <div data-drift>
-                  <p data-drift-title>{props.text.provider.driftTitle}</p>
-                  <Show when={found().removed.length > 0}>
-                    <p data-drift-removed>
-                      {props.text.provider.driftRemoved} {found().removed.join(", ")}
-                    </p>
-                  </Show>
-                  <Show when={found().added.length > 0}>
-                    <p data-drift-added>
-                      {props.text.provider.driftAdded} {found().added.join(", ")}
-                    </p>
-                  </Show>
-                  <button type="button" data-drift-update onClick={update}>
-                    {props.text.provider.driftUpdate}
-                  </button>
-                  <button type="button" data-drift-keep onClick={keep}>
-                    {props.text.provider.driftKeep}
-                  </button>
-                </div>
-              )}
+            <Show when={pristine() && outdated()}>
+              {(found) => <Drift text={props.text} found={found()} onUpdate={update} onKeep={keep} />}
             </Show>
           </Show>
 

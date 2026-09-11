@@ -403,6 +403,7 @@ export const en: Dictionary = {
     driftTitle: "The preset's arguments have changed",
     driftRemoved: "Will leave:",
     driftAdded: "Will arrive:",
+    driftOrder: "The order has changed",
     driftUpdate: "Update",
     driftKeep: "Keep mine",
     timeout: "Timeout, seconds",
