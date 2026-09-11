@@ -141,16 +141,21 @@ Nushell: `and` между командами не работает как в bas
 ## Замер токенов пресета claude (S70)
 
 Процедура — [v2-interview.md](notes/v2-interview.md#повторить-замер-харнесса), из пустого
-временного каталога:
+временного каталога. Аргументы — ровно `advised()` пресета `claude`
+(`provider/src/preset.rs`): поменялся пресет — меняется и эта команда.
 
 ```nu
-"Ответь одним словом: ок" | ^claude -p --output-format json --tools "" --system-prompt "Ты генератор учебных программ." --setting-sources project --strict-mcp-config | from json | get usage | to json
+"Ответь одним словом: ок" | ^claude -p --output-format stream-json --verbose --include-partial-messages --tools "" --system-prompt "Выполни инструкцию из сообщения, ответь только результатом." --setting-sources project --strict-mcp-config | lines | each { from json } | where type == "result" | first | select total_cost_usd usage modelUsage | to json
 ```
 
-Замер 2026-09-10, `claude 2.1.267 (Claude Code)`: **438 входных токенов** (`input_tokens`),
-`cache_creation_input_tokens` и `cache_read_input_tokens` — 0. Цель DoD S70 — ≤ 1000, до
-правки (`--allowedTools` вместо `--tools`, без `--system-prompt`/`--setting-sources`/
-`--strict-mcp-config`) было ~27 тыс.
+Замер 2026-09-11, `claude 2.1.268 (Claude Code)`: **473 входных токена** у основной модели
+(`usage.input_tokens` события `result`), `cache_creation_input_tokens` и
+`cache_read_input_tokens` — 0, $0,0034 за вызов. Цель DoD S70 — ≤ 1000, до правки
+(`--allowedTools` вместо `--tools`, без `--system-prompt`/`--setting-sources`/
+`--strict-mcp-config`) было ~27 тыс. В `usage` не входит побочный вызов CLI на
+`claude-haiku-4-5` — 903 входных токена, $0,00097; он виден только в `modelUsage`.
+Прошлый замер (2026-09-10, 438) шёл с `--output-format json` и другим системным
+промптом, то есть не с теми аргументами, что шлёт приложение.
 
 ## Вес JS
 
