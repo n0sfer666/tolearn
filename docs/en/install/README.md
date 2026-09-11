@@ -34,7 +34,7 @@ per system:
 | What | Path |
 |---|---|
 | Settings, provider, program registry | `~/.config/tolearn` |
-| Page archives, unpacked bundles, history | `~/.local/share/tolearn` |
+| Page archives, unpacked bundles | `~/.local/share/tolearn` |
 
 On Windows `~` is `C:\Users\<name>`, i.e. `C:\Users\<name>\.config\tolearn`. The
 `XDG_CONFIG_HOME` and `XDG_DATA_HOME` variables are honoured when set to an

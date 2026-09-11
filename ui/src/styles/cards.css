@@ -2,10 +2,7 @@ ul:has(> li[data-program]),
 ol[data-materials],
 ul:has(> li[data-topic]),
 ul:has(> li[data-due]),
-ul:has(> li[data-expired]),
-ul:has(> li[data-aging]),
 ul:has(> li[data-hit]),
-ul:has(> li[data-node]),
 ul:has(> li[data-question]),
 ul:has(> li[data-answer]),
 ul:has(> li[data-check]) {
@@ -20,10 +17,7 @@ li[data-program],
 li[data-material],
 li[data-topic],
 li[data-due],
-li[data-expired],
-li[data-aging],
 li[data-hit],
-li[data-node],
 li[data-question],
 li[data-answer],
 li[data-check] {
@@ -47,22 +41,19 @@ li[data-check] {
   li[data-material],
   li[data-topic],
   li[data-due],
-  li[data-expired],
-  li[data-aging],
-  li[data-hit],
-  li[data-node]
+  li[data-hit]
 ):has(> a):hover {
   border-color: var(--color-border-strong);
   background: var(--color-bg-subtle);
 }
 
-:is(li[data-topic], li[data-due], li[data-expired], li[data-aging], li[data-hit], li[data-node]) > a {
+:is(li[data-topic], li[data-due], li[data-hit]) > a {
   flex: 1 1 auto;
 }
 
 li[data-material] > a,
 li[data-program] > a,
-:is(li[data-topic], li[data-due], li[data-expired], li[data-aging], li[data-hit]) > a {
+:is(li[data-topic], li[data-due], li[data-hit]) > a {
   display: inline-flex;
   align-items: center;
 }
@@ -104,24 +95,6 @@ li[data-checkpoint] {
 
 section[data-overdue] li[data-due] {
   border-inline-start: var(--focus-ring) solid var(--color-warning);
-}
-
-ol[data-graph] {
-  display: grid;
-  gap: var(--spacing-6);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-li[data-node] {
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--spacing-1);
-}
-
-li[data-node] > a[data-open] {
-  margin-block-end: var(--spacing-1);
 }
 
 .cards {

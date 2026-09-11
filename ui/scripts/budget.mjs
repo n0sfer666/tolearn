@@ -8,7 +8,6 @@ export const DIST = fileURLToPath(new URL("../dist", import.meta.url));
 
 const LIMITS = [
   ["/topic/", 30 * 1024],
-  ["/graph/", 60 * 1024],
   ["/", 15 * 1024],
 ];
 

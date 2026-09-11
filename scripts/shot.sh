@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-route=${1:?путь экрана, например /ru/graph/}
+route=${1:?путь экрана, например /ru/settings/}
 out=${2:-shot.png}
 size=${3:-1280,900}
 wait=${SHOT_WAIT:-40}

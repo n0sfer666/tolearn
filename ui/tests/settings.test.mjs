@@ -22,8 +22,6 @@ const DEFAULTS = {
   disk_budget_mb: 2048,
   locale: "ru",
   theme: "system",
-  history_depth: 5,
-  history_share_percent: 10,
 };
 
 function mount(options = {}) {
@@ -108,38 +106,6 @@ test("нулевой бюджет не уезжает в ядро", async () => 
   await settled();
 
   assert.equal(calls.length, 1, "запрос ушёл с нулевым бюджетом");
-});
-
-test("глубина истории и её доля бюджета уходят в ядро", async () => {
-  const { host, calls } = mount({ stored: { history_depth: 3, history_share_percent: 25 } });
-  await settled();
-
-  assert.equal(host.querySelector("[data-history-depth]").value, "3");
-  assert.equal(host.querySelector("[data-history-share]").value, "25");
-
-  const depth = host.querySelector("[data-history-depth]");
-  depth.value = "2";
-  depth.dispatchEvent(new window.Event("change", { bubbles: true }));
-  await settled();
-  assert.equal(calls.at(-1).payload.save.history_depth, 2);
-
-  const share = host.querySelector("[data-history-share]");
-  share.value = "40";
-  share.dispatchEvent(new window.Event("change", { bubbles: true }));
-  await settled();
-  assert.equal(calls.at(-1).payload.save.history_share_percent, 40);
-});
-
-test("доля бюджета больше ста процентов в ядро не уезжает", async () => {
-  const { host, calls } = mount();
-  await settled();
-
-  const share = host.querySelector("[data-history-share]");
-  share.value = "140";
-  share.dispatchEvent(new window.Event("change", { bubbles: true }));
-  await settled();
-
-  assert.equal(calls.length, 1, "запрос ушёл с долей больше ста процентов");
 });
 
 test("переключатель темы предлагает три варианта на языке экрана", async () => {

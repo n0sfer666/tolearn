@@ -18,45 +18,7 @@ span[data-program],
 span[data-kind],
 span[data-hours],
 span[data-state],
-span[data-free],
-span[data-leaf],
-p[data-tally],
-[data-waiting],
-[data-unlocks] {
-  color: var(--color-fg-muted);
-  font-size: var(--font-size-sm);
-}
-
-[data-waiting] ul,
-[data-unlocks] ul {
-  display: inline;
-  margin-inline-start: var(--spacing-1);
-  padding: 0;
-  list-style: none;
-}
-
-[data-waiting] li,
-[data-unlocks] li {
-  display: inline;
-}
-
-[data-waiting] li + li::before,
-[data-unlocks] li + li::before {
-  content: ", ";
-}
-
-li[data-node] > a {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--spacing-2);
-}
-
-li[data-layer] {
-  max-width: none;
-}
-
-li[data-layer] > h3 {
-  margin-block-end: var(--spacing-2);
+p[data-tally] {
   color: var(--color-fg-muted);
   font-size: var(--font-size-sm);
 }
@@ -66,7 +28,6 @@ span[data-offline],
 span[data-smoke],
 span[data-claim],
 span[data-expect],
-span[data-pin],
 [data-snippet] {
   color: var(--color-fg-muted);
   font-size: var(--font-size-sm);

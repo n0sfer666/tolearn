@@ -15,8 +15,6 @@ const DEFAULTS = {
   disk_budget_mb: 2048,
   locale: "ru",
   theme: "system",
-  history_depth: 5,
-  history_share_percent: 10,
 };
 
 let chosen;

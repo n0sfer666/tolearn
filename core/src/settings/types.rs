@@ -1,14 +1,10 @@
 pub const DEFAULT_BUDGET_MB: u32 = 2048;
-pub const DEFAULT_HISTORY_DEPTH: u32 = 5;
-pub const DEFAULT_HISTORY_SHARE: u32 = 10;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Settings {
     pub disk_budget_mb: u32,
     pub locale: Locale,
     pub theme: Theme,
-    pub history_depth: u32,
-    pub history_share_percent: u32,
 }
 
 impl Default for Settings {
@@ -17,8 +13,6 @@ impl Default for Settings {
             disk_budget_mb: DEFAULT_BUDGET_MB,
             locale: Locale::Ru,
             theme: Theme::System,
-            history_depth: DEFAULT_HISTORY_DEPTH,
-            history_share_percent: DEFAULT_HISTORY_SHARE,
         }
     }
 }
@@ -26,10 +20,6 @@ impl Default for Settings {
 impl Settings {
     pub fn budget_bytes(&self) -> u64 {
         u64::from(self.disk_budget_mb) * 1024 * 1024
-    }
-
-    pub fn history_bytes(&self) -> u64 {
-        self.budget_bytes() * u64::from(self.history_share_percent) / 100
     }
 }
 

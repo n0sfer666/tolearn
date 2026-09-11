@@ -9,9 +9,9 @@ use tolearn_core::topic::Topic;
 
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
+use crate::ipc::open;
 use crate::ipc::types::{ImportIn, ImportOut, Merged, StaleTopic, Violation};
 use crate::ipc::unpack::{self, Taken};
-use crate::ipc::{history, open, settings};
 
 pub fn run(context: &Context, input: &ImportIn) -> Result<ImportOut, IpcError> {
     let taken = unpack::taken(context, &input.path)?;
@@ -47,15 +47,6 @@ fn merged_in(context: &Context, input: &ImportIn, taken: &Taken) -> Result<Impor
         .iter()
         .find(|program| program.id == scan.roadmap.id)
         .map(|program| program.path.clone());
-
-    if let Some(known) = previous.as_deref().filter(|path| path.is_dir()) {
-        history::keep(
-            &context.history(&scan.roadmap.id),
-            known,
-            &input.today,
-            &settings::stored(context)?,
-        )?;
-    }
 
     let (mut document, before) = source(&scan, previous.as_deref())?;
     let report = merge::merge(&mut document, &scan.roadmap, &before, &scan.topics)?;

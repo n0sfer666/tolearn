@@ -56,18 +56,6 @@ export default function Settings(props: Props) {
     void store({ disk_budget_mb: budget });
   };
 
-  const onDepth = (value: string) => {
-    const depth = Number.parseInt(value, 10);
-    if (Number.isNaN(depth) || depth < 0) return;
-    void store({ history_depth: depth });
-  };
-
-  const onShare = (value: string) => {
-    const share = Number.parseInt(value, 10);
-    if (Number.isNaN(share) || share < 0 || share > 100) return;
-    void store({ history_share_percent: share });
-  };
-
   const onLocale = (event: MouseEvent, other: Locale) => {
     event.preventDefault();
     void (async () => {
@@ -120,32 +108,6 @@ export default function Settings(props: Props) {
                 )}
               </For>
             </nav>
-          </section>
-
-          <section>
-            <h2>{props.text.settings.history}</h2>
-            <p>{props.text.settings.historyLead}</p>
-            <label>
-              {props.text.settings.historyDepth}
-              <input
-                data-history-depth
-                type="number"
-                min="0"
-                value={current().history_depth}
-                onChange={(event) => onDepth(event.currentTarget.value)}
-              />
-            </label>
-            <label>
-              {props.text.settings.historyShare}
-              <input
-                data-history-share
-                type="number"
-                min="0"
-                max="100"
-                value={current().history_share_percent}
-                onChange={(event) => onShare(event.currentTarget.value)}
-              />
-            </label>
           </section>
         </article>
       )}

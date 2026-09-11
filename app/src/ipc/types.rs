@@ -183,48 +183,6 @@ dto!(ExportOut {
     bytes: u64,
 });
 
-dto!(StaleIn {
-    bundle: String,
-    today: String,
-});
-dto!(StaleOut {
-    topics: Vec<ExpiredView>,
-    materials: Vec<AgingView>,
-});
-dto!(ExpiredView {
-    topic: String,
-    title: String,
-    verified_at: String,
-    expired_at: String,
-});
-dto!(AgingView {
-    topic: String,
-    topic_title: String,
-    title: String,
-    url: String,
-    stale: bool,
-    delta: Option<String>,
-    covers_version: Option<String>,
-    pin: String,
-});
-
-dto!(GraphIn {
-    bundle: String,
-    today: String,
-});
-dto!(GraphOut {
-    nodes: Vec<NodeView>,
-});
-dto!(NodeView {
-    id: String,
-    title: String,
-    status: String,
-    layer: u32,
-    depends_on: Vec<String>,
-    blocked_by: Vec<String>,
-    unlocks: Vec<String>,
-});
-
 dto!(ImportIn {
     path: String,
     today: String,
@@ -245,31 +203,6 @@ dto!(Merged {
 dto!(StaleTopic {
     id: String,
     changed: Vec<String>,
-});
-
-dto!(HistoryIn { bundle: String });
-dto!(HistoryOut {
-    versions: Vec<VersionView>,
-});
-dto!(VersionView {
-    n: u32,
-    saved_at: String,
-    bytes: u64,
-});
-dto!(HistoryDiffIn {
-    bundle: String,
-    version: u32,
-});
-dto!(HistoryDiffOut {
-    added: Vec<Link>,
-    removed: Vec<Link>,
-    rewritten: Vec<RewrittenView>,
-});
-dto!(RewrittenView {
-    id: String,
-    title: String,
-    changed: Vec<String>,
-    demoted: bool,
 });
 
 dto!(AnswerView {
@@ -352,8 +285,6 @@ dto!(SettingsView {
     disk_budget_mb: u32,
     locale: String,
     theme: String,
-    history_depth: u32,
-    history_share_percent: u32,
 });
 
 dto!(SearchIn {
@@ -619,23 +550,10 @@ pub fn shapes() -> Vec<Shape> {
         Card::shape(),
         ExportIn::shape(),
         ExportOut::shape(),
-        StaleIn::shape(),
-        StaleOut::shape(),
-        ExpiredView::shape(),
-        AgingView::shape(),
-        GraphIn::shape(),
-        GraphOut::shape(),
-        NodeView::shape(),
         ImportIn::shape(),
         ImportOut::shape(),
         Merged::shape(),
         StaleTopic::shape(),
-        HistoryIn::shape(),
-        HistoryOut::shape(),
-        VersionView::shape(),
-        HistoryDiffIn::shape(),
-        HistoryDiffOut::shape(),
-        RewrittenView::shape(),
         AnswerView::shape(),
         VerdictView::shape(),
         ParseVerdictIn::shape(),

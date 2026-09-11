@@ -10,10 +10,9 @@ without a network. The exam is still run by an LLM, but the app needs no
 account, no key and no subscription: the prompt is copied into any chat and
 the verdict is pasted back.
 
-**Status: working.** Importing a program, topics, timed practice, the exam by
-copy-paste and via a provider, the offline archive, the graph, version
-history, Markdown export, the voice exam and installers for macOS, Windows
-and Linux are all done.
+**Status: working.** Importing a program, topics, practice, the exam by
+copy-paste and via a provider, the offline archive, Markdown export, the voice
+exam and installers for macOS, Windows and Linux are all done.
 
 ## In progress (v2)
 

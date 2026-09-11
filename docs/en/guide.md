@@ -29,10 +29,8 @@ The short version of how to use the app. For installation see
 | Topic | materials, practice, questions |
 | Practice | the task, constraints and acceptance; check commands run when you press |
 | Exam | questions, answers and the verdict |
-| Stale | topics that changed after the program was regenerated |
-| Graph | topic dependencies by layer |
 | Search | across topics and materials of the open program |
-| Settings | language, LLM provider, offline, history |
+| Settings | language, LLM provider, offline |
 
 ## The exam
 
@@ -56,7 +54,7 @@ Nothing but an explicitly requested download ever goes online.
 
 - Programs stay wherever you put them; the app remembers the path in its
   registry.
-- Settings, the program registry and the store (page archives, version history)
+- Settings, the program registry and the store (page archives)
   live in `~/.config/tolearn` and `~/.local/share/tolearn`, identically on all
   three operating systems; exact paths and how to move them —
   [install/](install/README.md#where-your-data-lives).

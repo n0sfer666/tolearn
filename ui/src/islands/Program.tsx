@@ -90,12 +90,6 @@ export default function Program(props: Props) {
     >
       <section>
         <nav class="row" data-tools aria-label={props.text.nav.sections}>
-          <a data-stale href={`/${props.locale}/stale/?program=${encodeURIComponent(program())}`}>
-            {props.text.stale.title}
-          </a>
-          <a data-graph href={`/${props.locale}/graph/?program=${encodeURIComponent(program())}`}>
-            {props.text.graph.title}
-          </a>
           <button type="button" data-export onClick={() => void exported()} disabled={state() === "busy"}>
             {state() === "busy" ? props.text.program.exporting : props.text.program.export}
           </button>

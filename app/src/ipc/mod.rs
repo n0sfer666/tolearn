@@ -3,7 +3,6 @@ pub mod contract;
 mod dto;
 mod error;
 mod handlers;
-mod history;
 pub mod layout;
 mod open;
 mod provider;

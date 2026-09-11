@@ -66,10 +66,6 @@ impl Context {
         self.data.join(format!("search-{roadmap}.yaml"))
     }
 
-    pub fn history(&self, roadmap: &str) -> PathBuf {
-        self.data.join("history").join(roadmap)
-    }
-
     pub fn llm_log(&self) -> PathBuf {
         self.data.join("llm-log")
     }

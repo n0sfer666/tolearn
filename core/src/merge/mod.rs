@@ -3,8 +3,6 @@ mod report;
 
 pub use report::{Part, Report, Stale};
 
-pub(crate) use essence::changed;
-
 use std::collections::BTreeSet;
 
 use crate::progress::{Document, DocumentError, Status};

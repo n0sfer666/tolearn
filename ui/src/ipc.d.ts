@@ -221,53 +221,6 @@ export type ExportOut = {
   bytes: number;
 };
 
-export type StaleIn = {
-  bundle: string;
-  today: string;
-};
-
-export type StaleOut = {
-  topics: ExpiredView[];
-  materials: AgingView[];
-};
-
-export type ExpiredView = {
-  topic: string;
-  title: string;
-  verified_at: string;
-  expired_at: string;
-};
-
-export type AgingView = {
-  topic: string;
-  topic_title: string;
-  title: string;
-  url: string;
-  stale: boolean;
-  delta: string | null;
-  covers_version: string | null;
-  pin: string;
-};
-
-export type GraphIn = {
-  bundle: string;
-  today: string;
-};
-
-export type GraphOut = {
-  nodes: NodeView[];
-};
-
-export type NodeView = {
-  id: string;
-  title: string;
-  status: string;
-  layer: number;
-  depends_on: string[];
-  blocked_by: string[];
-  unlocks: string[];
-};
-
 export type ImportIn = {
   path: string;
   today: string;
@@ -291,38 +244,6 @@ export type Merged = {
 export type StaleTopic = {
   id: string;
   changed: string[];
-};
-
-export type HistoryIn = {
-  bundle: string;
-};
-
-export type HistoryOut = {
-  versions: VersionView[];
-};
-
-export type VersionView = {
-  n: number;
-  saved_at: string;
-  bytes: number;
-};
-
-export type HistoryDiffIn = {
-  bundle: string;
-  version: number;
-};
-
-export type HistoryDiffOut = {
-  added: Link[];
-  removed: Link[];
-  rewritten: RewrittenView[];
-};
-
-export type RewrittenView = {
-  id: string;
-  title: string;
-  changed: string[];
-  demoted: boolean;
 };
 
 export type AnswerView = {
@@ -421,8 +342,6 @@ export type SettingsView = {
   disk_budget_mb: number;
   locale: string;
   theme: string;
-  history_depth: number;
-  history_share_percent: number;
 };
 
 export type SearchIn = {
@@ -735,12 +654,8 @@ export type Commands = {
   prompt: { input: PromptIn; output: PromptOut };
   examine: { input: ExamineIn; output: ExamineOut };
   programs: { input: ProgramsIn; output: ProgramsOut };
-  stale: { input: StaleIn; output: StaleOut };
   export: { input: ExportIn; output: ExportOut };
-  graph: { input: GraphIn; output: GraphOut };
   import: { input: ImportIn; output: ImportOut };
-  history: { input: HistoryIn; output: HistoryOut };
-  history_diff: { input: HistoryDiffIn; output: HistoryDiffOut };
   settings: { input: SettingsIn; output: SettingsView };
   search: { input: SearchIn; output: SearchOut };
   provider: { input: ProviderIn; output: ProviderOut };

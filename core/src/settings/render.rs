@@ -7,13 +7,9 @@ pub fn text(settings: &Settings) -> String {
         "schema: {SCHEMA}\n\
          disk_budget_mb: {}\n\
          locale: {}\n\
-         theme: {}\n\
-         history_depth: {}\n\
-         history_share_percent: {}\n",
+         theme: {}\n",
         settings.disk_budget_mb,
         settings.locale.label(),
         settings.theme.label(),
-        settings.history_depth,
-        settings.history_share_percent,
     )
 }

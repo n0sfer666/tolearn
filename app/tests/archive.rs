@@ -129,10 +129,36 @@ fn повторный_импорт_архива_обновляет_ту_же_п�
     assert_eq!(taken["ok"], true, "{taken}");
     assert_eq!(programs(&context).len(), 1);
     assert!(
-        data.join("history/llm-agents-base/1").is_dir(),
-        "прошлая версия в историю не ушла"
+        !data.join("history").exists(),
+        "прошлая версия ушла в историю"
     );
     assert!(leftovers(&data).is_empty(), "остался рабочий каталог");
+}
+
+#[test]
+fn история_версий_v1_при_повторном_импорте_остаётся_как_была() {
+    let (context, data) = context("past");
+    let bundle = copied("archive-past");
+    let archive = zipped(&bundle);
+    imported(&context, &archive);
+    let past = data.join("history/llm-agents-base/1");
+    std::fs::create_dir_all(&past).unwrap();
+    std::fs::write(past.join("saved-at"), "2026-07-01").unwrap();
+
+    let taken = imported(&context, &archive);
+
+    assert_eq!(taken["ok"], true, "{taken}");
+    assert_eq!(
+        std::fs::read_to_string(past.join("saved-at")).unwrap(),
+        "2026-07-01",
+        "историю версий v1 тронули"
+    );
+    let rooms: Vec<_> = std::fs::read_dir(data.join("history/llm-agents-base"))
+        .unwrap()
+        .flatten()
+        .map(|entry| entry.file_name())
+        .collect();
+    assert_eq!(rooms, ["1"], "в историю легла новая версия");
 }
 
 #[test]

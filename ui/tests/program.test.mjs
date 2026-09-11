@@ -245,15 +245,6 @@ test("фильтр оставляет в этапах только совпав�
   assert.ok(host.querySelector('[data-topic="cp-gateway"]'), "совпавшая тема пропала");
 });
 
-test("из программы есть ход в её дайджест устаревания", async () => {
-  const { host } = mount({ path: "/programs/other" });
-  await settled();
-
-  const link = host.querySelector("[data-stale]");
-  assert.ok(link, host.innerHTML);
-  assert.equal(link.getAttribute("href"), "/ru/stale/?program=%2Fprograms%2Fother");
-});
-
 test("экспорт спрашивает путь и пишет файл по выбранному", async () => {
   const { host, calls, asked, said } = mount();
   await settled();
