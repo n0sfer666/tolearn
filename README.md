@@ -11,8 +11,8 @@ account, no key and no subscription: the prompt is copied into any chat and
 the verdict is pasted back.
 
 **Status: working.** Importing a program, topics, practice, the exam by
-copy-paste and via a provider, the offline archive, Markdown export, the voice
-exam and installers for macOS, Windows and Linux are all done.
+copy-paste and via a provider, Markdown export, the voice exam and installers
+for macOS, Windows and Linux are all done.
 
 ## In progress (v2)
 
@@ -53,7 +53,6 @@ developer; how to get past that is on the page for your OS.
 - [User guide](docs/en/guide.md) · [Which variant to download](docs/en/release.md)
 - [Installation](docs/en/install/README.md)
 - [Exam protocol](docs/en/protocol.md)
-- [Offline mode](docs/en/offline.md)
 
 Internal documents are kept in Russian only:
 [architecture](docs/architecture.md), [decisions (ADR)](docs/adr/),

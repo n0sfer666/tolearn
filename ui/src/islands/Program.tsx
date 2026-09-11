@@ -1,6 +1,5 @@
 import { For, Show, createSignal, onMount } from "solid-js";
 
-import Unload from "../components/program/Unload";
 import { GLYPHS, type Status } from "../components/status";
 import type { Dictionary } from "../i18n/ru";
 import { type Locale, plural } from "../i18n";
@@ -93,7 +92,6 @@ export default function Program(props: Props) {
           <button type="button" data-export onClick={() => void exported()} disabled={state() === "busy"}>
             {state() === "busy" ? props.text.program.exporting : props.text.program.export}
           </button>
-          <Unload text={props.text} bundle={program()} call={props.call} />
         </nav>
         <input
           type="search"

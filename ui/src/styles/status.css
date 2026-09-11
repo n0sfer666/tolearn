@@ -24,7 +24,6 @@ p[data-tally] {
 }
 
 span[data-tier],
-span[data-offline],
 span[data-smoke],
 span[data-claim],
 span[data-expect],

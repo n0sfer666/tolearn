@@ -30,7 +30,7 @@ The short version of how to use the app. For installation see
 | Practice | the task, constraints and acceptance; check commands run when you press |
 | Exam | questions, answers and the verdict |
 | Search | across topics and materials of the open program |
-| Settings | language, LLM provider, offline |
+| Settings | language, LLM provider, disk budget |
 
 ## The exam
 
@@ -43,12 +43,6 @@ Two paths, both yours:
 
 The verdict is written into your program's `progress.yaml`. Nothing else in the
 bundle is ever written to.
-
-## Offline
-
-A topic's materials are downloaded once and saved whole, as a single HTML file.
-After that the network is not needed: the reader shows the text from the archive.
-Nothing but an explicitly requested download ever goes online.
 
 ## Where your data lives
 

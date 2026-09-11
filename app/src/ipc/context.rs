@@ -70,10 +70,6 @@ impl Context {
         self.data.join("llm-log")
     }
 
-    pub fn offline(&self) -> PathBuf {
-        self.data.join("offline")
-    }
-
     pub fn unpacked(&self) -> PathBuf {
         self.data.join("unpacked")
     }

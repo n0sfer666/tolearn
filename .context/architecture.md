@@ -8,7 +8,7 @@
 ```
 core/       Rust: типы, парсинг, валидация, прогресс, статусы, протокол
 runner/     Rust: исполнение check-команд       (зависит от core)
-offline/    Rust: загрузка, архивация, кэш      (зависит от core)
+offline/    Rust: загрузка, архивация, кэш      (ни от чего не зависит)
 provider/   Rust: настройки LLM, ключ, проверка (зависит от core, runner)
 gestures/   Rust: нативный жест «назад»         (ни от чего не зависит)
 cli/        Rust: tolearn validate|scan|exam    (зависит от core, runner, offline)
@@ -79,7 +79,9 @@ headless-окружении без GUI.
 `Prerenderer` (`url → HTML`). Заглушка «вернуть исходный HTML» живёт в `offline`
 (S19), настоящая на WebView — в `app` (S37). Так `offline` остаётся без Tauri, а
 пререндер — необязательным улучшением, а не условием работы загрузчика
-([ADR-003](../docs/adr/003-offline-monolith.md)).
+([ADR-003](../docs/adr/003-offline-monolith.md)). С S95 приложение WebView-пререндер
+не устанавливает: загрузчик никто не зовёт, пока группа C не решит судьбу
+S21–S23 (ADR-022).
 
 ## Владение данными
 
@@ -87,7 +89,7 @@ headless-окружении без GUI.
 |---|---|---|
 | `roadmap.yaml`, `topics/*.yaml`, `examiner.md` | генератор (LLM) | папка бандла |
 | `progress.yaml` | приложение | папка бандла + зеркало в app-data |
-| офлайн-кэш | приложение | `<app-data>/cache/` |
+| офлайн-хранилище v1 (S18–S24) | больше никто: не читается и не удаляется (ADR-022) | `<app-data>/offline/` |
 | бандл, приехавший архивом | приложение | `<app-data>/unpacked/<roadmap-id>/` |
 | программа v2: карта, этапы, ассеты | генерация и импорт | `<app-data>/programs/<uuid>/` |
 | пользовательское v2 | приложение | `<app-data>/state/<uuid>/` |

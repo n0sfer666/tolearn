@@ -15,7 +15,7 @@ everything else in the app, and only people who want voice should pay for it.
 Functionally the two differ by exactly one screen. In the base variant the voice
 exam is **visible and disabled**: the button is there, and next to it a line says
 the other variant is required. Everything else — programs, topics, practice,
-the offline archive, export — is identical.
+export — is identical.
 
 ## Where to download
 

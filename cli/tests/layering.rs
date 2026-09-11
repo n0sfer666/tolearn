@@ -51,7 +51,7 @@ const LAYERS: &[Layer] = &[
     Layer {
         dir: "offline",
         package: "tolearn-offline",
-        allowed_internal: &["tolearn-core"],
+        allowed_internal: &[],
         forbidden_markers: SHELL_MARKERS,
         own_lints: false,
     },

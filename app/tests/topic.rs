@@ -95,13 +95,13 @@ fn ограничения_и_приёмка_идут_двумя_коллекци
 }
 
 #[test]
-fn материал_несёт_свежесть_и_офлайн_доступность() {
+fn материал_несёт_свежесть_без_метки_офлайна() {
     let out = topic(&bundle("materials"), "local-runtime");
     let material = &out["materials"].as_array().unwrap()[0];
 
     assert!(!material["title"].as_str().unwrap().is_empty());
     assert!(material["stale"].is_boolean());
-    assert_eq!(material["offline"], "absent");
+    assert!(material.get("offline").is_none(), "{material:#}");
 }
 
 #[test]

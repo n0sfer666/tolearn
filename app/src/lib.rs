@@ -2,7 +2,6 @@ pub mod generate;
 pub mod gestures;
 pub mod ipc;
 pub mod journal;
-pub mod offline;
 pub mod prerender;
 pub mod speech;
 pub mod window;
@@ -14,10 +13,6 @@ pub fn run() -> Result<(), tauri::Error> {
         }))
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
-            offline::install(Box::new(prerender::Webview::new(
-                app.handle().clone(),
-                prerender::Settling::default(),
-            )));
             gestures::enable(app)?;
             Ok(())
         })

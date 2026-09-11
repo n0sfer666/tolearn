@@ -48,6 +48,5 @@ rm -rf ~/.config/tolearn ~/.local/share/tolearn
 | [generate/01-full-run.md](generate/01-full-run.md) | сборка программы живой моделью от вопроса до принятия |
 | [generate/02-draft-and-cancel.md](generate/02-draft-and-cancel.md) | черновик переживает перезапуск; отмена и повтор несобранного |
 | [bundle/01-import.md](bundle/01-import.md) | импорт папкой и архивом, перегенерация и отчёт о слиянии |
-| [offline/01-save-and-read.md](offline/01-save-and-read.md) | офлайн-выгрузка материалов и чтение без сети |
 | [learning/02-practice-runner.md](learning/02-practice-runner.md) | запуск check-команд, таймаут |
 | [platform/01-restart-state.md](platform/01-restart-state.md) | настройки, тема, язык и реестр программ после перезапуска |

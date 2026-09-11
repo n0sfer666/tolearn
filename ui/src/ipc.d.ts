@@ -110,15 +110,9 @@ export type TopicOut = {
   outcomes: string[];
   misconceptions: string[];
   materials: MaterialView[];
-  unload: UnloadView;
   practice: PracticeView;
   questions: QuestionView[];
   exam: ExamView;
-};
-
-export type UnloadView = {
-  state: string;
-  checked_at: number | null;
 };
 
 export type MaterialView = {
@@ -129,7 +123,6 @@ export type MaterialView = {
   lang: string;
   stale: boolean;
   delta: string | null;
-  offline: string;
   note: string;
 };
 
@@ -439,86 +432,6 @@ export type ProbedView = {
   thinking: boolean;
 };
 
-export type SaveOfflineIn = {
-  bundle: string;
-  topic: string | null;
-  again: string | null;
-};
-
-export type SaveOfflineOut = {
-  job: string;
-  total: number;
-};
-
-export type OfflineCostIn = {
-  bundle: string;
-};
-
-export type OfflineCostOut = {
-  materials: number;
-  held: number;
-  used: number;
-  budget: number;
-  spare: number;
-  need: number;
-  tight: boolean;
-};
-
-export type OfflineStateIn = {
-  job: string;
-};
-
-export type OfflineStateOut = {
-  total: number;
-  done: number;
-  current: string;
-  title: string;
-  topic: string;
-  topic_at: number;
-  topics: number;
-  finished: boolean;
-  cancelled: boolean;
-  bytes: number;
-  saved: string[];
-  skipped: LeftView[];
-  failed: LeftView[];
-};
-
-export type LeftView = {
-  url: string;
-  title: string;
-  why: string;
-};
-
-export type StopOfflineIn = {
-  job: string;
-};
-
-export type StopOfflineOut = {
-  stopping: boolean;
-};
-
-export type ReadOfflineIn = {
-  url: string;
-};
-
-export type ReadOfflineOut = {
-  kind: string;
-  title: string;
-  html: string;
-  text: string;
-  blocks: Block[];
-  path: string;
-  extracted: boolean;
-};
-
-export type Block = {
-  kind: string;
-  level: number;
-  text: string;
-  src: string;
-};
-
 export type GenerateIn = {
   subject: string;
   level: string;
@@ -663,11 +576,6 @@ export type Commands = {
   speech_state: { input: SpeechStateIn; output: SpeechStateOut };
   speech_start: { input: SpeechStateIn; output: SpeechStateOut };
   speech_stop: { input: SpeechStopIn; output: SpeechStopOut };
-  save_offline: { input: SaveOfflineIn; output: SaveOfflineOut };
-  offline_cost: { input: OfflineCostIn; output: OfflineCostOut };
-  offline_state: { input: OfflineStateIn; output: OfflineStateOut };
-  stop_offline: { input: StopOfflineIn; output: StopOfflineOut };
-  read_offline: { input: ReadOfflineIn; output: ReadOfflineOut };
   generate: { input: GenerateIn; output: GenerateOut };
   generate_state: { input: GenerateStateIn; output: GenerateStateOut };
   generate_go: { input: GenerateGoIn; output: GenerateGoOut };

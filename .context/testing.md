@@ -75,7 +75,7 @@ TDD, без исключений: тест пишется **до** кода. С�
    приложения. `ui/src/lib/ipc.ts` в dev-режиме без `__TAURI_INTERNALS__` сам
    ходит в мост, поэтому UI работает на реальных данных.
 2. `pnpm -C ui dev` — Astro на `localhost:4321`.
-3. `scripts/shot.sh /ru/read/ shot.png 1100,1500` — снимок экрана headless
+3. `scripts/shot.sh /ru/settings/ shot.png 1100,1500` — снимок экрана headless
    Chrome; `out` с расширением `.html` вместо снимка выгружает DOM.
 
 Мост держит порт, пока жив: перед перезапуском убивать старый, иначе

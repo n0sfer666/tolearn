@@ -88,16 +88,7 @@ export default function Topic(props: Props) {
 
           <Show when={view().materials.length > 0}>
             <section data-section="materials">
-              <Materials
-                text={props.text}
-                locale={props.locale}
-                bundle={program()}
-                topic={id()}
-                materials={view().materials}
-                unload={view().unload}
-                call={props.call}
-                onSaved={refresh}
-              />
+              <Materials text={props.text} materials={view().materials} />
             </section>
           </Show>
 

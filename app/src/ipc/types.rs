@@ -89,14 +89,9 @@ dto!(TopicOut {
     outcomes: Vec<String>,
     misconceptions: Vec<String>,
     materials: Vec<MaterialView>,
-    unload: UnloadView,
     practice: PracticeView,
     questions: Vec<QuestionView>,
     exam: ExamView,
-});
-dto!(UnloadView {
-    state: String,
-    checked_at: Option<i64>,
 });
 dto!(MaterialView {
     title: String,
@@ -106,7 +101,6 @@ dto!(MaterialView {
     lang: String,
     stale: bool,
     delta: Option<String>,
-    offline: String,
     note: String,
 });
 dto!(PracticeView {
@@ -389,65 +383,6 @@ dto!(ProbedView {
     thinking: bool,
 });
 
-dto!(SaveOfflineIn {
-    bundle: String,
-    topic: Option<String>,
-    again: Option<String>,
-});
-dto!(SaveOfflineOut {
-    job: String,
-    total: u32
-});
-dto!(OfflineCostIn { bundle: String });
-dto!(OfflineCostOut {
-    materials: u32,
-    held: u32,
-    used: u64,
-    budget: u64,
-    spare: u64,
-    need: u64,
-    tight: bool,
-});
-dto!(OfflineStateIn { job: String });
-dto!(OfflineStateOut {
-    total: u32,
-    done: u32,
-    current: String,
-    title: String,
-    topic: String,
-    topic_at: u32,
-    topics: u32,
-    finished: bool,
-    cancelled: bool,
-    bytes: u64,
-    saved: Vec<String>,
-    skipped: Vec<LeftView>,
-    failed: Vec<LeftView>,
-});
-dto!(LeftView {
-    url: String,
-    title: String,
-    why: String
-});
-dto!(StopOfflineIn { job: String });
-dto!(StopOfflineOut { stopping: bool });
-dto!(ReadOfflineIn { url: String });
-dto!(ReadOfflineOut {
-    kind: String,
-    title: String,
-    html: String,
-    text: String,
-    blocks: Vec<Block>,
-    path: String,
-    extracted: bool,
-});
-dto!(Block {
-    kind: String,
-    level: u32,
-    text: String,
-    src: String,
-});
-
 dto!(GenerateIn {
     subject: String,
     level: String,
@@ -535,7 +470,6 @@ pub fn shapes() -> Vec<Shape> {
         Link::shape(),
         TopicIn::shape(),
         TopicOut::shape(),
-        UnloadView::shape(),
         MaterialView::shape(),
         PracticeView::shape(),
         CheckView::shape(),
@@ -582,18 +516,6 @@ pub fn shapes() -> Vec<Shape> {
         AdviceView::shape(),
         CheckedView::shape(),
         ProbedView::shape(),
-        SaveOfflineIn::shape(),
-        SaveOfflineOut::shape(),
-        OfflineCostIn::shape(),
-        OfflineCostOut::shape(),
-        OfflineStateIn::shape(),
-        OfflineStateOut::shape(),
-        LeftView::shape(),
-        StopOfflineIn::shape(),
-        StopOfflineOut::shape(),
-        ReadOfflineIn::shape(),
-        ReadOfflineOut::shape(),
-        Block::shape(),
         GenerateIn::shape(),
         GenerateOut::shape(),
         GenerateStateIn::shape(),

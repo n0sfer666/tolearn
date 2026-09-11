@@ -43,7 +43,6 @@ const FULL = {
       lang: "ru",
       stale: false,
       delta: null,
-      offline: "absent",
       note: "Отсюда начинается тема: как считается расход памяти",
     },
     {
@@ -54,7 +53,6 @@ const FULL = {
       lang: "en",
       stale: true,
       delta: "флаг --n-gpu-layers переименован",
-      offline: "absent",
       note: "",
     },
   ],
@@ -72,7 +70,6 @@ const FULL = {
   },
   questions: [{ id: "q1", kind: "diagnose", text: "Что съело память?" }],
   exam: { focus: "расход памяти", artifact_required: true, max_exchanges: 12 },
-  unload: { state: "missing", checked_at: null },
 };
 
 const CHECKPOINT = {
@@ -192,7 +189,7 @@ test("неактуальные материалы скрыты, пока сви�
   assert.deepEqual(titles(), ["Гайд по квантованию", "llama.cpp README"]);
 });
 
-test("материал несёт свежесть, отличие и офлайн-доступность", async () => {
+test("материал несёт свежесть и отличие", async () => {
   const { host } = mount();
   await settled();
 
@@ -203,7 +200,6 @@ test("материал несёт свежесть, отличие и офлай
   assert.match(material.textContent, /llama\.cpp README/);
   assert.match(material.textContent, new RegExp(ru.topic.stale));
   assert.match(material.textContent, /n-gpu-layers/);
-  assert.match(material.textContent, new RegExp(ru.topic.offline));
 });
 
 test("материалы идут путём по порядку и говорят, зачем их читать", async () => {
