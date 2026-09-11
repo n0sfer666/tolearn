@@ -90,6 +90,8 @@ headless-окружении без GUI.
 | офлайн-кэш | приложение | `<app-data>/cache/` |
 | снимки прошлых версий | приложение | `<app-data>/history/<roadmap-id>/<n>/` |
 | бандл, приехавший архивом | приложение | `<app-data>/unpacked/<roadmap-id>/` |
+| программа v2: карта, этапы, ассеты | генерация и импорт | `<app-data>/programs/<uuid>/` |
+| пользовательское v2 | приложение | `<app-data>/state/<uuid>/` |
 
 `<app-data>` — это `~/.local/share/tolearn` (или `$XDG_DATA_HOME/tolearn`), а
 настройки живут отдельно: `settings.yaml`, `provider.yaml` и `registry.yaml`
