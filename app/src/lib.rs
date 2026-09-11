@@ -7,10 +7,13 @@ pub mod offline;
 pub mod prerender;
 pub mod speech;
 pub mod sweep;
+pub mod window;
 
 pub fn run() -> Result<(), tauri::Error> {
     tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|_app, _argv, _cwd| {}))
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            window::raised(app);
+        }))
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             offline::install(Box::new(prerender::Webview::new(
