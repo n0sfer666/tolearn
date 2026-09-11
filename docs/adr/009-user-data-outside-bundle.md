@@ -34,4 +34,4 @@
 Импорт обязан заканчиваться отчётом о слиянии, а не молчаливым «готово».
 
 Уточнено: [ADR-015](015-clarifications-outside-bundle.md),
-[ADR-018](018-notes-dropped.md).
+[ADR-018](018-notes-dropped.md), [ADR-020](020-v2-program-library.md).

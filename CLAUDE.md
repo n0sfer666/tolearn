@@ -49,4 +49,7 @@ cargo test --workspace
   генерация отказывает с причиной ([ADR-014](docs/adr/014-model-text-app-verified-sources.md)).
 - Ослаблять бюджеты из [docs/architecture.md](docs/architecture.md#бюджеты).
 - Выполнять `check`-команды из бандла без явного действия человека.
-- Писать в файлы бандла что-либо, кроме `progress.yaml`.
+- Писать в каталог содержимого программы (`<data>/programs/<uuid>/`) из чего-то,
+  кроме генерации и импорта: пользовательское живёт в `<data>/state/<uuid>/`
+  ([ADR-020](docs/adr/020-v2-program-library.md)). Бандл v1 до своего удаления
+  получает только `progress.yaml`.
