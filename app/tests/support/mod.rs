@@ -6,6 +6,7 @@
 )]
 #![allow(dead_code, reason = "опоры нужны не каждому тест-бинарнику")]
 
+pub mod shelf;
 pub mod speaking;
 
 use std::io::{BufRead, BufReader, Read, Write};

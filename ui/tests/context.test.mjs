@@ -63,6 +63,15 @@ test("назад с экрана практики держит и програм
   );
 });
 
+test("назад с экрана этапа возвращает в его узел программы", () => {
+  const document = visit("ru/stage", "?program=nes-dev&node=rom&stage=first-rom");
+
+  assert.equal(
+    document.querySelector("[data-back]").getAttribute("href"),
+    "/ru/program/?program=nes-dev&node=rom",
+  );
+});
+
 test("поиск в шапке открывается в той же программе", () => {
   const document = visit("ru/topic", OPEN);
 

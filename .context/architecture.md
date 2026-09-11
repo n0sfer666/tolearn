@@ -166,6 +166,16 @@ S21–S23 (ADR-022).
   строки карт) с библиотекой — `renew`: новые UUID v4 всему дереву заменой по
   span узла YAML (`program::places`) и переименованием `children/` снизу вверх,
   перечитывание, затем `install`. До группы G совпадение UUID всегда даёт копию.
+- Экраны v2 (S103) читают библиотеку командами `library`, `import_package`,
+  `node`, `stage` (`app/src/ipc/{shelf,reading,picture}.rs`). Узел адресуется
+  парой «программа + UUID подпрограммы», пустой узел — корень. Картинка и схема
+  едут в UI как `data:` URI: `library::asset` отдаёт только файл из
+  `Tree::files()` и только если канонический путь остался в каталоге программы
+  (симлинк наружу), иначе `library.foreign`; CSP не менялся. Отсутствующие
+  узел и этап — `node.absent`, `stage.absent`. До `package::import`
+  приложение отсекает не-пакеты: каталог программы — `package.folder`, каталог
+  или архив v1 (`roadmap.yaml`/`roadmap.json`, `.zip`, `.gz`, `.tgz`) —
+  `package.v1` (ADR-016), прочее — `package.foreign`.
 - Файлы написаны LLM: могут быть неполными, невалидными и содержать
   произвольный shell. Незавершённый бандл (`generated: false`) — нормальное
   состояние ([ADR-007](../docs/adr/007-incomplete-bundle.md)), а не ошибка.

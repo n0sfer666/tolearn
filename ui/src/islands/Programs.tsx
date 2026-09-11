@@ -1,67 +1,67 @@
 import { For, Show, createSignal, onMount } from "solid-js";
 
-import type { Card, ImportOut, Merged } from "../ipc";
+import Shelf from "../components/reading/Shelf";
+import type { Dictionary } from "../i18n/ru";
+import type { ImportPackageOut, RefusedView, ShelfView } from "../ipc";
 import { matches } from "../lib/filter";
-import { drops as listen, pick as choose, pickArchive as chooseArchive, transport } from "../lib/ipc";
+import { drops as listen, pickPackage, quiet } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
 import { query } from "../lib/query";
-import { toast } from "../lib/toast";
+import { explain, toast } from "../lib/toast";
+import { told } from "../lib/told";
+
+type Words = Dictionary["programs"];
 
 interface Props {
-  text: {
-    list: string;
-    listLead: string;
-    choose: string;
-    chooseArchive: string;
-    drop: string;
-    importing: string;
-    unreachable: string;
-    refused: string;
-    merged: string;
-    kept: string;
-    added: string;
-    stale: string;
-    orphaned: string;
-    progress: string;
-    filter: string;
-  };
+  text: Words;
   locale: string;
-  today?: string;
   call?: Transport;
   pick?: () => Promise<string | null>;
-  pickArchive?: () => Promise<string | null>;
   drops?: (handler: (paths: string[]) => void) => void;
 }
 
-export default function Programs(props: Props) {
-  const call = () => props.call ?? transport;
-  const today = () => props.today ?? new Date().toISOString().slice(0, 10);
+function refusals(text: Words): ReadonlyMap<string, string> {
+  return new Map([
+    ["package.v1", text.v1],
+    ["package.folder", text.folder],
+    ["package.foreign", text.foreign],
+  ]);
+}
 
-  const [cards, setCards] = createSignal<Card[]>([]);
-  const [report, setReport] = createSignal<Merged | null>(null);
-  const [refused, setRefused] = createSignal<string[]>([]);
+function announce(text: Words, done: ImportPackageOut): void {
+  if (done.copy_of === null) toast("ok", `${text.imported}: ${done.title}`);
+  else toast("info", `${text.copied}: ${done.title}`);
+}
+
+export default function Programs(props: Props) {
+  const call = () => props.call ?? quiet;
+
+  const [shelves, setShelves] = createSignal<ShelfView[]>([]);
+  const [broken, setBroken] = createSignal<RefusedView[]>([]);
+  const [refused, setRefused] = createSignal("");
   const [busy, setBusy] = createSignal(false);
   const [needle, setNeedle] = createSignal("");
 
   const list = async () => {
-    const { programs } = await call()("programs", { today: today() });
-    setCards(programs);
+    try {
+      const out = await call()("library", {});
+      setShelves(out.programs);
+      setBroken(out.refused);
+    } catch (failure) {
+      toast("error", explain(failure));
+    }
   };
 
   const accept = async (path: string) => {
     if (busy()) return;
     setBusy(true);
-    setReport(null);
-    setRefused([]);
+    setRefused("");
     try {
-      const done: ImportOut = await call()("import", { path, today: today() });
-      if (!done.ok) {
-        setRefused(done.violations.map((violation) => violation.message));
-        toast("error", props.text.refused);
-        return;
-      }
-      setReport(done.report);
+      announce(props.text, await call()("import_package", { path }));
       await list();
+    } catch (failure) {
+      setRefused(told(failure, refusals(props.text)));
+      toast("error", props.text.refused);
     } finally {
       setBusy(false);
     }
@@ -76,75 +76,33 @@ export default function Programs(props: Props) {
     });
   });
 
-  const shown = () => cards().filter((card) => matches(card.title, needle()));
-
-  const take = async (open: () => Promise<string | null>) => {
-    const chosen = await open();
+  const take = async () => {
+    if (busy()) return;
+    const chosen = await (props.pick ?? pickPackage)();
     if (chosen !== null) await accept(chosen);
   };
+
+  const shown = () => shelves().filter((shelf) => matches(shelf.title, needle()));
+  const failed = () => broken().filter((entry) => matches(entry.directory, needle()));
 
   return (
     <section>
       <div class="intake">
         <p>{props.text.drop}</p>
-        <button
-          type="button"
-          data-pick
-          onClick={() => void take(props.pick ?? choose)}
-          disabled={busy()}
-        >
+        <button type="button" data-pick onClick={() => void take()} aria-disabled={busy()}>
           {busy() ? props.text.importing : props.text.choose}
-        </button>
-        <button
-          type="button"
-          data-pick-archive
-          onClick={() => void take(props.pickArchive ?? chooseArchive)}
-          disabled={busy()}
-        >
-          {props.text.chooseArchive}
         </button>
       </div>
 
-      <Show when={refused().length > 0}>
+      <Show when={refused() !== ""}>
         <div data-refused role="alert">
           <h3>{props.text.refused}</h3>
-          <ul>
-            <For each={refused()}>{(message) => <li>{message}</li>}</For>
-          </ul>
+          <p>{refused()}</p>
         </div>
       </Show>
 
-      <Show when={report()}>
-        {(merged) => (
-          <div data-report>
-            <h3>{props.text.merged}</h3>
-            <ul>
-              <li>
-                {props.text.kept}: {merged().kept.length}
-              </li>
-              <li>
-                {props.text.added}: {merged().added.length}
-              </li>
-              <li>
-                {props.text.stale}: {merged().stale.length}
-              </li>
-              <li>
-                {props.text.orphaned}: {merged().orphaned.length}
-              </li>
-            </ul>
-            <For each={merged().stale}>
-              {(topic) => (
-                <p>
-                  {topic.id}: {topic.changed.join(", ")}
-                </p>
-              )}
-            </For>
-          </div>
-        )}
-      </Show>
-
       <h2>{props.text.list}</h2>
-      <Show when={cards().length > 0} fallback={<p>{props.text.listLead}</p>}>
+      <Show when={shelves().length > 0} fallback={<p>{props.text.listLead}</p>}>
         <input
           type="search"
           data-filter
@@ -156,18 +114,15 @@ export default function Programs(props: Props) {
       </Show>
       <ul class="cards">
         <For each={shown()}>
-          {(card) => (
-            <li data-program={card.id}>
-              <a href={`/${props.locale}/program/?program=${encodeURIComponent(card.path)}`}>
-                {card.title}
-              </a>
-              <Show when={card.tally} fallback={<p class="unreachable">{props.text.unreachable}</p>}>
-                {(tally) => (
-                  <p>
-                    {props.text.progress}: {tally().done} / {tally().total}
-                  </p>
-                )}
-              </Show>
+          {(shelf) => <Shelf shelf={shelf} text={props.text} locale={props.locale} />}
+        </For>
+        <For each={failed()}>
+          {(entry) => (
+            <li data-broken={entry.directory}>
+              <strong>{entry.directory}</strong>
+              <p>
+                {props.text.broken}: {entry.message}
+              </p>
             </li>
           )}
         </For>

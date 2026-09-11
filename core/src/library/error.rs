@@ -10,6 +10,7 @@ pub enum LibraryError {
     Unwritable { path: PathBuf, kind: ErrorKind },
     Absent { uuid: String },
     Taken { uuid: String },
+    Foreign { uuid: String, file: String },
     Refused(Refusal),
 }
 
@@ -34,6 +35,7 @@ impl LibraryError {
             Self::Unwritable { .. } => "library.unwritable",
             Self::Absent { .. } => "library.absent",
             Self::Taken { .. } => "library.taken",
+            Self::Foreign { .. } => "library.foreign",
             Self::Refused(refusal) => refusal.code(),
         }
     }
@@ -51,6 +53,9 @@ impl fmt::Display for LibraryError {
             Self::Absent { uuid } => write!(out, "the library holds no program `{uuid}`"),
             Self::Taken { uuid } => {
                 write!(out, "the library already holds the program `{uuid}`")
+            }
+            Self::Foreign { uuid, file } => {
+                write!(out, "the program `{uuid}` holds no file `{file}`")
             }
             Self::Refused(refusal) => write!(out, "{refusal}"),
         }

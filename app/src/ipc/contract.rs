@@ -3,6 +3,7 @@ use serde_json::Value;
 use super::context::Context;
 use super::error::IpcError;
 use super::handlers;
+use super::reading;
 use super::shape::Shape;
 use super::types;
 
@@ -61,6 +62,10 @@ commands! {
     speech_state(types::SpeechStateIn) -> types::SpeechStateOut,
     speech_start(types::SpeechStateIn) -> types::SpeechStateOut,
     speech_stop(types::SpeechStopIn) -> types::SpeechStopOut,
+    library(reading::LibraryIn) -> reading::LibraryOut,
+    import_package(reading::ImportPackageIn) -> reading::ImportPackageOut,
+    node(reading::NodeIn) -> reading::NodeOut,
+    stage(reading::StageIn) -> reading::StageOut,
 }
 
 #[tauri::command]

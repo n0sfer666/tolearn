@@ -130,7 +130,7 @@ li[data-question] > p:first-child {
   font-size: var(--font-size-sm);
 }
 
-li[data-program] a {
+li[data-program] > a {
   font-size: var(--font-size-lg);
   text-decoration: none;
 }

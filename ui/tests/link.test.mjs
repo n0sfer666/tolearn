@@ -22,8 +22,7 @@ function mount() {
   const host = window.document.createElement("div");
   window.document.body.append(host);
   const call = (name) => {
-    if (name === "programs") return Promise.resolve({ programs: [] });
-    if (name === "provider") return Promise.resolve({ provider: { enabled: true } });
+    if (name === "library") return Promise.resolve({ programs: [], refused: [] });
     return new Promise(() => {});
   };
   return render(
@@ -33,7 +32,6 @@ function mount() {
         locale: "ru",
         call,
         pick: () => Promise.resolve(null),
-        pickArchive: () => Promise.resolve(null),
         drops: () => {},
       }),
     host,

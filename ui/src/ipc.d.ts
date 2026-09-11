@@ -460,6 +460,114 @@ export type SpeechStopOut = {
   text: string;
 };
 
+export type LibraryIn = {
+};
+
+export type LibraryOut = {
+  programs: ShelfView[];
+  refused: RefusedView[];
+};
+
+export type ShelfView = {
+  uuid: string;
+  title: string;
+  goal: string;
+  hours: Span;
+  children: RowView[];
+};
+
+export type RefusedView = {
+  directory: string;
+  code: string;
+  message: string;
+};
+
+export type RowView = {
+  id: string;
+  title: string;
+  hours: Span;
+  ready: boolean;
+};
+
+export type ImportPackageIn = {
+  path: string;
+};
+
+export type ImportPackageOut = {
+  uuid: string;
+  title: string;
+  copy_of: string | null;
+};
+
+export type NodeIn = {
+  program: string;
+  node: string;
+};
+
+export type NodeOut = {
+  program: string;
+  uuid: string;
+  title: string;
+  goal: string;
+  level: string;
+  hours: Span;
+  trail: CrumbView[];
+  stages: RowView[];
+  children: RowView[];
+};
+
+export type CrumbView = {
+  uuid: string;
+  title: string;
+};
+
+export type StageIn = {
+  program: string;
+  node: string;
+  stage: string;
+};
+
+export type StageOut = {
+  program: string;
+  node: string;
+  node_title: string;
+  id: string;
+  title: string;
+  blocks: BlockView[];
+  practice: TaskView;
+  questions: AskView[];
+};
+
+export type BlockView = {
+  id: string;
+  kind: string;
+  text: string;
+  lang: string | null;
+  src: string | null;
+  license: string | null;
+  attribution: string | null;
+  source: string | null;
+};
+
+export type TaskView = {
+  task: BlockView[];
+  deliverable: string;
+  constraints: ClaimView[];
+  acceptance: ClaimView[];
+};
+
+export type ClaimView = {
+  id: string;
+  claim: string;
+  check: string | null;
+  expect: string;
+};
+
+export type AskView = {
+  id: string;
+  text: string;
+};
+
 export type Commands = {
   validate: { input: ValidateIn; output: ValidateOut };
   scan: { input: ScanIn; output: ScanOut };
@@ -482,6 +590,10 @@ export type Commands = {
   speech_state: { input: SpeechStateIn; output: SpeechStateOut };
   speech_start: { input: SpeechStateIn; output: SpeechStateOut };
   speech_stop: { input: SpeechStopIn; output: SpeechStopOut };
+  library: { input: LibraryIn; output: LibraryOut };
+  import_package: { input: ImportPackageIn; output: ImportPackageOut };
+  node: { input: NodeIn; output: NodeOut };
+  stage: { input: StageIn; output: StageOut };
 };
 
 export type CommandName = keyof Commands;

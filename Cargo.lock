@@ -6096,6 +6096,7 @@ dependencies = [
 name = "tolearn-app"
 version = "0.3.0"
 dependencies = [
+ "base64 0.22.1",
  "flate2",
  "serde",
  "serde_json",

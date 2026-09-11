@@ -1,3 +1,4 @@
+mod branch;
 mod check;
 mod error;
 mod load;
@@ -8,6 +9,7 @@ mod types;
 mod validate;
 mod violation;
 
+pub use branch::Branch;
 pub use check::check;
 pub use error::LoadError;
 pub use load::load;

@@ -20,6 +20,7 @@ tolearn-provider.workspace = true
 tolearn-runner.workspace = true
 tolearn-gestures.workspace = true
 tolearn-speech.workspace = true
+base64.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tauri.workspace = true

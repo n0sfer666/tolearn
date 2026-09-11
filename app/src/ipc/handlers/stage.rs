@@ -1,0 +1,84 @@
+use tolearn_core::block::Block;
+use tolearn_core::library::Library;
+use tolearn_core::program::Tree;
+use tolearn_core::stage::Check;
+
+use crate::ipc::context::Context;
+use crate::ipc::error::IpcError;
+use crate::ipc::picture;
+use crate::ipc::reading::{AskView, BlockView, ClaimView, StageIn, StageOut, TaskView};
+use crate::ipc::shelf;
+
+pub fn run(context: &Context, input: &StageIn) -> Result<StageOut, IpcError> {
+    let library = context.library();
+    let tree = library.open(&input.program)?;
+    let branch = shelf::branch(&tree, &input.node)?;
+    let stage = branch.tree.stages.get(&input.stage).ok_or_else(|| {
+        IpcError::new(
+            "stage.absent",
+            format!("этапа `{}` нет или он ещё не сгенерирован", input.stage),
+        )
+    })?;
+    let view = |block: &Block| viewed(&library, &tree, &branch.prefix, block);
+    Ok(StageOut {
+        program: tree.program.uuid.clone(),
+        node: branch.tree.program.uuid.clone(),
+        node_title: branch.tree.program.title.clone(),
+        id: stage.id.clone(),
+        title: stage.title.clone(),
+        blocks: stage.blocks.iter().map(view).collect::<Result<_, _>>()?,
+        practice: TaskView {
+            task: stage
+                .practice
+                .task
+                .iter()
+                .map(view)
+                .collect::<Result<_, _>>()?,
+            deliverable: stage.practice.deliverable.clone(),
+            constraints: stage.practice.constraints.iter().map(claim).collect(),
+            acceptance: stage.practice.acceptance.iter().map(claim).collect(),
+        },
+        questions: stage
+            .questions
+            .iter()
+            .map(|question| AskView {
+                id: question.id.clone(),
+                text: question.text.clone(),
+            })
+            .collect(),
+    })
+}
+
+fn viewed(
+    library: &Library,
+    tree: &Tree,
+    prefix: &str,
+    block: &Block,
+) -> Result<BlockView, IpcError> {
+    let src = match &block.asset {
+        Some(asset) => {
+            let bytes = library.asset(tree, &format!("{prefix}{asset}"))?;
+            Some(picture::uri(asset, &bytes))
+        }
+        None => None,
+    };
+    Ok(BlockView {
+        id: block.id.clone(),
+        kind: block.kind.label().to_owned(),
+        text: block.text.clone(),
+        lang: block.lang.clone(),
+        src,
+        license: block.license.clone(),
+        attribution: block.attribution.clone(),
+        source: block.source.clone(),
+    })
+}
+
+fn claim(check: &Check) -> ClaimView {
+    ClaimView {
+        id: check.id.clone(),
+        claim: check.claim.clone(),
+        check: check.check.clone(),
+        expect: check.expect.clone(),
+    }
+}

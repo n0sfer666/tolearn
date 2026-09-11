@@ -1,5 +1,6 @@
 const KEEP: Record<string, readonly string[]> = {
-  "/program/": ["program"],
+  "/program/": ["program", "node"],
+  "/stage/": ["program", "node", "stage"],
   "/search/": ["program"],
   "/topic/": ["program", "topic"],
   "/exam/": ["program", "topic"],

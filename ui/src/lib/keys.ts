@@ -23,7 +23,7 @@ function up(doc: Document, event: KeyboardEvent): void {
     return;
   }
   if (collapse(doc)) return;
-  const back = doc.querySelector("[data-back]");
+  const back = doc.querySelector("[data-up]") ?? doc.querySelector("[data-back]");
   if (back instanceof HTMLElement) back.click();
 }
 

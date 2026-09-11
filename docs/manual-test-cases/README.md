@@ -35,7 +35,8 @@ rm -rf ~/.config/tolearn ~/.local/share/tolearn
 На macOS ключи провайдера и ключ устройства живут в связке ключей: записи
 `tolearn` в Keychain Access удаляются отдельно.
 
-Эталонный бандл для импорта — `examples/llm-agents-base`.
+Эталонная программа для импорта — `examples/chiptune`, собранная в пакет
+`tolearn pack` (шаги — в [bundle/01-import.md](bundle/01-import.md)).
 
 ## Каталог
 
@@ -45,6 +46,6 @@ rm -rf ~/.config/tolearn ~/.local/share/tolearn
 | [provider/02-cli-harness.md](provider/02-cli-harness.md) | CLI-харнесс: пресеты, аргументы, подсказка `(?)`, отказ харнесса |
 | [provider/03-remote-key.md](provider/03-remote-key.md) | внешний сервис: ключ в системном хранилище и его забывание |
 | [provider/04-journal.md](provider/04-journal.md) | журнал запросов: запись, ротация, очистка, открытие папки |
-| [bundle/01-import.md](bundle/01-import.md) | импорт папкой и архивом, перегенерация и отчёт о слиянии |
+| [bundle/01-import.md](bundle/01-import.md) | импорт пакета `.tolearn`, отказы, копия, чтение этапа 1 в обеих темах |
 | [learning/02-practice-runner.md](learning/02-practice-runner.md) | запуск check-команд, таймаут |
 | [platform/01-restart-state.md](platform/01-restart-state.md) | настройки, тема, язык и реестр программ после перезапуска |

@@ -233,8 +233,13 @@ fn неизвестная_тема_отвечает_кодом() {
 
 #[test]
 fn описание_команд_держит_обе_формы() {
+    let mut bare = Vec::new();
     for descriptor in descriptors() {
-        assert!(!descriptor.input.fields.is_empty(), "{}", descriptor.name);
+        assert!(descriptor.input.name.ends_with("In"), "{}", descriptor.name);
         assert!(!descriptor.output.fields.is_empty(), "{}", descriptor.name);
+        if descriptor.input.fields.is_empty() {
+            bare.push(descriptor.name);
+        }
     }
+    assert_eq!(bare, ["library"]);
 }

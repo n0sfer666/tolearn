@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use tauri::Manager;
+use tolearn_core::library::Library;
 use tolearn_provider::{Keychain, Vault};
 
 use super::error::IpcError;
@@ -76,6 +77,10 @@ impl Context {
 
     pub fn registry(&self) -> PathBuf {
         self.config.join("registry.yaml")
+    }
+
+    pub fn library(&self) -> Library {
+        Library::at(&self.data)
     }
 }
 

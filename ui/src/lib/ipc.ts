@@ -36,17 +36,11 @@ export const transport: Transport = async (name, payload) => {
   }
 };
 
-export async function pick(): Promise<string | null> {
-  const { open } = await import("@tauri-apps/plugin-dialog");
-  const chosen = await open({ directory: true, multiple: false });
-  return typeof chosen === "string" ? chosen : null;
-}
-
-export async function pickArchive(): Promise<string | null> {
+export async function pickPackage(): Promise<string | null> {
   const { open } = await import("@tauri-apps/plugin-dialog");
   const chosen = await open({
     multiple: false,
-    filters: [{ name: "archive", extensions: ["zip", "gz", "tgz"] }],
+    filters: [{ name: "tolearn", extensions: ["tolearn"] }],
   });
   return typeof chosen === "string" ? chosen : null;
 }

@@ -2,16 +2,18 @@ import assert from "node:assert/strict";
 import test, { before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
+import { en } from "../src/i18n/en.ts";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled, toasts } from "./support/dom.mjs";
+import { browser, settled } from "./support/dom.mjs";
 
 let Program;
 let render;
-let document;
+let window;
 
 before(
   async () => {
-    ({ document } = browser("https://tolearn.local/ru/program/?program=/programs/llm-agents-base"));
+    window = browser("https://tolearn.local/ru/program/?program=nes-dev&node=rom");
+    globalThis.location = window.location;
     ({ default: Program } = await island("Program"));
     ({ render } = await import("solid-js/web"));
   },
@@ -20,270 +22,163 @@ before(
 
 const span = (min, max) => ({ min, max });
 
-const TALLY = {
-  done: 1,
-  total: 4,
-  stale: 0,
-  share: 0.25,
-  hours_done: span(4, 6),
-  hours_total: span(14, 20),
+const ROOT = {
+  program: "nes-dev",
+  uuid: "nes-dev",
+  title: "Разработка игр для NES",
+  goal: "Собрать игру для NES и запустить её в эмуляторе",
+  level: "Начинающий: знает Python",
+  hours: span(14, 22),
+  trail: [],
+  stages: [
+    { id: "setup", title: "Окружение", hours: span(2, 3), ready: true },
+    { id: "sprites", title: "Спрайты", hours: span(3, 4), ready: false },
+  ],
+  children: [
+    { id: "tools", title: "Инструменты сборки", hours: span(8, 12), ready: true },
+    { id: "sound", title: "Звук", hours: span(6, 10), ready: false },
+  ],
 };
 
-const OUT = {
-  program: TALLY,
-  stages: [
-    { n: 1, title: "Модели и доступ", checkpoint: "cp-gateway", tally: TALLY },
-    { n: 2, title: "Агенты и инструменты", checkpoint: "cp-agent-stack", tally: TALLY },
+const NESTED = {
+  ...ROOT,
+  uuid: "rom",
+  title: "Первый ROM",
+  trail: [
+    { uuid: "nes-dev", title: "Разработка игр для NES" },
+    { uuid: "tools", title: "Инструменты сборки" },
   ],
-  topics: [
-    {
-      id: "local-runtime",
-      title: "Локальный рантайм",
-      stage: 1,
-      checkpoint: false,
-      status: "passed",
-      hours: span(4, 6),
-      blocked_by: [],
-    },
-    {
-      id: "cp-gateway",
-      title: "Шлюз к моделям",
-      stage: 1,
-      checkpoint: true,
-      status: "blocked",
-      hours: span(3, 5),
-      blocked_by: [{ id: "openai-compatible-api", title: "Совместимый API" }],
-    },
-    {
-      id: "agent-loop",
-      title: "Цикл агента",
-      stage: 2,
-      checkpoint: false,
-      status: "todo",
-      hours: span(4, 5),
-      blocked_by: [],
-    },
-  ],
+  children: [],
 };
 
 function mount(options = {}) {
-  const host = document.createElement("div");
-  document.body.append(host);
+  const host = window.document.createElement("div");
+  window.document.body.append(host);
   const calls = [];
   const call = (name, payload) => {
     calls.push({ name, payload });
-    if (name === "program") {
-      return options.broken ? Promise.reject(new Error("нет такой")) : Promise.resolve(options.out ?? OUT);
-    }
-    if (name === "export") {
-      return options.fail
-        ? Promise.reject(new Error("не записалось"))
-        : Promise.resolve({ path: payload.path, bytes: 10 });
-    }
-    throw new Error(`лишняя команда ${name}`);
+    if (name !== "node") throw new Error(`лишняя команда ${name}`);
+    return options.fail ? Promise.reject(options.fail) : Promise.resolve(options.out ?? ROOT);
   };
-  const asked = [];
-  const save = (name) => {
-    asked.push(name);
-    return Promise.resolve(options.chosen === undefined ? "/дом/программа.md" : options.chosen);
-  };
-  const said = toasts(document.defaultView);
-  render(
-    () =>
-      Program({
-        text: ru,
-        locale: "ru",
-        path: options.path ?? "/programs/llm-agents-base",
-        today: "2026-07-27",
-        call,
-        save,
-      }),
-    host,
-  );
-  return { host, calls, asked, said };
+  const names = [];
+  window.addEventListener("tolearn:name", (event) => names.push(event.detail));
+  const props = { text: ru, locale: "ru", call, program: "nes-dev", node: "", ...options.props };
+  render(() => Program(props), host);
+  return { host, calls, names };
 }
 
-const at = (host, id) => host.querySelector(`[data-topic="${id}"]`);
-
 test("без выбранной программы экран говорит об этом, а не пустеет", async () => {
-  const { host, calls } = mount({ path: "" });
+  const { host, calls } = mount({ props: { program: "" } });
   await settled();
 
   assert.equal(calls.length, 0, "ядро дёрнули без программы");
   assert.match(host.querySelector("[data-empty]").textContent, /Программа не выбрана/);
-  assert.equal(host.querySelector('[data-empty] a').getAttribute("href"), "/ru/");
+  assert.equal(host.querySelector("[data-empty] a").getAttribute("href"), "/ru/");
 });
 
-test("недоступная программа сообщает о себе, а не оставляет пустой экран", async () => {
-  const { host } = mount({ path: "/programs/нет", broken: true });
+test("экран читает узел по программе и подпрограмме", async () => {
+  const { calls } = mount({ props: { node: "tools" } });
   await settled();
 
-  assert.match(host.querySelector("[data-empty]").textContent, /Программа не выбрана/);
+  assert.deepEqual(calls, [{ name: "node", payload: { program: "nes-dev", node: "tools" } }]);
 });
 
-test("экран читает программу по её пути", async () => {
-  const { calls } = mount({ path: "/programs/other" });
+test("без явных параметров программа и узел берутся из адреса", async () => {
+  const { calls } = mount({ props: { program: undefined, node: undefined } });
   await settled();
 
-  assert.deepEqual(calls, [
-    { name: "program", payload: { bundle: "/programs/other", today: "2026-07-27" } },
-  ]);
+  assert.deepEqual(calls[0].payload, { program: "nes-dev", node: "rom" });
 });
 
-test("без явного пути программа берётся из адреса страницы", async () => {
-  const { calls } = mount({ path: null });
-  await settled();
-
-  assert.equal(calls[0].payload.bundle, "/programs/llm-agents-base");
-});
-
-test("этапы идут по порядку, тема стоит в своём этапе", async () => {
+test("цель, уровень и часы карты видны", async () => {
   const { host } = mount();
   await settled();
 
-  const stages = [...host.querySelectorAll("[data-stage]")];
+  assert.match(host.querySelector("[data-goal]").textContent, /Собрать игру для NES/);
+  assert.match(host.querySelector("[data-level]").textContent, /Начинающий/);
+  assert.match(host.querySelector("[data-node-hours]").textContent, /14\D+22/);
+});
+
+test("сгенерированный этап ведёт на свой экран, остальные помечены", async () => {
+  const { host } = mount();
+  await settled();
+
+  const ready = host.querySelector('[data-stage="setup"]');
+  const pending = host.querySelector('[data-stage="sprites"]');
+  assert.equal(ready.querySelector("a").getAttribute("href"), "/ru/stage/?program=nes-dev&stage=setup");
+  assert.match(ready.textContent, /2\D+3/);
+  assert.equal(pending.querySelector("a"), null, "несгенерированный этап остался ссылкой");
+  assert.equal(pending.dataset.pending, "");
+  assert.match(pending.textContent, new RegExp(ru.program.pending));
+});
+
+test("готовая подпрограмма ведёт в свой узел, несгенерированная помечена", async () => {
+  const { host } = mount();
+  await settled();
+
+  const tools = host.querySelector('[data-child="tools"]');
+  const sound = host.querySelector('[data-child="sound"]');
+  assert.equal(tools.querySelector("a").getAttribute("href"), "/ru/program/?program=nes-dev&node=tools");
+  assert.equal(sound.querySelector("a"), null);
+  assert.match(sound.textContent, new RegExp(ru.program.pending));
+});
+
+test("вложенный узел показывает путь, и Esc уводит к родителю", async () => {
+  const { host } = mount({ out: NESTED, props: { node: "rom" } });
+  await settled();
+
+  const crumbs = [...host.querySelectorAll("[data-trail] a")];
   assert.deepEqual(
-    stages.map((stage) => stage.dataset.stage),
-    ["1", "2"],
+    crumbs.map((crumb) => crumb.getAttribute("href")),
+    ["/ru/program/?program=nes-dev", "/ru/program/?program=nes-dev&node=tools"],
   );
-  assert.ok(stages[0].querySelector('[data-topic="local-runtime"]'), "тема не в своём этапе");
-  assert.ok(stages[1].querySelector('[data-topic="agent-loop"]'), "тема не в своём этапе");
-  assert.equal(stages[0].querySelector('[data-topic="agent-loop"]'), null, "тема попала в чужой этап");
-});
-
-test("статус читается без цвета: глиф с подписью и текст рядом", async () => {
-  const { host } = mount();
-  await settled();
-
-  const passed = at(host, "local-runtime");
-  const glyph = passed.querySelector("[role=img]");
-  assert.equal(glyph.getAttribute("aria-label"), ru.status.passed);
-  assert.match(passed.textContent, new RegExp(ru.status.passed), passed.textContent);
-  assert.notEqual(
-    at(host, "agent-loop").querySelector("[role=img]").textContent,
-    glyph.textContent,
-    "разные статусы получили один глиф",
-  );
-});
-
-test("чекпойнт отличается от обычной темы", async () => {
-  const { host } = mount();
-  await settled();
-
-  const gate = at(host, "cp-gateway");
-  assert.equal(gate.dataset.checkpoint, "");
-  assert.match(gate.textContent, new RegExp(ru.program.checkpoint));
-  assert.equal(at(host, "local-runtime").dataset.checkpoint, undefined);
-});
-
-test("заблокированная тема говорит, чем разблокируется, и не кликается", async () => {
-  const { host } = mount();
-  await settled();
-
-  const gate = at(host, "cp-gateway");
-  assert.match(gate.textContent, /Совместимый API/, gate.textContent);
-  assert.match(gate.textContent, new RegExp(ru.program.blockedBy));
-  assert.equal(gate.querySelector("a"), null, "заблокированная тема осталась ссылкой");
-});
-
-test("доступная тема ведёт на свой экран", async () => {
-  const { host } = mount();
-  await settled();
-
-  const link = at(host, "local-runtime").querySelector("a");
+  assert.equal(host.querySelector("[data-up]"), crumbs[1]);
+  assert.equal(host.querySelector("[data-node-title]").textContent, "Первый ROM");
   assert.equal(
-    link.getAttribute("href"),
-    "/ru/topic/?program=%2Fprograms%2Fllm-agents-base&topic=local-runtime",
+    host.querySelector('[data-stage="setup"] a').getAttribute("href"),
+    "/ru/stage/?program=nes-dev&node=rom&stage=setup",
   );
 });
 
-test("этап показывает свой счётчик, а не общий на всех", async () => {
-  const { host } = mount({
-    out: {
-      ...OUT,
-      stages: [
-        { ...OUT.stages[0], tally: { ...TALLY, done: 1, total: 2 } },
-        { ...OUT.stages[1], tally: { ...TALLY, done: 0, total: 2 } },
-      ],
-    },
-  });
-  await settled();
-
-  const counts = [...host.querySelectorAll("[data-stage] [data-tally]")].map(
-    (node) => node.textContent,
-  );
-  assert.match(counts[0], /1\D+2/, counts[0]);
-  assert.match(counts[1], /0\D+2/, counts[1]);
-});
-
-test("счётчик тем стоит в форме множественного числа своего языка", async () => {
-  const { host } = mount({
-    out: { ...OUT, stages: [{ ...OUT.stages[0], tally: { ...TALLY, done: 1, total: 8 } }] },
-  });
-  await settled();
-
-  assert.match(host.querySelector("[data-tally]").textContent, /8 тем$/);
-});
-
-test("часы темы показаны интервалом", async () => {
+test("у корня пути нет — вверх ведёт ссылка назад в шапке", async () => {
   const { host } = mount();
   await settled();
 
-  assert.match(at(host, "local-runtime").textContent, /4\D+6/);
+  assert.equal(host.querySelector("[data-trail]"), null);
+  assert.equal(host.querySelector("[data-up]"), null);
 });
 
-test("фильтр оставляет в этапах только совпавшие темы", async () => {
-  const { host } = mount();
+test("в шапку уходит название всей программы, а не подпрограммы", async () => {
+  const root = mount();
   await settled();
+  assert.deepEqual(root.names.at(-1), { kind: "program", id: "nes-dev", title: ROOT.title });
 
-  const field = host.querySelector("[data-filter]");
-  field.value = "шлюз";
-  field.dispatchEvent(new Event("input", { bubbles: true }));
+  const nested = mount({ out: NESTED, props: { node: "rom" } });
   await settled();
-
-  assert.equal(host.querySelector('[data-topic="local-runtime"]'), null);
-  assert.ok(host.querySelector('[data-topic="cp-gateway"]'), "совпавшая тема пропала");
+  assert.deepEqual(nested.names.at(-1), { kind: "program", id: "nes-dev", title: "Разработка игр для NES" });
 });
 
-test("экспорт спрашивает путь и пишет файл по выбранному", async () => {
-  const { host, calls, asked, said } = mount();
+test("неоткрывшийся узел называет причину на языке словаря и ведёт в библиотеку", async () => {
+  const absent = { code: "node.absent", message: "подпрограммы `sound` в программе нет" };
+  const { host } = mount({ fail: absent });
+  const english = mount({ fail: absent, props: { text: en, locale: "en" } });
+  const gone = mount({ fail: { code: "library.absent", message: "the library holds no program" } });
+  const strange = mount({ fail: { code: "library.unreadable", message: "`programs` не читается" } });
   await settled();
 
-  host.querySelector("[data-export]").click();
-  await settled();
-
-  assert.deepEqual(asked, ["llm-agents-base.md"]);
-  assert.deepEqual(calls.at(-1), {
-    name: "export",
-    payload: {
-      bundle: "/programs/llm-agents-base",
-      today: "2026-07-27",
-      path: "/дом/программа.md",
-    },
-  });
-  assert.deepEqual(said.at(-1), { tone: "ok", text: ru.program.exported });
+  const reason = (root) => root.querySelector("[data-empty]").textContent;
+  assert.ok(reason(host).includes(ru.program.nodeAbsent), reason(host));
+  assert.equal(host.querySelector("[data-empty] a").getAttribute("href"), "/ru/");
+  assert.ok(reason(english.host).includes(en.program.nodeAbsent), reason(english.host));
+  assert.equal(english.host.querySelector("[data-empty] a").getAttribute("href"), "/en/");
+  assert.ok(reason(gone.host).includes(ru.program.absent), reason(gone.host));
+  assert.ok(reason(strange.host).includes("`programs` не читается"), reason(strange.host));
 });
 
-test("отказ от диалога экспорт не запускает", async () => {
-  const { host, calls, said } = mount({ chosen: null });
+test("у узла без этапов нет пустого заголовка этапов", async () => {
+  const { host } = mount({ out: { ...ROOT, stages: [] } });
   await settled();
 
-  host.querySelector("[data-export]").click();
-  await settled();
-
-  assert.deepEqual(
-    calls.map((made) => made.name),
-    ["program"],
-  );
-  assert.deepEqual(said, [], "отчёт без экспорта");
-});
-
-test("неудача экспорта названа вслух", async () => {
-  const { host, said } = mount({ fail: true });
-  await settled();
-
-  host.querySelector("[data-export]").click();
-  await settled();
-
-  assert.deepEqual(said.at(-1), { tone: "error", text: ru.program.exportFailed });
+  assert.equal(host.querySelector("[data-stages]"), null);
+  assert.ok(![...host.querySelectorAll("h2")].some((head) => head.textContent === ru.program.stages));
 });

@@ -65,6 +65,18 @@ impl fmt::Display for IpcError {
 
 impl std::error::Error for IpcError {}
 
+impl From<tolearn_core::library::LibraryError> for IpcError {
+    fn from(error: tolearn_core::library::LibraryError) -> Self {
+        Self::new(error.code(), error.to_string())
+    }
+}
+
+impl From<tolearn_core::package::UnpackError> for IpcError {
+    fn from(error: tolearn_core::package::UnpackError) -> Self {
+        Self::new(error.code(), error.to_string())
+    }
+}
+
 impl From<tolearn_core::archive::ArchiveError> for IpcError {
     fn from(error: tolearn_core::archive::ArchiveError) -> Self {
         Self::new(error.code(), error.to_string())

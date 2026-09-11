@@ -23,7 +23,8 @@
   color: var(--color-accent);
 }
 
-:where(button):disabled {
+:where(button):disabled,
+:where(button)[aria-disabled="true"] {
   border-color: var(--color-border);
   color: var(--color-fg-muted);
   cursor: default;

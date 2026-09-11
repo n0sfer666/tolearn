@@ -73,6 +73,22 @@ test("esc уходит на уровень вверх по ссылке наза
   assert.deepEqual(events, ["/ru/"]);
 });
 
+test("esc на вложенном экране уходит к родителю, а не в список", () => {
+  document.body.innerHTML = `<header><a href="/ru/" data-back>Назад</a></header>
+    <main><nav><a href="/ru/program/?program=nes&node=tools" data-up>Инструменты</a></nav></main>`;
+  const events = [];
+  for (const link of document.querySelectorAll("a")) {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      events.push(link.getAttribute("href"));
+    });
+  }
+
+  press("Escape");
+
+  assert.deepEqual(events, ["/ru/program/?program=nes&node=tools"]);
+});
+
 test("esc сначала закрывает раскрытый спойлер и остаётся на экране", () => {
   const events = screen(`<header><a href="/ru/" data-back>Назад</a></header>
     <main><details open><summary>Подсказка</summary><p>текст</p></details></main>`);

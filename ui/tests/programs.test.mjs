@@ -3,81 +3,113 @@ import test, { before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled } from "./support/dom.mjs";
+import { browser, settled, toasts } from "./support/dom.mjs";
 
 let Programs;
 let render;
-let document;
+let window;
 
 before(async () => {
-  ({ document } = browser());
+  window = browser();
   ({ default: Programs } = await island("Programs"));
   ({ render } = await import("solid-js/web"));
 }, { timeout: 300_000 });
 
-const CARD = {
-  id: "llm-agents-base",
-  title: "Работа с агентами LLM",
-  path: "/programs/llm-agents-base",
-  reachable: true,
-  opened_at: "2026-07-27",
-  tally: { done: 3, total: 8, stale: 1, share: 0.375, hours_done: { min: 4, max: 6 }, hours_total: { min: 12, max: 20 } },
+const CHIPTUNE = "0d4f6c8a-2b1e-4f3a-9c5d-7e8f9a0b1c2d";
+const span = (min, max) => ({ min, max });
+
+const SHELF = {
+  uuid: CHIPTUNE,
+  title: "Chiptune: музыка звукового чипа NES",
+  goal: "Написать и проиграть мелодию на пяти голосах",
+  hours: span(7, 11),
+  children: [],
 };
 
-const MERGED = {
-  ok: true,
-  id: CARD.id,
-  title: CARD.title,
-  violations: [],
-  report: { kept: ["a", "b"], added: ["c"], orphaned: ["d"], stale: [{ id: "a", changed: ["outcomes"] }] },
+const NES = {
+  uuid: "nes-dev",
+  title: "Разработка игр для NES",
+  goal: "Собрать игру",
+  hours: span(14, 22),
+  children: [
+    { id: "tools", title: "Инструменты сборки", hours: span(8, 12), ready: true },
+    { id: "sound", title: "Звук", hours: span(6, 10), ready: false },
+  ],
 };
+
+const refusal = (code, message) => ({ code, message });
 
 function mount(options = {}) {
-  const host = document.createElement("div");
-  document.body.append(host);
+  const host = window.document.createElement("div");
+  window.document.body.append(host);
   const calls = [];
-  const listing = options.listing ?? [CARD];
   let drop = () => {};
   const call = (name, payload) => {
     calls.push({ name, payload });
-    if (name === "programs") return Promise.resolve({ programs: listing });
-    if (name === "import") return options.hold ? new Promise(() => {}) : Promise.resolve(options.imported ?? MERGED);
-    throw new Error(`лишняя команда ${name}`);
+    if (name === "library") {
+      return Promise.resolve({ programs: options.listing ?? [SHELF], refused: options.refused ?? [] });
+    }
+    if (name !== "import_package") throw new Error(`лишняя команда ${name}`);
+    if (options.hold) return new Promise(() => {});
+    if (options.fail) return Promise.reject(options.fail);
+    return Promise.resolve(options.imported ?? { uuid: CHIPTUNE, title: SHELF.title, copy_of: null });
   };
+  const said = toasts(window);
   const dispose = render(
     () =>
       Programs({
         text: ru.programs,
         locale: options.locale ?? "ru",
         call,
-        pick: options.pick ?? (() => Promise.resolve("/dropped/bundle")),
-        pickArchive: options.pickArchive ?? (() => Promise.resolve("/dropped/bundle.zip")),
+        pick: options.pick ?? (() => Promise.resolve("/incoming/chiptune.tolearn")),
         drops: (handler) => {
           drop = handler;
         },
       }),
     host,
   );
-  return { host, calls, dispose, drop: (paths) => drop(paths) };
+  return { host, calls, said, dispose, drop: (paths) => drop(paths) };
 }
 
-test("список показывает программу и её прогресс", async () => {
+const named = (calls, name) => calls.filter((made) => made.name === name);
+
+test("карточка несёт название, цель и часы карты", async () => {
   const { host } = mount();
   await settled();
 
-  assert.match(host.textContent, /Работа с агентами LLM/);
-  assert.match(host.textContent, /3\D+8/, `прогресс не виден: ${host.textContent}`);
+  const card = host.querySelector(`[data-program="${CHIPTUNE}"]`);
+  assert.match(card.textContent, /Chiptune: музыка звукового чипа NES/);
+  assert.match(card.querySelector("[data-goal]").textContent, /Написать и проиграть/);
+  assert.match(card.querySelector("[data-hours]").textContent, /7\D+11/);
 });
 
-test("недоступная программа помечена, а не пропала", async () => {
-  const { host } = mount({ listing: [{ ...CARD, reachable: false, tally: null }] });
+test("подпрограммы видны, и видно, какие ещё не сгенерированы", async () => {
+  const { host } = mount({ listing: [NES] });
   await settled();
 
-  assert.match(host.textContent, /Работа с агентами LLM/, "запись исчезла");
-  assert.match(host.textContent, new RegExp(ru.programs.unreachable));
+  const children = [...host.querySelectorAll("[data-child]")];
+  assert.deepEqual(
+    children.map((child) => child.dataset.child),
+    ["tools", "sound"],
+  );
+  assert.equal(children[0].dataset.pending, undefined);
+  assert.equal(children[1].dataset.pending, "");
+  assert.match(children[1].textContent, new RegExp(ru.programs.pending));
 });
 
-test("выбор папки и перетаскивание дают один результат", async () => {
+test("битая запись библиотеки видна с причиной, а не пропала", async () => {
+  const { host } = mount({
+    refused: [{ directory: "5f0e", code: "library.malformed", message: "program.yaml не читается" }],
+  });
+  await settled();
+
+  const broken = host.querySelector("[data-broken]");
+  assert.match(broken.textContent, /5f0e/);
+  assert.match(broken.textContent, /program\.yaml не читается/);
+  assert.match(broken.textContent, new RegExp(ru.programs.broken));
+});
+
+test("выбор файла и перетаскивание дают один импорт", async () => {
   const picked = mount();
   await settled();
   picked.host.querySelector("[data-pick]").click();
@@ -85,58 +117,65 @@ test("выбор папки и перетаскивание дают один р
 
   const dropped = mount();
   await settled();
-  dropped.drop(["/dropped/bundle"]);
+  dropped.drop(["/incoming/chiptune.tolearn"]);
   await settled();
 
-  const imports = ({ calls }) => calls.filter(({ name }) => name === "import");
-  assert.deepEqual(imports(picked), imports(dropped), "пути импорта расходятся");
-  assert.equal(imports(picked).length, 1);
-  assert.equal(imports(picked)[0].payload.path, "/dropped/bundle");
-  assert.equal(picked.host.textContent, dropped.host.textContent, "экраны после импорта разные");
+  assert.deepEqual(named(picked.calls, "import_package"), named(dropped.calls, "import_package"));
+  assert.deepEqual(named(picked.calls, "import_package"), [
+    { name: "import_package", payload: { path: "/incoming/chiptune.tolearn" } },
+  ]);
 });
 
-test("битая папка объясняет причину и не показывает отчёт", async () => {
-  const refused = {
-    ok: false,
-    id: null,
-    title: null,
-    violations: [{ code: "bundle.missing-topic-file", message: "нет файла темы `local-runtime`" }],
-    report: null,
-  };
-  const { host } = mount({ imported: refused });
+test("удачный импорт называет программу и перечитывает библиотеку", async () => {
+  const { host, calls, said } = mount();
   await settled();
   host.querySelector("[data-pick]").click();
   await settled();
 
-  assert.match(host.textContent, /нет файла темы/, host.textContent);
-  assert.doesNotMatch(host.textContent, new RegExp(ru.programs.added));
+  assert.equal(named(calls, "library").length, 2, "библиотека не перечитана");
+  assert.equal(said.at(-1).tone, "ok");
+  assert.match(said.at(-1).text, /Chiptune/);
 });
 
-test("повторный импорт показывает отчёт о слиянии", async () => {
-  const { host } = mount();
+test("копия уже импортированной программы приходит уведомлением", async () => {
+  const { host, said } = mount({ imported: { uuid: "copy", title: SHELF.title, copy_of: CHIPTUNE } });
   await settled();
   host.querySelector("[data-pick]").click();
   await settled();
 
-  const report = host.querySelector("[data-report]").textContent;
-  assert.match(report, new RegExp(`${ru.programs.added}\\D+1`), report);
-  assert.match(report, new RegExp(`${ru.programs.stale}\\D+1`), report);
-  assert.match(report, new RegExp(`${ru.programs.orphaned}\\D+1`), report);
-  assert.match(report, /outcomes/, "не сказано, что изменилось");
+  assert.equal(said.at(-1).tone, "info");
+  assert.match(said.at(-1).text, new RegExp(ru.programs.copied));
+  assert.equal(host.querySelector("[data-refused]"), null);
 });
 
-test("список перечитывается после удачного импорта, но не после отказа", async () => {
-  const good = mount();
+test("программа v1 получает ответ «не открывается», а не ошибку разбора", async () => {
+  const { host, calls, said } = mount({ fail: refusal("package.v1", "программы v1 не открываются") });
   await settled();
-  good.host.querySelector("[data-pick]").click();
+  host.querySelector("[data-pick]").click();
   await settled();
-  assert.equal(good.calls.filter(({ name }) => name === "programs").length, 2, "список не обновлён");
 
-  const bad = mount({ imported: { ok: false, id: null, title: null, violations: [{ code: "x", message: "нет" }], report: null } });
-  await settled();
-  bad.host.querySelector("[data-pick]").click();
-  await settled();
-  assert.equal(bad.calls.filter(({ name }) => name === "programs").length, 1, "отказ зря дёрнул список");
+  const refused = host.querySelector("[data-refused]");
+  assert.equal(refused.getAttribute("role"), "alert");
+  assert.match(refused.textContent, new RegExp(ru.programs.v1));
+  assert.deepEqual(said.at(-1), { tone: "error", text: ru.programs.refused });
+  assert.equal(named(calls, "library").length, 1, "отказ зря перечитал библиотеку");
+});
+
+test("папка программы и чужой файл получают свои причины", async () => {
+  const cases = [
+    [refusal("package.folder", "это папка"), ru.programs.folder],
+    [refusal("package.foreign", "не пакет"), ru.programs.foreign],
+    [refusal("archive.malformed", "архив битый на 12-м байте"), "архив битый на 12-м байте"],
+  ];
+  for (const [fail, reason] of cases) {
+    const { host, dispose } = mount({ fail });
+    await settled();
+    host.querySelector("[data-pick]").click();
+    await settled();
+
+    assert.ok(host.querySelector("[data-refused]").textContent.includes(reason), fail.code);
+    dispose();
+  }
 });
 
 test("пока импорт идёт, второй запуск не начинается", async () => {
@@ -144,76 +183,63 @@ test("пока импорт идёт, второй запуск не начин�
   await settled();
   host.querySelector("[data-pick]").click();
   await settled();
-  drop(["/second/bundle"]);
+  drop(["/incoming/second.tolearn"]);
   host.querySelector("[data-pick]").click();
   await settled();
 
-  assert.equal(calls.filter(({ name }) => name === "import").length, 1, "импорт запущен дважды");
+  const button = host.querySelector("[data-pick]");
+  assert.equal(named(calls, "import_package").length, 1, "импорт запущен дважды");
+  assert.equal(button.disabled, false, "выключенная кнопка сбросит фокус");
+  assert.equal(button.getAttribute("aria-disabled"), "true");
 });
 
-test("отменённый выбор папки ничего не импортирует", async () => {
+test("отменённый выбор файла ничего не импортирует", async () => {
   const { host, calls } = mount({ pick: () => Promise.resolve(null) });
   await settled();
   host.querySelector("[data-pick]").click();
   await settled();
 
-  assert.equal(calls.filter(({ name }) => name === "import").length, 0);
+  assert.equal(named(calls, "import_package").length, 0);
 });
 
-test("фильтр оставляет в списке только совпавшие программы", async () => {
-  const other = { ...CARD, id: "rust-core", title: "Ядро на Rust", path: "/programs/rust-core" };
-  const { host } = mount({ listing: [CARD, other] });
+test("фильтр оставляет только совпавшие программы", async () => {
+  const { host } = mount({ listing: [SHELF, NES] });
   await settled();
 
   const field = host.querySelector("[data-filter]");
-  field.value = "ядро";
+  field.value = "nes";
   field.dispatchEvent(new Event("input", { bubbles: true }));
   await settled();
 
-  assert.equal(host.querySelector('[data-program="llm-agents-base"]'), null);
-  assert.ok(host.querySelector('[data-program="rust-core"]'), "совпавшая программа пропала");
+  assert.ok(host.querySelector('[data-program="nes-dev"]'), "совпавшая программа пропала");
+  assert.ok(host.querySelector(`[data-program="${CHIPTUNE}"]`), "совпадение по NES в названии потеряно");
+  field.value = "игр";
+  field.dispatchEvent(new Event("input", { bubbles: true }));
+  await settled();
+  assert.equal(host.querySelector(`[data-program="${CHIPTUNE}"]`), null);
 });
 
-test("архив выбирается своей кнопкой и уходит в тот же импорт", async () => {
-  const { host, calls } = mount();
+test("фильтр прячет и битые записи, которые не совпали", async () => {
+  const { host } = mount({
+    refused: [{ directory: "5f0e", code: "library.malformed", message: "program.yaml не читается" }],
+  });
   await settled();
 
-  host.querySelector("[data-pick-archive]").click();
+  const field = host.querySelector("[data-filter]");
+  field.value = "chiptune";
+  field.dispatchEvent(new Event("input", { bubbles: true }));
   await settled();
+  assert.equal(host.querySelector("[data-broken]"), null, "битая запись пережила фильтр");
 
-  const imports = calls.filter(({ name }) => name === "import");
-  assert.equal(imports.length, 1);
-  assert.equal(imports[0].payload.path, "/dropped/bundle.zip");
+  field.value = "5f0e";
+  field.dispatchEvent(new Event("input", { bubbles: true }));
+  await settled();
+  assert.ok(host.querySelector("[data-broken]"), "совпавшая битая запись пропала");
 });
 
-test("отменённый выбор архива импорт не запускает", async () => {
-  const { host, calls } = mount({ pickArchive: () => Promise.resolve(null) });
-  await settled();
-
-  host.querySelector("[data-pick-archive]").click();
-  await settled();
-
-  assert.equal(calls.filter(({ name }) => name === "import").length, 0);
-});
-
-test("плитки «+» генерации в сетке больше нет", async () => {
-  for (const listing of [[CARD], []]) {
-    const { host, calls } = mount({ listing });
-    await settled();
-
-    assert.equal(host.querySelector("[data-new-program], [data-generate-open]"), null, host.innerHTML);
-    assert.deepEqual(calls.map(({ name }) => name), ["programs"]);
-  }
-});
-
-test("ссылка на программу ведёт на страницу текущего языка", async () => {
+test("ссылка на программу ведёт на её экран текущего языка", async () => {
   const { host } = mount({ locale: "en" });
   await settled();
 
-  const link = host.querySelector("li a");
-
-  assert.equal(
-    link.getAttribute("href"),
-    `/en/program/?program=${encodeURIComponent(CARD.path)}`,
-  );
+  assert.equal(host.querySelector("li[data-program] a").getAttribute("href"), `/en/program/?program=${CHIPTUNE}`);
 });

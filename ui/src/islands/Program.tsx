@@ -1,147 +1,115 @@
-import { For, Show, createSignal, onMount } from "solid-js";
+import { Show, createSignal, onMount } from "solid-js";
 
-import { GLYPHS, type Status } from "../components/status";
+import Empty from "../components/reading/Empty";
+import Rows from "../components/reading/Rows";
+import Trail from "../components/reading/Trail";
 import type { Dictionary } from "../i18n/ru";
-import { type Locale, plural } from "../i18n";
-import type { Stage, TopicStatus } from "../ipc";
-import { matches } from "../lib/filter";
-import { name as named } from "../lib/name";
-import { pickFile, quiet } from "../lib/ipc";
-import { toast } from "../lib/toast";
+import type { NodeOut } from "../ipc";
+import { hours } from "../lib/hours";
+import { quiet } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
+import { nodeHref, stageHref } from "../lib/links";
+import { name } from "../lib/name";
+import { query } from "../lib/query";
+import { told } from "../lib/told";
 
 interface Props {
   text: Dictionary;
-  locale: Locale;
-  path?: string;
-  today?: string;
+  locale: string;
+  program?: string;
+  node?: string;
   call?: Transport;
-  save?: (name: string) => Promise<string | null>;
-}
-
-function known(status: string): status is Status {
-  return status in GLYPHS;
-}
-
-function glyph(status: string): string {
-  return known(status) ? GLYPHS[status] : GLYPHS.todo;
 }
 
 export default function Program(props: Props) {
   const call = () => props.call ?? quiet;
-  const today = () => props.today ?? new Date().toISOString().slice(0, 10);
-  const path = () => props.path ?? new URLSearchParams(location.search).get("program") ?? "";
+  const program = () => props.program ?? query("program");
+  const node = () => props.node ?? query("node");
 
-  const [stages, setStages] = createSignal<Stage[]>([]);
-  const [topics, setTopics] = createSignal<TopicStatus[]>([]);
-  const [needle, setNeedle] = createSignal("");
-  const [program, setProgram] = createSignal("");
-  const [state, setState] = createSignal<"idle" | "busy">("idle");
+  const [view, setView] = createSignal<NodeOut | null>(null);
+  const [gone, setGone] = createSignal<string | null>(null);
+  const missing = () =>
+    new Map([
+      ["library.absent", props.text.program.absent],
+      ["node.absent", props.text.program.nodeAbsent],
+    ]);
 
-  const [gone, setGone] = createSignal(false);
-
-  onMount(() => {
-    setProgram(path());
-    if (path() === "") return;
-    void (async () => {
-      try {
-        const out = await call()("program", { bundle: path(), today: today() });
-        setStages(out.stages);
-        setTopics(out.topics);
-        named("program", path(), out.title);
-      } catch {
-        setGone(true);
-      }
-    })();
-  });
-
-  const name = () => `${path().split(/[/\\]/).filter(Boolean).at(-1) ?? "program"}.md`;
-
-  const exported = async () => {
-    const chosen = await (props.save ?? pickFile)(name());
-    if (chosen === null) return;
-    setState("busy");
+  const open = async () => {
     try {
-      await call()("export", { bundle: path(), today: today(), path: chosen });
-      toast("ok", props.text.program.exported);
-    } catch {
-      toast("error", props.text.program.exportFailed);
-    } finally {
-      setState("idle");
+      const out = await call()("node", { program: program(), node: node() });
+      setView(out);
+      name("program", out.program, out.trail[0]?.title ?? out.title);
+    } catch (failure) {
+      setGone(told(failure, missing()) || props.text.program.none);
     }
   };
 
-  const of = (stage: Stage) =>
-    topics().filter((topic) => topic.stage === stage.n && matches(topic.title, needle()));
-  const label = (status: string) => (known(status) ? props.text.status[status] : status);
-  const href = (topic: TopicStatus) =>
-    `/${props.locale}/topic/?program=${encodeURIComponent(path())}&topic=${encodeURIComponent(topic.id)}`;
+  onMount(() => {
+    if (program() === "") {
+      setGone(props.text.program.none);
+      return;
+    }
+    void open();
+  });
+
+  const crumbs = (out: NodeOut) =>
+    out.trail.map((crumb) => ({
+      href: nodeHref(props.locale, out.program, crumb.uuid),
+      title: crumb.title,
+    }));
 
   return (
     <Show
-      when={program() !== "" && !gone()}
+      when={view()}
       fallback={
-        <p data-empty>
-          {props.text.program.none}{" "}
-          <a href={`/${props.locale}/`}>{props.text.nav.programs}</a>
-        </p>
+        <Show when={gone()}>
+          {(reason) => <Empty reason={reason()} locale={props.locale} label={props.text.nav.programs} />}
+        </Show>
       }
     >
-      <section>
-        <nav class="row" data-tools aria-label={props.text.nav.sections}>
-          <button type="button" data-export onClick={() => void exported()} disabled={state() === "busy"}>
-            {state() === "busy" ? props.text.program.exporting : props.text.program.export}
-          </button>
-        </nav>
-        <input
-          type="search"
-          data-filter
-          aria-label={props.text.program.filter}
-          placeholder={props.text.program.filter}
-          value={needle()}
-          onInput={(event) => setNeedle(event.currentTarget.value)}
-        />
-        <For each={stages()}>
-          {(stage) => (
-            <article data-stage={stage.n}>
-              <div class="head">
-                <h3>{stage.title}</h3>
-                <p data-tally>
-                  {props.text.programs.progress}: {stage.tally.done} /{" "}
-                  {plural(props.locale, stage.tally.total, props.text.counts.topics)}
-                </p>
-              </div>
-              <ul>
-                <For each={of(stage)}>
-                  {(topic) => (
-                    <li data-topic={topic.id} data-checkpoint={topic.checkpoint ? "" : undefined}>
-                      <span class={`glyph status-${topic.status}`} role="img" aria-label={label(topic.status)}>
-                        {glyph(topic.status)}
-                      </span>
-                      <Show when={topic.blocked_by.length === 0} fallback={<span>{topic.title}</span>}>
-                        <a href={href(topic)}>{topic.title}</a>
-                      </Show>
-                      <span data-status>{label(topic.status)}</span>
-                      <Show when={topic.checkpoint}>
-                        <span data-kind>{props.text.program.checkpoint}</span>
-                      </Show>
-                      <span data-hours>
-                        {topic.hours.min}–{topic.hours.max} {props.text.program.hours}
-                      </span>
-                      <Show when={topic.blocked_by.length > 0}>
-                        <p data-blocked>
-                          {props.text.program.blockedBy}:{" "}
-                          {topic.blocked_by.map((link) => link.title).join(", ")}
-                        </p>
-                      </Show>
-                    </li>
-                  )}
-                </For>
-              </ul>
-            </article>
-          )}
-        </For>
-      </section>
+      {(out) => (
+        <article data-node={out().uuid}>
+          <Show when={out().trail.length > 0}>
+            <Trail label={props.text.program.trail} crumbs={crumbs(out())} />
+            <h2 data-node-title>{out().title}</h2>
+          </Show>
+          <p data-goal>
+            <strong>{props.text.program.goal}:</strong> {out().goal}
+          </p>
+          <p data-level>
+            <strong>{props.text.program.level}:</strong> {out().level}
+          </p>
+          <p data-node-hours>
+            <strong>{props.text.program.span}:</strong> {hours(out().hours, props.text.program.hours)}
+          </p>
+
+          <Show when={out().stages.length > 0}>
+            <h2>{props.text.program.stages}</h2>
+            <ol data-stages>
+              <Rows
+                kind="stage"
+                rows={out().stages}
+                href={(row) => stageHref(props.locale, out().program, out().uuid, row.id)}
+                pending={props.text.program.pending}
+                unit={props.text.program.hours}
+              />
+            </ol>
+          </Show>
+
+          <Show when={out().children.length > 0}>
+            <h2>{props.text.program.children}</h2>
+            <ul data-children>
+              <Rows
+                kind="child"
+                rows={out().children}
+                href={(row) => nodeHref(props.locale, out().program, row.id)}
+                pending={props.text.program.pending}
+                unit={props.text.program.hours}
+              />
+            </ul>
+          </Show>
+        </article>
+      )}
     </Show>
   );
 }

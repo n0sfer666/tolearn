@@ -384,7 +384,7 @@ dto!(ProbedView {
 });
 
 pub fn shapes() -> Vec<Shape> {
-    vec![
+    let mut shapes = vec![
         ValidateIn::shape(),
         ValidateOut::shape(),
         Violation::shape(),
@@ -453,5 +453,7 @@ pub fn shapes() -> Vec<Shape> {
         SpeechStateOut::shape(),
         SpeechStopIn::shape(),
         SpeechStopOut::shape(),
-    ]
+    ];
+    shapes.extend(super::reading::shapes());
+    shapes
 }

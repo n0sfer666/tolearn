@@ -5,12 +5,19 @@ route=${1:?путь экрана, например /ru/settings/}
 out=${2:-shot.png}
 size=${3:-1280,900}
 wait=${SHOT_WAIT:-40}
+theme=${SHOT_THEME:-light}
 host=${TOLEARN_UI:-http://localhost:4321}
 chrome=${CHROME:-/Applications/Google Chrome.app/Contents/MacOS/Google Chrome}
 profile=$(mktemp -d "${TMPDIR:-/tmp}/tolearn-shot.XXXXXX")
 
 [ -x "$chrome" ] || { echo "нет Chrome: $chrome" >&2; exit 1; }
 curl -sf -o /dev/null -m 5 "$host/" || { echo "не отвечает $host — подними pnpm -C ui dev" >&2; exit 1; }
+
+case "$theme" in
+    light) scheme=1 ;;
+    dark) scheme=0 ;;
+    *) echo "SHOT_THEME — light или dark, а не $theme" >&2; exit 1 ;;
+esac
 
 case "$out" in
     *.html) mode=--dump-dom ;;
@@ -21,10 +28,12 @@ rm -rf "$profile" "$out"
 if [ "$mode" = "--dump-dom" ]; then
     "$chrome" --headless=new --disable-gpu --hide-scrollbars --window-size="$size" \
         --virtual-time-budget=8000 --user-data-dir="$profile" \
+        --blink-settings=preferredColorScheme="$scheme" \
         --dump-dom "$host$route" >"$out" 2>/dev/null &
 else
     "$chrome" --headless=new --disable-gpu --hide-scrollbars --window-size="$size" \
         --virtual-time-budget=8000 --user-data-dir="$profile" \
+        --blink-settings=preferredColorScheme="$scheme" \
         "$mode" "$host$route" >/dev/null 2>&1 &
 fi
 child=$!

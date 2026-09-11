@@ -1,3 +1,4 @@
+mod asset;
 mod entry;
 mod error;
 mod examine;
