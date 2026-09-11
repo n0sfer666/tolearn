@@ -10,6 +10,9 @@ import test, { before } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { DIST, measure, pages, route, scripts } from "../scripts/budget.mjs";
+import { hydratable } from "../scripts/island.mjs";
+import { ru } from "../src/i18n/ru.ts";
+import { browser, settled } from "./support/dom.mjs";
 
 const UI = fileURLToPath(new URL("..", import.meta.url));
 const SCREENS = ["/", "/program/", "/topic/", "/practice/", "/exam/", "/exam/dialog/", "/review/", "/queue/", "/stale/", "/stats/", "/graph/", "/search/", "/settings/", "/read/", "/sweep/"];
@@ -101,4 +104,19 @@ test("счётчик веса видит и подключённый файл, �
 
   assert.deepEqual(inline, ["alert(1)"]);
   assert.deepEqual(linked, ["/a.js", "/b.js"]);
+});
+
+test("остров поиска гидратируется поверх собранной страницы, когда программа уже в адресе", async () => {
+  const { document, location } = browser("https://tolearn.local/ru/search/?program=/bundle");
+  globalThis.location = location;
+  document.body.innerHTML = readFileSync(path.join(DIST, "ru/search/index.html"), "utf8");
+  const host = document.querySelector('astro-island[component-url*="/Search."]');
+  globalThis._$HY = { events: [], completed: new WeakSet(), r: {} };
+  const { default: Search } = await hydratable("Search");
+  const { default: renderer } = await import("@astrojs/solid-js/client.js");
+
+  renderer(host)(Search, { text: ru, locale: "ru" }, {}, { client: "load" });
+  await settled();
+
+  assert.ok(host.querySelector("[data-query]") !== null, "поле поиска не появилось");
 });

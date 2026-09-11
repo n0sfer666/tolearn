@@ -1,4 +1,4 @@
-import { For, Show, createSignal } from "solid-js";
+import { For, Show, createSignal, onMount } from "solid-js";
 
 import type { Dictionary } from "../i18n/ru";
 import type { HitView } from "../ipc";
@@ -17,11 +17,12 @@ interface Props {
 
 export default function Search(props: Props) {
   const call = () => props.call ?? quiet;
-  const program = () => props.program ?? opened();
-
+  const [program, setProgram] = createSignal("");
   const [asked, setAsked] = createSignal("");
   const [hits, setHits] = createSignal<HitView[]>([]);
   const [ran, setRan] = createSignal(false);
+
+  onMount(() => setProgram(props.program ?? opened()));
 
   const find = () => {
     void (async () => {
