@@ -42,14 +42,12 @@ function mount(options = {}) {
     calls.push({ name, payload });
     if (name === "programs") return Promise.resolve({ programs: listing });
     if (name === "import") return options.hold ? new Promise(() => {}) : Promise.resolve(options.imported ?? MERGED);
-    if (name === "provider") return Promise.resolve({ provider: { enabled: options.enabled ?? true } });
     throw new Error(`лишняя команда ${name}`);
   };
   const dispose = render(
     () =>
       Programs({
         text: ru.programs,
-        generate: ru.generate,
         locale: options.locale ?? "ru",
         call,
         pick: options.pick ?? (() => Promise.resolve("/dropped/bundle")),
@@ -198,21 +196,14 @@ test("отменённый выбор архива импорт не запус�
   assert.equal(calls.filter(({ name }) => name === "import").length, 0);
 });
 
-test("плитка «+» стоит в той же сетке, что и карточки программ", async () => {
-  const { host } = mount();
-  await settled();
+test("плитки «+» генерации в сетке больше нет", async () => {
+  for (const listing of [[CARD], []]) {
+    const { host, calls } = mount({ listing });
+    await settled();
 
-  const tile = host.querySelector("ul.cards > li[data-new-program] [data-generate-open]");
-
-  assert.ok(tile, `плитки нет в сетке: ${host.innerHTML}`);
-  assert.equal(tile.getAttribute("aria-label"), ru.generate.add);
-});
-
-test("плитка «+» видна и когда программ ещё нет", async () => {
-  const { host } = mount({ listing: [] });
-  await settled();
-
-  assert.ok(host.querySelector("ul.cards > li[data-new-program] [data-generate-open]"), host.innerHTML);
+    assert.equal(host.querySelector("[data-new-program], [data-generate-open]"), null, host.innerHTML);
+    assert.deepEqual(calls.map(({ name }) => name), ["programs"]);
+  }
 });
 
 test("ссылка на программу ведёт на страницу текущего языка", async () => {

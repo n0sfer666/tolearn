@@ -1,7 +1,5 @@
 import { For, Show, createSignal, onMount } from "solid-js";
 
-import Generate from "./Generate";
-import type { Dictionary } from "../i18n/ru";
 import type { Card, ImportOut, Merged } from "../ipc";
 import { matches } from "../lib/filter";
 import { drops as listen, pick as choose, pickArchive as chooseArchive, transport } from "../lib/ipc";
@@ -27,7 +25,6 @@ interface Props {
     progress: string;
     filter: string;
   };
-  generate: Dictionary["generate"];
   locale: string;
   today?: string;
   call?: Transport;
@@ -174,14 +171,6 @@ export default function Programs(props: Props) {
             </li>
           )}
         </For>
-        <li data-new-program>
-          <Generate
-            text={props.generate}
-            locale={props.locale}
-            today={props.today}
-            call={props.call}
-          />
-        </li>
       </ul>
     </section>
   );

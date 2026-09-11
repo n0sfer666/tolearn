@@ -383,75 +383,6 @@ dto!(ProbedView {
     thinking: bool,
 });
 
-dto!(GenerateIn {
-    subject: String,
-    level: String,
-    weekly_hours: u32,
-    weeks: Option<u32>,
-    today: String,
-});
-dto!(GenerateOut { job: String });
-dto!(GenerateStateIn { job: String });
-dto!(GenerateStateOut {
-    step: String,
-    total: u32,
-    done: u32,
-    attempt: u32,
-    rounds: u32,
-    retry: u32,
-    tries: u32,
-    current: String,
-    waiting: bool,
-    finished: bool,
-    cancelled: bool,
-    refused: Vec<String>,
-    missed: Vec<String>,
-    seconds: u64,
-    step_seconds: u64,
-    chars: u64,
-    ticks: u64,
-    tail: String,
-    tokens: Option<u32>,
-    summary: Option<SummaryView>,
-});
-dto!(SummaryView {
-    id: String,
-    title: String,
-    topics: u32,
-    hours_min: u32,
-    hours_max: u32,
-    stages: Vec<StagedView>,
-});
-dto!(StagedView {
-    n: u32,
-    title: String,
-    topics: u32,
-    first: Vec<String>,
-});
-dto!(GenerateGoIn { job: String });
-dto!(GenerateGoOut { going: bool });
-dto!(GenerateStopIn { job: String });
-dto!(GenerateStopOut { stopping: bool });
-dto!(GenerateAcceptIn {
-    job: String,
-    today: String,
-});
-dto!(GenerateDraftIn {
-    take: bool,
-    drop: bool,
-    today: String
-});
-dto!(GenerateDraftOut {
-    draft: Option<DraftView>,
-    job: Option<String>,
-});
-dto!(DraftView {
-    id: String,
-    title: String,
-    total: u32,
-    done: u32,
-});
-
 pub fn shapes() -> Vec<Shape> {
     vec![
         ValidateIn::shape(),
@@ -516,20 +447,6 @@ pub fn shapes() -> Vec<Shape> {
         AdviceView::shape(),
         CheckedView::shape(),
         ProbedView::shape(),
-        GenerateIn::shape(),
-        GenerateOut::shape(),
-        GenerateStateIn::shape(),
-        GenerateStateOut::shape(),
-        SummaryView::shape(),
-        StagedView::shape(),
-        GenerateGoIn::shape(),
-        GenerateGoOut::shape(),
-        GenerateStopIn::shape(),
-        GenerateStopOut::shape(),
-        GenerateAcceptIn::shape(),
-        GenerateDraftIn::shape(),
-        GenerateDraftOut::shape(),
-        DraftView::shape(),
         LlmLogIn::shape(),
         LlmLogOut::shape(),
         SpeechStateIn::shape(),

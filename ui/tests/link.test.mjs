@@ -30,7 +30,6 @@ function mount() {
     () =>
       Programs({
         text: ru.programs,
-        generate: ru.generate,
         locale: "ru",
         call,
         pick: () => Promise.resolve(null),

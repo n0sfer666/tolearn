@@ -7,12 +7,38 @@
 
 mod support;
 
+use std::path::PathBuf;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
 use serde_json::{Value, json};
-use support::generating::{Case, case};
 use support::speaking::{Speaking, speaking};
-use tolearn_app::ipc::call;
+use tolearn_app::ipc::{Context, call};
+use tolearn_provider::{Remembered, Vault};
 
 const SAID: &str = "готов";
+
+static CASES: AtomicUsize = AtomicUsize::new(0);
+
+struct Case {
+    context: Context,
+    data: PathBuf,
+}
+
+fn case(name: &str) -> Case {
+    let data = std::env::temp_dir().join(format!(
+        "tolearn-journal-{name}-{}-{}",
+        std::process::id(),
+        CASES.fetch_add(1, Ordering::Relaxed)
+    ));
+    let _ = std::fs::remove_dir_all(&data);
+    std::fs::create_dir_all(&data).unwrap();
+    let vault: Arc<dyn Vault> = Arc::new(Remembered::default());
+    Case {
+        context: Context::with_vault(&data, vault),
+        data,
+    }
+}
 
 fn enable(case: &Case, endpoint: &str, journal: bool) {
     let http = |api| {

@@ -6,8 +6,6 @@
 )]
 #![allow(dead_code, reason = "опоры нужны не каждому тест-бинарнику")]
 
-pub mod answers;
-pub mod generating;
 pub mod speaking;
 
 use std::io::{BufRead, BufReader, Read, Write};
@@ -175,4 +173,23 @@ pub fn sources(directory: &Path, found: &mut Vec<PathBuf>) {
             found.push(path);
         }
     }
+}
+
+fn files(directory: &Path, found: &mut Vec<(PathBuf, Vec<u8>)>) {
+    for entry in std::fs::read_dir(directory).unwrap() {
+        let path = entry.unwrap().path();
+        if path.is_dir() {
+            files(&path, found);
+        } else {
+            let bytes = std::fs::read(&path).unwrap();
+            found.push((path, bytes));
+        }
+    }
+}
+
+pub fn snapshot(root: &Path) -> Vec<(PathBuf, Vec<u8>)> {
+    let mut found = Vec::new();
+    files(root, &mut found);
+    found.sort();
+    found
 }

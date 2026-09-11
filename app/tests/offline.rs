@@ -10,7 +10,7 @@ mod support;
 use std::path::{Path, PathBuf};
 
 use serde_json::json;
-use support::copied;
+use support::{copied, snapshot};
 use tolearn_app::ipc::{Context, call};
 use tolearn_offline::store::{Fetched, Store};
 
@@ -41,25 +41,6 @@ fn saved(root: &Path) {
             1_700_000_000,
         )
         .unwrap();
-}
-
-fn files(directory: &Path, found: &mut Vec<(PathBuf, Vec<u8>)>) {
-    for entry in std::fs::read_dir(directory).unwrap() {
-        let path = entry.unwrap().path();
-        if path.is_dir() {
-            files(&path, found);
-        } else {
-            let bytes = std::fs::read(&path).unwrap();
-            found.push((path, bytes));
-        }
-    }
-}
-
-fn snapshot(root: &Path) -> Vec<(PathBuf, Vec<u8>)> {
-    let mut found = Vec::new();
-    files(root, &mut found);
-    found.sort();
-    found
 }
 
 #[test]

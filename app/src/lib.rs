@@ -1,4 +1,3 @@
-pub mod generate;
 pub mod gestures;
 pub mod ipc;
 pub mod journal;

@@ -61,8 +61,7 @@ Internal documents are kept in Russian only:
 
 The app reads bundles of the `learning-roadmap` family: `roadmap.yaml` +
 `topics/*.yaml` + `progress.yaml` + `examiner.md`. There is an example in
-[`examples/llm-agents-base`](examples/llm-agents-base), and the prompts that
-generate such bundles ship with the app.
+[`examples/llm-agents-base`](examples/llm-agents-base).
 
 ## License
 

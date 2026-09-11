@@ -60,8 +60,7 @@ LLM строит программу обучения — набор тем с м
 
 Приложение читает бандлы семейства `learning-roadmap`: `roadmap.yaml` +
 `topics/*.yaml` + `progress.yaml` + `examiner.md`. Пример — в
-[`examples/llm-agents-base`](examples/llm-agents-base); промпт, которым такие
-бандлы генерируются, поставляется вместе с приложением.
+[`examples/llm-agents-base`](examples/llm-agents-base).
 
 ## Лицензия
 

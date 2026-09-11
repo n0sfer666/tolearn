@@ -61,12 +61,6 @@ commands! {
     speech_state(types::SpeechStateIn) -> types::SpeechStateOut,
     speech_start(types::SpeechStateIn) -> types::SpeechStateOut,
     speech_stop(types::SpeechStopIn) -> types::SpeechStopOut,
-    generate(types::GenerateIn) -> types::GenerateOut,
-    generate_state(types::GenerateStateIn) -> types::GenerateStateOut,
-    generate_go(types::GenerateGoIn) -> types::GenerateGoOut,
-    generate_stop(types::GenerateStopIn) -> types::GenerateStopOut,
-    generate_accept(types::GenerateAcceptIn) -> types::ImportOut,
-    generate_draft(types::GenerateDraftIn) -> types::GenerateDraftOut,
 }
 
 #[tauri::command]

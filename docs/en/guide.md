@@ -7,16 +7,11 @@ The short version of how to use the app. For installation see
 
 ## Getting started
 
-1. Get a learning program. The prompts for that live in this repository:
-   [`core/assets/generate-roadmap.md`](../../core/assets/generate-roadmap.md)
-   produces the skeleton of a program, and
-   [`core/assets/generate-topic.md`](../../core/assets/generate-topic.md) produces
-   a single topic file. Paste the first one into any LLM chat, add what you want
-   to learn below it, take the resulting `roadmap.yaml` and `progress.yaml`, then
-   use the second prompt to build the topics one by one. The result is a bundle —
-   a folder with `roadmap.yaml`, `topics/*.yaml` and `examiner.md`. Example:
-   [`examples/llm-agents-base`](../../examples/llm-agents-base). There is no
-   "copy the prompt" button in the UI yet.
+1. Take a ready learning program — a bundle, that is a folder with
+   `roadmap.yaml`, `topics/*.yaml` and `examiner.md`. Example:
+   [`examples/llm-agents-base`](../../examples/llm-agents-base). Generating a
+   program inside the app is removed for now and will come back one stage at a
+   time.
 2. On the home screen press "Choose folder" or "Choose archive". The app
    validates the bundle and shows the errors, if any.
 3. Open a topic and start.
