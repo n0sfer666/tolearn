@@ -162,20 +162,6 @@ dto!(SetStatusIn {
 });
 dto!(SetStatusOut { status: String });
 
-dto!(PracticeIn {
-    bundle: String,
-    topic: String,
-    step: String,
-    now: String,
-});
-dto!(PracticeOut {
-    spent_sec: u32,
-    left_sec: i64,
-    box_min: u32,
-    running: bool,
-    expired: bool,
-});
-
 dto!(ProgramsIn { today: String });
 dto!(ProgramsOut { programs: Vec<Card> });
 dto!(Card {
@@ -185,23 +171,6 @@ dto!(Card {
     reachable: bool,
     opened_at: Option<String>,
     tally: Option<Tally>,
-});
-
-dto!(PlanIn {
-    bundle: String,
-    today: String,
-});
-dto!(PlanOut {
-    weekly_hours: u32,
-    daily_hours: f64,
-    left: Span,
-    unknown: u32,
-    soonest: AheadView,
-    latest: AheadView,
-});
-dto!(AheadView {
-    days: u32,
-    date: String
 });
 
 dto!(ExportIn {
@@ -645,14 +614,9 @@ pub fn shapes() -> Vec<Shape> {
         RunCheckOut::shape(),
         SetStatusIn::shape(),
         SetStatusOut::shape(),
-        PracticeIn::shape(),
-        PracticeOut::shape(),
         ProgramsIn::shape(),
         ProgramsOut::shape(),
         Card::shape(),
-        PlanIn::shape(),
-        PlanOut::shape(),
-        AheadView::shape(),
         ExportIn::shape(),
         ExportOut::shape(),
         StaleIn::shape(),

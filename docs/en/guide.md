@@ -27,7 +27,7 @@ The short version of how to use the app. For installation see
 |---|---|
 | Program | every topic by stage, statuses, entry point into a topic |
 | Topic | materials, practice, questions |
-| Practice | timer for the topic's timebox, survives a restart |
+| Practice | the task, constraints and acceptance; check commands run when you press |
 | Exam | questions, answers and the verdict |
 | Stale | topics that changed after the program was regenerated |
 | Graph | topic dependencies by layer |

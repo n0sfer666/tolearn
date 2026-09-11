@@ -26,21 +26,6 @@ li[data-check] > button + button {
   margin-inline-start: 0;
 }
 
-p[data-timer] {
-  margin-block-end: 0;
-  font-family: var(--font-family-mono);
-  font-size: var(--font-size-xl);
-}
-
-p[data-timer][data-over] {
-  color: var(--color-warning);
-}
-
-p[data-spent] {
-  color: var(--color-fg-muted);
-  font-size: var(--font-size-sm);
-}
-
 [data-output] {
   display: grid;
   gap: var(--spacing-2);

@@ -193,21 +193,6 @@ export type SetStatusOut = {
   status: string;
 };
 
-export type PracticeIn = {
-  bundle: string;
-  topic: string;
-  step: string;
-  now: string;
-};
-
-export type PracticeOut = {
-  spent_sec: number;
-  left_sec: number;
-  box_min: number;
-  running: boolean;
-  expired: boolean;
-};
-
 export type ProgramsIn = {
   today: string;
 };
@@ -223,25 +208,6 @@ export type Card = {
   reachable: boolean;
   opened_at: string | null;
   tally: Tally | null;
-};
-
-export type PlanIn = {
-  bundle: string;
-  today: string;
-};
-
-export type PlanOut = {
-  weekly_hours: number;
-  daily_hours: number;
-  left: Span;
-  unknown: number;
-  soonest: AheadView;
-  latest: AheadView;
-};
-
-export type AheadView = {
-  days: number;
-  date: string;
 };
 
 export type ExportIn = {
@@ -768,9 +734,7 @@ export type Commands = {
   review: { input: ReviewIn; output: ReviewOut };
   prompt: { input: PromptIn; output: PromptOut };
   examine: { input: ExamineIn; output: ExamineOut };
-  practice: { input: PracticeIn; output: PracticeOut };
   programs: { input: ProgramsIn; output: ProgramsOut };
-  plan: { input: PlanIn; output: PlanOut };
   stale: { input: StaleIn; output: StaleOut };
   export: { input: ExportIn; output: ExportOut };
   graph: { input: GraphIn; output: GraphOut };

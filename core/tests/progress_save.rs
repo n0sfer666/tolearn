@@ -83,6 +83,36 @@ fn the_file_that_was_there_survives_a_save_that_cannot_finish() {
 }
 
 #[test]
+fn a_practice_record_left_by_the_old_timer_is_saved_as_it_was() {
+    let directory = scratch("practice");
+    let path = directory.join("progress.yaml");
+    let source = "\
+schema: learning-roadmap/progress/v1
+roadmap_id: minimal-program
+topics:
+  timed-topic:
+    status: todo
+    attempts: []
+    passed_at: null
+    next_review_at: null
+    gaps: []
+    practice:
+      started_at: null
+      spent_sec: 900
+      expired: true
+";
+    let mut document = Document::read(source, Format::Yaml).unwrap();
+    document.start("fresh-topic").unwrap();
+    save(&path, &document).unwrap();
+
+    let written = std::fs::read_to_string(&path).unwrap();
+    assert!(written.contains("fresh-topic"), "{written}");
+    assert!(written.contains("spent_sec: 900"), "{written}");
+    assert!(written.contains("expired: true"), "{written}");
+    assert_eq!(written.matches("practice:").count(), 1, "{written}");
+}
+
+#[test]
 #[cfg(unix)]
 fn a_file_that_forbids_writing_is_replaced_all_the_same() {
     use std::os::unix::fs::PermissionsExt;

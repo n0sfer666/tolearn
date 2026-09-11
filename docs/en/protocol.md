@@ -136,28 +136,14 @@ attempts:
 protocol, and the original text is the only thing the history could then be
 rebuilt from.
 
-## Practice and the timebox
+## The `practice` record
 
-Practice runs against a timer set by the topic's `time_box_min`. The countdown
-lives in `progress.yaml` as a separate `practice` record rather than in
-`attempts[]`: an attempt only appears with an exam verdict, while the timebox
-expires earlier — sometimes across several sittings and with no exam at all.
-
-```yaml
-practice:
-  started_at: "2026-07-28T10:00:00+03:00"   # null — the timer is paused
-  spent_sec: 900                            # accumulated, not counting the current run
-  expired: true                             # the timebox has already run out
-```
-
-The countdown is restored from `started_at`, so moving between screens and
-restarting the app do not reset it. Pausing adds the elapsed time to `spent_sec`
-and clears `started_at`; a reset erases the record entirely.
-
-Expiry blocks nothing: the timer goes negative and keeps counting, and `expired`
-stays recorded even after a pause. It is a measurement, not a prohibition —
-practice time says something about the topic and the plan, but not about whether
-you may carry on.
+Before v2, practice ran against a timer set by the topic's `time_box_min`, and
+the countdown was kept in `progress.yaml` as a separate `practice` record
+(`started_at`, `spent_sec`, `expired`). The timer is gone: the app neither
+writes nor reads this record, and one already written is carried over word for
+word on save, like any unfamiliar field. `time_box_min` stays as a guide on the
+practice screen.
 
 ## Known limitation
 

@@ -10,8 +10,6 @@ pub mod generate;
 pub mod graph;
 pub mod history;
 pub mod merge;
-pub mod plan;
-pub mod practice;
 pub mod progress;
 pub mod prompt;
 pub mod protocol;

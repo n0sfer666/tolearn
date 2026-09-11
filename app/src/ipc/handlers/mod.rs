@@ -15,8 +15,6 @@ pub mod llm_log;
 pub mod offline_cost;
 pub mod offline_state;
 pub mod parse_verdict;
-pub mod plan;
-pub mod practice;
 pub mod program;
 pub mod programs;
 pub mod prompt;

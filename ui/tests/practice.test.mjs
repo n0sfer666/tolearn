@@ -45,14 +45,6 @@ const OUT = {
   },
 };
 
-const TIMER = {
-  spent_sec: 0,
-  left_sec: 90 * 60,
-  box_min: 90,
-  running: false,
-  expired: false,
-};
-
 function mount(options = {}) {
   const host = document.createElement("div");
   document.body.append(host);
@@ -60,7 +52,6 @@ function mount(options = {}) {
   const call = (name, payload) => {
     calls.push({ name, payload });
     if (name === "topic") return Promise.resolve(OUT);
-    if (name === "practice") return Promise.resolve(TIMER);
     if (name === "run_check") {
       if (options.refuse) return Promise.reject(new Error("проверка не запускается"));
       return Promise.resolve({
@@ -97,7 +88,7 @@ test("экран читает тему и показывает задачу до
   const { host, calls } = mount();
   await settled();
 
-  assert.deepEqual(calls.map(({ name }) => name).sort(), ["practice", "topic"]);
+  assert.deepEqual(calls.map(({ name }) => name), ["topic"]);
   assert.match(host.querySelector("[data-task]").textContent, /Подними модель локально/);
   assert.match(host.textContent, new RegExp(ru.topic.smoke));
 });

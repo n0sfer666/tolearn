@@ -7,7 +7,6 @@ use super::node;
 use super::parse::parse;
 use super::render::{Format, render};
 use super::types::{Attempt, Progress, TopicState};
-use crate::practice::Session;
 
 #[derive(Debug, Clone)]
 pub struct Document {
@@ -83,13 +82,6 @@ impl Document {
     pub fn restate(&mut self, topic: &str, status: Status) -> Result<(), DocumentError> {
         self.edit(|root, format| {
             set(root, topic, "status", Some(status.label()))?;
-            render(root, format)
-        })
-    }
-
-    pub fn practice(&mut self, topic: &str, session: &Session) -> Result<(), DocumentError> {
-        self.edit(|root, format| {
-            put(root, topic, "practice", node::practice(session))?;
             render(root, format)
         })
     }

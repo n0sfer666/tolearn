@@ -137,16 +137,6 @@ export const en: Dictionary = {
     ask: "Ask",
     asking: "Asking…",
   },
-  plan: {
-    title: "Forecast",
-    norm: "Daily budget",
-    weekly: "h per week",
-    days: "days",
-    finish: "The program ends between",
-    unknown: "topics are not written yet",
-    unknownLead: "their hours stay out of the forecast",
-    done: "Every required topic is passed — nothing left to count.",
-  },
   graph: {
     title: "Dependency graph",
     lead: "Layers come from depends_on: a topic sits to the right of everything it needs.",
@@ -259,11 +249,6 @@ export const en: Dictionary = {
     failed: "did not run",
     done: "Done",
     open: "Open the topic",
-    start: "Start the timer",
-    pause: "Pause",
-    reset: "Reset",
-    spent: "Spent",
-    over: "The time box has run out — a measurement, not a ban",
   },
   search: {
     lead: "Searches the topics and materials of the open program.",
