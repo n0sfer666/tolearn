@@ -1,7 +1,17 @@
 mod error;
+mod import;
 mod manifest;
+mod renew;
+mod scratch;
+mod svg;
+mod unpack;
+mod unpack_error;
+mod verify;
 
 pub use error::PackError;
+pub use import::{Imported, import};
+pub use unpack::unpack;
+pub use unpack_error::UnpackError;
 
 use std::fs;
 use std::io::{Cursor, Write};

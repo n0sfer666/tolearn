@@ -15,16 +15,26 @@ use std::path::{Path, PathBuf};
 use limits::Tally;
 
 pub fn unpack(archive: &Path, into: &Path, limits: &Limits) -> Result<PathBuf, ArchiveError> {
-    match spread(archive, into, limits) {
-        Ok(root) => Ok(root),
-        Err(error) => {
-            let _ = std::fs::remove_dir_all(into);
-            Err(error)
-        }
+    extract(archive, into, limits)?;
+    root::root(into).inspect_err(|_| {
+        let _ = std::fs::remove_dir_all(into);
+    })
+}
+
+pub fn unzip(archive: &Path, into: &Path, limits: &Limits) -> Result<(), ArchiveError> {
+    match kind(archive)? {
+        Kind::Zip => extract(archive, into, limits),
+        Kind::Gzip => Err(ArchiveError::UnknownFormat),
     }
 }
 
-fn spread(archive: &Path, into: &Path, limits: &Limits) -> Result<PathBuf, ArchiveError> {
+fn extract(archive: &Path, into: &Path, limits: &Limits) -> Result<(), ArchiveError> {
+    spread(archive, into, limits).inspect_err(|_| {
+        let _ = std::fs::remove_dir_all(into);
+    })
+}
+
+fn spread(archive: &Path, into: &Path, limits: &Limits) -> Result<(), ArchiveError> {
     let packed = std::fs::metadata(archive)
         .map_err(|error| ArchiveError::Unreadable {
             path: archive.to_owned(),
@@ -40,8 +50,7 @@ fn spread(archive: &Path, into: &Path, limits: &Limits) -> Result<PathBuf, Archi
         Kind::Zip => zipped::spread(archive, into, &mut tally)?,
         Kind::Gzip => tarball::spread(archive, into, &mut tally)?,
     }
-    guard::confined(into)?;
-    root::root(into)
+    guard::confined(into)
 }
 
 enum Kind {

@@ -5,6 +5,7 @@ mod merge;
 mod pack;
 mod progress;
 mod scan;
+mod unpack;
 mod validate;
 
 use crate::args::{Args, Command};
@@ -21,5 +22,6 @@ pub fn run(args: &Args) -> Result<Output, CliError> {
         Command::Merge { was } => merge::run(root, was),
         Command::Export { out, today } => export::run(root, out.as_deref(), today.as_deref()),
         Command::Pack { out } => pack::run(root, out),
+        Command::Unpack { into } => unpack::run(root, into),
     }
 }

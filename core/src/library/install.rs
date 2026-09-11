@@ -5,6 +5,7 @@ use super::error::LibraryError;
 use super::examine::read;
 use crate::atomic::spill;
 use crate::program::Tree;
+use crate::ticket::ticket;
 
 pub(super) fn install(root: &Path, source: &Path) -> Result<String, LibraryError> {
     let tree = read(source).map_err(LibraryError::Refused)?;
@@ -13,7 +14,7 @@ pub(super) fn install(root: &Path, source: &Path) -> Result<String, LibraryError
     if fs::symlink_metadata(&target).is_ok() {
         return Err(LibraryError::Taken { uuid });
     }
-    let temporary = root.join(format!(".{uuid}.{}.tmp", std::process::id()));
+    let temporary = root.join(format!(".{uuid}.{}.tmp", ticket()));
     let _ = fs::remove_dir_all(&temporary);
     let placed = copy(&tree, source, &temporary).and_then(|()| {
         fs::rename(&temporary, &target).map_err(|error| LibraryError::unwritable(&target, &error))

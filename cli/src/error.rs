@@ -9,6 +9,7 @@ pub enum CliError {
     Verdict(String),
     Write(String),
     Package(String),
+    Import(String),
 }
 
 impl CliError {
@@ -27,6 +28,7 @@ impl fmt::Display for CliError {
             Self::Verdict(reason) => write!(out, "вердикт не принят: {reason}"),
             Self::Write(reason) => write!(out, "не удалось записать прогресс: {reason}"),
             Self::Package(reason) => write!(out, "пакет не собран: {reason}"),
+            Self::Import(reason) => write!(out, "пакет не принят: {reason}"),
         }
     }
 }

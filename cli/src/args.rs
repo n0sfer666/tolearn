@@ -11,6 +11,7 @@ pub const USAGE: &str = "\
   tolearn merge    <бандл> --was <каталог> [--json]
   tolearn export   <бандл> [--out <файл>] [--today ГГГГ-ММ-ДД] [--json]
   tolearn pack     <каталог> <файл.tolearn> [--json]
+  tolearn unpack   <файл.tolearn> <каталог> [--json]
 
 Check-команды бандла не выполняются никогда, кроме явного `--run-checks`.";
 
@@ -43,6 +44,9 @@ pub enum Command {
     },
     Pack {
         out: PathBuf,
+    },
+    Unpack {
+        into: PathBuf,
     },
 }
 
@@ -108,6 +112,12 @@ pub fn parse(argv: &[String]) -> Result<Args, CliError> {
                 .get(1)
                 .map(|file| PathBuf::from(*file))
                 .ok_or_else(|| CliError::Usage("`pack` не назвал файл пакета".to_owned()))?,
+        },
+        "unpack" => Command::Unpack {
+            into: free
+                .get(1)
+                .map(|directory| PathBuf::from(*directory))
+                .ok_or_else(|| CliError::Usage("`unpack` не назвал каталог".to_owned()))?,
         },
         other => return Err(CliError::Usage(format!("неизвестная команда `{other}`"))),
     };

@@ -210,6 +210,10 @@ impl<'a> Reader<'a> {
             .collect()
     }
 
+    pub(crate) fn chars(&self) -> std::ops::Range<usize> {
+        self.node.span.start.index()..self.node.span.end.index()
+    }
+
     pub fn malformed(&self, message: impl fmt::Display) -> ParseError {
         self.fail(ParseFailure::WrongType, message.to_string())
     }

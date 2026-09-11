@@ -30,6 +30,10 @@ impl Library {
         }
     }
 
+    pub(crate) fn root(&self) -> &Path {
+        &self.root
+    }
+
     pub fn list(&self) -> Result<Vec<Entry>, LibraryError> {
         let listing = match fs::read_dir(&self.root) {
             Ok(listing) => listing,

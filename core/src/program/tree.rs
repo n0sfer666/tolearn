@@ -26,4 +26,11 @@ impl Tree {
         }
         files
     }
+
+    pub fn uuids(&self) -> BTreeSet<String> {
+        let mut found: BTreeSet<String> = self.children.values().flat_map(Tree::uuids).collect();
+        found.insert(self.program.uuid.clone());
+        found.extend(self.program.map.children.iter().map(|row| row.uuid.clone()));
+        found
+    }
 }

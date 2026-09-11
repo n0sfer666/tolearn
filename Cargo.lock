@@ -6131,11 +6131,13 @@ name = "tolearn-core"
 version = "0.3.0"
 dependencies = [
  "flate2",
+ "quick-xml",
  "saphyr",
  "saphyr-parser",
  "serde_json",
  "sha2",
  "tar",
+ "uuid",
  "zip",
 ]
 

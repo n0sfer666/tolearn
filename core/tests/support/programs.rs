@@ -38,6 +38,15 @@ pub fn copy_tree(from: &Path, to: &Path) {
     }
 }
 
+pub fn listing(directory: &Path) -> Vec<String> {
+    let mut names: Vec<String> = fs::read_dir(directory)
+        .unwrap()
+        .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+        .collect();
+    names.sort();
+    names
+}
+
 pub fn snapshot(directory: &Path) -> Vec<(PathBuf, Vec<u8>)> {
     let mut found = Vec::new();
     if directory.exists() {
