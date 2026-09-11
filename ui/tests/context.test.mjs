@@ -75,15 +75,14 @@ test("поиск в шапке открывается в той же прогр�
 test("разделы вне программы контекст не тянут", () => {
   const document = visit("ru/topic", OPEN);
 
-  assert.equal(document.querySelector("[data-queue]").getAttribute("href"), "/ru/queue/");
   assert.equal(document.querySelector("[data-settings]").getAttribute("href"), "/ru/settings/");
 });
 
 test("шапка отмечает раздел, в котором стоишь", () => {
-  const queue = visit("ru/queue", "");
+  const settings = visit("ru/settings", "");
 
-  assert.equal(queue.querySelector("[data-queue]").getAttribute("aria-current"), "page");
-  assert.equal(queue.querySelector("[data-search]").getAttribute("aria-current"), null);
+  assert.equal(settings.querySelector("[data-settings]").getAttribute("aria-current"), "page");
+  assert.equal(settings.querySelector("[data-search]").getAttribute("aria-current"), null);
   assert.equal(visit("ru/topic", OPEN).querySelectorAll("[aria-current]").length, 0);
 });
 
@@ -104,7 +103,7 @@ test("открытая программа запоминается на буду
 });
 
 test("поиск из шапки открывает последнюю программу, когда адрес её не несёт", () => {
-  const document = visit("ru/queue", "", "/programs/llm-agents-base");
+  const document = visit("ru/settings", "", "/programs/llm-agents-base");
 
   assert.equal(
     document.querySelector("[data-search]").getAttribute("href"),

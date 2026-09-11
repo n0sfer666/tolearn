@@ -302,66 +302,6 @@ export type NodeView = {
   unlocks: string[];
 };
 
-export type StatsIn = {
-  bundle: string;
-};
-
-export type StatsOut = {
-  attempts: number;
-  enough: boolean;
-  hinted: number;
-  hinted_share: number;
-  kinds: KindView[];
-  actions: ActionView[];
-  streak: StreakView;
-  calibration: string[];
-};
-
-export type KindView = {
-  kind: string;
-  ok: number;
-  partial: number;
-  miss: number;
-};
-
-export type ActionView = {
-  action: string;
-  count: number;
-};
-
-export type StreakView = {
-  longest: number;
-  topic: string;
-};
-
-export type QueueIn = {
-  today: string;
-};
-
-export type QueueOut = {
-  due: DueView[];
-};
-
-export type DueView = {
-  program: string;
-  title: string;
-  bundle: string;
-  topic: string;
-  topic_title: string;
-  due: string;
-  overdue: boolean;
-};
-
-export type RepeatIn = {
-  bundle: string;
-  topic: string;
-  today: string;
-};
-
-export type RepeatOut = {
-  next_review_at: string | null;
-};
-
 export type ImportIn = {
   path: string;
   today: string;
@@ -834,9 +774,6 @@ export type Commands = {
   stale: { input: StaleIn; output: StaleOut };
   export: { input: ExportIn; output: ExportOut };
   graph: { input: GraphIn; output: GraphOut };
-  stats: { input: StatsIn; output: StatsOut };
-  queue: { input: QueueIn; output: QueueOut };
-  repeat: { input: RepeatIn; output: RepeatOut };
   import: { input: ImportIn; output: ImportOut };
   history: { input: HistoryIn; output: HistoryOut };
   history_diff: { input: HistoryDiffIn; output: HistoryDiffOut };

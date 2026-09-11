@@ -95,7 +95,7 @@ test("название приезжает островом, когда экра�
 });
 
 test("экран без выбранной программы остаётся при своём заголовке", () => {
-  const { document } = visit("ru/queue", "", KNOWN);
+  const { document } = visit("ru/settings", "", KNOWN);
 
-  assert.equal(document.querySelector(".bar-title").textContent, "Повторение");
+  assert.equal(document.querySelector(".bar-title").textContent, "Настройки");
 });

@@ -29,12 +29,9 @@ The short version of how to use the app. For installation see
 | Topic | materials, practice, questions |
 | Practice | timer for the topic's timebox, survives a restart |
 | Exam | questions, answers and the verdict |
-| Queue | what to do now: available topics and reviews that came due |
-| Review | topics whose revalidation date has arrived |
 | Stale | topics that changed after the program was regenerated |
 | Graph | topic dependencies by layer |
 | Search | across topics and materials of the open program |
-| Statistics | hours, statuses, history |
 | Settings | language, LLM provider, offline, history |
 
 ## The exam

@@ -255,50 +255,6 @@ dto!(NodeView {
     blocked_by: Vec<String>,
     unlocks: Vec<String>,
 });
-dto!(StatsIn { bundle: String });
-dto!(StatsOut {
-    attempts: u32,
-    enough: bool,
-    hinted: u32,
-    hinted_share: f64,
-    kinds: Vec<KindView>,
-    actions: Vec<ActionView>,
-    streak: StreakView,
-    calibration: Vec<String>,
-});
-dto!(KindView {
-    kind: String,
-    ok: u32,
-    partial: u32,
-    miss: u32,
-});
-dto!(ActionView {
-    action: String,
-    count: u32,
-});
-dto!(StreakView {
-    longest: u32,
-    topic: String,
-});
-
-dto!(QueueIn { today: String });
-dto!(QueueOut { due: Vec<DueView> });
-dto!(DueView {
-    program: String,
-    title: String,
-    bundle: String,
-    topic: String,
-    topic_title: String,
-    due: String,
-    overdue: bool,
-});
-
-dto!(RepeatIn {
-    bundle: String,
-    topic: String,
-    today: String,
-});
-dto!(RepeatOut { next_review_at: Option<String> });
 
 dto!(ImportIn {
     path: String,
@@ -706,16 +662,6 @@ pub fn shapes() -> Vec<Shape> {
         GraphIn::shape(),
         GraphOut::shape(),
         NodeView::shape(),
-        StatsIn::shape(),
-        StatsOut::shape(),
-        KindView::shape(),
-        ActionView::shape(),
-        StreakView::shape(),
-        QueueIn::shape(),
-        QueueOut::shape(),
-        DueView::shape(),
-        RepeatIn::shape(),
-        RepeatOut::shape(),
         ImportIn::shape(),
         ImportOut::shape(),
         Merged::shape(),

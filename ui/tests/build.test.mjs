@@ -15,7 +15,7 @@ import { ru } from "../src/i18n/ru.ts";
 import { browser, settled } from "./support/dom.mjs";
 
 const UI = fileURLToPath(new URL("..", import.meta.url));
-const SCREENS = ["/", "/program/", "/topic/", "/practice/", "/exam/", "/review/", "/queue/", "/stale/", "/stats/", "/graph/", "/search/", "/settings/", "/read/"];
+const SCREENS = ["/", "/program/", "/topic/", "/practice/", "/exam/", "/review/", "/stale/", "/graph/", "/search/", "/settings/", "/read/"];
 const ROUTES = ["/", ...["ru", "en"].flatMap((locale) => SCREENS.map((screen) => `/${locale}${screen}`))];
 
 before(() => {

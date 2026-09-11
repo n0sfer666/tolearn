@@ -68,9 +68,6 @@ const named = entity(route(here, locale));
         <h1 class="bar-title" data-name={named}>{title}</h1>
       </div>
       <nav class="bar-nav" aria-label={text.nav.sections}>
-        <a href={localized("/queue/", locale)} data-queue aria-current={current("/queue/")}>
-          {text.nav.queue}
-        </a>
         <a
           href={localized("/search/", locale)}
           data-search
