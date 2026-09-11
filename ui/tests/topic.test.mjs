@@ -97,7 +97,6 @@ function mount(options = {}) {
       return options.broken ? Promise.reject(new Error("нет такой")) : Promise.resolve(options.out ?? FULL);
     }
     if (name === "set_status") return Promise.resolve({ status: payload.status });
-    if (name === "note") return Promise.resolve({ body: "первая строка", stamp: null, path: "" });
     throw new Error(`лишняя команда ${name}`);
   };
   render(

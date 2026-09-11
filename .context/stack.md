@@ -34,7 +34,6 @@
 | читалка | `dom_smoothie` | — | `offline/` | [003](../docs/adr/003-offline-monolith.md) |
 | git-клон материалов | `gix` | — | `offline/` | [003](../docs/adr/003-offline-monolith.md) |
 | индекс кэша | SQLite | — | `offline/` | [005](../docs/adr/005-cache-outside-bundle.md) |
-| шифрование конспектов | `rage` (age) | MIT/Apache-2.0 | S53 | — |
 | распознавание речи | whisper.cpp (сабмодуль `speech/vendor/`, v1.9.2) | MIT | `speech/` (S55), только под фичей `speech` | [010](../docs/adr/010-speech-distribution.md) |
 | веса распознавания | `ggml-small-q5_1.bin`, 190 085 487 байт | MIT | вне репозитория, путь в `TOLEARN_WHISPER_MODEL` | [010](../docs/adr/010-speech-distribution.md) |
 | микрофон | `cpal` 0.18 | Apache-2.0 | `speech/` (S55), только под фичей `speech` | — |

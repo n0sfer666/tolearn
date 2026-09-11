@@ -99,7 +99,6 @@ function mountTopic(states, refuses = false, unload = TOPIC.unload) {
       return Promise.resolve(out);
     }
     if (name === "stop_offline") return Promise.resolve({ stopping: true });
-    if (name === "note") return Promise.resolve({ body: "", stamp: null, path: "" });
     throw new Error(`лишняя команда ${name}`);
   };
   const said = toasts(document.defaultView);

@@ -15,7 +15,7 @@ everything else in the app, and only people who want voice should pay for it.
 Functionally the two differ by exactly one screen. In the base variant the voice
 exam is **visible and disabled**: the button is there, and next to it a line says
 the other variant is required. Everything else — programs, topics, practice,
-notes, the offline archive, the graph, export — is identical.
+the offline archive, the graph, export — is identical.
 
 ## Where to download
 
@@ -70,7 +70,7 @@ Both variants are one application with one identifier, `dev.tolearn.app`, and so
 - **install exactly one.** Two installed variants fight over the same
   `dev.tolearn.app` identifier and over a single window; the OS picks the
   winner itself, and it will not be the choice you were asked about.
-- **the data is shared and survives the switch.** Programs, progress and notes
+- **the data is shared and survives the switch.** Programs and progress
   live outside the bundle
   ([ADR-009](../adr/009-user-data-outside-bundle.md), in Russian): remove one
   variant, install the other, nothing is lost.
