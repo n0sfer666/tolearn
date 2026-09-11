@@ -1,24 +1,21 @@
 mod context;
 pub mod contract;
-mod dialogue;
 mod dto;
 mod error;
 mod handlers;
 mod history;
 pub mod layout;
-pub(crate) mod open;
+mod open;
 mod provider;
 mod settings;
 mod shape;
-mod sweeping;
 pub mod types;
 pub mod typescript;
 mod unpack;
-pub(crate) mod verdict;
+mod verdict;
 
 pub use context::{Context, of};
 pub use contract::{Descriptor, NAMES, call, descriptors};
 pub use error::IpcError;
-pub(crate) use provider::{denied, failed, refute};
 pub use shape::{Field, Shape};
 pub use types::shapes;

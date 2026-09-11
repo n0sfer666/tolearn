@@ -1,4 +1,4 @@
-pub(crate) mod block;
+mod block;
 mod error;
 mod types;
 

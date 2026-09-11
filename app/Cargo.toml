@@ -22,7 +22,6 @@ tolearn-gestures.workspace = true
 tolearn-speech.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-sha2.workspace = true
 tauri.workspace = true
 tauri-plugin-dialog.workspace = true
 tauri-plugin-single-instance.workspace = true

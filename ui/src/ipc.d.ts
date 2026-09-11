@@ -507,108 +507,6 @@ export type ExamineOut = {
   text: string;
 };
 
-export type ExamLineView = {
-  side: string;
-  text: string;
-};
-
-export type ExamStateOut = {
-  open: boolean;
-  stale: boolean;
-  stage: string;
-  asked: number;
-  total: number;
-  hint_ready: boolean;
-  log: ExamLineView[];
-  graded: AnswerView[];
-  hinted: string[];
-  seconds: number;
-  tokens: number;
-  verdict: string | null;
-};
-
-export type ExamStateIn = {
-  bundle: string;
-  topic: string;
-};
-
-export type ExamStartIn = {
-  bundle: string;
-  topic: string;
-  restart: boolean;
-};
-
-export type ExamSayIn = {
-  bundle: string;
-  topic: string;
-  text: string;
-};
-
-export type ExamFinishIn = {
-  bundle: string;
-  topic: string;
-  today: string;
-};
-
-export type SweepPickView = {
-  topic: string;
-  title: string;
-  due: string | null;
-  overdue: boolean;
-};
-
-export type SweepLegView = {
-  topic: string;
-  title: string;
-  asked: number;
-  total: number;
-  verdict: string | null;
-};
-
-export type SweepStateOut = {
-  open: boolean;
-  stale: boolean;
-  done: boolean;
-  stage: string;
-  asked: number;
-  total: number;
-  hint_ready: boolean;
-  ready: SweepPickView[];
-  legs: SweepLegView[];
-  log: ExamLineView[];
-  seconds: number;
-  tokens: number;
-};
-
-export type SweepStateIn = {
-  bundle: string;
-  today: string;
-};
-
-export type SweepStartIn = {
-  bundle: string;
-  today: string;
-  topics: number;
-  restart: boolean;
-};
-
-export type SweepSayIn = {
-  bundle: string;
-  today: string;
-  text: string;
-};
-
-export type SweepSettledView = {
-  topic: string;
-  title: string;
-  result: string;
-  status: string;
-};
-
-export type SweepAcceptOut = {
-  settled: SweepSettledView[];
-};
-
 export type SettingsIn = {
   save: SettingsView | null;
 };
@@ -930,17 +828,6 @@ export type Commands = {
   review: { input: ReviewIn; output: ReviewOut };
   prompt: { input: PromptIn; output: PromptOut };
   examine: { input: ExamineIn; output: ExamineOut };
-  exam_state: { input: ExamStateIn; output: ExamStateOut };
-  exam_start: { input: ExamStartIn; output: ExamStateOut };
-  exam_say: { input: ExamSayIn; output: ExamStateOut };
-  exam_hint: { input: ExamStateIn; output: ExamStateOut };
-  exam_finish: { input: ExamFinishIn; output: ExamStateOut };
-  sweep_state: { input: SweepStateIn; output: SweepStateOut };
-  sweep_start: { input: SweepStartIn; output: SweepStateOut };
-  sweep_say: { input: SweepSayIn; output: SweepStateOut };
-  sweep_hint: { input: SweepStateIn; output: SweepStateOut };
-  sweep_finish: { input: SweepStateIn; output: SweepStateOut };
-  sweep_accept: { input: SweepStateIn; output: SweepAcceptOut };
   practice: { input: PracticeIn; output: PracticeOut };
   programs: { input: ProgramsIn; output: ProgramsOut };
   plan: { input: PlanIn; output: PlanOut };

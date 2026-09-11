@@ -70,14 +70,6 @@ impl Context {
         self.data.join("history").join(roadmap)
     }
 
-    pub fn dialogs(&self) -> PathBuf {
-        self.data.join("dialogs")
-    }
-
-    pub fn sweeps(&self) -> PathBuf {
-        self.data.join("sweeps")
-    }
-
     pub fn llm_log(&self) -> PathBuf {
         self.data.join("llm-log")
     }
