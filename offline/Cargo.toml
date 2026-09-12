@@ -16,6 +16,8 @@ monolith.workspace = true
 url.workspace = true
 base64.workspace = true
 markup5ever_rcdom.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 dom_smoothie = "0.18.0"
 
 [lints]

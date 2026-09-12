@@ -254,6 +254,25 @@ TOLEARN_WHISPER_MODEL=~/.cache/tolearn/models/ggml-small-q5_1.bin cargo test -p 
 Nushell: переменная окружения ставится через `with-env`, а не префиксом —
 `with-env {TOLEARN_WHISPER_MODEL: ...} { cargo test ... }`.
 
+## Книга из Open Library (руками, с сетью)
+
+`cargo run -p tolearn-offline --example book` ищет три книги в настоящей Open
+Library через `Web` загрузчика: по ISBN с дефисами, по названию и автору и одну
+заведомо несуществующую. Тесты `offline/tests/book.rs` работают только на
+записанных ответах `fixtures/openlibrary/`. Поэтому изменилась ли форма ответа у
+самого сервиса, покажет только этот прогон. Ожидаемый вывод, код выхода 0:
+
+```
+ISBN 978-0-262-51087-5: Structure and Interpretation of Computer Programs (SICP) — Harold Abelson, Gerald Jay Sussman, Julie Sussman — ISBN 9780262510875
+«Structure and Interpretation of Computer Programs» / Abelson: Structure and Interpretation of Computer Programs (SICP) — Harold Abelson, Gerald Jay Sussman, Julie Sussman — ISBN 9787111135104
+«qzxwvjkplmtr» / zzqxvw: не найдено
+```
+
+При сбое сети в строке запроса печатается причина, код выхода 1. Если каталог
+отдал другой первый ISBN во второй строке, это правка самого каталога, не
+дефект. «Ответила не по формату» — дефект: ответ ушёл от формы фикстур, их нужно
+переснять.
+
 ## Голосовой ответ вживую (руками)
 
 Сейчас не проверяется: на экран диктовка попадала только через диалоговый
