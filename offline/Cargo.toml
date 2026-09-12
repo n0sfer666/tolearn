@@ -1,6 +1,6 @@
 [package]
 name = "tolearn-offline"
-description = "Downloading, archiving and content-addressed cache of materials"
+description = "Page fetching, readable text and content-addressed cache of checked sources"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -16,9 +16,7 @@ monolith.workspace = true
 url.workspace = true
 base64.workspace = true
 markup5ever_rcdom.workspace = true
-pulldown-cmark.workspace = true
 dom_smoothie = "0.18.0"
-gix.workspace = true
 
 [lints]
 workspace = true

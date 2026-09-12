@@ -32,7 +32,6 @@
 | острова | `solid-js` | MIT | `ui/` | [002](../docs/adr/002-rendering-astro-mpa.md) |
 | архивация страниц | `monolith` (как библиотека) | CC0-1.0 | `offline/` | [003](../docs/adr/003-offline-monolith.md) |
 | читалка | `dom_smoothie` | — | `offline/` | [003](../docs/adr/003-offline-monolith.md) |
-| git-клон материалов | `gix` | — | `offline/` | [003](../docs/adr/003-offline-monolith.md) |
 | индекс кэша | SQLite | — | `offline/` | [005](../docs/adr/005-cache-outside-bundle.md) |
 | распознавание речи | whisper.cpp (сабмодуль `speech/vendor/`, v1.9.2) | MIT | `speech/` (S55), только под фичей `speech` | [010](../docs/adr/010-speech-distribution.md) |
 | веса распознавания | `ggml-small-q5_1.bin`, 190 085 487 байт | MIT | вне репозитория, путь в `TOLEARN_WHISPER_MODEL` | [010](../docs/adr/010-speech-distribution.md) |
@@ -45,9 +44,8 @@
 новая зависимость обязана быть с ней совместима; несовместимую не тащим, а
 меняем решение.
 
-**Не бандлим:** `yt-dlp`, `ffmpeg` — ищутся в `PATH`
-([ADR-004](../docs/adr/004-video-external.md)). Chromium — не нужен, пререндер
-делает системный WebView.
+**Не бандлим:** Chromium — не нужен, пререндер делает системный WebView. Видео
+не скачивается вовсе ([ADR-023](../docs/adr/023-generation-pipeline.md)).
 
 Зависимость добавляется, только когда её требует текущая спека. Внешнее в
 воркспейсе на сегодня — только dev-зависимости `cli`, ими живут гейты:
