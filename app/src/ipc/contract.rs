@@ -2,6 +2,7 @@ use serde_json::Value;
 
 use super::context::Context;
 use super::error::IpcError;
+use super::forked;
 use super::handlers;
 use super::planned;
 use super::reading;
@@ -59,6 +60,8 @@ commands! {
     revise_plan(planned::RevisePlanIn) -> planned::PlanOut,
     start_program(started::StartProgramIn) -> started::StartProgramOut,
     cancel_generation(started::CancelGenerationIn) -> started::CancelGenerationOut,
+    fork(forked::ForkIn) -> forked::ForkOut,
+    take_next(forked::TakeNextIn) -> forked::TakeNextOut,
 }
 
 #[tauri::command]

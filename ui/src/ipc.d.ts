@@ -323,6 +323,35 @@ export type GenerationStep = {
   round: number;
 };
 
+export type ForkIn = {
+  program: string;
+  node: string;
+  stage: string;
+};
+
+export type ForkOut = {
+  variants: VariantView[];
+};
+
+export type VariantView = {
+  id: string;
+  title: string;
+  hours: Span;
+  why: string;
+  recommended: boolean;
+};
+
+export type TakeNextIn = {
+  program: string;
+  node: string;
+  stage: string;
+  choice: number;
+};
+
+export type TakeNextOut = {
+  stage: string;
+};
+
 export type Commands = {
   export: { input: ExportIn; output: ExportOut };
   settings: { input: SettingsIn; output: SettingsView };
@@ -340,6 +369,8 @@ export type Commands = {
   revise_plan: { input: RevisePlanIn; output: PlanOut };
   start_program: { input: StartProgramIn; output: StartProgramOut };
   cancel_generation: { input: CancelGenerationIn; output: CancelGenerationOut };
+  fork: { input: ForkIn; output: ForkOut };
+  take_next: { input: TakeNextIn; output: TakeNextOut };
 };
 
 export type CommandName = keyof Commands;

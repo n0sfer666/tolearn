@@ -1,0 +1,24 @@
+use tolearn_generate::fork;
+use tolearn_generate::online;
+
+use crate::ipc::clock::now;
+use crate::ipc::context::Context;
+use crate::ipc::error::IpcError;
+use crate::ipc::forked::{ForkIn, ForkOut};
+use crate::ipc::forking::{after, view};
+use crate::ipc::planning::{refused, voiced};
+
+const KIND: &str = "Развилка";
+
+pub fn run(context: &Context, input: &ForkIn) -> Result<ForkOut, IpcError> {
+    let after = after(&input.program, &input.node, &input.stage);
+    if let Some(fork) = fork::known(context.data(), &after).map_err(refused)? {
+        return Ok(view(&fork));
+    }
+    let claim = context.running().claim()?;
+    let model = voiced(context, KIND, claim.stop().clone())?;
+    let reach = context.reach()?;
+    let online = online(reach.as_ref(), &model).map_err(refused)?;
+    let fork = fork::propose(&online, context.data(), &after, now()).map_err(refused)?;
+    Ok(view(&fork))
+}
