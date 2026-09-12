@@ -1,0 +1,51 @@
+use std::cell::RefCell;
+
+use tolearn_generate::Model;
+use tolearn_offline::reach::Reach;
+use tolearn_provider::{CheckError, Said};
+
+#[derive(Debug)]
+pub struct Up;
+
+impl Reach for Up {
+    fn reach(&self, _url: &str) -> Result<(), String> {
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+pub struct Scripted {
+    answers: RefCell<Vec<String>>,
+    prompts: RefCell<Vec<String>>,
+}
+
+impl Scripted {
+    pub fn new(mut answers: Vec<String>) -> Self {
+        answers.reverse();
+        Self {
+            answers: RefCell::new(answers),
+            prompts: RefCell::new(Vec::new()),
+        }
+    }
+
+    pub fn prompts(&self) -> Vec<String> {
+        self.prompts.borrow().clone()
+    }
+}
+
+impl Model for Scripted {
+    fn ask(&self, prompt: &str) -> Result<Said, CheckError> {
+        self.prompts.borrow_mut().push(prompt.to_owned());
+        let mut answers = self.answers.borrow_mut();
+        let text = if answers.len() > 1 {
+            answers.pop().unwrap()
+        } else {
+            answers[0].clone()
+        };
+        Ok(Said {
+            text,
+            thinking: false,
+            tokens: None,
+        })
+    }
+}

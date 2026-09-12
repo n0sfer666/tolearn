@@ -1,0 +1,21 @@
+Вот карта программы:
+
+```json
+{
+  "title": "Чиптюн с нуля",
+  "slug": "chiptune",
+  "goal": "Написать и свести трек в духе NES в трекере.",
+  "volatility": "stable",
+  "stages": [
+    {"id": "tracker", "title": "Первый звук в трекере", "hours": [2, 3]},
+    {"id": "voices", "title": "Четыре голоса NES", "hours": [2, 4]},
+    {"id": "notes", "title": "Ноты и паттерны", "hours": [3, 4]},
+    {"id": "drums", "title": "Барабаны из шума", "hours": [2, 4]},
+    {"id": "bass", "title": "Бас на треугольнике", "hours": [2, 3]},
+    {"id": "arpeggio", "title": "Арпеджио вместо аккордов", "hours": [2, 4]},
+    {"id": "effects", "title": "Эффекты и огибающие", "hours": [3, 4]},
+    {"id": "first-track", "title": "Первый трек целиком", "hours": [3, 4]}
+  ],
+  "children": []
+}
+```

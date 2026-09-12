@@ -138,6 +138,21 @@ verdict }`, где `Verdict` — `Passed(Verified { url, title, text })` / `Pass
 снимается через `XMLSerializer` и забирается опросом `eval_with_callback`, как у
 S37. Общие для обоих окон `on_main` и `answer` лежат в `app/src/hidden.rs`.
 
+Карту строит `generate::plan`. `plan(online, request)` просит модель о карте
+всей программы, а `expand(online, request, part, depth)` — о карте подпрограммы
+с целью и часами её строки у родителя. Шаг один и тот же. Ответ — объект JSON
+(ограда и текст вокруг срезаются): `title`, `slug`, `goal`, `volatility`,
+`stages` или `children`. `plan::check(plan, depth)` возвращает список `Flaw`
+по ADR-013:
+- этап — 2–4 ч, `id` — slug без повторов;
+- лист — не больше 70 ч и 25 этапов;
+- строка подпрограммы — 1–70 ч;
+- узел на уровне `MAX_DEPTH` — нарушение.
+
+Нечитаемый ответ — тоже `Flaw`. Нарушения уходят модели вместе с её прошлым
+ответом, до `REPAIRS` = 3 кругов. Не сошлось — `GenerateError::Unrepaired` с
+перечнем.
+
 ## Владение данными
 
 | Данные | Владелец | Где лежит |

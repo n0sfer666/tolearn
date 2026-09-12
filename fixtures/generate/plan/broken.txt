@@ -1,0 +1,14 @@
+```json
+{
+  "title": "Чиптюн с нуля",
+  "slug": "chiptune",
+  "goal": "Написать и свести трек в духе NES в трекере.",
+  "volatility": "stable",
+  "stages": [
+    {"id": "tracker", "title": "Первый звук в трекере", "hours": [2, 3]},
+    {"id": "Голоса", "title": "Четыре голоса NES", "hours": [2, 4]},
+    {"id": "everything", "title": "Ноты, барабаны, бас и эффекты", "hours": [8, 12]},
+    {"id": "tracker", "title": "Первый трек целиком", "hours": [3, 4]}
+  ]
+}
+```

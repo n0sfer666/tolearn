@@ -21,7 +21,7 @@ impl Reader<'_> {
     }
 }
 
-fn is_slug(text: &str) -> bool {
+pub fn is_slug(text: &str) -> bool {
     text.split('-').all(|part| {
         !part.is_empty()
             && part

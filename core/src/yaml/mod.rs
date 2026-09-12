@@ -6,6 +6,7 @@ mod reader;
 
 pub use error::ParseError;
 pub use failure::ParseFailure;
+pub use names::is_slug;
 pub use reader::Reader;
 
 pub(crate) use names::is_uuid;

@@ -1,0 +1,56 @@
+mod answer;
+mod flaw;
+mod prompt;
+mod rules;
+mod types;
+
+pub use flaw::Flaw;
+pub use rules::check;
+pub use types::{Part, Plan, Request};
+
+use crate::REPAIRS;
+use crate::error::GenerateError;
+use crate::gate::Online;
+
+pub const STAGE_MIN_HOURS: u32 = 2;
+pub const STAGE_MAX_HOURS: u32 = 4;
+pub const MAX_HOURS: u32 = 70;
+pub const MAX_STAGES: usize = 25;
+
+const WHAT: &str = "карту";
+
+pub fn plan(online: &Online<'_>, request: &Request) -> Result<Plan, GenerateError> {
+    draw(online, &prompt::task(request, None, 1), 1)
+}
+
+pub fn expand(
+    online: &Online<'_>,
+    request: &Request,
+    part: &Part,
+    depth: usize,
+) -> Result<Plan, GenerateError> {
+    draw(online, &prompt::task(request, Some(part), depth), depth)
+}
+
+fn draw(online: &Online<'_>, task: &str, depth: usize) -> Result<Plan, GenerateError> {
+    let mut prompt = task.to_owned();
+    let mut flaws = Vec::new();
+    for _ in 0..=REPAIRS {
+        let said = online.ask(&prompt)?;
+        flaws = match answer::read(&said.text) {
+            Ok(plan) => {
+                let flaws = check(&plan, depth);
+                if flaws.is_empty() {
+                    return Ok(plan);
+                }
+                flaws
+            }
+            Err(flaw) => vec![flaw],
+        };
+        prompt = prompt::repair(task, &said.text, &flaws);
+    }
+    Err(GenerateError::Unrepaired {
+        what: WHAT,
+        flaws: flaws.iter().map(ToString::to_string).collect(),
+    })
+}

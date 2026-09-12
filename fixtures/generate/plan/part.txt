@@ -1,0 +1,11 @@
+{
+  "title": "Квантование и форматы",
+  "slug": "quantization",
+  "goal": "Выбирать формат и квантование под своё железо.",
+  "volatility": "volatile",
+  "stages": [
+    {"id": "formats", "title": "GGUF, safetensors и остальные", "hours": [2, 4]},
+    {"id": "bits", "title": "Что теряется в битах", "hours": [3, 4]},
+    {"id": "measure", "title": "Замер качества и скорости", "hours": [3, 4]}
+  ]
+}

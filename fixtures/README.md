@@ -11,6 +11,7 @@ valid/page/    сохранённая страница с картинкой, с
 valid/reader/  страницы разной разметки для извлечения текста (offline/tests/reader.rs)
 openlibrary/   записанные ответы search.json: по ISBN, по названию, не найдено, обрезанный (offline/tests/book.rs)
 commons/       записанные ответы API Commons: свободный файл, несвободные, несвободный выше свободного, не найдено, обрезанный (offline/tests/commons.rs, generate/tests/images.rs)
+generate/plan/ ответы модели на карту: плоская, раздробленная, битая, подпрограмма (generate/tests/plan.rs)
 audio/{ru,en}/ корпус распознавания речи S55 (speech/tests/corpus.rs)
 ```
 
