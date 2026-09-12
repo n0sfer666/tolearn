@@ -1,7 +1,7 @@
 use tolearn_core::Hours;
 use tolearn_core::program::Volatility;
 
-use crate::sources::excerpt;
+use crate::sources::{PAGE_CHARS, excerpt};
 
 use super::gathered::{Dropped, Gathered};
 use super::place::Place;
@@ -42,6 +42,10 @@ pub(super) fn replace(task: &str, answer: &str, dropped: &[Dropped]) -> String {
 }
 
 pub(super) fn text(place: &Place<'_>, gathered: &Gathered) -> String {
+    text_within(place, gathered, PAGE_CHARS)
+}
+
+pub(super) fn text_within(place: &Place<'_>, gathered: &Gathered, chars: usize) -> String {
     format!(
         "Ты пишешь один этап учебной программы: теорию, практику и вопросы с эталонными ответами.\n\n\
          {}\n\
@@ -51,7 +55,7 @@ pub(super) fn text(place: &Place<'_>, gathered: &Gathered) -> String {
          Ответь одним объектом JSON без пояснений:\n{STAGE}",
         whereabouts(place),
         place.program.generation.locale,
-        listed(gathered, true),
+        listed(gathered, Some(chars)),
         rules(place)
     )
 }
@@ -126,7 +130,7 @@ fn class(volatility: Volatility) -> &'static str {
     }
 }
 
-pub(super) fn listed(gathered: &Gathered, excerpts: bool) -> String {
+pub(super) fn listed(gathered: &Gathered, excerpts: Option<usize>) -> String {
     let books = gathered.books.iter().enumerate().map(|(index, known)| {
         format!(
             "b{}: книга «{}», {}; глава: {}",
@@ -143,10 +147,12 @@ pub(super) fn listed(gathered: &Gathered, excerpts: bool) -> String {
             known.page.title.as_deref().unwrap_or(&known.page.url),
             known.page.url
         );
-        if excerpts {
-            format!("{named}\nИзвлечённый текст:\n{}", excerpt(&known.page.text))
-        } else {
-            named
+        match excerpts {
+            Some(chars) => {
+                let cut: String = excerpt(&known.page.text).chars().take(chars).collect();
+                format!("{named}\nИзвлечённый текст:\n{cut}")
+            }
+            None => named,
         }
     });
     let images = gathered

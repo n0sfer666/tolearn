@@ -1,3 +1,5 @@
+use tolearn_core::stage::Stage;
+
 use crate::REPAIRS;
 use crate::error::GenerateError;
 use crate::gate::Online;
@@ -5,6 +7,7 @@ use crate::plan::stage_fits;
 use crate::progress::{Progress, stepped};
 use crate::step::Step;
 
+use super::again::again;
 use super::answer;
 use super::draft::Draft;
 use super::gathered::Gathered;
@@ -24,13 +27,39 @@ pub fn compose(
     gathered: &Gathered,
     progress: &dyn Progress,
 ) -> Result<Draft, GenerateError> {
+    composed(
+        online,
+        place,
+        gathered,
+        prompt::text(place, gathered),
+        progress,
+    )
+}
+
+pub fn recompose(
+    online: &Online<'_>,
+    place: &Place<'_>,
+    gathered: &Gathered,
+    previous: &Stage,
+    progress: &dyn Progress,
+) -> Result<Draft, GenerateError> {
+    let task = again(place, gathered, previous);
+    composed(online, place, gathered, task, progress)
+}
+
+fn composed(
+    online: &Online<'_>,
+    place: &Place<'_>,
+    gathered: &Gathered,
+    task: String,
+    progress: &dyn Progress,
+) -> Result<Draft, GenerateError> {
     if !stage_fits(place.row.hours) {
         return Err(GenerateError::StageHours {
             stage: place.row.id.clone(),
             hours: place.row.hours,
         });
     }
-    let task = prompt::text(place, gathered);
     let mut prompt = task.clone();
     let mut open: Option<Mending> = None;
     let mut flaws = Vec::new();

@@ -2,11 +2,12 @@ use serde_json::{Value, json};
 use tolearn_core::library::Library;
 use tolearn_core::program::Program;
 use tolearn_generate::fork::{self, After, Fork};
+use tolearn_generate::regenerate;
 use tolearn_generate::start::Kit;
-use tolearn_generate::{GenerateError, Model, online};
+use tolearn_generate::{GenerateError, Model, Step, online};
 use tolearn_offline::page::AsFetched;
 
-use crate::starting::{Canvas, Recorder, drawn, flat, run};
+use crate::starting::{Canvas, Recorder, drawn, flat, paired, run};
 use crate::support::{Scripted, Up};
 use crate::web::{Bench, Web};
 
@@ -57,6 +58,12 @@ pub fn noise() -> String {
     offer(false, &[("noise", [2, 3], true)])
 }
 
+pub fn steps(recorder: &Recorder) -> Vec<Step> {
+    let heard = recorder.heard();
+    paired(&heard);
+    heard.iter().step_by(2).map(|(_, step)| *step).collect()
+}
+
 pub fn said(answers: &[&str]) -> Scripted {
     Scripted::new(answers.iter().map(|answer| (*answer).to_owned()).collect())
 }
@@ -82,6 +89,26 @@ pub fn taken(
     model: &dyn Model,
     recorder: &Recorder,
 ) -> Result<String, GenerateError> {
+    kitted(bench, model, recorder, |kit| fork::take(kit, after, choice))
+}
+
+pub fn regenerated(
+    bench: &mut Bench,
+    at: &After<'_>,
+    model: &dyn Model,
+    recorder: &Recorder,
+) -> Result<(), GenerateError> {
+    kitted(bench, model, recorder, |kit| {
+        regenerate::regenerate(kit, at)
+    })
+}
+
+fn kitted<T>(
+    bench: &mut Bench,
+    model: &dyn Model,
+    recorder: &Recorder,
+    work: impl FnOnce(Kit<'_>) -> T,
+) -> T {
     let online = online(&Up, model).unwrap();
     let kit = Kit {
         online: &online,
@@ -94,7 +121,7 @@ pub fn taken(
         data: &bench.dir,
         at: TAKEN_AT,
     };
-    fork::take(kit, after, choice)
+    work(kit)
 }
 
 pub fn leaf(bench: &Bench, uuid: &str) -> Program {

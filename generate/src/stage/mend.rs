@@ -78,7 +78,7 @@ pub(super) fn parts(
          Ответь одним объектом JSON с теми же ключами без пояснений: в blocks — каждый блок под тем же ключом, theory — вся теория заново, practice — практика целиком, questions — все вопросы, terms и tools — списки заново.",
         prompt::whereabouts(place),
         place.program.generation.locale,
-        prompt::listed(gathered, false),
+        prompt::listed(gathered, None),
         prompt::rules(place),
         listed(flaws),
         serde_json::to_string(&sent).unwrap_or_default()

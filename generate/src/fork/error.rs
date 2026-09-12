@@ -1,6 +1,7 @@
 use std::fmt;
 
 use crate::error::GenerateError;
+use crate::located::Missing;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NextError {
@@ -59,5 +60,15 @@ impl std::error::Error for NextError {}
 impl From<NextError> for GenerateError {
     fn from(error: NextError) -> Self {
         Self::Next(error)
+    }
+}
+
+impl From<Missing> for NextError {
+    fn from(missing: Missing) -> Self {
+        match missing {
+            Missing::Node(node) => Self::Node(node),
+            Missing::Stage(stage) => Self::Stage(stage),
+            Missing::Ungenerated(stage) => Self::Ungenerated(stage),
+        }
     }
 }

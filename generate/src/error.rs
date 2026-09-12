@@ -7,6 +7,7 @@ use tolearn_provider::CheckError;
 use crate::REPAIRS;
 use crate::fork::NextError;
 use crate::plan::{STAGE_MAX_HOURS, STAGE_MIN_HOURS};
+use crate::regenerate::RegenerateError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum GenerateError {
@@ -31,6 +32,7 @@ pub enum GenerateError {
     Unwritten(String),
     Library(LibraryError),
     Next(NextError),
+    Regenerate(RegenerateError),
 }
 
 impl GenerateError {
@@ -46,6 +48,7 @@ impl GenerateError {
             Self::Unwritten(_) => "generate.unwritten",
             Self::Library(error) => error.code(),
             Self::Next(error) => error.code(),
+            Self::Regenerate(error) => error.code(),
         }
     }
 }
@@ -76,6 +79,7 @@ impl fmt::Display for GenerateError {
             Self::Unwritten(reason) => write!(out, "не удалось записать программу: {reason}"),
             Self::Library(error) => write!(out, "{error}"),
             Self::Next(error) => write!(out, "{error}"),
+            Self::Regenerate(error) => write!(out, "{error}"),
         }
     }
 }
@@ -93,6 +97,7 @@ impl std::error::Error for GenerateError {
             Self::Provider(error) => Some(error),
             Self::Library(error) => Some(error),
             Self::Next(error) => Some(error),
+            Self::Regenerate(error) => Some(error),
         }
     }
 }

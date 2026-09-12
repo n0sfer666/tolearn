@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use tolearn_offline::book::Book;
 
 use crate::sources::{Illustration, Verified};
@@ -10,20 +11,20 @@ pub struct Gathered {
     pub dropped: Vec<Dropped>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Chaptered {
     pub book: Book,
     pub chapter: String,
     pub checked_at: i64,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Visited {
     pub page: Verified,
     pub checked_at: i64,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Dropped {
     pub what: String,
     pub reason: String,

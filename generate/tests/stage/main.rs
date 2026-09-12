@@ -26,5 +26,8 @@ mod next;
 mod next_cancel;
 mod prompts;
 mod refused;
+mod regenerate;
+mod regenerate_cancel;
+mod regenerate_saved;
 mod start;
 mod text;

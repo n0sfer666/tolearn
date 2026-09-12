@@ -4,7 +4,6 @@ mod answer;
 mod error;
 mod flaw;
 mod kept;
-mod merged;
 mod offered;
 mod prompt;
 mod rules;

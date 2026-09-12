@@ -1,3 +1,4 @@
+mod again;
 mod answer;
 mod cited;
 mod compose;
@@ -15,7 +16,7 @@ mod raw;
 mod rules;
 mod text;
 
-pub use compose::compose;
+pub use compose::{compose, recompose};
 pub use draft::{Draft, Drafted};
 pub use flaw::Flaw;
 pub use gather::gather;
@@ -29,6 +30,7 @@ pub const MAX_PAGES: usize = 3;
 pub const MAX_IMAGES: usize = 2;
 pub const SOURCES_PROMPT_CHARS: usize = 2_000;
 pub const TEXT_PROMPT_CHARS: usize = 30_000;
+pub const PREVIOUS_CHARS: usize = 6_000;
 pub const MIN_THEORY_CHARS: usize = 3_000;
 pub const MAX_THEORY_CHARS: usize = 20_000;
 pub const MAX_TERMS: usize = 8;
