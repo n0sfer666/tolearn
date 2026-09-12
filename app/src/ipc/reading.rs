@@ -94,6 +94,15 @@ dto!(AskView {
     id: String,
     text: String,
 });
+dto!(ExportIn {
+    program: String,
+    node: String,
+    folder: String,
+});
+dto!(ExportOut {
+    path: String,
+    files: u64,
+});
 
 pub fn shapes() -> Vec<Shape> {
     vec![
@@ -113,5 +122,7 @@ pub fn shapes() -> Vec<Shape> {
         TaskView::shape(),
         ClaimView::shape(),
         AskView::shape(),
+        ExportIn::shape(),
+        ExportOut::shape(),
     ]
 }

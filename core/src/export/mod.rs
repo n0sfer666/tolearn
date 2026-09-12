@@ -1,121 +1,85 @@
-mod anchors;
-mod ask;
-mod head;
+mod blocks;
+mod error;
+mod escape;
+mod index;
 mod lines;
-mod parts;
 mod place;
-mod section;
+mod prose;
+mod stage;
+mod within;
+mod words;
+mod write;
 
-use std::collections::BTreeMap;
+use crate::program::Tree;
 
-use crate::roadmap::Roadmap;
-use crate::status::Statuses;
-use crate::topic::Topic;
-
-use anchors::Anchors;
-use lines::Doc;
-use section::Sight;
-
-pub use place::inside;
+pub use error::ExportError;
+pub use place::{claimed, inside};
+pub use within::within;
+pub use write::write;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Link {
-    pub anchor: String,
-    pub title: String,
+pub struct Export {
+    pub pages: Vec<Page>,
+    pub assets: Vec<Asset>,
 }
 
-#[derive(Debug)]
-pub struct Placed {
-    pub id: String,
-    pub title: String,
-    pub anchor: String,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Page {
+    pub path: String,
+    pub text: String,
 }
 
-#[derive(Debug)]
-pub struct Chapter {
-    pub title: String,
-    pub anchor: String,
-    pub topics: Vec<Placed>,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Asset {
+    pub from: String,
+    pub to: String,
 }
 
-pub fn markdown(roadmap: &Roadmap, topics: &[Topic], statuses: &Statuses) -> String {
-    let chapters = layout(roadmap);
-    let links = links(&chapters);
-    let mut doc = Doc::default();
-    head::head(&mut doc, roadmap, &chapters);
-    for chapter in &chapters {
-        doc.heading(2, &chapter.title);
-        for placed in &chapter.topics {
-            let Some(entry) = roadmap.topics.iter().find(|entry| entry.id == placed.id) else {
-                continue;
-            };
-            let sight = Sight {
-                links: &links,
-                status: statuses.get(&placed.id),
-            };
-            let document = topics.iter().find(|topic| topic.id == placed.id);
-            section::section(&mut doc, entry, document, &sight);
+pub fn render(tree: &Tree) -> Export {
+    let mut export = Export {
+        pages: Vec::new(),
+        assets: Vec::new(),
+    };
+    walk(tree, "", "", None, &mut export);
+    export
+}
+
+fn walk(tree: &Tree, from: &str, to: &str, parent: Option<&str>, export: &mut Export) {
+    let program = &tree.program;
+    let words = words::of(&program.generation.locale);
+    export.pages.push(Page {
+        path: format!("{to}index.md"),
+        text: index::page(tree, parent, words),
+    });
+    for (place, row) in program.map.stages.iter().enumerate() {
+        if let Some(found) = tree.stages.get(&row.id) {
+            export.pages.push(Page {
+                path: format!("{to}{}", file(place, &row.id)),
+                text: stage::page(found, &program.title, words),
+            });
         }
     }
-    doc.text()
-}
-
-fn layout(roadmap: &Roadmap) -> Vec<Chapter> {
-    let mut anchors = Anchors::default();
-    let mut chapters: Vec<Chapter> = Vec::new();
-    let mut placed: Vec<String> = Vec::new();
-    for stage in &roadmap.stages {
-        let title = format!("Этап {} — {}", stage.n, stage.title);
-        let anchor = anchors.take(&title);
-        let topics = held(roadmap, &mut anchors, |entry| entry.stage == stage.n);
-        placed.extend(topics.iter().map(|topic| topic.id.clone()));
-        chapters.push(Chapter {
-            title,
-            anchor,
-            topics,
-        });
+    export.assets.extend(tree.assets.iter().map(|asset| Asset {
+        from: format!("{from}{asset}"),
+        to: format!("{to}{asset}"),
+    }));
+    for (place, row) in program.map.children.iter().enumerate() {
+        if let Some(child) = tree.children.get(&row.uuid) {
+            walk(
+                child,
+                &format!("{from}children/{}/", row.uuid),
+                &format!("{to}{}/", folder(place, &child.program.slug)),
+                Some(&program.title),
+                export,
+            );
+        }
     }
-    let left = held(roadmap, &mut anchors, |entry| !placed.contains(&entry.id));
-    if !left.is_empty() {
-        let title = "Вне этапов".to_owned();
-        chapters.push(Chapter {
-            anchor: anchors.take(&title),
-            title,
-            topics: left,
-        });
-    }
-    chapters
 }
 
-fn held(
-    roadmap: &Roadmap,
-    anchors: &mut Anchors,
-    fits: impl Fn(&crate::roadmap::TopicEntry) -> bool,
-) -> Vec<Placed> {
-    roadmap
-        .topics
-        .iter()
-        .filter(|entry| fits(entry))
-        .map(|entry| Placed {
-            id: entry.id.clone(),
-            title: entry.title.clone(),
-            anchor: anchors.take(&entry.title),
-        })
-        .collect()
+fn file(place: usize, id: &str) -> String {
+    format!("{:02}-{id}.md", place + 1)
 }
 
-fn links(chapters: &[Chapter]) -> BTreeMap<String, Link> {
-    chapters
-        .iter()
-        .flat_map(|chapter| chapter.topics.iter())
-        .map(|placed| {
-            (
-                placed.id.clone(),
-                Link {
-                    anchor: placed.anchor.clone(),
-                    title: placed.title.clone(),
-                },
-            )
-        })
-        .collect()
+fn folder(place: usize, slug: &str) -> String {
+    format!("{:02}-{slug}", place + 1)
 }

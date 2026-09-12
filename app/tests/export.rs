@@ -7,103 +7,121 @@
 
 mod support;
 
-use std::path::PathBuf;
+use std::fs;
+use std::path::Path;
 
 use serde_json::{Value, json};
-use support::copied;
-use tolearn_app::ipc::{Context, IpcError, call};
+use support::shelf::{CHIPTUNE, NES_DEV, ROM, Shelf, TOOLS, original};
+use tolearn_app::ipc::IpcError;
 
-const TODAY: &str = "2026-07-29";
-
-struct Case {
-    context: Context,
-    data: PathBuf,
-    bundle: PathBuf,
+fn export(shelf: &Shelf, program: &str, node: &str, folder: &Path) -> Result<Value, IpcError> {
+    shelf.ask(
+        "export",
+        json!({
+            "program": program,
+            "node": node,
+            "folder": folder.display().to_string(),
+        }),
+    )
 }
 
-fn case(name: &str) -> Case {
-    let data = std::env::temp_dir().join(format!("tolearn-export-{name}-{}", std::process::id()));
-    let _ = std::fs::remove_dir_all(&data);
-    std::fs::create_dir_all(&data).unwrap();
-    Case {
-        context: Context::new(&data),
-        data,
-        bundle: copied(&format!("export-{name}")),
+fn listing(folder: &Path) -> Vec<String> {
+    let mut names: Vec<String> = fs::read_dir(folder)
+        .unwrap()
+        .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+        .collect();
+    names.sort();
+    names
+}
+
+#[test]
+fn a_program_lands_in_a_folder_named_by_its_slug() {
+    let shelf = Shelf::new("export-whole");
+    shelf.shelved("examples/chiptune");
+    let folder = shelf.incoming.join("выгрузка");
+    fs::create_dir(&folder).unwrap();
+
+    let out = export(&shelf, CHIPTUNE, "", &folder).unwrap();
+
+    let target = folder.join("chiptune");
+    assert_eq!(out["path"].as_str().unwrap(), target.display().to_string());
+    assert_eq!(out["files"].as_u64().unwrap(), 4);
+    let index = fs::read_to_string(target.join("index.md")).unwrap();
+    assert!(index.starts_with("# Chiptune"), "{index}");
+    assert_eq!(
+        fs::read(target.join("assets/pulse-wave.png")).unwrap(),
+        original("examples/chiptune/assets/pulse-wave.png")
+    );
+}
+
+#[test]
+fn a_subprogram_leaves_alone_with_its_own_assets() {
+    let shelf = Shelf::new("export-branch");
+    shelf.shelved("fixtures/v2/valid/nes-dev");
+
+    let out = export(&shelf, NES_DEV, ROM, &shelf.incoming).unwrap();
+
+    let target = shelf.incoming.join("first-rom");
+    assert_eq!(out["path"].as_str().unwrap(), target.display().to_string());
+    let index = fs::read_to_string(target.join("index.md")).unwrap();
+    assert!(!index.contains("../index.md"), "{index}");
+    assert_eq!(
+        fs::read(target.join("assets/pixel.png")).unwrap(),
+        original(&format!(
+            "fixtures/v2/valid/nes-dev/children/{TOOLS}/children/{ROM}/assets/pixel.png"
+        ))
+    );
+}
+
+#[test]
+fn an_occupied_folder_is_refused_and_left_as_it_was() {
+    let shelf = Shelf::new("export-occupied");
+    shelf.shelved("examples/chiptune");
+    let target = shelf.incoming.join("chiptune");
+    fs::create_dir(&target).unwrap();
+    fs::write(target.join("note.txt"), "мои заметки").unwrap();
+
+    let refused = export(&shelf, CHIPTUNE, "", &shelf.incoming).unwrap_err();
+
+    assert_eq!(refused.code, "export.occupied");
+    assert_eq!(listing(&target), ["note.txt"]);
+}
+
+#[test]
+fn an_export_into_the_library_is_refused() {
+    let shelf = Shelf::new("export-library");
+    shelf.shelved("examples/chiptune");
+    let programs = shelf.data.join("programs");
+    let before = listing(&programs);
+
+    for folder in [
+        programs.clone(),
+        programs.join(CHIPTUNE),
+        programs.join(CHIPTUNE).join("нет").join("глубже"),
+    ] {
+        let refused = export(&shelf, CHIPTUNE, "", &folder).unwrap_err();
+
+        assert_eq!(
+            refused.code,
+            "export.inside-library",
+            "{}",
+            folder.display()
+        );
     }
+    assert_eq!(listing(&programs), before);
+    assert!(!programs.join(CHIPTUNE).join("нет").exists());
 }
 
-fn export(case: &Case, extra: Value) -> Result<Value, IpcError> {
-    let mut payload = json!({
-        "bundle": case.bundle.display().to_string(),
-        "today": TODAY,
-        "path": case.data.join("программа.md").display().to_string(),
-    });
-    let object = payload.as_object_mut().unwrap();
-    for (key, value) in extra.as_object().unwrap() {
-        object.insert(key.clone(), value.clone());
+#[test]
+fn a_folder_that_is_not_an_absolute_path_is_refused() {
+    let shelf = Shelf::new("export-relative");
+    shelf.shelved("examples/chiptune");
+
+    for folder in ["", "выгрузка"] {
+        let refused = export(&shelf, CHIPTUNE, "", Path::new(folder)).unwrap_err();
+
+        assert_eq!(refused.code, "export.folder", "`{folder}`");
     }
-    call(&case.context, "export", &payload)
-}
-
-#[test]
-fn экспорт_кладёт_один_файл_с_программой() {
-    let case = case("file");
-
-    let out = export(&case, json!({})).unwrap();
-
-    let path = PathBuf::from(out["path"].as_str().unwrap());
-    let text = std::fs::read_to_string(&path).unwrap();
-    assert!(text.starts_with("# "), "{}", &text[..40.min(text.len())]);
-    assert!(text.contains("## Оглавление"), "нет оглавления");
-    assert_eq!(out["bytes"].as_u64().unwrap(), text.len() as u64);
-}
-
-#[test]
-fn экспорт_в_каталог_бандла_отклонён() {
-    let case = case("inside");
-    let path = case.bundle.join("программа.md");
-
-    let refused = export(&case, json!({ "path": path.display().to_string() })).unwrap_err();
-
-    assert_eq!(refused.code, "export.inside-bundle");
-    assert!(!path.exists(), "файл всё же записан в бандл");
-}
-
-#[test]
-fn кривая_дата_экспорт_не_запускает() {
-    let case = case("date");
-
-    let refused = export(&case, json!({ "today": "29.07.2026" })).unwrap_err();
-
-    assert!(refused.code.contains("date"), "{}", refused.code);
-    assert!(!case.data.join("программа.md").exists());
-}
-
-#[test]
-fn экспорт_бандл_не_трогает() {
-    let case = case("intact");
-    let before = snapshot(&case.bundle);
-
-    export(&case, json!({})).unwrap();
-
-    assert_eq!(before, snapshot(&case.bundle), "бандл изменён экспортом");
-}
-
-fn snapshot(bundle: &std::path::Path) -> Vec<(PathBuf, Vec<u8>)> {
-    let mut found: Vec<(PathBuf, Vec<u8>)> = Vec::new();
-    walk(bundle, &mut found);
-    found.sort_by(|left, right| left.0.cmp(&right.0));
-    found
-}
-
-fn walk(room: &std::path::Path, found: &mut Vec<(PathBuf, Vec<u8>)>) {
-    for entry in std::fs::read_dir(room).unwrap() {
-        let path = entry.unwrap().path();
-        if path.is_dir() {
-            walk(&path, found);
-            continue;
-        }
-        let body = std::fs::read(&path).unwrap();
-        found.push((path, body));
-    }
+    assert!(!Path::new("выгрузка").exists());
+    assert!(!Path::new("chiptune").exists());
 }

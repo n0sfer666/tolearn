@@ -1,3 +1,5 @@
+use super::escape::{opened, titled};
+
 #[derive(Debug, Default)]
 pub struct Doc {
     lines: Vec<String>,
@@ -5,68 +7,63 @@ pub struct Doc {
 
 impl Doc {
     pub fn heading(&mut self, level: usize, text: &str) {
+        let text = titled(&flat(text));
+        if text.is_empty() {
+            return;
+        }
         self.gap();
-        self.lines
-            .push(format!("{} {}", "#".repeat(level), flat(text)));
+        self.lines.push(format!("{} {text}", "#".repeat(level)));
     }
 
     pub fn line(&mut self, text: &str) {
         self.gap();
-        self.lines.push(flat(text));
+        self.lines.push(opened(&flat(text)));
     }
 
     pub fn bullets(&mut self, items: &[String]) {
-        if items.is_empty() {
-            return;
-        }
-        self.gap();
-        for item in items {
-            self.lines.push(format!("- {}", flat(item)));
-        }
+        self.raw(
+            items
+                .iter()
+                .map(|item| format!("- {}", opened(item)))
+                .collect(),
+        );
     }
 
     pub fn numbered(&mut self, items: &[String]) {
-        if items.is_empty() {
+        self.raw(
+            items
+                .iter()
+                .enumerate()
+                .map(|(place, item)| format!("{}. {}", place + 1, opened(item)))
+                .collect(),
+        );
+    }
+
+    pub fn raw(&mut self, lines: Vec<String>) {
+        if lines.is_empty() {
             return;
         }
         self.gap();
-        for (place, item) in items.iter().enumerate() {
-            self.lines.push(format!("{}. {}", place + 1, flat(item)));
-        }
+        self.lines.extend(lines);
     }
 
-    pub fn block(&mut self, text: &str) {
-        self.gap();
-        for line in text.lines() {
-            self.lines.push(line.trim_end().to_owned());
+    pub fn text(mut self) -> String {
+        while self.lines.last().is_some_and(String::is_empty) {
+            self.lines.pop();
         }
-    }
-
-    pub fn text(self) -> String {
-        let mut out = String::new();
-        let mut blank = true;
-        for line in &self.lines {
-            if line.is_empty() && blank {
-                continue;
-            }
-            blank = line.is_empty();
-            out.push_str(line);
-            out.push('\n');
-        }
-        while out.ends_with("\n\n") {
-            out.pop();
-        }
+        let mut out = self.lines.join("\n");
+        out.push('\n');
         out
     }
 
     fn gap(&mut self) {
-        if !self.lines.is_empty() {
+        if self.lines.last().is_some_and(|line| !line.is_empty()) {
             self.lines.push(String::new());
         }
     }
 }
 
-fn flat(text: &str) -> String {
+pub fn flat(text: &str) -> String {
     let mut out: Vec<String> = Vec::new();
     let mut spanned = false;
     for word in text.split_whitespace() {
@@ -82,8 +79,39 @@ fn flat(text: &str) -> String {
     out.join(" ")
 }
 
+pub fn label(text: &str) -> String {
+    text.split_whitespace()
+        .collect::<Vec<&str>>()
+        .join(" ")
+        .replace('\\', "\\\\")
+        .replace('[', "\\[")
+        .replace(']', "\\]")
+}
+
+pub fn spanned(code: &str) -> String {
+    let code = code.lines().collect::<Vec<&str>>().join(" ");
+    let ticks = "`".repeat(longest(&code) + 1);
+    let pad = if code.starts_with('`') || code.ends_with('`') {
+        " "
+    } else {
+        ""
+    };
+    format!("{ticks}{pad}{code}{pad}{ticks}")
+}
+
+pub fn longest(text: &str) -> usize {
+    text.split(|letter| letter != '`')
+        .map(str::len)
+        .max()
+        .unwrap_or(0)
+}
+
 fn linked(word: &str) -> String {
-    let Some(head) = word.find("http://").or_else(|| word.find("https://")) else {
+    let Some(head) = ["http://", "https://"]
+        .iter()
+        .filter_map(|scheme| word.find(scheme))
+        .min()
+    else {
         return word.to_owned();
     };
     if word[..head].contains("](") || word[..head].contains('<') {

@@ -57,7 +57,18 @@ bundle is ever written to.
 
 ## Export
 
-The "Export to Markdown" button on the program screen collects the whole program
-into one file — table of contents and topics. Answers and traps make it into the
-file only for topics that were passed. The export never writes inside the
-bundle itself.
+The "Export to Markdown" button on the program screen asks for a folder and puts
+a folder named after the program into it: `index.md` with the contents by stages
+and subprograms, one page per generated stage, and the pictures next to them.
+Links are relative, so the folder opens in any Markdown editor or goes into git
+as is. On a subprogram screen only that subprogram is exported. Reference
+answers to the questions are never exported. The export never writes into a
+non-empty folder or inside the app's library. The export is assembled in a
+hidden folder next to the target, `.<name>.partial-<number>`, and renamed as a
+whole at the end; if the app crashes mid-export, that hidden folder can be
+removed by hand.
+
+From a terminal, `tolearn export <program folder> <folder>` exports too. Unlike
+the button, it writes straight into `<folder>` with no nested folder named after
+the program, so `<folder>` must be empty or not exist yet. It never writes
+inside any program folder.

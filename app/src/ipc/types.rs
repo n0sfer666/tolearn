@@ -167,16 +167,6 @@ dto!(Card {
     tally: Option<Tally>,
 });
 
-dto!(ExportIn {
-    bundle: String,
-    today: String,
-    path: String,
-});
-dto!(ExportOut {
-    path: String,
-    bytes: u64,
-});
-
 dto!(ImportIn {
     path: String,
     today: String,
@@ -413,8 +403,6 @@ pub fn shapes() -> Vec<Shape> {
         ProgramsIn::shape(),
         ProgramsOut::shape(),
         Card::shape(),
-        ExportIn::shape(),
-        ExportOut::shape(),
         ImportIn::shape(),
         ImportOut::shape(),
         Merged::shape(),

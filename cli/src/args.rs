@@ -9,7 +9,7 @@ pub const USAGE: &str = "\
   tolearn progress <бандл> [--json] [--today ГГГГ-ММ-ДД]
   tolearn exam     <бандл> <тема> [--verdict <файл>] [--template <файл>] [--run-checks] [--json]
   tolearn merge    <бандл> --was <каталог> [--json]
-  tolearn export   <бандл> [--out <файл>] [--today ГГГГ-ММ-ДД] [--json]
+  tolearn export   <каталог> <папка> [--json]
   tolearn pack     <каталог> <файл.tolearn> [--json]
   tolearn unpack   <файл.tolearn> <каталог> [--json]
 
@@ -39,8 +39,7 @@ pub enum Command {
         was: PathBuf,
     },
     Export {
-        out: Option<PathBuf>,
-        today: Option<String>,
+        into: PathBuf,
     },
     Pack {
         out: PathBuf,
@@ -62,7 +61,7 @@ pub fn parse(argv: &[String]) -> Result<Args, CliError> {
         if let Some(flag) = word.strip_prefix("--") {
             let value = match flag {
                 "json" | "run-checks" => None,
-                "verdict" | "template" | "was" | "today" | "out" => Some(taken(flag, rest.next())?),
+                "verdict" | "template" | "was" | "today" => Some(taken(flag, rest.next())?),
                 _ => return Err(CliError::Usage(format!("неизвестный флаг `--{flag}`"))),
             };
             flags.push((flag, value));
@@ -104,8 +103,10 @@ pub fn parse(argv: &[String]) -> Result<Args, CliError> {
                 .ok_or_else(|| CliError::Usage("`merge` не назвал `--was`".to_owned()))?,
         },
         "export" => Command::Export {
-            out: value("out").map(PathBuf::from),
-            today: value("today"),
+            into: free
+                .get(1)
+                .map(|folder| PathBuf::from(*folder))
+                .ok_or_else(|| CliError::Usage("`export` не назвал папку".to_owned()))?,
         },
         "pack" => Command::Pack {
             out: free

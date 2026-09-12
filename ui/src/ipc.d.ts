@@ -203,17 +203,6 @@ export type Card = {
   tally: Tally | null;
 };
 
-export type ExportIn = {
-  bundle: string;
-  today: string;
-  path: string;
-};
-
-export type ExportOut = {
-  path: string;
-  bytes: number;
-};
-
 export type ImportIn = {
   path: string;
   today: string;
@@ -566,6 +555,17 @@ export type ClaimView = {
 export type AskView = {
   id: string;
   text: string;
+};
+
+export type ExportIn = {
+  program: string;
+  node: string;
+  folder: string;
+};
+
+export type ExportOut = {
+  path: string;
+  files: number;
 };
 
 export type Commands = {

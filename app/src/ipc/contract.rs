@@ -53,7 +53,7 @@ commands! {
     prompt(types::PromptIn) -> types::PromptOut,
     examine(types::ExamineIn) -> types::ExamineOut,
     programs(types::ProgramsIn) -> types::ProgramsOut,
-    export(types::ExportIn) -> types::ExportOut,
+    export(reading::ExportIn) -> reading::ExportOut,
     import(types::ImportIn) -> types::ImportOut,
     settings(types::SettingsIn) -> types::SettingsView,
     search(types::SearchIn) -> types::SearchOut,

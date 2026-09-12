@@ -45,12 +45,9 @@ export async function pickPackage(): Promise<string | null> {
   return typeof chosen === "string" ? chosen : null;
 }
 
-export async function pickFile(name: string): Promise<string | null> {
-  const { save } = await import("@tauri-apps/plugin-dialog");
-  const chosen = await save({
-    defaultPath: name,
-    filters: [{ name: "markdown", extensions: ["md"] }],
-  });
+export async function pickFolder(): Promise<string | null> {
+  const { open } = await import("@tauri-apps/plugin-dialog");
+  const chosen = await open({ directory: true, multiple: false });
   return typeof chosen === "string" ? chosen : null;
 }
 

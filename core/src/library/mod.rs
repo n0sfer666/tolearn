@@ -75,4 +75,8 @@ impl Library {
     pub fn install(&self, source: &Path) -> Result<String, LibraryError> {
         install::install(&self.root, source)
     }
+
+    pub fn holds(&self, path: &Path) -> bool {
+        crate::export::inside(&self.root, path)
+    }
 }

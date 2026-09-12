@@ -10,6 +10,7 @@ pub enum CliError {
     Write(String),
     Package(String),
     Import(String),
+    Export(String),
 }
 
 impl CliError {
@@ -29,6 +30,7 @@ impl fmt::Display for CliError {
             Self::Write(reason) => write!(out, "не удалось записать прогресс: {reason}"),
             Self::Package(reason) => write!(out, "пакет не собран: {reason}"),
             Self::Import(reason) => write!(out, "пакет не принят: {reason}"),
+            Self::Export(reason) => write!(out, "экспорт не выполнен: {reason}"),
         }
     }
 }

@@ -1,12 +1,13 @@
 import { Show, createSignal, onMount } from "solid-js";
 
 import Empty from "../components/reading/Empty";
+import Export from "../components/reading/Export";
 import Rows from "../components/reading/Rows";
 import Trail from "../components/reading/Trail";
 import type { Dictionary } from "../i18n/ru";
 import type { NodeOut } from "../ipc";
 import { hours } from "../lib/hours";
-import { quiet } from "../lib/ipc";
+import { pickFolder, quiet } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
 import { nodeHref, stageHref } from "../lib/links";
 import { name } from "../lib/name";
@@ -19,6 +20,7 @@ interface Props {
   program?: string;
   node?: string;
   call?: Transport;
+  pick?: () => Promise<string | null>;
 }
 
 export default function Program(props: Props) {
@@ -82,6 +84,13 @@ export default function Program(props: Props) {
           <p data-node-hours>
             <strong>{props.text.program.span}:</strong> {hours(out().hours, props.text.program.hours)}
           </p>
+          <Export
+            text={props.text}
+            program={out().program}
+            node={out().uuid}
+            call={call()}
+            pick={props.pick ?? pickFolder}
+          />
 
           <Show when={out().stages.length > 0}>
             <h2>{props.text.program.stages}</h2>
