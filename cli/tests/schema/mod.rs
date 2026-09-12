@@ -14,9 +14,7 @@ pub use corpus::{document, fixtures, valid_documents};
 
 use crate::repo::read;
 
-pub const KINDS: [&str; 5] = ["roadmap", "topic", "progress", "program", "stage"];
-
-pub const V2: [&str; 2] = ["program", "stage"];
+pub const KINDS: [&str; 2] = ["program", "stage"];
 
 pub fn schema(kind: &str) -> Value {
     let path = format!("docs/schemas/{kind}.schema.json");

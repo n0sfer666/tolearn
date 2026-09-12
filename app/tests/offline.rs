@@ -31,7 +31,7 @@ fn saved(root: &Path) {
     store
         .put(
             URL,
-            "llm-agents-base",
+            "rust-base",
             &Fetched {
                 kind: "archive",
                 bytes: &page,

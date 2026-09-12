@@ -88,7 +88,7 @@ fn the_index_survives_saving_and_reading() {
 fn a_v1_index_reads_as_empty_and_is_rebuilt() {
     let (data, library) = shelf("refresh-legacy");
     let path = data.join("search.yaml");
-    let v1 = "schema: tolearn/search/v1\nsources:\n  - path: \"/bundle/topics/local-runtime.yaml\"\n    roadmap: \"llm-agents-base\"\n    modified: \"1\"\n    size: \"1\"\n    documents:\n      - kind: topic\n        topic: \"local-runtime\"\n        title: \"Локальный рантайм\"\n        text: \"\"\n";
+    let v1 = "schema: tolearn/search/v1\nsources:\n  - path: \"/bundle/topics/local-runtime.yaml\"\n    roadmap: \"rust-base\"\n    modified: \"1\"\n    size: \"1\"\n    documents:\n      - kind: topic\n        topic: \"local-runtime\"\n        title: \"Локальный рантайм\"\n        text: \"\"\n";
     fs::write(&path, v1).unwrap();
     assert_eq!(Index::read(&path), Index::default());
 

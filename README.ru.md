@@ -57,9 +57,9 @@ LLM строит программу обучения — этапы теории
 - [Спецификации](docs/specs/README.md) ·
   [Дизайн-система](docs/design/visual-system.md)
 
-Приложение читает бандлы семейства `learning-roadmap`: `roadmap.yaml` +
-`topics/*.yaml` + `progress.yaml` + `examiner.md`. Пример — в
-[`examples/llm-agents-base`](examples/llm-agents-base).
+Приложение держит программы в своей библиотеке и обменивается ими пакетами
+`.tolearn` ([формат](docs/format.md)). Эталонная программа — в
+[`examples/chiptune`](examples/chiptune).
 
 ## Лицензия
 

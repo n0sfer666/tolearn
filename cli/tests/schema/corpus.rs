@@ -1,21 +1,14 @@
 use serde_json::Value;
 
-use super::{V2, programs, yaml};
+use super::{programs, yaml};
 use crate::repo::{read, root};
-
-const REFERENCE: &str = "examples/llm-agents-base";
 
 pub fn document(path: &str) -> Value {
     yaml::load(&read(path), path)
 }
 
 pub fn fixtures(set: &str, kind: &str) -> Vec<String> {
-    let room = if V2.contains(&kind) {
-        "fixtures/v2"
-    } else {
-        "fixtures"
-    };
-    listed(&format!("{room}/{set}/{kind}"))
+    listed(&format!("fixtures/v2/{set}/{kind}"))
 }
 
 pub fn listed(relative: &str) -> Vec<String> {
@@ -26,25 +19,8 @@ pub fn listed(relative: &str) -> Vec<String> {
     }
 }
 
-fn reference(kind: &str) -> Vec<String> {
-    match kind {
-        "roadmap" => vec![format!("{REFERENCE}/roadmap.yaml")],
-        "progress" => vec![format!("{REFERENCE}/progress.yaml")],
-        "topic" => files(&format!("{REFERENCE}/topics"), ".yaml"),
-        other => panic!("unknown schema kind `{other}`"),
-    }
-}
-
 pub fn valid_documents(kind: &str) -> Vec<(String, Value)> {
-    let paths: Vec<String> = if V2.contains(&kind) {
-        programs::documents(kind)
-    } else {
-        reference(kind)
-            .into_iter()
-            .chain(fixtures("valid", kind))
-            .collect()
-    };
-    paths
+    programs::documents(kind)
         .into_iter()
         .map(|path| {
             let document = document(&path);

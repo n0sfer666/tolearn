@@ -4,14 +4,12 @@
 )]
 
 pub mod archives;
-pub mod bundles;
 pub mod packages;
 pub mod pictures;
 pub mod programs;
 pub mod sealing;
 pub mod search;
 
-use std::fmt::Display;
 use std::path::{Path, PathBuf};
 
 pub fn root() -> PathBuf {
@@ -32,25 +30,4 @@ pub fn line_of(source: &str, needle: &str) -> usize {
         .position(|line| line.contains(needle))
         .unwrap_or_else(|| panic!("`{needle}` is not in the source"))
         + 1
-}
-
-pub fn every_fixture_parses<T, E: Display>(
-    directory: &str,
-    parse: impl Fn(&str) -> Result<T, E>,
-    minimum: usize,
-) {
-    let mut seen = 0;
-    for entry in std::fs::read_dir(root().join(directory)).unwrap() {
-        let name = entry.unwrap().file_name().to_string_lossy().into_owned();
-        if !name.ends_with(".yaml") {
-            continue;
-        }
-        let relative = format!("{directory}/{name}");
-        parse(&read(&relative)).unwrap_or_else(|e| panic!("{relative}: {e}"));
-        seen += 1;
-    }
-    assert!(
-        seen >= minimum,
-        "{directory} lost its fixtures: {seen} of {minimum}"
-    );
 }

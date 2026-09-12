@@ -15,7 +15,7 @@ use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 use serde_json::json;
-use support::{copied, repository, sources};
+use support::{repository, sources};
 use tolearn_app::ipc::{Context, NAMES, call, descriptors, typescript};
 
 #[test]
@@ -106,7 +106,7 @@ fn неизвестная_команда_отвечает_кодом() {
 
 #[test]
 fn битый_ввод_отвечает_кодом_а_не_паникой() {
-    let error = call(&context(), "validate", &json!({})).unwrap_err();
+    let error = call(&context(), "node", &json!({})).unwrap_err();
 
     assert_eq!(error.code, "ipc.malformed-payload");
     assert!(!error.message.is_empty());
@@ -116,90 +116,17 @@ fn битый_ввод_отвечает_кодом_а_не_паникой() {
 fn ошибка_ядра_доезжает_кодом_и_сообщением() {
     let error = call(
         &context(),
-        "validate",
-        &json!({ "bundle": "/nowhere-at-all" }),
+        "node",
+        &json!({ "program": "nowhere-at-all", "node": "" }),
     )
     .unwrap_err();
 
-    assert_eq!(error.code, "scan.no-roadmap");
+    assert_eq!(error.code, "library.absent");
     assert!(
         error.message.contains("nowhere-at-all"),
         "{}",
         error.message
     );
-}
-
-#[test]
-fn бандл_с_двумя_форматами_читается_как_yaml() {
-    let root = repository().join("examples/llm-agents-base");
-    let out = call(&context(), "scan", &json!({ "bundle": root })).unwrap();
-
-    assert_eq!(out["format"], json!("yaml"), "{out:#}");
-}
-
-#[test]
-fn эталонный_бандл_проходит_валидацию() {
-    let root = copied("validate");
-    let out = call(&context(), "validate", &json!({ "bundle": root })).unwrap();
-
-    assert_eq!(out["ok"], json!(true), "{out:#}");
-    assert_eq!(out["violations"], json!([]));
-}
-
-#[test]
-fn бандл_с_нарушением_отвечает_нет_и_перечисляет_коды() {
-    let root = copied("broken");
-    let file = root.join("roadmap.yaml");
-    let source = std::fs::read_to_string(&file).unwrap();
-    std::fs::write(
-        &file,
-        source.replacen("est_hours: [4, 6]", "est_hours: [6, 4]", 1),
-    )
-    .unwrap();
-
-    let out = call(&context(), "validate", &json!({ "bundle": root })).unwrap();
-
-    assert_eq!(out["ok"], json!(false), "{out:#}");
-    assert_eq!(out["violations"][0]["code"], json!("bundle.hours-reversed"));
-    assert!(!out["violations"][0]["message"].as_str().unwrap().is_empty());
-}
-
-#[test]
-fn обзор_бандла_называет_формат_и_темы() {
-    let root = copied("scan");
-    let out = call(&context(), "scan", &json!({ "bundle": root })).unwrap();
-
-    assert_eq!(out["format"], json!("yaml"));
-    assert!(!out["topics"].as_array().unwrap().is_empty());
-    assert_eq!(out["broken"], json!([]));
-}
-
-#[test]
-fn сводка_считает_этапы_и_статусы() {
-    let root = copied("program");
-    let out = call(
-        &context(),
-        "program",
-        &json!({ "bundle": root, "today": "2026-07-27" }),
-    )
-    .unwrap();
-
-    assert!(out["program"]["total"].as_u64().unwrap() > 0, "{out:#}");
-    assert!(!out["stages"].as_array().unwrap().is_empty());
-    assert!(!out["topics"].as_array().unwrap().is_empty());
-}
-
-#[test]
-fn кривая_дата_отвечает_кодом() {
-    let root = copied("bad-date");
-    let error = call(
-        &context(),
-        "program",
-        &json!({ "bundle": root, "today": "вчера" }),
-    )
-    .unwrap_err();
-
-    assert_eq!(error.code, "date.malformed");
 }
 
 #[test]
@@ -213,6 +140,9 @@ fn команды_экранов_изучения_v1_убраны() {
         "review",
         "prompt",
         "examine",
+        "validate",
+        "scan",
+        "program",
     ] {
         let error = call(&context(), name, &json!({})).unwrap_err();
 

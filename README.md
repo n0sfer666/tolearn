@@ -59,9 +59,9 @@ Internal documents are kept in Russian only:
 [specifications](docs/specs/README.md),
 [design system](docs/design/visual-system.md).
 
-The app reads bundles of the `learning-roadmap` family: `roadmap.yaml` +
-`topics/*.yaml` + `progress.yaml` + `examiner.md`. There is an example in
-[`examples/llm-agents-base`](examples/llm-agents-base).
+The app keeps programs in its own library and exchanges them as `.tolearn`
+packages ([format](docs/format.md)). The reference program is in
+[`examples/chiptune`](examples/chiptune).
 
 ## License
 

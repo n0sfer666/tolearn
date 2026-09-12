@@ -1,13 +1,13 @@
 use std::collections::BTreeSet;
 
 use crate::schema::paths::rules;
-use crate::schema::{KINDS, V2, codes, declared_code, document, fixtures, schema, validator};
+use crate::schema::{KINDS, codes, declared_code, document, fixtures, schema, validator};
 
 const MINIMUM_CODES: usize = 12;
 
 #[test]
-fn every_rule_of_a_v2_schema_has_a_broken_fixture() {
-    for kind in V2 {
+fn every_rule_of_a_schema_has_a_broken_fixture() {
+    for kind in KINDS {
         let broken: BTreeSet<String> = fixtures("broken", kind)
             .iter()
             .map(|path| declared_code(path))

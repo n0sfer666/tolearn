@@ -35,33 +35,6 @@ pub fn observed_by_kind() -> BTreeMap<&'static str, Observed> {
         .collect()
 }
 
-pub fn attempts(progress: &Value) -> Vec<Value> {
-    progress["topics"]
-        .as_object()
-        .map(|topics| {
-            topics
-                .values()
-                .filter_map(|topic| topic["attempts"].as_array())
-                .flatten()
-                .cloned()
-                .collect()
-        })
-        .unwrap_or_default()
-}
-
-pub fn topic_ids(roadmap: &Value) -> Vec<String> {
-    roadmap["topics"]
-        .as_array()
-        .map(|topics| {
-            topics
-                .iter()
-                .filter_map(|topic| topic["id"].as_str())
-                .map(str::to_owned)
-                .collect()
-        })
-        .unwrap_or_default()
-}
-
 fn visit(node: &Value, path: String, depth: usize, observed: &mut Observed) {
     assert!(depth < 32, "instance nested deeper than 32 levels");
     match node {

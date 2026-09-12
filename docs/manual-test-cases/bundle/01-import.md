@@ -10,8 +10,8 @@ happy-dom. Настоящее перетаскивание, системный �
 cargo run -p tolearn-cli --release -- pack examples/chiptune ~/chiptune.tolearn
 ```
 
-Для отказов — папки `examples/chiptune` и `examples/llm-agents-base` и любой
-`.zip`. Состояние перед прогоном — чистое (см. [README](../README.md)).
+Для отказов — папка `examples/chiptune`, папка с одним файлом `roadmap.yaml`
+(каталог v1, содержимое не важно) и любой `.zip`. Состояние перед прогоном — чистое (см. [README](../README.md)).
 
 ## Основной сценарий: пакет перетаскиванием
 
@@ -62,7 +62,7 @@ Chiptune…», в библиотеке две карточки; первая н�
 ## Ветка: не пакет
 
 1) перетащить папку `examples/chiptune`;
-2) перетащить папку `examples/llm-agents-base`;
+2) перетащить папку с `roadmap.yaml`;
 3) перетащить любой `.zip`;
 4) перетащить любую другую папку (например, пустую).
 

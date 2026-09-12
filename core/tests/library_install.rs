@@ -141,12 +141,13 @@ fn what_a_crashed_install_left_behind_is_no_program() {
 #[test]
 fn files_of_v1_beside_the_library_are_neither_read_nor_changed() {
     let data = scratch("install-v1");
-    copy_tree(
-        &support::root().join("examples/llm-agents-base"),
-        &data.join("unpacked/llm-agents-base"),
-    );
     for (path, text) in [
-        ("history/llm-agents-base/2026-09-01.yaml", "versions: []\n"),
+        ("unpacked/rust-base/roadmap.yaml", "id: rust-base\n"),
+        (
+            "unpacked/rust-base/topics/ownership.yaml",
+            "id: ownership\n",
+        ),
+        ("history/rust-base/2026-09-01.yaml", "versions: []\n"),
         ("offline/objects/ab/cdef", "страница"),
         ("draft/roadmap.yaml", "черновик"),
         ("search-ru.yaml", "index: []\n"),

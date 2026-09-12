@@ -29,11 +29,7 @@ fn черновик_генерации_v1_приложение_не_читает
     let draft = data.join("draft");
     std::fs::create_dir_all(draft.join("bundle/topics")).unwrap();
     std::fs::write(draft.join("job.json"), br#"{"subject":"Rust","done":2}"#).unwrap();
-    std::fs::write(
-        draft.join("bundle/roadmap.yaml"),
-        b"schema: learning-roadmap/v1\n",
-    )
-    .unwrap();
+    std::fs::write(draft.join("bundle/roadmap.yaml"), b"id: rust-base\n").unwrap();
     let before = snapshot(&draft);
 
     let context = Context::new(&data);

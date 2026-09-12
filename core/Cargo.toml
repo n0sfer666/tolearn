@@ -1,6 +1,6 @@
 [package]
 name = "tolearn-core"
-description = "Bundle types, parsing, validation, progress, statuses, exam protocol"
+description = "Program format, library, packages, export and search"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

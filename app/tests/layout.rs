@@ -65,12 +65,9 @@ fn переезд_разносит_старую_папку_по_двум_кор�
     file(&was.join("provider.yaml"), "kind: ollama\n");
     file(&was.join("registry.yaml"), "programs: []\n");
     file(&was.join("offline/index.yaml"), "urls: []\n");
-    file(
-        &was.join("unpacked/llm-agents-base/roadmap.yaml"),
-        "id: x\n",
-    );
-    file(&was.join("history/llm-agents-base/1.yaml"), "at: вчера\n");
-    file(&was.join("search-llm-agents-base.yaml"), "terms: []\n");
+    file(&was.join("unpacked/rust-base/roadmap.yaml"), "id: x\n");
+    file(&was.join("history/rust-base/1.yaml"), "at: вчера\n");
+    file(&was.join("search-rust-base.yaml"), "terms: []\n");
     let made = rooms(&root);
 
     migrate(&was, &made).unwrap();
@@ -82,13 +79,9 @@ fn переезд_разносит_старую_папку_по_двум_кор�
     assert!(made.config.join("provider.yaml").is_file());
     assert!(made.config.join("registry.yaml").is_file());
     assert!(made.data.join("offline/index.yaml").is_file());
-    assert!(
-        made.data
-            .join("unpacked/llm-agents-base/roadmap.yaml")
-            .is_file()
-    );
-    assert!(made.data.join("history/llm-agents-base/1.yaml").is_file());
-    assert!(made.data.join("search-llm-agents-base.yaml").is_file());
+    assert!(made.data.join("unpacked/rust-base/roadmap.yaml").is_file());
+    assert!(made.data.join("history/rust-base/1.yaml").is_file());
+    assert!(made.data.join("search-rust-base.yaml").is_file());
     assert!(!was.join("settings.yaml").exists(), "старое не убрано");
 }
 

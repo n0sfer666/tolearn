@@ -78,7 +78,10 @@ fn a_second_import_of_the_same_package_arrives_as_a_copy() {
 #[test]
 fn a_v1_folder_or_archive_is_answered_as_v1_not_as_a_parse_error() {
     let shelf = Shelf::new("v1");
-    let mut paths = vec![repository().join("examples/llm-agents-base")];
+    let folder = shelf.incoming.join("rust-base");
+    std::fs::create_dir_all(&folder).unwrap();
+    std::fs::write(folder.join("roadmap.yaml"), b"id: rust-base\n").unwrap();
+    let mut paths = vec![folder];
     for name in ["bundle.zip", "bundle.tar.gz", "bundle.tgz", "BUNDLE.ZIP"] {
         let file = shelf.incoming.join(name);
         std::fs::write(&file, b"not an archive").unwrap();

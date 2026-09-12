@@ -1,4 +1,3 @@
-mod dates;
 mod duplicates;
 mod error;
 mod failure;
@@ -13,7 +12,7 @@ pub(crate) use names::is_uuid;
 
 use saphyr::{LoadableYamlNode, MarkedYaml};
 
-const ONE_DOCUMENT: &str = "a bundle file holds exactly one YAML document";
+const ONE_DOCUMENT: &str = "a file holds exactly one YAML document";
 
 pub fn read<T>(
     source: &str,

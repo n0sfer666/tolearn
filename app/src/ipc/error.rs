@@ -1,8 +1,5 @@
 use std::fmt;
 
-use tolearn_core::progress::DocumentError;
-use tolearn_core::scan::ScanError;
-
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct IpcError {
     pub code: String,
@@ -26,17 +23,6 @@ impl IpcError {
 
     pub fn payload(error: &serde_json::Error) -> Self {
         Self::new("ipc.malformed-payload", error.to_string())
-    }
-
-    pub fn unknown_version(version: u32, roadmap: &str) -> Self {
-        Self::new(
-            "history.unknown-version",
-            format!("версии {version} программы `{roadmap}` в истории нет"),
-        )
-    }
-
-    pub fn malformed_date(value: &str) -> Self {
-        Self::new("date.malformed", format!("`{value}` — не дата"))
     }
 
     pub fn unwritable(path: &std::path::Path, reason: &str) -> Self {
@@ -74,23 +60,6 @@ impl From<tolearn_core::export::ExportError> for IpcError {
 impl From<tolearn_core::package::UnpackError> for IpcError {
     fn from(error: tolearn_core::package::UnpackError) -> Self {
         Self::new(error.code(), error.to_string())
-    }
-}
-
-impl From<ScanError> for IpcError {
-    fn from(error: ScanError) -> Self {
-        let code = match error {
-            ScanError::NoRoadmap { .. } => "scan.no-roadmap",
-            ScanError::Unreadable { .. } => "scan.unreadable",
-            ScanError::Malformed { .. } => "scan.malformed",
-        };
-        Self::new(code, error.to_string())
-    }
-}
-
-impl From<DocumentError> for IpcError {
-    fn from(error: DocumentError) -> Self {
-        Self::new("progress.malformed", error.to_string())
     }
 }
 

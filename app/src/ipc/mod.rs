@@ -4,7 +4,6 @@ mod dto;
 mod error;
 mod handlers;
 pub mod layout;
-mod open;
 mod picture;
 mod provider;
 pub mod reading;

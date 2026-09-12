@@ -1,28 +1,11 @@
 use std::collections::BTreeSet;
 
 use serde_json::Value;
-use tolearn_core::{program, roadmap, stage, topic};
+use tolearn_core::{program, stage};
 
 use crate::repo::read;
 use crate::schema::paths::{described_fields, objects};
 use crate::schema::{schema, valid_documents, yaml};
-
-const ROADMAP: &str = "examples/llm-agents-base/roadmap.yaml";
-const TOPIC: &str = "examples/llm-agents-base/topics/local-runtime.yaml";
-
-#[test]
-fn the_roadmap_parser_reads_every_field_the_schema_describes() {
-    every_described_field_is_read("roadmap", &[ROADMAP.to_owned()], &|source| {
-        roadmap::parse(source).map(drop).map_err(|e| e.to_string())
-    });
-}
-
-#[test]
-fn the_topic_parser_reads_every_field_the_schema_describes() {
-    every_described_field_is_read("topic", &[TOPIC.to_owned()], &|source| {
-        topic::parse(source).map(drop).map_err(|e| e.to_string())
-    });
-}
 
 #[test]
 fn the_program_parser_reads_every_field_the_schema_describes() {

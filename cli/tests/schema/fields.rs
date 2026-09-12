@@ -2,23 +2,13 @@ use crate::repo::read;
 
 pub const ROLES: [&str; 3] = ["рендер", "логика", "игнор"];
 
-const LISTS: [(&str, &[(&str, &str)]); 2] = [
-    (
-        "docs/fields.md",
-        &[
-            ("## roadmap.yaml", "roadmap"),
-            ("## topics/*.yaml", "topic"),
-            ("## progress.yaml", "progress"),
-        ],
-    ),
-    (
-        "docs/format.md",
-        &[
-            ("## program.yaml", "program"),
-            ("## stages/*.yaml", "stage"),
-        ],
-    ),
-];
+const LISTS: [(&str, &[(&str, &str)]); 1] = [(
+    "docs/format.md",
+    &[
+        ("## program.yaml", "program"),
+        ("## stages/*.yaml", "stage"),
+    ],
+)];
 
 pub struct Row {
     pub kind: String,

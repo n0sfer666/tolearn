@@ -133,7 +133,7 @@ fn the_index_lives_beside_the_library_and_leaves_programs_alone() {
 fn a_v1_index_is_rebuilt() {
     let shelf = Shelf::new("search-legacy");
     shelf.shelved("examples/chiptune");
-    let v1 = "schema: tolearn/search/v1\nsources:\n  - path: \"/bundle/topics/local-runtime.yaml\"\n    roadmap: \"llm-agents-base\"\n    modified: \"1\"\n    size: \"1\"\n    documents:\n      - kind: topic\n        topic: \"local-runtime\"\n        title: \"Голоса чипа\"\n        text: \"\"\n";
+    let v1 = "schema: tolearn/search/v1\nsources:\n  - path: \"/bundle/topics/local-runtime.yaml\"\n    roadmap: \"rust-base\"\n    modified: \"1\"\n    size: \"1\"\n    documents:\n      - kind: topic\n        topic: \"local-runtime\"\n        title: \"Голоса чипа\"\n        text: \"\"\n";
     std::fs::write(shelf.context.search(), v1).unwrap();
 
     let out = search(&shelf, "голоса чипа");

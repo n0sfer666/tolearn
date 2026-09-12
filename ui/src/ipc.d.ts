@@ -3,91 +3,9 @@
 
 export type IpcError = { code: string; message: string };
 
-export type ValidateIn = {
-  bundle: string;
-};
-
-export type ValidateOut = {
-  ok: boolean;
-  violations: Violation[];
-};
-
-export type Violation = {
-  code: string;
-  message: string;
-};
-
-export type ScanIn = {
-  bundle: string;
-};
-
-export type ScanOut = {
-  root: string;
-  format: string;
-  topics: string[];
-  absent: Absent[];
-  broken: Broken[];
-};
-
-export type Absent = {
-  id: string;
-  stage: number;
-  generated: boolean;
-  file: string;
-};
-
-export type Broken = {
-  id: string;
-  file: string;
-  message: string;
-};
-
-export type ProgramIn = {
-  bundle: string;
-  today: string;
-};
-
-export type ProgramOut = {
-  title: string;
-  program: Tally;
-  stages: Stage[];
-  topics: TopicStatus[];
-};
-
-export type Stage = {
-  n: number;
-  title: string;
-  checkpoint: string;
-  tally: Tally;
-};
-
-export type Tally = {
-  done: number;
-  total: number;
-  stale: number;
-  share: number;
-  hours_done: Span;
-  hours_total: Span;
-};
-
 export type Span = {
   min: number;
   max: number;
-};
-
-export type TopicStatus = {
-  id: string;
-  title: string;
-  stage: number;
-  checkpoint: boolean;
-  status: string;
-  hours: Span;
-  blocked_by: Link[];
-};
-
-export type Link = {
-  id: string;
-  title: string;
 };
 
 export type SettingsIn = {
@@ -208,7 +126,7 @@ export type LlmLogOut = {
 };
 
 export type SpeechStateIn = {
-  bundle: string;
+  program: string;
 };
 
 export type SpeechStateOut = {
@@ -218,7 +136,7 @@ export type SpeechStateOut = {
 };
 
 export type SpeechStopIn = {
-  bundle: string;
+  program: string;
 };
 
 export type SpeechStopOut = {
@@ -345,9 +263,6 @@ export type ExportOut = {
 };
 
 export type Commands = {
-  validate: { input: ValidateIn; output: ValidateOut };
-  scan: { input: ScanIn; output: ScanOut };
-  program: { input: ProgramIn; output: ProgramOut };
   export: { input: ExportIn; output: ExportOut };
   settings: { input: SettingsIn; output: SettingsView };
   search: { input: SearchIn; output: SearchOut };

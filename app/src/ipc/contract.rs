@@ -41,9 +41,6 @@ macro_rules! commands {
 }
 
 commands! {
-    validate(types::ValidateIn) -> types::ValidateOut,
-    scan(types::ScanIn) -> types::ScanOut,
-    program(types::ProgramIn) -> types::ProgramOut,
     export(reading::ExportIn) -> reading::ExportOut,
     settings(types::SettingsIn) -> types::SettingsView,
     search(types::SearchIn) -> types::SearchOut,

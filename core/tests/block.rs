@@ -52,13 +52,9 @@ fn перестановка_несовпадающих_блоков_их_id_не
 }
 
 #[test]
-fn на_корпусе_фикстур_префиксы_не_совпадают() {
-    let mut texts = Vec::new();
-    for room in ["examples", "fixtures"] {
-        collect(&support::root().join(room), &mut texts);
-    }
-    texts.sort();
-    texts.dedup();
+fn на_корпусе_фикстур_и_документации_префиксы_не_совпадают() {
+    let fixtures = corpus(&["examples", "fixtures"]);
+    let texts = corpus(&["examples", "fixtures", "docs"]);
 
     let mut owners: BTreeMap<String, &str> = BTreeMap::new();
     for text in &texts {
@@ -67,10 +63,25 @@ fn на_корпусе_фикстур_префиксы_не_совпадают()
         }
     }
     assert!(
+        fixtures.len() > 150,
+        "корпус фикстур подозрительно мал: {}",
+        fixtures.len()
+    );
+    assert!(
         texts.len() > 1000,
         "корпус подозрительно мал: {}",
         texts.len()
     );
+}
+
+fn corpus(rooms: &[&str]) -> Vec<String> {
+    let mut texts = Vec::new();
+    for room in rooms {
+        collect(&support::root().join(room), &mut texts);
+    }
+    texts.sort();
+    texts.dedup();
+    texts
 }
 
 fn collect(room: &Path, texts: &mut Vec<String>) {
@@ -80,13 +91,21 @@ fn collect(room: &Path, texts: &mut Vec<String>) {
             collect(&path, texts);
             continue;
         }
-        if !path
-            .extension()
-            .is_some_and(|extension| extension == "yaml" || extension == "json")
-        {
+        let extension = path.extension().and_then(|extension| extension.to_str());
+        if !matches!(extension, Some("yaml" | "json" | "md")) {
             continue;
         }
         let source = std::fs::read_to_string(&path).unwrap();
+        if extension == Some("md") {
+            texts.extend(
+                source
+                    .split("\n\n")
+                    .map(str::trim)
+                    .filter(|text| !text.is_empty())
+                    .map(str::to_owned),
+            );
+            continue;
+        }
         let Ok(documents) = Yaml::load_from_str(&source) else {
             continue;
         };

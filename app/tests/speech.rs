@@ -8,22 +8,19 @@
 mod support;
 
 use serde_json::json;
-use support::copied;
-use tolearn_app::ipc::{Context, call};
+use support::shelf::{CHIPTUNE, Shelf};
 
-fn context() -> Context {
-    Context::new(&std::env::temp_dir().join(format!("tolearn-speech-{}", std::process::id())))
+fn shelf(name: &str) -> Shelf {
+    let shelf = Shelf::new(name);
+    shelf.shelved("examples/chiptune");
+    shelf
 }
 
 #[test]
 fn состояние_называет_вариант_сборки_и_язык_программы() {
-    let bundle = copied("speech-state");
-    let out = call(
-        &context(),
-        "speech_state",
-        &json!({ "bundle": bundle.display().to_string() }),
-    )
-    .unwrap();
+    let out = shelf("speech-state")
+        .ask("speech_state", json!({ "program": CHIPTUNE }))
+        .unwrap();
 
     assert_eq!(out["available"], json!(cfg!(feature = "speech")));
     assert_eq!(out["listening"], json!(false));
@@ -32,13 +29,9 @@ fn состояние_называет_вариант_сборки_и_язык_�
 
 #[test]
 fn расшифровка_без_записи_отвечает_кодом_а_не_текстом() {
-    let bundle = copied("speech-stop");
-    let error = call(
-        &context(),
-        "speech_stop",
-        &json!({ "bundle": bundle.display().to_string() }),
-    )
-    .unwrap_err();
+    let error = shelf("speech-stop")
+        .ask("speech_stop", json!({ "program": CHIPTUNE }))
+        .unwrap_err();
 
     let expected = if cfg!(feature = "speech") {
         "speech.silent"
@@ -54,25 +47,18 @@ fn выключенное_распознавание_не_открывает_м�
     if cfg!(feature = "speech") {
         return;
     }
-    let bundle = copied("speech-start");
-    let error = call(
-        &context(),
-        "speech_start",
-        &json!({ "bundle": bundle.display().to_string() }),
-    )
-    .unwrap_err();
+    let error = shelf("speech-start")
+        .ask("speech_start", json!({ "program": CHIPTUNE }))
+        .unwrap_err();
 
     assert_eq!(error.code, "speech.off");
 }
 
 #[test]
-fn чужой_бандл_ловится_до_микрофона() {
-    let error = call(
-        &context(),
-        "speech_start",
-        &json!({ "bundle": "/nowhere-at-all" }),
-    )
-    .unwrap_err();
+fn чужая_программа_ловится_до_микрофона() {
+    let error = Shelf::new("speech-absent")
+        .ask("speech_start", json!({ "program": "nowhere-at-all" }))
+        .unwrap_err();
 
-    assert_eq!(error.code, "scan.no-roadmap");
+    assert_eq!(error.code, "library.absent");
 }

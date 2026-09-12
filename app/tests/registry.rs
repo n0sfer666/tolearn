@@ -33,7 +33,7 @@ fn реестр_и_распакованные_бандлы_v1_приложени
     std::fs::create_dir_all(unpacked.join("topics")).unwrap();
     std::fs::write(
         unpacked.join("roadmap.yaml"),
-        b"schema: learning-roadmap/v1\nid: rust-base\ntitle: Rust\n",
+        b"id: rust-base\ntitle: Rust\n",
     )
     .unwrap();
     std::fs::write(

@@ -2,27 +2,15 @@
 
 [Русский](../ru/protocol.md) · **English**
 
-The app's contract. This document describes what `tolearn` does with a verdict.
+The app's contract. This document describes what `tolearn` does with an exam
+verdict.
 
-Why it lives in the repository and not in the bundle: `examiner.md` inside a
-bundle is a file that the LLM regenerates and the user may edit. It describes what
-the **examining model** does. What the **app** does is decided by the app —
-otherwise the tracker's behaviour would depend on the contents of an imported
-folder. A disagreement between this document and a bundle's `examiner.md` is
-resolved in favour of this document; the app shows a warning on import when the
-tail of `examiner.md` describes different rules.
-
-## The prompt boundary
-
-`examiner.md` consists of two parts separated by a horizontal rule `---`:
-
-- **before `---`** — the prompt for the examining model. Only this is copied;
-- **after `---`** — the "What the tracker does with the result" and "Known
-  limitation" sections. Those address the tracker and the person and never reach
-  the prompt.
-
-The header block at the top of the file (the "copied into the bundle as
-examiner.md" mark) is cut out too: it addresses the generator.
+This document describes the v1 exam. The app does not take exams right now: the
+exam comes back on top of the v2 format ([format.md](../format.md)), and this
+contract will then be rewritten for stages instead of topics. What the
+**examining model** does is up to its prompt. What the **app** does is up to
+this document — otherwise the app's behaviour would depend on the contents of an
+imported program.
 
 ## The verdict
 
