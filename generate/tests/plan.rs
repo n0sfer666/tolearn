@@ -8,30 +8,10 @@ mod support;
 
 use tolearn_core::Hours;
 use tolearn_core::program::{StageRow, Volatility};
-use tolearn_generate::plan::{self, Part, Plan, Request};
+use tolearn_generate::plan::{self, Part, Plan};
 use tolearn_generate::{GenerateError, REPAIRS, online};
 
-use support::{Scripted, Up};
-
-fn answer(name: &str) -> String {
-    if name.ends_with(".txt") {
-        std::fs::read_to_string(format!("../fixtures/generate/plan/{name}")).unwrap()
-    } else {
-        name.to_owned()
-    }
-}
-
-fn model(answers: &[&str]) -> Scripted {
-    Scripted::new(answers.iter().map(|name| answer(name)).collect())
-}
-
-fn request() -> Request {
-    Request {
-        request: "Хочу писать чиптюн".to_owned(),
-        level: "Нот не знаю, трекер не открывал".to_owned(),
-        locale: "ru".to_owned(),
-    }
-}
+use support::{Up, answer, model, request};
 
 fn drawn(answers: &[&str]) -> (Result<Plan, GenerateError>, Vec<String>) {
     let model = model(answers);
@@ -66,6 +46,7 @@ fn flat_map_is_taken_from_the_first_answer() {
         }
     );
     assert!(plan.children.is_empty());
+    assert_eq!(plan.hours(), Hours { min: 19, max: 30 });
     for asked in [
         "Хочу писать чиптюн",
         "Нот не знаю",
@@ -87,6 +68,7 @@ fn map_over_seventy_hours_comes_split_into_subprograms() {
     assert_eq!(plan.volatility, Volatility::Volatile);
     assert!(plan.stages.is_empty());
     assert_eq!(plan.children.len(), 4);
+    assert_eq!(plan.hours(), Hours { min: 170, max: 250 });
     assert_eq!(
         plan.children[1],
         Part {

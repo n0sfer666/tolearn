@@ -1,10 +1,11 @@
 use std::error::Error;
+use std::fmt;
 
 use reqwest::blocking::Client;
 
 use crate::net;
 
-pub trait Reach {
+pub trait Reach: fmt::Debug {
     fn reach(&self, url: &str) -> Result<(), String>;
 }
 

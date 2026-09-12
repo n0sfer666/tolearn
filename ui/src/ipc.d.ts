@@ -262,6 +262,44 @@ export type ExportOut = {
   files: number;
 };
 
+export type PlanProgramIn = {
+  request: string;
+  level: string;
+};
+
+export type RevisePlanIn = {
+  request: string;
+  level: string;
+  plan: PlanView;
+  wish: string;
+};
+
+export type PlanOut = {
+  plan: PlanView;
+  hours: Span;
+};
+
+export type PlanView = {
+  title: string;
+  slug: string;
+  goal: string;
+  volatility: string;
+  stages: PlanStageView[];
+  children: PlanPartView[];
+};
+
+export type PlanStageView = {
+  id: string;
+  title: string;
+  hours: Span;
+};
+
+export type PlanPartView = {
+  title: string;
+  goal: string;
+  hours: Span;
+};
+
 export type Commands = {
   export: { input: ExportIn; output: ExportOut };
   settings: { input: SettingsIn; output: SettingsView };
@@ -275,6 +313,8 @@ export type Commands = {
   import_package: { input: ImportPackageIn; output: ImportPackageOut };
   node: { input: NodeIn; output: NodeOut };
   stage: { input: StageIn; output: StageOut };
+  plan_program: { input: PlanProgramIn; output: PlanOut };
+  revise_plan: { input: RevisePlanIn; output: PlanOut };
 };
 
 export type CommandName = keyof Commands;

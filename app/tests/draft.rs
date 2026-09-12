@@ -9,7 +9,7 @@ mod support;
 
 use serde_json::json;
 use support::snapshot;
-use tolearn_app::ipc::{Context, call};
+use tolearn_app::ipc::{Context, NAMES, call};
 
 const GONE: [&str; 6] = [
     "generate",
@@ -19,6 +19,16 @@ const GONE: [&str; 6] = [
     "generate_accept",
     "generate_draft",
 ];
+
+const PLANNING: [&str; 2] = ["plan_program", "revise_plan"];
+
+#[test]
+fn команды_новой_программы_не_повторяют_имена_v1() {
+    for name in PLANNING {
+        assert!(NAMES.contains(&name), "{name}");
+        assert!(!GONE.contains(&name), "{name}");
+    }
+}
 
 #[test]
 fn черновик_генерации_v1_приложение_не_читает_и_не_удаляет() {

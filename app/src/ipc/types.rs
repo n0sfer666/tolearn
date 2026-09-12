@@ -140,5 +140,6 @@ pub fn shapes() -> Vec<Shape> {
         SpeechStopOut::shape(),
     ];
     shapes.extend(super::reading::shapes());
+    shapes.extend(super::planned::shapes());
     shapes
 }

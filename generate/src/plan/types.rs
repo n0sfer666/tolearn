@@ -18,6 +18,19 @@ pub struct Plan {
     pub children: Vec<Part>,
 }
 
+impl Plan {
+    pub fn hours(&self) -> Hours {
+        self.stages
+            .iter()
+            .map(|row| row.hours)
+            .chain(self.children.iter().map(|row| row.hours))
+            .fold(Hours::default(), |sum, hours| Hours {
+                min: sum.min.saturating_add(hours.min),
+                max: sum.max.saturating_add(hours.max),
+            })
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Part {
     pub title: String,

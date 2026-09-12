@@ -3,6 +3,7 @@ use serde_json::Value;
 use super::context::Context;
 use super::error::IpcError;
 use super::handlers;
+use super::planned;
 use super::reading;
 use super::shape::Shape;
 use super::types;
@@ -53,6 +54,8 @@ commands! {
     import_package(reading::ImportPackageIn) -> reading::ImportPackageOut,
     node(reading::NodeIn) -> reading::NodeOut,
     stage(reading::StageIn) -> reading::StageOut,
+    plan_program(planned::PlanProgramIn) -> planned::PlanOut,
+    revise_plan(planned::RevisePlanIn) -> planned::PlanOut,
 }
 
 #[tauri::command]

@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 
 use tolearn_generate::Model;
+use tolearn_generate::plan::Request;
 use tolearn_offline::reach::Reach;
 use tolearn_provider::{CheckError, Said};
 
@@ -47,5 +48,25 @@ impl Model for Scripted {
             thinking: false,
             tokens: None,
         })
+    }
+}
+
+pub fn answer(name: &str) -> String {
+    if name.ends_with(".txt") {
+        std::fs::read_to_string(format!("../fixtures/generate/plan/{name}")).unwrap()
+    } else {
+        name.to_owned()
+    }
+}
+
+pub fn model(answers: &[&str]) -> Scripted {
+    Scripted::new(answers.iter().map(|name| answer(name)).collect())
+}
+
+pub fn request() -> Request {
+    Request {
+        request: "Хочу писать чиптюн".to_owned(),
+        level: "Нот не знаю, трекер не открывал".to_owned(),
+        locale: "ru".to_owned(),
     }
 }

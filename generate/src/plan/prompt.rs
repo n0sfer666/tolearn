@@ -1,7 +1,8 @@
 use tolearn_core::program::MAX_DEPTH;
 
 use super::flaw::{Flaw, span};
-use super::types::{Part, Request};
+use super::shown::shown;
+use super::types::{Part, Plan, Request};
 use super::{MAX_HOURS, MAX_STAGES, STAGE_MAX_HOURS, STAGE_MIN_HOURS};
 
 const FORMAT: &str = r#"{"title": "название", "slug": "latin-kebab-case", "goal": "что ученик сможет в конце, одной фразой", "volatility": "stable | evolving | volatile", "stages": [{"id": "latin-kebab-case", "title": "название этапа", "hours": [2, 4]}], "children": [{"title": "название подпрограммы", "goal": "цель подпрограммы", "hours": [40, 60]}]}"#;
@@ -44,6 +45,17 @@ pub(super) fn task(request: &Request, part: Option<&Part>, depth: usize) -> Stri
          - hours — [минимум, максимум] в целых часах.\n\
          - volatility: stable — тема меняется десятилетиями, учат по учебникам; evolving — меняется за годы, нужны учебник и документация; volatile — меняется за месяцы, нужны официальная документация и релизы.\n\n\
          Ответь одним объектом JSON без пояснений:\n{FORMAT}"
+    )
+}
+
+pub(super) fn revised(request: &Request, previous: &Plan, wish: &str) -> String {
+    format!(
+        "{}\n\n\
+         Прежняя карта:\n{}\n\n\
+         Уточнение ученика: {wish}\n\
+         Перерисуй карту с учётом уточнения: то, чего оно не касается, оставь как было. Ответь снова одним объектом JSON.",
+        task(request, None, 1),
+        shown(previous)
     )
 }
 

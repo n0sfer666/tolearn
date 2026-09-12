@@ -3,6 +3,8 @@ use std::sync::Arc;
 
 use tauri::Manager;
 use tolearn_core::library::Library;
+use tolearn_generate::REACH_TIMEOUT_SECS;
+use tolearn_offline::reach::{Ping, Reach};
 use tolearn_provider::{Keychain, Vault};
 
 use super::error::IpcError;
@@ -11,12 +13,15 @@ use super::layout;
 const SERVICE: &str = "tolearn";
 const ACCOUNT: &str = "provider";
 
+pub type Net = Arc<dyn Reach + Send + Sync>;
+
 #[derive(Debug, Clone)]
 pub struct Context {
     config: PathBuf,
     data: PathBuf,
     resources: PathBuf,
     vault: Arc<dyn Vault>,
+    reach: Option<Net>,
 }
 
 impl Context {
@@ -30,6 +35,7 @@ impl Context {
             data: data.to_path_buf(),
             resources: data.to_path_buf(),
             vault: Arc::new(Keychain::new(SERVICE, ACCOUNT)),
+            reach: None,
         }
     }
 
@@ -44,7 +50,22 @@ impl Context {
             data: data.to_path_buf(),
             resources: data.to_path_buf(),
             vault,
+            reach: None,
         }
+    }
+
+    pub fn with_reach(mut self, reach: Net) -> Self {
+        self.reach = Some(reach);
+        self
+    }
+
+    pub fn reach(&self) -> Result<Net, IpcError> {
+        if let Some(reach) = &self.reach {
+            return Ok(Arc::clone(reach));
+        }
+        let ping = Ping::new(REACH_TIMEOUT_SECS)
+            .map_err(|reason| IpcError::new("generate.offline", reason))?;
+        Ok(Arc::new(ping))
     }
 
     pub fn resources(&self) -> &Path {

@@ -26,6 +26,22 @@ pub enum Volatility {
     Volatile,
 }
 
+impl Volatility {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Stable => "stable",
+            Self::Evolving => "evolving",
+            Self::Volatile => "volatile",
+        }
+    }
+
+    pub fn parse(label: &str) -> Option<Self> {
+        [Self::Stable, Self::Evolving, Self::Volatile]
+            .into_iter()
+            .find(|volatility| volatility.label() == label)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Map {
     pub stages: Vec<StageRow>,

@@ -2,6 +2,7 @@ mod answer;
 mod flaw;
 mod prompt;
 mod rules;
+mod shown;
 mod types;
 
 pub use flaw::Flaw;
@@ -30,6 +31,15 @@ pub fn expand(
     depth: usize,
 ) -> Result<Plan, GenerateError> {
     draw(online, &prompt::task(request, Some(part), depth), depth)
+}
+
+pub fn revise(
+    online: &Online<'_>,
+    request: &Request,
+    previous: &Plan,
+    wish: &str,
+) -> Result<Plan, GenerateError> {
+    draw(online, &prompt::revised(request, previous, wish), 1)
 }
 
 fn draw(online: &Online<'_>, task: &str, depth: usize) -> Result<Plan, GenerateError> {
