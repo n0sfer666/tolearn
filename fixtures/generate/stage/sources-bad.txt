@@ -1,0 +1,3 @@
+{"books": [{"title": "Unwritten Chiptune Bible", "author": "Nobody", "chapter": "1. Всё о чипе"}],
+ "pages": [{"url": "https://a.test/article"}, {"url": "https://a.test/menu"}],
+ "images": [{"query": "NES APU pulse wave", "caption": "Импульсная волна со скважностью 25%"}]}

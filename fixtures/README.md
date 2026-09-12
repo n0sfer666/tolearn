@@ -12,6 +12,7 @@ valid/reader/  страницы разной разметки для извле�
 openlibrary/   записанные ответы search.json: по ISBN, по названию, не найдено, обрезанный (offline/tests/book.rs)
 commons/       записанные ответы API Commons: свободный файл, несвободные, несвободный выше свободного, не найдено, обрезанный (offline/tests/commons.rs, generate/tests/images.rs)
 generate/plan/ ответы модели на карту: плоская, раздробленная, битая, подпрограмма (generate/tests/plan.rs)
+generate/stage/ ответы модели на этап: источники, отвергнутые, замена, отвергнутая замена, текст, ссылки мимо проверенного (generate/tests/stage/)
 audio/{ru,en}/ корпус распознавания речи S55 (speech/tests/corpus.rs)
 ```
 

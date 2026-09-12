@@ -1,0 +1,4 @@
+Вот источники для этапа.
+{"books": [{"title": "Game Sound", "author": "Karen Collins", "isbn": "978-0-262-03378-7", "chapter": "2. Push Start Button"}],
+ "pages": [{"url": "https://a.test/article"}, {"url": "https://a.test/docs"}],
+ "images": [{"query": "NES APU pulse wave", "caption": "Импульсная волна со скважностью 25%"}]}

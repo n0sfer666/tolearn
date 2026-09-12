@@ -1,0 +1,28 @@
+Этап готов.
+{"blocks": [
+  {"kind": "heading", "text": "Голоса чипа"},
+  {"kind": "paragraph", "text": "У звукового чипа NES пять каналов: два импульсных, треугольный, шумовой и DPCM. Подробно — на https://a.test/article.", "sources": ["p1"]},
+  {"kind": "diagram", "text": "flowchart LR\n  P1[Импульс 1] --> MIX[Микшер]\n  P2[Импульс 2] --> MIX\n  TRI[Треугольник] --> MIX", "sources": ["p2"]},
+  {"kind": "image", "text": "", "image": "i1"},
+  {"kind": "code", "lang": "text", "text": "Pulse 1: C-4 01 F\nPulse 2: E-4 01 F\nTriangle: C-3 .. ."},
+  {"kind": "callout", "text": "Треугольный канал не меняет громкость: он либо звучит, либо молчит.", "sources": ["b1"]}
+ ],
+ "practice": {
+  "task": [{"kind": "paragraph", "text": "Открой FamiTracker и поставь по три ноты на каналы Pulse 1, Pulse 2 и Triangle."}],
+  "deliverable": "Файл voices.ftm",
+  "constraints": [
+   {"claim": "Заняты только Pulse 1, Pulse 2 и Triangle", "expect": "Каналы Noise и DPCM пусты"},
+   {"claim": "Темп не выше 150", "check": "", "expect": "В заголовке модуля темп 150 или меньше"}
+  ],
+  "acceptance": [
+   {"claim": "Файл открывается трекером", "check": "file voices.ftm", "expect": "FamiTracker module"},
+   {"claim": "Слышны три голоса", "expect": "При проигрывании звучат три канала"}
+  ]
+ },
+ "questions": [
+  {"text": "Сколько каналов у звукового чипа NES?", "answer": "Пять: два импульсных, треугольный, шумовой и DPCM."},
+  {"text": "Чем треугольный канал отличается от импульсного?", "answer": "У него нет регулировки громкости и скважности."},
+  {"text": "Что задаёт скважность импульса?", "answer": "Долю периода, в которую сигнал высокий, и от неё тембр."}
+ ],
+ "terms": ["импульсная волна", "скважность"],
+ "tools": ["FamiTracker"]}

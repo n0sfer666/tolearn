@@ -2,6 +2,8 @@ use serde::Deserialize;
 use tolearn_core::Hours;
 use tolearn_core::program::{StageRow, Volatility};
 
+use crate::object::object;
+
 use super::flaw::Flaw;
 use super::types::{Part, Plan};
 
@@ -40,12 +42,8 @@ struct RawPart {
 }
 
 pub(super) fn read(text: &str) -> Result<Plan, Flaw> {
-    let object = match (text.find('{'), text.rfind('}')) {
-        (Some(start), Some(end)) if start < end => &text[start..=end],
-        _ => return Err(Flaw::Unreadable("в ответе нет объекта JSON".to_owned())),
-    };
-    let raw: Raw =
-        serde_json::from_str(object).map_err(|error| Flaw::Unreadable(error.to_string()))?;
+    let raw: Raw = serde_json::from_str(object(text).map_err(Flaw::Unreadable)?)
+        .map_err(|error| Flaw::Unreadable(error.to_string()))?;
     Ok(Plan {
         title: raw.title,
         slug: raw.slug,
