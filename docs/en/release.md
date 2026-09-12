@@ -57,6 +57,12 @@ All six numbers are from 2026-08-18, version 0.3.0, all from the `package` job o
 a single green run. When the weight changes, so does this table: it holds the
 latest measurement, not the first one.
 
+After that measurement `@mermaid-js/tiny` 12.0.0 went into the binary (S117):
+generation uses it to draw diagrams. It is 2.9 MB uncompressed and 0.74 MB
+gzipped. The local macOS arm64 dmg from `cargo tauri build --bundles dmg` on
+2026-09-12 grew from 3,911,162 to 4,703,122 bytes, so by 791,960 bytes
+(0.76 MB). The table numbers will be updated by the next `package` run.
+
 The base variant's ceilings are [budgets](../architecture.md#бюджеты) (in
 Russian), and going over one fails the build. `-with-speech` has no installer
 ceiling: its weight is set by the model weights, which have a budget of their own

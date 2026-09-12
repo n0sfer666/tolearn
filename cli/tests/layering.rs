@@ -98,6 +98,7 @@ const LAYERS: &[Layer] = &[
             "tolearn-runner",
             "tolearn-offline",
             "tolearn-provider",
+            "tolearn-generate",
             "tolearn-gestures",
             "tolearn-speech",
         ],

@@ -16,6 +16,7 @@ speech = ["tolearn-speech/speech"]
 [dependencies]
 tolearn-core.workspace = true
 tolearn-offline.workspace = true
+tolearn-generate.workspace = true
 tolearn-provider.workspace = true
 tolearn-gestures.workspace = true
 tolearn-speech.workspace = true

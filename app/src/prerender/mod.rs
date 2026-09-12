@@ -1,11 +1,12 @@
 mod script;
 
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::mpsc::{self, RecvTimeoutError};
 use std::time::{Duration, Instant};
 
 use tauri::{AppHandle, Runtime, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 use tolearn_offline::page::{PageError, Prerenderer};
+
+use crate::hidden::{answer, on_main};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Settling {
@@ -52,7 +53,8 @@ impl<R: Runtime> Webview<R> {
                 .initialization_script(script)
                 .build()
                 .map_err(|error| error.to_string())
-        })?
+        })
+        .flatten()
         .map_err(PageError::Prerender)
     }
 
@@ -62,27 +64,12 @@ impl<R: Runtime> Webview<R> {
 
     fn watch(&self, window: &WebviewWindow<R>, until: Instant) -> Option<Vec<u8>> {
         while Instant::now() < until {
-            if let Some(html) = self.ask(window, until) {
+            if let Some(html) = answer(window, script::HARVEST, until) {
                 return Some(html.into_bytes());
             }
             std::thread::sleep(self.settling.poll);
         }
         None
-    }
-
-    fn ask(&self, window: &WebviewWindow<R>, until: Instant) -> Option<String> {
-        let (answers, answer) = mpsc::channel();
-        let asked = window.eval_with_callback(script::HARVEST, move |json| {
-            let _ = answers.send(json);
-        });
-        if asked.is_err() {
-            return None;
-        }
-        let left = until.saturating_duration_since(Instant::now());
-        match answer.recv_timeout(left) {
-            Ok(json) => serde_json::from_str::<Option<String>>(&json).ok().flatten(),
-            Err(RecvTimeoutError::Timeout | RecvTimeoutError::Disconnected) => None,
-        }
     }
 }
 
@@ -93,20 +80,6 @@ impl<R: Runtime> Prerenderer for Webview<R> {
         self.close(window);
         Ok(rendered.unwrap_or_else(|| html.to_vec()))
     }
-}
-
-fn on_main<R: Runtime, T: Send + 'static>(
-    app: &AppHandle<R>,
-    work: impl FnOnce() -> T + Send + 'static,
-) -> Result<T, PageError> {
-    let (done, result) = mpsc::channel();
-    app.run_on_main_thread(move || {
-        let _ = done.send(work());
-    })
-    .map_err(|error| PageError::Prerender(error.to_string()))?;
-    result
-        .recv()
-        .map_err(|_| PageError::Prerender("окно не открылось: цикл событий молчит".to_owned()))
 }
 
 fn millis(span: Duration) -> u64 {

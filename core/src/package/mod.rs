@@ -3,7 +3,7 @@ mod import;
 mod manifest;
 mod renew;
 mod scratch;
-mod svg;
+pub mod svg;
 mod unpack;
 mod unpack_error;
 mod verify;

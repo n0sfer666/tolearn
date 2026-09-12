@@ -2,6 +2,7 @@ mod error;
 mod gate;
 mod model;
 
+pub mod diagram;
 pub mod sources;
 
 pub use error::GenerateError;

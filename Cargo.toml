@@ -15,6 +15,7 @@ tolearn-core = { path = "core" }
 tolearn-runner = { path = "runner" }
 tolearn-offline = { path = "offline" }
 tolearn-provider = { path = "provider" }
+tolearn-generate = { path = "generate" }
 tolearn-gestures = { path = "gestures" }
 tolearn-speech = { path = "speech" }
 keyring = "4"

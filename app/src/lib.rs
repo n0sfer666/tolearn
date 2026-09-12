@@ -1,6 +1,8 @@
 pub mod gestures;
+mod hidden;
 pub mod ipc;
 pub mod journal;
+pub mod mermaid;
 pub mod prerender;
 pub mod speech;
 pub mod window;
@@ -11,6 +13,7 @@ pub fn run() -> Result<(), tauri::Error> {
             window::raised(app);
         }))
         .plugin(tauri_plugin_dialog::init())
+        .plugin(mermaid::plugin())
         .setup(|app| {
             gestures::enable(app)?;
             Ok(())

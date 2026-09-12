@@ -3,7 +3,7 @@ use quick_xml::{Reader, XmlVersion};
 
 const FOREIGN: [&[u8]; 5] = [b"script", b"foreignobject", b"iframe", b"embed", b"object"];
 
-pub(super) fn check(data: &[u8]) -> Result<(), String> {
+pub fn check(data: &[u8]) -> Result<(), String> {
     if let Some(byte) = data
         .iter()
         .find(|byte| **byte < 0x20 && !matches!(byte, b'\t' | b'\n' | b'\r'))

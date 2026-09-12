@@ -5,6 +5,7 @@ mod verdict;
 
 pub use excerpt::{PAGE_CHARS, excerpt};
 pub use image::Illustration;
+pub(crate) use image::file_name;
 pub use verdict::{Outcome, Verdict, Verified};
 
 use std::fmt;

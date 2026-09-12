@@ -13,8 +13,7 @@ pub struct Illustration {
 
 impl Illustration {
     pub fn new(picture: Picture, caption: &str) -> Self {
-        let hash = digest(&picture.bytes);
-        let file = format!("{}.{}", &hash[..NAME_CHARS], picture.extension);
+        let file = file_name(&picture.bytes, &picture.extension);
         let block = Block {
             id: block::id(caption),
             kind: Kind::Image,
@@ -34,4 +33,8 @@ impl Illustration {
             block,
         }
     }
+}
+
+pub(crate) fn file_name(bytes: &[u8], extension: &str) -> String {
+    format!("{}.{extension}", &digest(bytes)[..NAME_CHARS])
 }

@@ -122,6 +122,22 @@ verdict }`, где `Verdict` — `Passed(Verified { url, title, text })` / `Pass
 нет. Wikimedia без `User-Agent` отвечает 403, поэтому клиент `offline::net`
 представляется как `tolearn/<версия>`.
 
+Схему рисует `generate::diagram::draw(painter, mermaid)` через трейт `Painter`.
+Ответ окна проходит две проверки: он начинается с `<svg`, и его пропускает
+`core::package::svg::check`, та же проверка, что у импорта (S102). Прошедший
+ответ становится `Diagram::Drawn`: `Illustration` с SVG-ассетом по sha256 и
+блоком `diagram`, где `text` — исходник Mermaid. Любой отказ, включая таймаут и
+сломанную разметку, даёт `Diagram::Source`: блок `code` с `lang: mermaid` и
+причину. `Painter` реализует `app::mermaid::Mermaid`. Он открывает скрытое окно
+`mermaid-N` на своей схеме `tolearn-mermaid://` (на Windows —
+`http://tolearn-mermaid.localhost/`), и плагин отдаёт этому окну три файла из
+бинарника: страницу, `draw.js` и `@mermaid-js/tiny`. Заголовок
+`default-src 'none'; script-src 'self'` не выпускает окно в сеть, а
+`on_navigation` не даёт ему уйти со своей схемы. Исходник передаётся в `#`
+адреса. Mermaid работает с `securityLevel: strict` и без HTML-меток, результат
+снимается через `XMLSerializer` и забирается опросом `eval_with_callback`, как у
+S37. Общие для обоих окон `on_main` и `answer` лежат в `app/src/hidden.rs`.
+
 ## Владение данными
 
 | Данные | Владелец | Где лежит |
