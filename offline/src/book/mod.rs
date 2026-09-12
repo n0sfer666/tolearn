@@ -2,7 +2,7 @@ mod error;
 
 pub use error::BookError;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use url::form_urlencoded::Serializer;
 
 use crate::page::Source;
@@ -18,7 +18,7 @@ pub struct Wanted {
     pub author: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Book {
     pub title: String,
     pub authors: Vec<String>,

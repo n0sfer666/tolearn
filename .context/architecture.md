@@ -98,6 +98,19 @@ headless-окружении без GUI.
 `BookError::Unreachable` — сбой сети с причиной, `Malformed` — ответ не
 разобрался. Тесты работают на записанных ответах из `fixtures/openlibrary/`.
 
+Источники, которые предложила модель, проверяет `generate::sources::Sources`
+(источник, пререндер, `Store`, `<data>`, uuid программы, момент). `page(url)`
+грузит страницу через `page::save` без подресурсов, кладёт сырой HTML в `Store`
+(`kind: "page"`) и сразу вызывает `sweep` по бюджету, затем прогоняет читалку.
+`book(wanted)` вызывает `offline::book::find`. Итог — `Outcome { checked_at,
+verdict }`, где `Verdict` — `Passed(Verified { url, title, text })` / `Passed(Book)`
+или `Refused(причина)`. Итог пишется атомарно в
+`<data>/cache/<uuid>/{pages,books}/<sha256 ключа>.json`, а повторный вызов в той же
+программе читает его без запросов. Отказы «нет текста» и «книги нет» тоже
+кэшируются. Сбой сети не кэшируется: он временный. Битый JSON в кэше считается
+промахом, ошибка ввода-вывода — `generate.cache`. Модели идёт
+`excerpt(text)`, это первые `PAGE_CHARS` = 8000 символов.
+
 ## Владение данными
 
 | Данные | Владелец | Где лежит |
@@ -107,6 +120,7 @@ headless-окружении без GUI.
 | бандл v1, приехавший архивом | больше никто: не читается и не удаляется (S107) | `<app-data>/unpacked/<roadmap-id>/` |
 | программа v2: карта, этапы, ассеты | генерация и импорт | `<app-data>/programs/<uuid>/` |
 | пользовательское v2 | приложение | `<app-data>/state/<uuid>/` |
+| сырой HTML источников и итоги их проверки | генерация (S115); стирается без потерь | `<app-data>/cache/objects/`, `<app-data>/cache/index.sqlite`, `<app-data>/cache/<uuid>/` |
 
 `<app-data>` — это `~/.local/share/tolearn` (или `$XDG_DATA_HOME/tolearn`), а
 настройки живут отдельно: `settings.yaml` и `provider.yaml` лежат в

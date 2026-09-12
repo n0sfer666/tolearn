@@ -1,7 +1,7 @@
-mod digest;
 mod net;
 
 pub mod book;
+pub mod digest;
 pub mod page;
 pub mod reach;
 pub mod reader;
