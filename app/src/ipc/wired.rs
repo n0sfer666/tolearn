@@ -7,6 +7,7 @@ use crate::prerender::{Settling, Webview};
 
 use super::context::Context;
 use super::error::IpcError;
+use super::ledger::Ledger;
 use super::running::Running;
 use super::started::{GenerationStep, STEP_EVENT};
 use super::tools::Tools;
@@ -21,14 +22,19 @@ pub fn wired(app: &AppHandle, context: Context) -> Result<Context, IpcError> {
             let _ = emitter.emit(STEP_EVENT, step);
         })),
     };
-    let running = app
-        .try_state::<Running>()
+    Ok(context
+        .with_tools(tools)
+        .with_running(managed::<Running>(app)?)
+        .with_ledger(managed::<Ledger>(app)?))
+}
+
+fn managed<T: Clone + Send + Sync + 'static>(app: &AppHandle) -> Result<T, IpcError> {
+    app.try_state::<T>()
         .map(|state| state.inner().clone())
         .ok_or_else(|| {
             IpcError::new(
                 "ipc.unmanaged",
                 "в приложении не заведено состояние генерации".to_owned(),
             )
-        })?;
-    Ok(context.with_tools(tools).with_running(running))
+        })
 }

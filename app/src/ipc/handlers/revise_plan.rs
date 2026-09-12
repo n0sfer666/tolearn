@@ -1,3 +1,4 @@
+use tolearn_generate::ledger::Tally;
 use tolearn_generate::plan;
 
 use crate::ipc::context::Context;
@@ -15,6 +16,7 @@ pub fn run(context: &Context, input: &RevisePlanIn) -> Result<PlanOut, IpcError>
         KIND,
         &input.request,
         &input.level,
+        Tally::extend,
         |online, request| plan::revise(online, request, &previous, &wish),
     )
 }

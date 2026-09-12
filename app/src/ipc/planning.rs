@@ -1,5 +1,6 @@
 use tolearn_core::Hours;
 use tolearn_core::program::{StageRow, Volatility};
+use tolearn_generate::ledger::{Record, Tally};
 use tolearn_generate::plan::{Part, Plan, Request};
 use tolearn_generate::{GenerateError, Online, online};
 use tolearn_provider::{Provider, Stop};
@@ -18,13 +19,25 @@ pub fn drawn(
     kind: &'static str,
     request: &str,
     level: &str,
+    keep: fn(&Tally, Vec<Record>),
     draw: impl FnOnce(&Online<'_>, &Request) -> Result<Plan, GenerateError>,
 ) -> Result<PlanOut, IpcError> {
     let request = asked(context, request, level)?;
     let model = voiced(context, kind, Stop::default())?;
     let reach = context.reach()?;
     let online = online(reach.as_ref(), &model).map_err(refused)?;
-    let plan = draw(&online, &request).map_err(refused)?;
+    let drawn = draw(&online, &request);
+    let spent = online.tally().take();
+    let plan = match drawn {
+        Ok(plan) => {
+            keep(context.ledger(), spent);
+            plan
+        }
+        Err(error) => {
+            context.ledger().extend(spent);
+            return Err(refused(error));
+        }
+    };
     Ok(PlanOut {
         hours: span(plan.hours()),
         plan: view(&plan),

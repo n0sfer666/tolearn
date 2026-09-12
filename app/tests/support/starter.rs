@@ -7,12 +7,14 @@ use tolearn_app::ipc::{Context, GenerationStep, IpcError, Tools, call};
 use tolearn_provider::{Remembered, Vault};
 
 use super::planner::{Net, provider};
-use super::speaking::Speaking;
+use super::repository;
+use super::speaking::{Speaking, speaking};
 use super::web::{Canvas, Web};
 
 pub const REQUEST: &str = "Хочу писать чиптюн";
 pub const LEVEL: &str = "Нот не знаю";
 const STORE: [&str; 2] = ["objects", "artifacts"];
+const LONG: &str = "Скважность импульса меняет тембр. ";
 
 static CASES: AtomicUsize = AtomicUsize::new(0);
 
@@ -111,4 +113,29 @@ impl Drop for Case {
 
 pub fn started(plan: &Value, level: &str) -> Value {
     json!({ "request": REQUEST, "level": level, "plan": plan })
+}
+
+fn fixture(path: &str) -> String {
+    std::fs::read_to_string(repository().join("fixtures").join(path)).unwrap()
+}
+
+pub fn fine() -> String {
+    let text = fixture("generate/stage/stage.txt");
+    let mut stage: Value = serde_json::from_str(&text[text.find('{').unwrap()..]).unwrap();
+    let blocks = stage["blocks"].as_array_mut().unwrap();
+    blocks[3]["text"] = json!("Импульсная волна со скважностью 25%");
+    blocks.push(json!({ "kind": "paragraph", "text": LONG.repeat(100), "sources": ["b1"] }));
+    stage.to_string()
+}
+
+pub fn flat() -> Vec<String> {
+    vec![
+        fixture("generate/plan/flat.txt"),
+        fixture("generate/stage/sources.txt"),
+        fine(),
+    ]
+}
+
+pub fn told(answers: Vec<String>) -> Speaking {
+    speaking(move |_, turn| answers[turn.min(answers.len() - 1)].clone())
 }

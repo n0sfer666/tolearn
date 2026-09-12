@@ -15,6 +15,7 @@ pub fn run() -> Result<(), tauri::Error> {
         .plugin(tauri_plugin_dialog::init())
         .plugin(mermaid::plugin())
         .manage(ipc::Running::default())
+        .manage(ipc::Ledger::default())
         .setup(|app| {
             gestures::enable(app)?;
             Ok(())

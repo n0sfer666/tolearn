@@ -40,7 +40,11 @@ pub fn run(context: &Context, input: &StartProgramIn) -> Result<StartProgramOut,
         data: context.data(),
         at: now(),
     };
-    let program = start::start(kit, &request, &plan).map_err(refused)?;
+    online.tally().extend(context.ledger().take());
+    let program = start::start(kit, &request, &plan).map_err(|error| {
+        context.ledger().restore(online.tally().release());
+        refused(error)
+    })?;
     Ok(StartProgramOut { program })
 }
 

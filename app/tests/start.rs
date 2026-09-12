@@ -10,41 +10,13 @@ mod support;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
-use serde_json::{Value, json};
-use support::repository;
-use support::speaking::{Speaking, speaking};
-use support::starter::{Case, LEVEL, started};
+use serde_json::json;
+use support::speaking::speaking;
+use support::starter::{Case, LEVEL, flat, started, told};
 use support::web::{SVG, THUMBNAIL};
 use tolearn_app::ipc::call;
 use tolearn_core::block::Kind;
 use tolearn_core::library::Library;
-
-const LONG: &str = "Скважность импульса меняет тембр. ";
-
-fn fixture(path: &str) -> String {
-    std::fs::read_to_string(repository().join("fixtures").join(path)).unwrap()
-}
-
-fn fine() -> String {
-    let text = fixture("generate/stage/stage.txt");
-    let mut stage: Value = serde_json::from_str(&text[text.find('{').unwrap()..]).unwrap();
-    let blocks = stage["blocks"].as_array_mut().unwrap();
-    blocks[3]["text"] = json!("Импульсная волна со скважностью 25%");
-    blocks.push(json!({ "kind": "paragraph", "text": LONG.repeat(100), "sources": ["b1"] }));
-    stage.to_string()
-}
-
-fn flat() -> Vec<String> {
-    vec![
-        fixture("generate/plan/flat.txt"),
-        fixture("generate/stage/sources.txt"),
-        fine(),
-    ]
-}
-
-fn told(answers: Vec<String>) -> Speaking {
-    speaking(move |_, turn| answers[turn.min(answers.len() - 1)].clone())
-}
 
 fn paired(steps: &[&str]) -> Vec<(String, String)> {
     steps

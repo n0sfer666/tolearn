@@ -4,11 +4,13 @@ use std::sync::Arc;
 use tauri::Manager;
 use tolearn_core::library::Library;
 use tolearn_generate::REACH_TIMEOUT_SECS;
+use tolearn_generate::ledger::Tally;
 use tolearn_offline::reach::{Ping, Reach};
 use tolearn_provider::{Keychain, Vault};
 
 use super::error::IpcError;
 use super::layout;
+use super::ledger::Ledger;
 use super::running::Running;
 use super::tools::Tools;
 use super::wired::wired;
@@ -27,6 +29,7 @@ pub struct Context {
     reach: Option<Net>,
     tools: Tools,
     running: Running,
+    ledger: Ledger,
 }
 
 impl Context {
@@ -43,6 +46,7 @@ impl Context {
             reach: None,
             tools: Tools::default(),
             running: Running::default(),
+            ledger: Ledger::default(),
         }
     }
 
@@ -60,6 +64,7 @@ impl Context {
             reach: None,
             tools: Tools::default(),
             running: Running::default(),
+            ledger: Ledger::default(),
         }
     }
 
@@ -78,6 +83,11 @@ impl Context {
         self
     }
 
+    pub fn with_ledger(mut self, ledger: Ledger) -> Self {
+        self.ledger = ledger;
+        self
+    }
+
     pub fn reach(&self) -> Result<Net, IpcError> {
         if let Some(reach) = &self.reach {
             return Ok(Arc::clone(reach));
@@ -93,6 +103,10 @@ impl Context {
 
     pub fn running(&self) -> &Running {
         &self.running
+    }
+
+    pub fn ledger(&self) -> &Tally {
+        self.ledger.tally()
     }
 
     pub fn data(&self) -> &Path {
