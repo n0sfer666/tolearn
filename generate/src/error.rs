@@ -1,8 +1,10 @@
 use std::fmt;
 
+use tolearn_core::Hours;
 use tolearn_provider::CheckError;
 
 use crate::REPAIRS;
+use crate::plan::{STAGE_MAX_HOURS, STAGE_MIN_HOURS};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum GenerateError {
@@ -16,6 +18,10 @@ pub enum GenerateError {
         what: &'static str,
         flaws: Vec<String>,
     },
+    StageHours {
+        stage: String,
+        hours: Hours,
+    },
 }
 
 impl GenerateError {
@@ -25,6 +31,7 @@ impl GenerateError {
             Self::Provider(error) => error.code(),
             Self::Cache(_) => "generate.cache",
             Self::Unrepaired { .. } => "generate.unrepaired",
+            Self::StageHours { .. } => "generate.stage-hours",
         }
     }
 }
@@ -43,6 +50,11 @@ impl fmt::Display for GenerateError {
                 "модель не исправила {what} за {REPAIRS} круга починки: {}",
                 flaws.join("; ")
             ),
+            Self::StageHours { stage, hours } => write!(
+                out,
+                "этап «{stage}» на {}–{} ч по карте, а этап занимает от {STAGE_MIN_HOURS} до {STAGE_MAX_HOURS} ч: сначала поправь карту",
+                hours.min, hours.max
+            ),
         }
     }
 }
@@ -50,7 +62,10 @@ impl fmt::Display for GenerateError {
 impl std::error::Error for GenerateError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Self::Offline { .. } | Self::Cache(_) | Self::Unrepaired { .. } => None,
+            Self::Offline { .. }
+            | Self::Cache(_)
+            | Self::Unrepaired { .. }
+            | Self::StageHours { .. } => None,
             Self::Provider(error) => Some(error),
         }
     }

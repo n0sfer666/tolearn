@@ -9,6 +9,8 @@ pub use flaw::Flaw;
 pub use rules::check;
 pub use types::{Part, Plan, Request};
 
+use tolearn_core::Hours;
+
 use crate::REPAIRS;
 use crate::error::GenerateError;
 use crate::gate::Online;
@@ -17,6 +19,10 @@ pub const STAGE_MIN_HOURS: u32 = 2;
 pub const STAGE_MAX_HOURS: u32 = 4;
 pub const MAX_HOURS: u32 = 70;
 pub const MAX_STAGES: usize = 25;
+
+pub fn stage_fits(hours: Hours) -> bool {
+    STAGE_MIN_HOURS <= hours.min && hours.min <= hours.max && hours.max <= STAGE_MAX_HOURS
+}
 
 const WHAT: &str = "карту";
 

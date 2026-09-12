@@ -6,7 +6,7 @@ use tolearn_core::yaml::is_slug;
 
 use super::flaw::Flaw;
 use super::types::Plan;
-use super::{MAX_HOURS, MAX_STAGES, STAGE_MAX_HOURS, STAGE_MIN_HOURS};
+use super::{MAX_HOURS, MAX_STAGES, stage_fits};
 
 pub fn check(plan: &Plan, depth: usize) -> Vec<Flaw> {
     let mut flaws = Vec::new();
@@ -33,8 +33,7 @@ fn stages(plan: &Plan, flaws: &mut Vec<Flaw>) {
         } else if !seen.insert(row.id.as_str()) {
             flaws.push(Flaw::DuplicateId(row.id.clone()));
         }
-        let Hours { min, max } = row.hours;
-        if min < STAGE_MIN_HOURS || max > STAGE_MAX_HOURS || min > max {
+        if !stage_fits(row.hours) {
             flaws.push(Flaw::StageHours {
                 id: row.id.clone(),
                 hours: row.hours,

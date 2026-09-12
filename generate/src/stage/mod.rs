@@ -1,19 +1,27 @@
 mod answer;
 mod cited;
+mod compose;
 mod draft;
 mod flaw;
 mod gather;
 mod gathered;
+mod mend;
+mod part;
+mod patch;
 mod place;
 mod prompt;
 mod proposal;
+mod raw;
+mod rules;
 mod text;
 
+pub use compose::compose;
 pub use draft::{Draft, Drafted};
 pub use flaw::Flaw;
 pub use gather::gather;
 pub use gathered::{Chaptered, Dropped, Gathered, Visited};
 pub use place::Place;
+pub use rules::invariants;
 pub use text::text;
 
 pub const MAX_BOOKS: usize = 2;
@@ -21,3 +29,8 @@ pub const MAX_PAGES: usize = 3;
 pub const MAX_IMAGES: usize = 2;
 pub const SOURCES_PROMPT_CHARS: usize = 2_000;
 pub const TEXT_PROMPT_CHARS: usize = 30_000;
+pub const MIN_THEORY_CHARS: usize = 3_000;
+pub const MAX_THEORY_CHARS: usize = 20_000;
+pub const MAX_TERMS: usize = 8;
+pub const FIRST_STAGE_TOOLS: usize = 1;
+pub const MIN_QUESTIONS: usize = 1;

@@ -5,7 +5,7 @@ use crate::sources::excerpt;
 
 use super::gathered::{Dropped, Gathered};
 use super::place::Place;
-use super::{MAX_BOOKS, MAX_IMAGES, MAX_PAGES};
+use super::{MAX_BOOKS, MAX_IMAGES, MAX_PAGES, MAX_TERMS, MAX_THEORY_CHARS, MIN_THEORY_CHARS};
 
 const PROPOSAL: &str = r#"{"books": [{"title": "название книги", "author": "автор", "isbn": "только если уверен", "chapter": "глава или раздел для этого этапа"}], "pages": [{"url": "https://..."}], "images": [{"query": "запрос к Wikimedia Commons на английском", "caption": "подпись под картинкой"}]}"#;
 
@@ -47,24 +47,38 @@ pub(super) fn text(place: &Place<'_>, gathered: &Gathered) -> String {
          {}\n\
          Язык программы: {} — на нём пиши весь текст.\n\n\
          Проверенные источники:\n{}\n\n\
-         Правила:\n\
-         - Опирайся на источники выше и в sources блока перечисли id тех, на которые он опирается. Других источников нет.\n\
+         Правила:\n{}\n\n\
+         Ответь одним объектом JSON без пояснений:\n{STAGE}",
+        whereabouts(place),
+        place.program.generation.locale,
+        listed(gathered, true),
+        rules(place)
+    )
+}
+
+pub(super) fn rules(place: &Place<'_>) -> String {
+    let tools = if place.first() {
+        "Это первый этап программы: в практике ровно один инструмент, самый простой из подходящих; назови его в tools."
+    } else {
+        "Инструменты, которыми пользуется ученик, назови в tools."
+    };
+    format!(
+        "- Опирайся на источники выше и в sources блока перечисли id тех, на которые он опирается. Других источников нет.\n\
          - Книгу упоминай только названием и главой, без цитат.\n\
          - Ссылка в тексте — только на адрес проверенной страницы.\n\
          - image — только картинка из списка, её id в поле image, подпись в text.\n\
          - diagram — схема на Mermaid в text, без ограды из обратных кавычек.\n\
          - code — код в text, язык в lang.\n\
          - Не пиши id блоков, проверок и вопросов: их проставит приложение.\n\
+         - Теория — заголовки, абзацы и врезки — от {MIN_THEORY_CHARS} до {MAX_THEORY_CHARS} знаков; код, схемы и картинки в счёт не идут.\n\
+         - Не больше {MAX_TERMS} новых терминов, все они в terms.\n\
          - Практика — одно задание в часы этапа: task — условие блоками, deliverable — что сдаётся, constraints — ограничения, acceptance — критерии приёмки; check — команда, которая проверяет пункт, если она есть.\n\
-         - Вопросы проверяют понимание теории, у каждого эталонный ответ.\n\n\
-         Ответь одним объектом JSON без пояснений:\n{STAGE}",
-        whereabouts(place),
-        place.program.generation.locale,
-        listed(gathered)
+         - {tools}\n\
+         - Вопросы проверяют понимание теории, у каждого эталонный ответ."
     )
 }
 
-fn whereabouts(place: &Place<'_>) -> String {
+pub(super) fn whereabouts(place: &Place<'_>) -> String {
     let program = place.program;
     let rows: Vec<String> = program
         .map
@@ -112,7 +126,7 @@ fn class(volatility: Volatility) -> &'static str {
     }
 }
 
-fn listed(gathered: &Gathered) -> String {
+pub(super) fn listed(gathered: &Gathered, excerpts: bool) -> String {
     let books = gathered.books.iter().enumerate().map(|(index, known)| {
         format!(
             "b{}: книга «{}», {}; глава: {}",
@@ -123,13 +137,17 @@ fn listed(gathered: &Gathered) -> String {
         )
     });
     let pages = gathered.pages.iter().enumerate().map(|(index, known)| {
-        format!(
-            "p{}: страница «{}», {}\nИзвлечённый текст:\n{}",
+        let named = format!(
+            "p{}: страница «{}», {}",
             index + 1,
             known.page.title.as_deref().unwrap_or(&known.page.url),
-            known.page.url,
-            excerpt(&known.page.text)
-        )
+            known.page.url
+        );
+        if excerpts {
+            format!("{named}\nИзвлечённый текст:\n{}", excerpt(&known.page.text))
+        } else {
+            named
+        }
     });
     let images = gathered
         .images

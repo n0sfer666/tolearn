@@ -1,96 +1,38 @@
-use serde::Deserialize;
 use tolearn_core::block::{self, Block, Kind};
 use tolearn_core::stage::{Check, Practice, Question, Stage};
-
-use crate::object::object;
 
 use super::cited::cited;
 use super::draft::Draft;
 use super::flaw::Flaw;
 use super::gathered::Gathered;
 use super::place::Place;
-
-#[derive(Deserialize)]
-struct Raw {
-    blocks: Vec<RawBlock>,
-    practice: RawPractice,
-    #[serde(default)]
-    questions: Vec<RawQuestion>,
-    #[serde(default)]
-    terms: Vec<String>,
-    #[serde(default)]
-    tools: Vec<String>,
-}
-
-#[derive(Deserialize)]
-struct RawBlock {
-    kind: String,
-    #[serde(default)]
-    text: String,
-    #[serde(default)]
-    lang: Option<String>,
-    #[serde(default)]
-    image: Option<String>,
-    #[serde(default)]
-    sources: Vec<String>,
-}
-
-#[derive(Deserialize)]
-struct RawPractice {
-    #[serde(default)]
-    task: Vec<RawBlock>,
-    #[serde(default)]
-    deliverable: String,
-    #[serde(default)]
-    constraints: Vec<RawCheck>,
-    #[serde(default)]
-    acceptance: Vec<RawCheck>,
-}
-
-#[derive(Deserialize)]
-struct RawCheck {
-    claim: String,
-    #[serde(default)]
-    check: Option<String>,
-    expect: String,
-}
-
-#[derive(Deserialize)]
-struct RawQuestion {
-    text: String,
-    answer: String,
-}
-
-struct Wish {
-    sources: Vec<String>,
-    image: Option<String>,
-}
+use super::raw::{self, Raw, RawBlock, RawCheck};
 
 pub(super) fn read(text: &str, place: &Place<'_>, gathered: &Gathered) -> Result<Draft, Flaw> {
-    let raw: Raw = serde_json::from_str(object(text).map_err(Flaw::Unreadable)?)
-        .map_err(|error| Flaw::Unreadable(error.to_string()))?;
-    let theory = raw.blocks.len();
-    let shaped = raw
-        .blocks
-        .into_iter()
-        .chain(raw.practice.task)
+    build(&raw::parse(text)?, place, gathered)
+}
+
+pub(super) fn build(raw: &Raw, place: &Place<'_>, gathered: &Gathered) -> Result<Draft, Flaw> {
+    let every: Vec<&RawBlock> = raw.blocks.iter().chain(&raw.practice.task).collect();
+    let shaped = every
+        .iter()
         .map(|raw| shaped(raw, gathered))
         .collect::<Result<Vec<_>, _>>()?;
-    let ids = block::ids(shaped.iter().map(|(block, _)| block.text.as_str()));
+    let ids = block::ids(shaped.iter().map(|block| block.text.as_str()));
     let mut flaws = Vec::new();
     let mut blocks = Vec::new();
-    for ((mut block, wish), id) in shaped.into_iter().zip(ids) {
+    for ((mut block, raw), id) in shaped.into_iter().zip(every).zip(ids) {
         block.id = id;
-        cited(&block, &wish.sources, gathered, &mut flaws);
+        cited(&block, &raw.sources, gathered, &mut flaws);
         if block.kind == Kind::Image && block.asset.is_none() {
             flaws.push(Flaw::UnknownImage {
                 block: block.id.clone(),
-                image: wish.image.unwrap_or_default(),
+                image: raw.image.clone().unwrap_or_default(),
             });
         }
         blocks.push(block);
     }
-    let task = blocks.split_off(theory);
+    let task = blocks.split_off(raw.blocks.len());
     Ok(Draft {
         stage: Stage {
             id: place.row.id.clone(),
@@ -98,28 +40,28 @@ pub(super) fn read(text: &str, place: &Place<'_>, gathered: &Gathered) -> Result
             blocks,
             practice: Practice {
                 task,
-                deliverable: raw.practice.deliverable,
-                constraints: checks('c', raw.practice.constraints),
-                acceptance: checks('a', raw.practice.acceptance),
+                deliverable: raw.practice.deliverable.clone(),
+                constraints: checks('c', &raw.practice.constraints),
+                acceptance: checks('a', &raw.practice.acceptance),
             },
             questions: raw
                 .questions
-                .into_iter()
+                .iter()
                 .enumerate()
                 .map(|(index, question)| Question {
                     id: format!("q{}", index + 1),
-                    text: question.text,
-                    answer: question.answer,
+                    text: question.text.clone(),
+                    answer: question.answer.clone(),
                 })
                 .collect(),
         },
-        terms: raw.terms,
-        tools: raw.tools,
+        terms: raw.terms.clone(),
+        tools: raw.tools.clone(),
         flaws,
     })
 }
 
-fn shaped(raw: RawBlock, gathered: &Gathered) -> Result<(Block, Wish), Flaw> {
+fn shaped(raw: &RawBlock, gathered: &Gathered) -> Result<Block, Flaw> {
     let kind = Kind::ALL
         .into_iter()
         .find(|kind| kind.label() == raw.kind)
@@ -127,7 +69,7 @@ fn shaped(raw: RawBlock, gathered: &Gathered) -> Result<(Block, Wish), Flaw> {
     let mut block = Block {
         id: String::new(),
         kind,
-        text: raw.text,
+        text: raw.text.clone(),
         lang: None,
         asset: None,
         license: None,
@@ -135,7 +77,7 @@ fn shaped(raw: RawBlock, gathered: &Gathered) -> Result<(Block, Wish), Flaw> {
         source: None,
     };
     match kind {
-        Kind::Code => block.lang = raw.lang,
+        Kind::Code => block.lang.clone_from(&raw.lang),
         Kind::Image => {
             if let Some(found) = raw.image.as_deref().and_then(|id| gathered.image(id)) {
                 if block.text.trim().is_empty() {
@@ -149,23 +91,20 @@ fn shaped(raw: RawBlock, gathered: &Gathered) -> Result<(Block, Wish), Flaw> {
         }
         _ => {}
     }
-    Ok((
-        block,
-        Wish {
-            sources: raw.sources,
-            image: raw.image,
-        },
-    ))
+    Ok(block)
 }
 
-fn checks(prefix: char, raw: Vec<RawCheck>) -> Vec<Check> {
-    raw.into_iter()
+fn checks(prefix: char, raw: &[RawCheck]) -> Vec<Check> {
+    raw.iter()
         .enumerate()
         .map(|(index, check)| Check {
             id: format!("{prefix}{}", index + 1),
-            claim: check.claim,
-            check: check.check.filter(|command| !command.trim().is_empty()),
-            expect: check.expect,
+            claim: check.claim.clone(),
+            check: check
+                .check
+                .clone()
+                .filter(|command| !command.trim().is_empty()),
+            expect: check.expect.clone(),
         })
         .collect()
 }
