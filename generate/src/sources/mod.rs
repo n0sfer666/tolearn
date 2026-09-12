@@ -3,6 +3,7 @@ mod excerpt;
 mod image;
 mod verdict;
 
+pub use cache::CACHE;
 pub use excerpt::{PAGE_CHARS, excerpt};
 pub use image::Illustration;
 pub(crate) use image::file_name;

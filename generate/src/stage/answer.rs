@@ -21,9 +21,16 @@ pub(super) fn build(raw: &Raw, place: &Place<'_>, gathered: &Gathered) -> Result
     let ids = block::ids(shaped.iter().map(|block| block.text.as_str()));
     let mut flaws = Vec::new();
     let mut blocks = Vec::new();
+    let mut references: Vec<String> = Vec::new();
     for ((mut block, raw), id) in shaped.into_iter().zip(every).zip(ids) {
         block.id = id;
         cited(&block, &raw.sources, gathered, &mut flaws);
+        for source in &raw.sources {
+            let known = gathered.book(source).is_some() || gathered.page(source).is_some();
+            if known && !references.contains(source) {
+                references.push(source.clone());
+            }
+        }
         if block.kind == Kind::Image && block.asset.is_none() {
             flaws.push(Flaw::UnknownImage {
                 block: block.id.clone(),
@@ -57,6 +64,7 @@ pub(super) fn build(raw: &Raw, place: &Place<'_>, gathered: &Gathered) -> Result
         },
         terms: raw.terms.clone(),
         tools: raw.tools.clone(),
+        cited: references,
         flaws,
     })
 }

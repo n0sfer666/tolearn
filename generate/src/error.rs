@@ -1,6 +1,7 @@
 use std::fmt;
 
 use tolearn_core::Hours;
+use tolearn_core::library::LibraryError;
 use tolearn_provider::CheckError;
 
 use crate::REPAIRS;
@@ -22,6 +23,12 @@ pub enum GenerateError {
         stage: String,
         hours: Hours,
     },
+    Unfit {
+        flaws: Vec<String>,
+    },
+    Cancelled,
+    Unwritten(String),
+    Library(LibraryError),
 }
 
 impl GenerateError {
@@ -32,6 +39,10 @@ impl GenerateError {
             Self::Cache(_) => "generate.cache",
             Self::Unrepaired { .. } => "generate.unrepaired",
             Self::StageHours { .. } => "generate.stage-hours",
+            Self::Unfit { .. } => "generate.unfit",
+            Self::Cancelled => "generate.cancelled",
+            Self::Unwritten(_) => "generate.unwritten",
+            Self::Library(error) => error.code(),
         }
     }
 }
@@ -55,6 +66,12 @@ impl fmt::Display for GenerateError {
                 "этап «{stage}» на {}–{} ч по карте, а этап занимает от {STAGE_MIN_HOURS} до {STAGE_MAX_HOURS} ч: сначала поправь карту",
                 hours.min, hours.max
             ),
+            Self::Unfit { flaws } => {
+                write!(out, "карта не годится для генерации: {}", flaws.join("; "))
+            }
+            Self::Cancelled => write!(out, "генерация отменена, программа не создана"),
+            Self::Unwritten(reason) => write!(out, "не удалось записать программу: {reason}"),
+            Self::Library(error) => write!(out, "{error}"),
         }
     }
 }
@@ -65,8 +82,12 @@ impl std::error::Error for GenerateError {
             Self::Offline { .. }
             | Self::Cache(_)
             | Self::Unrepaired { .. }
-            | Self::StageHours { .. } => None,
+            | Self::StageHours { .. }
+            | Self::Unfit { .. }
+            | Self::Cancelled
+            | Self::Unwritten(_) => None,
             Self::Provider(error) => Some(error),
+            Self::Library(error) => Some(error),
         }
     }
 }

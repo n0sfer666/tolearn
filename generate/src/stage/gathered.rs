@@ -34,10 +34,16 @@ impl Gathered {
         self.images.get(numbered(id, 'i')?)
     }
 
+    pub fn book(&self, id: &str) -> Option<&Chaptered> {
+        self.books.get(numbered(id, 'b')?)
+    }
+
+    pub fn page(&self, id: &str) -> Option<&Visited> {
+        self.pages.get(numbered(id, 'p')?)
+    }
+
     pub fn knows(&self, id: &str) -> bool {
-        numbered(id, 'b').is_some_and(|index| index < self.books.len())
-            || numbered(id, 'p').is_some_and(|index| index < self.pages.len())
-            || self.image(id).is_some()
+        self.book(id).is_some() || self.page(id).is_some() || self.image(id).is_some()
     }
 
     pub fn visited(&self, url: &str) -> bool {

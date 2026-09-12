@@ -18,6 +18,7 @@ fn a_sound_stage_passes_at_the_first_call() {
 
     let draft = run.result.unwrap();
     assert_eq!(drafted(&draft), ids(&stage));
+    assert_eq!(draft.cited, ["p1", "p2", "b1"]);
     assert_eq!(run.prompts.len(), 1);
     let prompt = &run.prompts[0];
     assert!(prompt.contains(&format!("от {MIN_THEORY_CHARS} до")));

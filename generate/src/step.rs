@@ -1,0 +1,22 @@
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Step {
+    Part,
+    Sources,
+    Text,
+    Repair(usize),
+    Diagrams,
+    Write,
+}
+
+impl Step {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Part => "part",
+            Self::Sources => "sources",
+            Self::Text => "text",
+            Self::Repair(_) => "repair",
+            Self::Diagrams => "diagrams",
+            Self::Write => "write",
+        }
+    }
+}

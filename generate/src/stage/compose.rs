@@ -2,6 +2,8 @@ use crate::REPAIRS;
 use crate::error::GenerateError;
 use crate::gate::Online;
 use crate::plan::stage_fits;
+use crate::progress::{Progress, stepped};
+use crate::step::Step;
 
 use super::answer;
 use super::draft::Draft;
@@ -20,6 +22,7 @@ pub fn compose(
     online: &Online<'_>,
     place: &Place<'_>,
     gathered: &Gathered,
+    progress: &dyn Progress,
 ) -> Result<Draft, GenerateError> {
     if !stage_fits(place.row.hours) {
         return Err(GenerateError::StageHours {
@@ -31,8 +34,13 @@ pub fn compose(
     let mut prompt = task.clone();
     let mut open: Option<Mending> = None;
     let mut flaws = Vec::new();
-    for _ in 0..=REPAIRS {
-        let said = online.ask(&prompt)?.text;
+    for round in 0..=REPAIRS {
+        let step = if round == 0 {
+            Step::Text
+        } else {
+            Step::Repair(round)
+        };
+        let said = stepped(progress, step, || online.ask(&prompt))?.text;
         let read = match &open {
             None => raw::parse(&said),
             Some(open) => patch(open, &said),

@@ -6,6 +6,7 @@ use tolearn_generate::sources::Sources;
 use tolearn_generate::stage::{self, Gathered, Place};
 use tolearn_offline::page::{AsFetched, PageError, Source};
 use tolearn_offline::store::Store;
+use tolearn_provider::Stop;
 
 use crate::support::{Scripted, Up};
 
@@ -20,7 +21,7 @@ const UNKNOWN: &str = "Unwritten";
 const PROGRAM: &str = "3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84";
 const BUDGET: u64 = 16 * 1024 * 1024;
 
-struct Web;
+pub struct Web;
 
 impl Source for Web {
     fn fetch(&self, url: &str) -> Result<Vec<u8>, PageError> {
@@ -56,8 +57,8 @@ fn long(url: &str) -> String {
 }
 
 pub struct Bench {
-    dir: PathBuf,
-    store: Store,
+    pub dir: PathBuf,
+    pub store: Store,
 }
 
 impl Bench {
@@ -101,8 +102,13 @@ pub fn scripted(answers: &[&str]) -> Scripted {
 pub fn gathered(bench: &mut Bench, program: &Program, answers: &[&str]) -> (Gathered, Vec<String>) {
     let model = scripted(answers);
     let place = Place::find(program, "voices").unwrap();
-    let gathered =
-        stage::gather(&online(&Up, &model).unwrap(), &mut bench.sources(), &place).unwrap();
+    let gathered = stage::gather(
+        &online(&Up, &model).unwrap(),
+        &mut bench.sources(),
+        &place,
+        &Stop::default(),
+    )
+    .unwrap();
     (gathered, model.prompts())
 }
 

@@ -57,7 +57,7 @@ pub fn compose(label: &str, program: &Program, stage: &str, answers: &[Value]) -
             .collect(),
     );
     let place = Place::find(program, stage).unwrap();
-    let result = stage::compose(&online(&Up, &model).unwrap(), &place, &gathered);
+    let result = stage::compose(&online(&Up, &model).unwrap(), &place, &gathered, &());
     Run {
         result,
         prompts: model.prompts(),

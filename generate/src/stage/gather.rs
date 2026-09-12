@@ -1,7 +1,9 @@
 use tolearn_offline::book::Wanted;
+use tolearn_provider::Stop;
 
 use crate::error::GenerateError;
 use crate::gate::Online;
+use crate::halt;
 use crate::sources::{Sources, Verdict};
 
 use super::gathered::{Chaptered, Dropped, Gathered, Visited};
@@ -16,17 +18,18 @@ pub fn gather(
     online: &Online<'_>,
     sources: &mut Sources<'_>,
     place: &Place<'_>,
+    stop: &Stop,
 ) -> Result<Gathered, GenerateError> {
     let task = prompt::sources(place);
     let said = online.ask(&task)?;
     let mut gathered = Gathered::default();
-    let refused = checked(sources, proposal::read(&said.text), &mut gathered)?;
+    let refused = checked(sources, proposal::read(&said.text), &mut gathered, stop)?;
     if refused.is_empty() {
         return Ok(gathered);
     }
     let again = online.ask(&prompt::replace(&task, &said.text, &refused))?;
     gathered.dropped = refused;
-    let refused = checked(sources, proposal::read(&again.text), &mut gathered)?;
+    let refused = checked(sources, proposal::read(&again.text), &mut gathered, stop)?;
     gathered.dropped.extend(refused);
     Ok(gathered)
 }
@@ -35,6 +38,7 @@ fn checked(
     sources: &mut Sources<'_>,
     proposal: Result<Proposal, String>,
     gathered: &mut Gathered,
+    stop: &Stop,
 ) -> Result<Vec<Dropped>, GenerateError> {
     let proposal = match proposal {
         Ok(proposal) => proposal,
@@ -55,6 +59,7 @@ fn checked(
             title: wish.title.clone(),
             author: wish.author,
         };
+        halt::checked(stop)?;
         let outcome = sources.book(&wanted)?;
         match outcome.verdict {
             Verdict::Passed(book) => {
@@ -76,6 +81,7 @@ fn checked(
         if gathered.pages.len() >= MAX_PAGES || gathered.visited(&wish.url) {
             continue;
         }
+        halt::checked(stop)?;
         let outcome = sources.page(&wish.url)?;
         match outcome.verdict {
             Verdict::Passed(page) => gathered.pages.push(Visited {
@@ -92,6 +98,7 @@ fn checked(
         if gathered.images.len() >= MAX_IMAGES {
             break;
         }
+        halt::checked(stop)?;
         match sources.image(&wish.query, &wish.caption).verdict {
             Verdict::Passed(image) => {
                 if !gathered.images.iter().any(|known| known.file == image.file) {

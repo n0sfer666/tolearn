@@ -5086,6 +5086,7 @@ dependencies = [
  "tolearn-core",
  "tolearn-offline",
  "tolearn-provider",
+ "uuid",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 use tolearn_offline::reach::Reach;
-use tolearn_provider::Said;
+use tolearn_provider::{CheckError, Said};
 
 use crate::error::GenerateError;
 use crate::model::Model;
@@ -15,7 +15,10 @@ pub struct Online<'a> {
 
 impl Online<'_> {
     pub fn ask(&self, prompt: &str) -> Result<Said, GenerateError> {
-        self.model.ask(prompt).map_err(GenerateError::Provider)
+        self.model.ask(prompt).map_err(|error| match error {
+            CheckError::Cancelled => GenerateError::Cancelled,
+            error => GenerateError::Provider(error),
+        })
     }
 }
 
