@@ -1,10 +1,11 @@
 use tolearn_core::block::Kind;
 use tolearn_core::library::Library;
+use tolearn_generate::ledger::LEDGER;
 use tolearn_generate::start::day;
 use tolearn_generate::{GenerateError, Step};
 
 use crate::answers::{fine, ids};
-use crate::starting::{Canvas, Recorder, SVG, drawn, flat, leftovers, names, paired, run, split};
+use crate::starting::{Canvas, Recorder, SVG, drawn, flat, names, paired, run, split};
 use crate::support::request;
 use crate::web::{ARTICLE, Bench, DOCS};
 
@@ -135,7 +136,7 @@ fn a_split_plan_expands_its_first_part_down_to_a_leaf() {
         recorder.heard()[..2],
         [("began", Step::Part), ("ended", Step::Part)]
     );
-    assert!(!leftovers(&bench).contains(&uuid));
+    assert_eq!(names(&bench.dir.join("cache").join(&uuid)), [LEDGER]);
 }
 
 #[test]

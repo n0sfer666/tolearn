@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use tolearn_generate::diagram::Painter;
 use tolearn_generate::plan::{self, Plan};
 use tolearn_generate::start::{self, Kit};
-use tolearn_generate::{GenerateError, Model, Progress, Step, online};
+use tolearn_generate::{GenerateError, Model, Online, Progress, Step, online};
 use tolearn_offline::page::AsFetched;
 use tolearn_provider::{CheckError, Said, Stop};
 
@@ -112,9 +112,18 @@ pub fn run(
     painter: &dyn Painter,
     recorder: &Recorder,
 ) -> Result<String, GenerateError> {
-    let online = online(&Up, model).unwrap();
+    started(bench, plan, &online(&Up, model).unwrap(), painter, recorder)
+}
+
+pub fn started(
+    bench: &mut Bench,
+    plan: &Plan,
+    online: &Online<'_>,
+    painter: &dyn Painter,
+    recorder: &Recorder,
+) -> Result<String, GenerateError> {
     let kit = Kit {
-        online: &online,
+        online,
         source: &Web,
         renderer: &AsFetched,
         store: &mut bench.store,

@@ -16,6 +16,7 @@ use tolearn_core::library::Library;
 
 use crate::error::GenerateError;
 use crate::halt::{checked, sealed};
+use crate::ledger;
 use crate::plan::{self, Flaw, Plan, Request};
 use crate::sources::{CACHE, Sources};
 use crate::stage::{self, Place};
@@ -36,7 +37,7 @@ pub fn start(mut kit: Kit<'_>, request: &Request, plan: &Plan) -> Result<String,
     }
     let lineage = lineage(&kit, request, plan)?;
     let cache = kit.data.join(CACHE);
-    let root = cache.join(&lineage.ancestors.first().unwrap_or(&lineage.leaf).uuid);
+    let root = cache.join(&lineage.root().uuid);
     let done = built(&mut kit, &lineage, &root.join(BUILD));
     let _ = fs::remove_dir_all(root.join(BUILD));
     if done.is_err() {
@@ -62,6 +63,8 @@ fn built(kit: &mut Kit<'_>, lineage: &Lineage, build: &Path) -> Result<String, G
         index: 0,
     };
     let (progress, stop, online) = (kit.progress, kit.stop, kit.online);
+    let tally = online.tally();
+    let mark = tally.len();
     let gathered = guarded(progress, stop, Step::Sources, || {
         let mut sources = Sources::new(
             kit.source,
@@ -70,11 +73,13 @@ fn built(kit: &mut Kit<'_>, lineage: &Lineage, build: &Path) -> Result<String, G
             kit.data,
             &leaf.uuid,
             kit.at,
-        );
+        )
+        .counted(tally);
         stage::gather(online, &mut sources, &place, stop)
     })?;
     checked(stop)?;
     let draft = stage::compose(online, &place, &gathered, progress)?;
+    tally.stamp(mark, &leaf.uuid, Some(&row.id));
     let (stage, assets) = guarded(progress, stop, Step::Diagrams, || {
         assemble(kit, draft.stage, &gathered)
     })?;
@@ -82,6 +87,10 @@ fn built(kit: &mut Kit<'_>, lineage: &Lineage, build: &Path) -> Result<String, G
     landed.leaf.sources = cited(&draft.cited, &gathered);
     guarded(progress, stop, Step::Write, || {
         lay(build, &landed, &stage, &assets)?;
+        let root = &lineage.root().uuid;
+        tally.stamp(0, root, None);
+        tally.date(kit.at);
+        ledger::append(&ledger::path(kit.data, root), &tally.records())?;
         sealed(stop)?;
         Library::at(kit.data)
             .install(build)

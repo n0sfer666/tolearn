@@ -7,6 +7,7 @@ mod progress;
 mod step;
 
 pub mod diagram;
+pub mod ledger;
 pub mod plan;
 pub mod sources;
 pub mod stage;

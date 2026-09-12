@@ -14,6 +14,7 @@ use tolearn_core::Hours;
 use crate::REPAIRS;
 use crate::error::GenerateError;
 use crate::gate::Online;
+use crate::step::Step;
 
 pub const STAGE_MIN_HOURS: u32 = 2;
 pub const STAGE_MAX_HOURS: u32 = 4;
@@ -27,7 +28,7 @@ pub fn stage_fits(hours: Hours) -> bool {
 const WHAT: &str = "карту";
 
 pub fn plan(online: &Online<'_>, request: &Request) -> Result<Plan, GenerateError> {
-    draw(online, &prompt::task(request, None, 1), 1)
+    draw(online, Step::Plan, &prompt::task(request, None, 1), 1)
 }
 
 pub fn expand(
@@ -36,7 +37,12 @@ pub fn expand(
     part: &Part,
     depth: usize,
 ) -> Result<Plan, GenerateError> {
-    draw(online, &prompt::task(request, Some(part), depth), depth)
+    draw(
+        online,
+        Step::Part,
+        &prompt::task(request, Some(part), depth),
+        depth,
+    )
 }
 
 pub fn revise(
@@ -45,14 +51,22 @@ pub fn revise(
     previous: &Plan,
     wish: &str,
 ) -> Result<Plan, GenerateError> {
-    draw(online, &prompt::revised(request, previous, wish), 1)
+    draw(
+        online,
+        Step::Revise,
+        &prompt::revised(request, previous, wish),
+        1,
+    )
 }
 
-fn draw(online: &Online<'_>, task: &str, depth: usize) -> Result<Plan, GenerateError> {
+fn draw(online: &Online<'_>, step: Step, task: &str, depth: usize) -> Result<Plan, GenerateError> {
     let mut prompt = task.to_owned();
     let mut flaws = Vec::new();
-    for _ in 0..=REPAIRS {
-        let said = online.ask(&prompt)?;
+    for round in 0..=REPAIRS {
+        let said = match round {
+            0 => online.ask(step, &prompt)?,
+            round => online.again(step, round, &prompt)?,
+        };
         flaws = match answer::read(&said.text) {
             Ok(plan) => {
                 let flaws = check(&plan, depth);

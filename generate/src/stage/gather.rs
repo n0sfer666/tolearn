@@ -5,6 +5,7 @@ use crate::error::GenerateError;
 use crate::gate::Online;
 use crate::halt;
 use crate::sources::{Sources, Verdict};
+use crate::step::Step;
 
 use super::gathered::{Chaptered, Dropped, Gathered, Visited};
 use super::place::Place;
@@ -21,13 +22,17 @@ pub fn gather(
     stop: &Stop,
 ) -> Result<Gathered, GenerateError> {
     let task = prompt::sources(place);
-    let said = online.ask(&task)?;
+    let said = online.ask(Step::Sources, &task)?;
     let mut gathered = Gathered::default();
     let refused = checked(sources, proposal::read(&said.text), &mut gathered, stop)?;
     if refused.is_empty() {
         return Ok(gathered);
     }
-    let again = online.ask(&prompt::replace(&task, &said.text, &refused))?;
+    let again = online.again(
+        Step::Sources,
+        1,
+        &prompt::replace(&task, &said.text, &refused),
+    )?;
     gathered.dropped = refused;
     let refused = checked(sources, proposal::read(&again.text), &mut gathered, stop)?;
     gathered.dropped.extend(refused);

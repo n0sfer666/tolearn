@@ -40,7 +40,7 @@ pub fn compose(
         } else {
             Step::Repair(round)
         };
-        let said = stepped(progress, step, || online.ask(&prompt))?.text;
+        let said = stepped(progress, step, || online.ask(step, &prompt))?.text;
         let read = match &open {
             None => raw::parse(&said),
             Some(open) => patch(open, &said),

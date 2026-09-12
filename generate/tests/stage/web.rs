@@ -69,7 +69,7 @@ impl Bench {
         Self { dir, store }
     }
 
-    fn sources(&mut self) -> Sources<'_> {
+    pub fn sources(&mut self) -> Sources<'_> {
         Sources::new(&Web, &AsFetched, &mut self.store, &self.dir, PROGRAM, 1_000)
     }
 }

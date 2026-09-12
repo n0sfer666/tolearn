@@ -14,6 +14,10 @@ pub(super) struct Lineage {
 }
 
 impl Lineage {
+    pub(super) fn root(&self) -> &Program {
+        self.ancestors.first().unwrap_or(&self.leaf)
+    }
+
     pub(super) fn programs(&self) -> impl Iterator<Item = &Program> {
         self.ancestors.iter().chain([&self.leaf])
     }
@@ -30,9 +34,11 @@ pub(super) fn lineage(
     while let (Some(part), Some(row)) = (current.children.first(), leaf.map.children.first()) {
         let uuid = row.uuid.clone();
         let depth = ancestors.len() + 2;
+        let mark = kit.online.tally().len();
         let next = guarded(kit.progress, kit.stop, Step::Part, || {
             plan::expand(kit.online, request, part, depth)
         })?;
+        kit.online.tally().stamp(mark, &uuid, None);
         ancestors.push(std::mem::replace(&mut leaf, program(&next, request, uuid)));
         current = next;
     }

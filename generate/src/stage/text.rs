@@ -1,5 +1,6 @@
 use crate::error::GenerateError;
 use crate::gate::Online;
+use crate::step::Step;
 
 use super::answer;
 use super::draft::Drafted;
@@ -12,7 +13,7 @@ pub fn text(
     place: &Place<'_>,
     gathered: &Gathered,
 ) -> Result<Drafted, GenerateError> {
-    let said = online.ask(&prompt::text(place, gathered))?;
+    let said = online.ask(Step::Text, &prompt::text(place, gathered))?;
     let draft = answer::read(&said.text, place, gathered);
     Ok(Drafted {
         said: said.text,

@@ -11,6 +11,7 @@ pub use verdict::{Outcome, Verdict, Verified};
 
 use std::fmt;
 use std::path::Path;
+use std::time::Instant;
 
 use serde::Serialize;
 use tolearn_offline::book::{self, Book, Wanted};
@@ -20,6 +21,7 @@ use tolearn_offline::reader;
 use tolearn_offline::store::{Fetched, Store, StoreError};
 
 use crate::error::GenerateError;
+use crate::ledger::{self, Kind, Record, Tally};
 
 use cache::Cache;
 
@@ -36,6 +38,7 @@ pub struct Sources<'a> {
     cache: Cache,
     program: String,
     at: i64,
+    tally: Option<&'a Tally>,
 }
 
 impl<'a> Sources<'a> {
@@ -54,20 +57,30 @@ impl<'a> Sources<'a> {
             cache: Cache::at(data, program),
             program: program.to_owned(),
             at,
+            tally: None,
         }
+    }
+
+    pub fn counted(mut self, tally: &'a Tally) -> Self {
+        self.tally = Some(tally);
+        self
     }
 
     pub fn page(&mut self, url: &str) -> Result<Outcome<Verified>, GenerateError> {
         if let Some(outcome) = self.cache.load(PAGES, url)? {
             return Ok(outcome);
         }
+        let began = Instant::now();
         let fetching = Fetching {
             timeout: FETCH_TIMEOUT_SECS,
             domains: Some(Vec::new()),
         };
         let saved = match page::save(url, self.source, self.renderer, &fetching) {
             Ok(saved) => saved,
-            Err(error) => return Ok(self.refused(error.to_string())),
+            Err(error) => {
+                self.note(Kind::Page, url, began, false);
+                return Ok(self.refused(error.to_string()));
+            }
         };
         self.keep(url, &saved.html)?;
         let reading = reader::read(&String::from_utf8_lossy(&saved.html), url);
@@ -80,6 +93,8 @@ impl<'a> Sources<'a> {
         } else {
             Verdict::Refused(NO_TEXT.to_owned())
         };
+        let passed = matches!(verdict, Verdict::Passed(_));
+        self.note(Kind::Page, url, began, passed);
         self.remember(PAGES, url, verdict)
     }
 
@@ -88,7 +103,11 @@ impl<'a> Sources<'a> {
         if let Some(outcome) = self.cache.load(BOOKS, &key)? {
             return Ok(outcome);
         }
-        match book::find(self.source, wanted) {
+        let began = Instant::now();
+        let found = book::find(self.source, wanted);
+        let target = wanted.isbn.as_deref().unwrap_or(&wanted.title);
+        self.note(Kind::Book, target, began, matches!(found, Ok(Some(_))));
+        match found {
             Ok(Some(found)) => self.remember(BOOKS, &key, Verdict::Passed(found)),
             Ok(None) => self.remember(BOOKS, &key, Verdict::Refused(NOT_FOUND.to_owned())),
             Err(error) => Ok(self.refused(error.to_string())),
@@ -96,6 +115,7 @@ impl<'a> Sources<'a> {
     }
 
     pub fn image(&self, query: &str, caption: &str) -> Outcome<Illustration> {
+        let began = Instant::now();
         let verdict = match commons::find(self.source, query) {
             Ok(Found::Picture(picture)) => Verdict::Passed(Illustration::new(picture, caption)),
             Ok(Found::Refused(reason)) => Verdict::Refused(reason),
@@ -104,9 +124,17 @@ impl<'a> Sources<'a> {
             )),
             Err(error) => Verdict::Refused(error.to_string()),
         };
+        let passed = matches!(verdict, Verdict::Passed(_));
+        self.note(Kind::Image, query, began, passed);
         Outcome {
             checked_at: self.at,
             verdict,
+        }
+    }
+
+    fn note(&self, kind: Kind, target: &str, began: Instant, ok: bool) {
+        if let Some(tally) = self.tally {
+            tally.push(Record::checked(kind, target, ledger::since(began), ok));
         }
     }
 
