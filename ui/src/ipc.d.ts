@@ -352,6 +352,16 @@ export type TakeNextOut = {
   stage: string;
 };
 
+export type RegenerateStageIn = {
+  program: string;
+  node: string;
+  stage: string;
+};
+
+export type RegenerateStageOut = {
+  stage: string;
+};
+
 export type Commands = {
   export: { input: ExportIn; output: ExportOut };
   settings: { input: SettingsIn; output: SettingsView };
@@ -371,6 +381,7 @@ export type Commands = {
   cancel_generation: { input: CancelGenerationIn; output: CancelGenerationOut };
   fork: { input: ForkIn; output: ForkOut };
   take_next: { input: TakeNextIn; output: TakeNextOut };
+  regenerate_stage: { input: RegenerateStageIn; output: RegenerateStageOut };
 };
 
 export type CommandName = keyof Commands;

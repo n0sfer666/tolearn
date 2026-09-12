@@ -143,5 +143,6 @@ pub fn shapes() -> Vec<Shape> {
     shapes.extend(super::planned::shapes());
     shapes.extend(super::started::shapes());
     shapes.extend(super::forked::shapes());
+    shapes.extend(super::regenerated::shapes());
     shapes
 }

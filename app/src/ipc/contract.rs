@@ -6,6 +6,7 @@ use super::forked;
 use super::handlers;
 use super::planned;
 use super::reading;
+use super::regenerated;
 use super::shape::Shape;
 use super::started;
 use super::types;
@@ -62,6 +63,7 @@ commands! {
     cancel_generation(started::CancelGenerationIn) -> started::CancelGenerationOut,
     fork(forked::ForkIn) -> forked::ForkOut,
     take_next(forked::TakeNextIn) -> forked::TakeNextOut,
+    regenerate_stage(regenerated::RegenerateStageIn) -> regenerated::RegenerateStageOut,
 }
 
 #[tauri::command]

@@ -7,6 +7,7 @@ pub mod llm_log;
 pub mod node;
 pub mod plan_program;
 pub mod provider;
+pub mod regenerate_stage;
 pub mod revise_plan;
 pub mod search;
 pub mod settings;

@@ -15,6 +15,7 @@ mod planned;
 mod planning;
 mod provider;
 pub mod reading;
+mod regenerated;
 mod running;
 mod settings;
 mod shape;
