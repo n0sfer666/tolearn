@@ -85,6 +85,14 @@ impl Library {
         self.written(|root| replace::replace(root, source))
     }
 
+    pub fn copy(&self, tree: &Tree, to: &Path) -> Result<(), LibraryError> {
+        let uuid = &tree.program.uuid;
+        if !is_uuid(uuid) {
+            return Err(LibraryError::Absent { uuid: uuid.clone() });
+        }
+        self.written(|root| install::copy(tree, &root.join(uuid), to))
+    }
+
     pub fn holds(&self, path: &Path) -> bool {
         crate::export::inside(&self.root, path)
     }
