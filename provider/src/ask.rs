@@ -6,6 +6,7 @@ use tolearn_runner::Stop;
 use crate::answer::said;
 use crate::error::CheckError;
 use crate::harness;
+use crate::tokens::Tokens;
 use crate::types::{Api, Http, Kind, Provider, Watch};
 use crate::wire::{apart, broken, client, given, refused};
 
@@ -23,7 +24,8 @@ pub(crate) enum Length {
 pub struct Said {
     pub text: String,
     pub thinking: bool,
-    pub tokens: Option<u32>,
+    pub tokens: Tokens,
+    pub model: Option<String>,
 }
 
 pub fn ask(provider: &Provider, key: Option<&str>, prompt: &str) -> Result<Said, CheckError> {
@@ -118,7 +120,7 @@ fn send(http: &Http, key: Option<&str>, prompt: &str, length: Length) -> Result<
     }
 
     let body = answer.text().map_err(broken)?;
-    said(http.api, &body, length).ok_or(CheckError::BadAnswer)
+    said(http.api, &body, length, &http.model).ok_or(CheckError::BadAnswer)
 }
 
 fn route(http: &Http) -> String {

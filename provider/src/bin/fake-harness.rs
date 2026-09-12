@@ -5,6 +5,8 @@ use std::time::Duration;
 const VERSION: &str = "fake-harness 1.0";
 const FLOOD_LINES: usize = 40_000;
 const STEP: Duration = Duration::from_millis(40);
+const SPENT: &str = r#"{"input_tokens":10,"cache_creation_input_tokens":4,"output_tokens":7,"cache_read_input_tokens":3}"#;
+const UNSPENT: &str = r#"{"input_tokens":0,"output_tokens":0}"#;
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -15,7 +17,8 @@ fn main() -> ExitCode {
         "ansi" => println!("\u{1b}]0;title\u{7}\u{1b}[32mуслышал: {}\u{1b}[0m", heard()),
         "banner" => println!("добро пожаловать\n\nуслышал: {}", heard()),
         "silent" => {}
-        "stream" => stream(&heard()),
+        "stream" => stream(&heard(), SPENT),
+        "unspent" => stream(&heard(), UNSPENT),
         "jsonish" => println!(
             "{{\"type\":\"status\",\"note\":\"работаю\"}}\nуслышал: {}",
             heard()
@@ -37,8 +40,8 @@ fn main() -> ExitCode {
     ExitCode::SUCCESS
 }
 
-fn stream(said: &str) {
-    println!(r#"{{"type":"system","subtype":"init"}}"#);
+fn stream(said: &str, usage: &str) {
+    println!(r#"{{"type":"system","subtype":"init","model":"fake-sonnet"}}"#);
     for piece in ["услышал", ": ", said] {
         println!(
             r#"{{"type":"stream_event","event":{{"type":"content_block_delta","delta":{{"type":"text_delta","text":"{piece}"}}}}}}"#
@@ -46,7 +49,7 @@ fn stream(said: &str) {
         std::thread::sleep(STEP);
     }
     println!(
-        r#"{{"type":"result","subtype":"success","result":"услышал: {said}","usage":{{"input_tokens":10,"output_tokens":7,"cache_read_input_tokens":3}}}}"#
+        r#"{{"type":"result","subtype":"success","result":"услышал: {said}","usage":{usage}}}"#
     );
 }
 

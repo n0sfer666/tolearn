@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use tolearn_generate::Model;
 use tolearn_generate::plan::Request;
 use tolearn_offline::reach::Reach;
-use tolearn_provider::{CheckError, Said};
+use tolearn_provider::{CheckError, Said, Tokens};
 
 #[derive(Debug)]
 pub struct Up;
@@ -46,7 +46,8 @@ impl Model for Scripted {
         Ok(Said {
             text,
             thinking: false,
-            tokens: None,
+            tokens: Tokens::default(),
+            model: None,
         })
     }
 }

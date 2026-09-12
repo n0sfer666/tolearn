@@ -9,6 +9,7 @@ use crate::ask::Said;
 use crate::error::CheckError;
 use crate::scratch::Scratch;
 use crate::stream::Tape;
+use crate::tokens::Tokens;
 use crate::types::{Harness, Watch};
 
 pub const OUTPUT_BYTES: usize = 1024 * 1024;
@@ -75,7 +76,8 @@ fn plainly(text: String) -> Said {
     Said {
         text: text.trim().to_owned(),
         thinking: false,
-        tokens: None,
+        tokens: Tokens::default(),
+        model: None,
     }
 }
 

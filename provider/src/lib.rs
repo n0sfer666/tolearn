@@ -15,6 +15,7 @@ mod render;
 mod scratch;
 mod store;
 mod stream;
+mod tokens;
 mod types;
 mod vault;
 mod wire;
@@ -27,6 +28,7 @@ pub use memory::memory;
 pub use models::{Advice, advised, known};
 pub use preset::{PRESETS, Preset, preset};
 pub use probe::{PROMPT as PROBE_PROMPT, Probed, probe};
+pub use tokens::Tokens;
 pub use tolearn_runner::Stop;
 pub use types::{
     Api, DEFAULT_ENDPOINT, DEFAULT_TEMPERATURE_TENTHS, DEFAULT_TIMEOUT_SECS, Harness, Http, Kind,

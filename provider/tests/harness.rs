@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use support::harness;
-use tolearn_provider::{CheckError, Said, Watch, ask, watched};
+use tolearn_provider::{CheckError, Said, Tokens, Watch, ask, watched};
 
 fn asked(mode: &str, timeout_secs: u32) -> Result<Said, CheckError> {
     ask(&harness(&[mode.to_owned()], timeout_secs), None, "спроси")
@@ -65,10 +65,30 @@ fn поток_приходит_кусками_и_приносит_расход_�
         .expect("харнесс отвечает");
 
     assert_eq!(answer.text, "услышал: спроси");
-    assert_eq!(answer.tokens, Some(17));
+    assert_eq!(
+        answer.tokens,
+        Tokens {
+            input: Some(14),
+            output: Some(7)
+        }
+    );
+    assert_eq!(answer.model.as_deref(), Some("fake-sonnet"));
     let pieces = seen.lock().unwrap().clone();
     assert!(pieces.len() > 1, "поток пришёл одним куском: {pieces:?}");
     assert_eq!(pieces.concat(), "услышал: спроси");
+}
+
+#[test]
+fn нулевой_расход_потока_остаётся_нулём_а_не_без_данных() {
+    let answer = asked("unspent", 20).expect("харнесс отвечает");
+
+    assert_eq!(
+        answer.tokens,
+        Tokens {
+            input: Some(0),
+            output: Some(0)
+        }
+    );
 }
 
 #[test]
@@ -76,7 +96,8 @@ fn чужой_json_не_выдаёт_себя_за_поток_и_ответ_ос
     let answer = asked("jsonish", 20).expect("харнесс отвечает");
 
     assert!(answer.text.ends_with("услышал: спроси"), "{}", answer.text);
-    assert_eq!(answer.tokens, None);
+    assert_eq!(answer.tokens, Tokens::default());
+    assert_eq!(answer.model, None);
 }
 
 #[test]

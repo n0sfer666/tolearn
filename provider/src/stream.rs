@@ -1,18 +1,16 @@
 use serde_json::Value;
 
 use crate::ask::Said;
+use crate::tokens::Tokens;
 
-const USAGE: [&str; 3] = [
-    "input_tokens",
-    "output_tokens",
-    "cache_creation_input_tokens",
-];
+const INPUT: [&str; 2] = ["input_tokens", "cache_creation_input_tokens"];
 
 #[derive(Debug, Default)]
 pub struct Tape {
     pending: String,
     answer: String,
-    tokens: Option<u32>,
+    tokens: Tokens,
+    model: Option<String>,
     json: bool,
 }
 
@@ -32,6 +30,7 @@ impl Tape {
             text: self.answer.trim().to_owned(),
             thinking: false,
             tokens: self.tokens,
+            model: self.model.clone(),
         })
     }
 
@@ -48,8 +47,13 @@ impl Tape {
         };
         match event.get("type").and_then(Value::as_str) {
             Some("stream_event") => self.delta(event.get("event"), shown),
+            Some("system") => {
+                self.named(event.get("model"));
+                return;
+            }
             Some("assistant") => {
                 let message = event.get("message");
+                self.named(message.and_then(|message| message.get("model")));
                 self.spent(message);
                 self.whole(&blocks(message), shown);
             }
@@ -90,13 +94,26 @@ impl Tape {
         let Some(usage) = holder.and_then(|holder| holder.get("usage")) else {
             return;
         };
-        let counted: u64 = USAGE
+        let count = |field: &str| usage.get(field).and_then(Value::as_u64);
+        let input = INPUT
             .iter()
-            .filter_map(|field| usage.get(field))
-            .filter_map(Value::as_u64)
-            .sum();
-        if counted > 0 {
-            self.tokens = u32::try_from(counted).ok();
+            .filter_map(|field| count(field))
+            .reduce(|sum, more| sum + more);
+        let output = count("output_tokens");
+        if input.is_some() || output.is_some() {
+            self.tokens = Tokens {
+                input: input.and_then(narrow),
+                output: output.and_then(narrow),
+            };
+        }
+    }
+
+    fn named(&mut self, model: Option<&Value>) {
+        if let Some(model) = model
+            .and_then(Value::as_str)
+            .filter(|model| !model.is_empty())
+        {
+            self.model = Some(model.to_owned());
         }
     }
 }
@@ -125,4 +142,8 @@ fn text(field: Option<&Value>) -> String {
         .and_then(Value::as_str)
         .map(str::to_owned)
         .unwrap_or_default()
+}
+
+fn narrow(counted: u64) -> Option<u32> {
+    u32::try_from(counted).ok()
 }
