@@ -18,7 +18,7 @@
 | что делаем и в каком порядке | [docs/specs/README.md](../docs/specs/README.md) — 58 спек |
 | вердикт → статус, форма попытки | [docs/ru/protocol.md](../docs/ru/protocol.md) |
 | цвет, глифы, токены, модель видимости | [docs/design/visual-system.md](../docs/design/visual-system.md) |
-| порядок экранов и секций | [docs/design/navigation.md](../docs/design/navigation.md) |
+| экраны, переходы, слои, клавиатура | [docs/design/ia.md](../docs/design/ia.md) |
 | дизайн-токены (единственный источник значений) | [docs/design/tokens.css](../docs/design/tokens.css) |
 
 Эталонная программа `examples/chiptune/` — одновременно пример формата v2
