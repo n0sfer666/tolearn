@@ -10,6 +10,7 @@ v2/            корпус схем и чтения программ
 valid/page/    сохранённая страница с картинкой, стилем и скриптом (offline/tests/page.rs)
 valid/reader/  страницы разной разметки для извлечения текста (offline/tests/reader.rs)
 openlibrary/   записанные ответы search.json: по ISBN, по названию, не найдено, обрезанный (offline/tests/book.rs)
+commons/       записанные ответы API Commons: свободный файл, несвободные, несвободный выше свободного, не найдено, обрезанный (offline/tests/commons.rs, generate/tests/images.rs)
 audio/{ru,en}/ корпус распознавания речи S55 (speech/tests/corpus.rs)
 ```
 

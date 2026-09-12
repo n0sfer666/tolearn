@@ -1,8 +1,10 @@
 mod cache;
 mod excerpt;
+mod image;
 mod verdict;
 
 pub use excerpt::{PAGE_CHARS, excerpt};
+pub use image::Illustration;
 pub use verdict::{Outcome, Verdict, Verified};
 
 use std::fmt;
@@ -10,6 +12,7 @@ use std::path::Path;
 
 use serde::Serialize;
 use tolearn_offline::book::{self, Book, Wanted};
+use tolearn_offline::commons::{self, Found};
 use tolearn_offline::page::{self, Fetching, Prerenderer, Source};
 use tolearn_offline::reader;
 use tolearn_offline::store::{Fetched, Store, StoreError};
@@ -87,6 +90,21 @@ impl<'a> Sources<'a> {
             Ok(Some(found)) => self.remember(BOOKS, &key, Verdict::Passed(found)),
             Ok(None) => self.remember(BOOKS, &key, Verdict::Refused(NOT_FOUND.to_owned())),
             Err(error) => Ok(self.refused(error.to_string())),
+        }
+    }
+
+    pub fn image(&self, query: &str, caption: &str) -> Outcome<Illustration> {
+        let verdict = match commons::find(self.source, query) {
+            Ok(Found::Picture(picture)) => Verdict::Passed(Illustration::new(picture, caption)),
+            Ok(Found::Refused(reason)) => Verdict::Refused(reason),
+            Ok(Found::Missing) => Verdict::Refused(format!(
+                "на Commons не нашлось картинки по запросу «{query}»"
+            )),
+            Err(error) => Verdict::Refused(error.to_string()),
+        };
+        Outcome {
+            checked_at: self.at,
+            verdict,
         }
     }
 

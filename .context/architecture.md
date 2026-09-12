@@ -111,6 +111,17 @@ verdict }`, где `Verdict` — `Passed(Verified { url, title, text })` / `Pass
 промахом, ошибка ввода-вывода — `generate.cache`. Модели идёт
 `excerpt(text)`, это первые `PAGE_CHARS` = 8000 символов.
 
+Картинку ищет `offline::commons::find(source, query)` в Wikimedia Commons: пять
+файлов поисковой выдачи по рангу, лицензия и автор из `extmetadata`. Проходит
+первый файл со свободной лицензией (CC0, PD, CC BY, CC BY-SA) и указанным
+автором. Скачивается его миниатюра шириной 960 px, предел веса — 400 КБ.
+Остальные исходы — `Found::Refused(причина)` или `Found::Missing`.
+`Sources::image(query, caption)` превращает находку в `Illustration`: байты,
+имя ассета по sha256 и готовый блок `image` с лицензией, атрибуцией и страницей
+файла. Отказ, «не найдено» и сбой сети дают `Verdict::Refused`, кэша у картинок
+нет. Wikimedia без `User-Agent` отвечает 403, поэтому клиент `offline::net`
+представляется как `tolearn/<версия>`.
+
 ## Владение данными
 
 | Данные | Владелец | Где лежит |
