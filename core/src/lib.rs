@@ -8,6 +8,7 @@ pub mod block;
 pub mod export;
 pub mod library;
 pub mod package;
+pub mod places;
 pub mod program;
 pub mod read;
 pub mod search;

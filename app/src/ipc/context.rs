@@ -15,9 +15,6 @@ use super::running::Running;
 use super::tools::Tools;
 use super::wired::wired;
 
-const SERVICE: &str = "tolearn";
-const ACCOUNT: &str = "provider";
-
 pub type Net = Arc<dyn Reach + Send + Sync>;
 
 #[derive(Debug, Clone)]
@@ -42,7 +39,7 @@ impl Context {
             config: config.to_path_buf(),
             data: data.to_path_buf(),
             resources: data.to_path_buf(),
-            vault: Arc::new(Keychain::new(SERVICE, ACCOUNT)),
+            vault: Arc::new(Keychain::app()),
             reach: None,
             tools: Tools::default(),
             running: Running::default(),

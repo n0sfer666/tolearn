@@ -7,7 +7,7 @@
 
 use std::path::{Path, PathBuf};
 
-use tolearn_app::ipc::layout::{Places, migrate, places};
+use tolearn_app::ipc::layout::{Places, migrate};
 
 fn home(name: &str) -> PathBuf {
     let directory =
@@ -40,21 +40,6 @@ fn rooms(root: &Path) -> Places {
     std::fs::create_dir_all(&made.config).unwrap();
     std::fs::create_dir_all(&made.data).unwrap();
     made
-}
-
-#[test]
-fn настройки_лежат_в_конфиге_а_хранилище_в_данных() {
-    let root = home("split");
-
-    let made = places(&root);
-
-    if std::env::var_os("XDG_CONFIG_HOME").is_none() {
-        assert_eq!(made.config, root.join(".config/tolearn"));
-    }
-    if std::env::var_os("XDG_DATA_HOME").is_none() {
-        assert_eq!(made.data, root.join(".local/share/tolearn"));
-    }
-    assert_ne!(made.config, made.data);
 }
 
 #[test]

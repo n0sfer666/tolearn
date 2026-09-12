@@ -1,23 +1,11 @@
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-const APP: &str = "tolearn";
+pub use tolearn_core::places::{Places, places};
+
 const CONFIG: [&str; 3] = ["settings.yaml", "provider.yaml", "registry.yaml"];
 const DATA: [&str; 3] = ["offline", "unpacked", "history"];
 const INDEX: &str = "search-";
-
-#[derive(Debug, Clone)]
-pub struct Places {
-    pub config: PathBuf,
-    pub data: PathBuf,
-}
-
-pub fn places(home: &Path) -> Places {
-    Places {
-        config: root("XDG_CONFIG_HOME", home, ".config"),
-        data: root("XDG_DATA_HOME", home, ".local/share"),
-    }
-}
 
 pub fn migrate(old: &Path, places: &Places) -> io::Result<()> {
     if !old.is_dir() {
@@ -30,14 +18,6 @@ pub fn migrate(old: &Path, places: &Places) -> io::Result<()> {
         moved(&old.join(name), &places.data.join(name))?;
     }
     indexes(old, &places.data)
-}
-
-fn root(variable: &str, home: &Path, fallback: &str) -> PathBuf {
-    std::env::var_os(variable)
-        .map(PathBuf::from)
-        .filter(|path| path.is_absolute())
-        .unwrap_or_else(|| home.join(fallback))
-        .join(APP)
 }
 
 fn indexes(old: &Path, data: &Path) -> io::Result<()> {
