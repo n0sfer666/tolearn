@@ -1,7 +1,7 @@
 use std::fmt;
 
 use tolearn_generate::Model;
-use tolearn_provider::{CheckError, Provider, Said, ask};
+use tolearn_provider::{CheckError, Provider, Said, Stop, stoppable};
 
 use crate::journal::Journal;
 
@@ -10,6 +10,7 @@ pub struct Voiced {
     key: Option<String>,
     journal: Journal,
     kind: &'static str,
+    stop: Stop,
 }
 
 impl Voiced {
@@ -18,12 +19,14 @@ impl Voiced {
         key: Option<String>,
         journal: Journal,
         kind: &'static str,
+        stop: Stop,
     ) -> Self {
         Self {
             provider,
             key,
             journal,
             kind,
+            stop,
         }
     }
 }
@@ -38,7 +41,7 @@ impl fmt::Debug for Voiced {
 
 impl Model for Voiced {
     fn ask(&self, prompt: &str) -> Result<Said, CheckError> {
-        match ask(&self.provider, self.key.as_deref(), prompt) {
+        match stoppable(&self.provider, self.key.as_deref(), prompt, &self.stop) {
             Ok(said) => {
                 self.journal.said(self.kind, prompt, &said.text);
                 Ok(said)

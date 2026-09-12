@@ -12,10 +12,10 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use serde_json::{Value, json};
+use support::planner::{Net, provider};
 use support::speaking::{Speaking, speaking};
 use support::{repository, snapshot};
 use tolearn_app::ipc::{Context, IpcError, call};
-use tolearn_offline::reach::Reach;
 use tolearn_provider::{Remembered, Vault};
 
 static CASES: AtomicUsize = AtomicUsize::new(0);
@@ -25,18 +25,6 @@ const WISHES: [&str; 3] = [
     "Только Famitracker",
     "Короче, на выходные",
 ];
-
-#[derive(Debug)]
-struct Net(bool);
-
-impl Reach for Net {
-    fn reach(&self, _url: &str) -> Result<(), String> {
-        match self.0 {
-            true => Ok(()),
-            false => Err("network is unreachable".to_owned()),
-        }
-    }
-}
 
 struct Case {
     context: Context,
@@ -77,26 +65,6 @@ fn case(up: bool, answers: &[&str]) -> Case {
 
 fn answer(name: &str) -> String {
     std::fs::read_to_string(repository().join("fixtures/generate/plan").join(name)).unwrap()
-}
-
-fn provider(endpoint: &str) -> Value {
-    let http = |api| {
-        json!({
-            "endpoint": endpoint,
-            "api": api,
-            "model": "llama3:8b",
-            "num_ctx": 0,
-            "temperature_tenths": 7,
-        })
-    };
-    json!({
-        "enabled": true,
-        "active": "local",
-        "journal": false,
-        "local": http("ollama"),
-        "remote": http("openai"),
-        "harness": { "id": "custom", "command": "claude", "args": ["-p"], "timeout_secs": 180 },
-    })
 }
 
 fn plan(case: &Case, request: &str) -> Result<Value, IpcError> {

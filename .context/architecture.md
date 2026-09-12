@@ -233,7 +233,7 @@ S37. Общие для обоих окон `on_main` и `answer` лежат в `
   уточнение — `plan.empty`, провайдер и ключ, `Context::reach()` (в тестах —
   `with_reach`), `generate::online`, модель через `Voiced` с записью в журнал
   («Карта программы», «Переделка карты»). Ответ — карта и сумма часов
-  `Plan::hours()`. Команда синхронная; события шагов и отмена — S122/S127.
+  `Plan::hours()`.
 - Этап: источники и текст (S120) — `generate::stage::{gather, text}`.
   `gather` просит у модели книги, страницы и картинки по карте, месту этапа
   (`Place`) и классу `volatility` и проверяет каждый через `Sources`;
@@ -252,6 +252,23 @@ S37. Общие для обоих окон `on_main` и `answer` лежат в `
   уходит сырой JSON только этих частей, ответ вклеивается в сырой ответ
   (`raw` → `patch` → `answer::build`), и `id` целых блоков не меняются: это хеш
   текста. До трёх кругов, затем `generate.unrepaired`.
+- Сборка и запись этапа (S122) — `generate::start::start(Kit, request, plan)`:
+  карта с детьми разворачивается до листа (`plan::expand`), затем источники,
+  текст с починкой, схемы через `diagram::Painter`, сборка в
+  `cache/<uuid>/build/` и `Library::install`. Шаги — `Step`, наблюдатель —
+  `Progress::{began, ended}`, отмена — `Stop` в `Kit`: флаг смотрится между
+  шагами и перед каждой проверкой источника, перед `install` запечатывается
+  (`Stop::seal`), и поздняя отмена отказывает. В приложении — команды
+  `start_program {request, level, plan} → {program}` и
+  `cancel_generation → {cancelled}` (`app/src/ipc/{started,running,tools,
+  announced,wired}.rs`). `Context` несёт `Tools` (источник страниц, пререндер,
+  художник схем, глашатай шагов) и `Running` — одна генерация за раз, иначе
+  `generate.busy`. `wired` подставляет окно Mermaid, пререндер WebView и
+  `emit("generation-step", {step, state, round})`; без окна схема остаётся
+  кодом (`Unpainted`), пререндер — `AsFetched`. Общая команда `command` async:
+  вызов уходит в `spawn_blocking`, главный поток свободен для `hidden::on_main`.
+  У `start_program` уровень обязателен (`plan.empty`), у `plan_program` — нет:
+  экран S127 требует уровень до «Начать».
 - Файлы написаны LLM: могут быть неполными, невалидными и содержать
   произвольный shell. Несгенерированная часть программы — нормальное состояние
   ([ADR-007](../docs/adr/007-incomplete-bundle.md),

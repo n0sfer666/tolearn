@@ -160,5 +160,5 @@ fn описание_команд_держит_обе_формы() {
             bare.push(descriptor.name);
         }
     }
-    assert_eq!(bare, ["library"]);
+    assert_eq!(bare, ["library", "cancel_generation"]);
 }

@@ -6,8 +6,11 @@
 )]
 #![allow(dead_code, reason = "опоры нужны не каждому тест-бинарнику")]
 
+pub mod planner;
 pub mod shelf;
 pub mod speaking;
+pub mod starter;
+pub mod web;
 
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpListener;

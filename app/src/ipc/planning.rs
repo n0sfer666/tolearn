@@ -2,7 +2,7 @@ use tolearn_core::Hours;
 use tolearn_core::program::{StageRow, Volatility};
 use tolearn_generate::plan::{Part, Plan, Request};
 use tolearn_generate::{GenerateError, Online, online};
-use tolearn_provider::Provider;
+use tolearn_provider::{Provider, Stop};
 
 use super::context::Context;
 use super::error::IpcError;
@@ -20,15 +20,8 @@ pub fn drawn(
     level: &str,
     draw: impl FnOnce(&Online<'_>, &Request) -> Result<Plan, GenerateError>,
 ) -> Result<PlanOut, IpcError> {
-    let request = Request {
-        request: told("запрос", request)?,
-        level: level.trim().to_owned(),
-        locale: stored(context)?.locale.label().to_owned(),
-    };
-    let provider = Provider::read(&context.provider()).map_err(failed)?;
-    let key = context.vault().key().map_err(denied)?;
-    let journal = Journal::new(context.llm_log(), provider.journal);
-    let model = Voiced::new(provider, key, journal, kind);
+    let request = asked(context, request, level)?;
+    let model = voiced(context, kind, Stop::default())?;
     let reach = context.reach()?;
     let online = online(reach.as_ref(), &model).map_err(refused)?;
     let plan = draw(&online, &request).map_err(refused)?;
@@ -36,6 +29,21 @@ pub fn drawn(
         hours: span(plan.hours()),
         plan: view(&plan),
     })
+}
+
+pub fn asked(context: &Context, request: &str, level: &str) -> Result<Request, IpcError> {
+    Ok(Request {
+        request: told("запрос", request)?,
+        level: level.trim().to_owned(),
+        locale: stored(context)?.locale.label().to_owned(),
+    })
+}
+
+pub fn voiced(context: &Context, kind: &'static str, stop: Stop) -> Result<Voiced, IpcError> {
+    let provider = Provider::read(&context.provider()).map_err(failed)?;
+    let key = context.vault().key().map_err(denied)?;
+    let journal = Journal::new(context.llm_log(), provider.journal);
+    Ok(Voiced::new(provider, key, journal, kind, stop))
 }
 
 pub fn told(what: &str, value: &str) -> Result<String, IpcError> {
@@ -120,6 +128,6 @@ fn hours(span: &Span) -> Hours {
     }
 }
 
-fn refused(error: GenerateError) -> IpcError {
+pub fn refused(error: GenerateError) -> IpcError {
     IpcError::new(error.code(), error.to_string())
 }

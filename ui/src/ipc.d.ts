@@ -300,6 +300,29 @@ export type PlanPartView = {
   hours: Span;
 };
 
+export type StartProgramIn = {
+  request: string;
+  level: string;
+  plan: PlanView;
+};
+
+export type StartProgramOut = {
+  program: string;
+};
+
+export type CancelGenerationIn = {
+};
+
+export type CancelGenerationOut = {
+  cancelled: boolean;
+};
+
+export type GenerationStep = {
+  step: string;
+  state: string;
+  round: number;
+};
+
 export type Commands = {
   export: { input: ExportIn; output: ExportOut };
   settings: { input: SettingsIn; output: SettingsView };
@@ -315,6 +338,8 @@ export type Commands = {
   stage: { input: StageIn; output: StageOut };
   plan_program: { input: PlanProgramIn; output: PlanOut };
   revise_plan: { input: RevisePlanIn; output: PlanOut };
+  start_program: { input: StartProgramIn; output: StartProgramOut };
+  cancel_generation: { input: CancelGenerationIn; output: CancelGenerationOut };
 };
 
 export type CommandName = keyof Commands;

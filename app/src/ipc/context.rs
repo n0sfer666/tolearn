@@ -9,6 +9,9 @@ use tolearn_provider::{Keychain, Vault};
 
 use super::error::IpcError;
 use super::layout;
+use super::running::Running;
+use super::tools::Tools;
+use super::wired::wired;
 
 const SERVICE: &str = "tolearn";
 const ACCOUNT: &str = "provider";
@@ -22,6 +25,8 @@ pub struct Context {
     resources: PathBuf,
     vault: Arc<dyn Vault>,
     reach: Option<Net>,
+    tools: Tools,
+    running: Running,
 }
 
 impl Context {
@@ -36,6 +41,8 @@ impl Context {
             resources: data.to_path_buf(),
             vault: Arc::new(Keychain::new(SERVICE, ACCOUNT)),
             reach: None,
+            tools: Tools::default(),
+            running: Running::default(),
         }
     }
 
@@ -51,11 +58,23 @@ impl Context {
             resources: data.to_path_buf(),
             vault,
             reach: None,
+            tools: Tools::default(),
+            running: Running::default(),
         }
     }
 
     pub fn with_reach(mut self, reach: Net) -> Self {
         self.reach = Some(reach);
+        self
+    }
+
+    pub fn with_tools(mut self, tools: Tools) -> Self {
+        self.tools = tools;
+        self
+    }
+
+    pub fn with_running(mut self, running: Running) -> Self {
+        self.running = running;
         self
     }
 
@@ -66,6 +85,18 @@ impl Context {
         let ping = Ping::new(REACH_TIMEOUT_SECS)
             .map_err(|reason| IpcError::new("generate.offline", reason))?;
         Ok(Arc::new(ping))
+    }
+
+    pub fn tools(&self) -> &Tools {
+        &self.tools
+    }
+
+    pub fn running(&self) -> &Running {
+        &self.running
+    }
+
+    pub fn data(&self) -> &Path {
+        &self.data
     }
 
     pub fn resources(&self) -> &Path {
@@ -112,8 +143,9 @@ pub fn of(app: &tauri::AppHandle) -> Result<Context, IpcError> {
             .map_err(|error| IpcError::unwritable(&places.data, &error.to_string()))?;
     }
     let context = Context::split(&places.config, &places.data);
-    Ok(match app.path().resource_dir() {
+    let context = match app.path().resource_dir() {
         Ok(resources) => context.shipped(&resources),
         Err(_) => context,
-    })
+    };
+    wired(app, context)
 }

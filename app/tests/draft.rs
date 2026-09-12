@@ -20,7 +20,12 @@ const GONE: [&str; 6] = [
     "generate_draft",
 ];
 
-const PLANNING: [&str; 2] = ["plan_program", "revise_plan"];
+const PLANNING: [&str; 4] = [
+    "plan_program",
+    "revise_plan",
+    "start_program",
+    "cancel_generation",
+];
 
 #[test]
 fn команды_новой_программы_не_повторяют_имена_v1() {

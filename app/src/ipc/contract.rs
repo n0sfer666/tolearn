@@ -6,6 +6,7 @@ use super::handlers;
 use super::planned;
 use super::reading;
 use super::shape::Shape;
+use super::started;
 use super::types;
 
 #[derive(Debug)]
@@ -56,9 +57,17 @@ commands! {
     stage(reading::StageIn) -> reading::StageOut,
     plan_program(planned::PlanProgramIn) -> planned::PlanOut,
     revise_plan(planned::RevisePlanIn) -> planned::PlanOut,
+    start_program(started::StartProgramIn) -> started::StartProgramOut,
+    cancel_generation(started::CancelGenerationIn) -> started::CancelGenerationOut,
 }
 
 #[tauri::command]
-pub fn command(app: tauri::AppHandle, name: String, payload: Value) -> Result<Value, IpcError> {
-    call(&super::context::of(&app)?, &name, &payload)
+pub async fn command(
+    app: tauri::AppHandle,
+    name: String,
+    payload: Value,
+) -> Result<Value, IpcError> {
+    tauri::async_runtime::spawn_blocking(move || call(&super::context::of(&app)?, &name, &payload))
+        .await
+        .map_err(|error| IpcError::new("ipc.crashed", error.to_string()))?
 }
