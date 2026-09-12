@@ -6,6 +6,7 @@ mod shown;
 mod types;
 
 pub use flaw::Flaw;
+pub(crate) use flaw::span;
 pub use rules::check;
 pub use types::{Part, Plan, Request};
 

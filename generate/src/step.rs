@@ -2,6 +2,7 @@
 pub enum Step {
     Plan,
     Revise,
+    Fork,
     Part,
     Sources,
     Text,
@@ -15,6 +16,7 @@ impl Step {
         match self {
             Self::Plan => "plan",
             Self::Revise => "revise",
+            Self::Fork => "fork",
             Self::Part => "part",
             Self::Sources => "sources",
             Self::Text => "text",

@@ -1,3 +1,4 @@
+mod build;
 mod error;
 mod gate;
 mod halt;
@@ -7,6 +8,7 @@ mod progress;
 mod step;
 
 pub mod diagram;
+pub mod fork;
 pub mod ledger;
 pub mod plan;
 pub mod sources;

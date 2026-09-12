@@ -1,34 +1,24 @@
-mod assemble;
-mod cited;
-mod day;
-mod guarded;
-mod kit;
 mod lay;
 mod lineage;
 
-pub use day::day;
-pub use kit::Kit;
+pub use crate::build::{Kit, day};
 
 use std::fs;
 use std::path::Path;
 
 use tolearn_core::library::Library;
 
+use crate::build::{BUILD, build, guarded};
 use crate::error::GenerateError;
-use crate::halt::{checked, sealed};
+use crate::halt::sealed;
 use crate::ledger;
 use crate::plan::{self, Flaw, Plan, Request};
-use crate::sources::{CACHE, Sources};
-use crate::stage::{self, Place};
+use crate::sources::CACHE;
+use crate::stage::Place;
 use crate::step::Step;
 
-use assemble::assemble;
-use cited::cited;
-use guarded::guarded;
 use lay::lay;
 use lineage::{Lineage, lineage};
-
-const BUILD: &str = "build";
 
 pub fn start(mut kit: Kit<'_>, request: &Request, plan: &Plan) -> Result<String, GenerateError> {
     let flaws = plan::check(plan, 1);
@@ -38,7 +28,7 @@ pub fn start(mut kit: Kit<'_>, request: &Request, plan: &Plan) -> Result<String,
     let lineage = lineage(&kit, request, plan)?;
     let cache = kit.data.join(CACHE);
     let root = cache.join(&lineage.root().uuid);
-    let done = built(&mut kit, &lineage, &root.join(BUILD));
+    let done = first(&mut kit, &lineage, &root.join(BUILD));
     let _ = fs::remove_dir_all(root.join(BUILD));
     if done.is_err() {
         for program in lineage.programs() {
@@ -50,7 +40,7 @@ pub fn start(mut kit: Kit<'_>, request: &Request, plan: &Plan) -> Result<String,
     done
 }
 
-fn built(kit: &mut Kit<'_>, lineage: &Lineage, build: &Path) -> Result<String, GenerateError> {
+fn first(kit: &mut Kit<'_>, lineage: &Lineage, folder: &Path) -> Result<String, GenerateError> {
     let leaf = &lineage.leaf;
     let row = leaf
         .map
@@ -62,38 +52,19 @@ fn built(kit: &mut Kit<'_>, lineage: &Lineage, build: &Path) -> Result<String, G
         row,
         index: 0,
     };
-    let (progress, stop, online) = (kit.progress, kit.stop, kit.online);
-    let tally = online.tally();
-    let mark = tally.len();
-    let gathered = guarded(progress, stop, Step::Sources, || {
-        let mut sources = Sources::new(
-            kit.source,
-            kit.renderer,
-            &mut *kit.store,
-            kit.data,
-            &leaf.uuid,
-            kit.at,
-        )
-        .counted(tally);
-        stage::gather(online, &mut sources, &place, stop)
-    })?;
-    checked(stop)?;
-    let draft = stage::compose(online, &place, &gathered, progress)?;
-    tally.stamp(mark, &leaf.uuid, Some(&row.id));
-    let (stage, assets) = guarded(progress, stop, Step::Diagrams, || {
-        assemble(kit, draft.stage, &gathered)
-    })?;
+    let built = build(kit, &place)?;
     let mut landed = lineage.clone();
-    landed.leaf.sources = cited(&draft.cited, &gathered);
-    guarded(progress, stop, Step::Write, || {
-        lay(build, &landed, &stage, &assets)?;
+    landed.leaf.sources = built.cited;
+    let (stop, tally) = (kit.stop, kit.online.tally());
+    guarded(kit.progress, stop, Step::Write, || {
+        lay(folder, &landed, &built.stage, &built.assets)?;
         let root = &lineage.root().uuid;
         tally.stamp(0, root, None);
         tally.date(kit.at);
         ledger::append(&ledger::path(kit.data, root), &tally.records())?;
         sealed(stop)?;
         Library::at(kit.data)
-            .install(build)
+            .install(folder)
             .map_err(GenerateError::Library)
     })
 }

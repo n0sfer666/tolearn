@@ -5,7 +5,7 @@ use crate::halt::checked;
 use crate::progress::{Progress, stepped};
 use crate::step::Step;
 
-pub(super) fn guarded<T>(
+pub(crate) fn guarded<T>(
     progress: &dyn Progress,
     stop: &Stop,
     step: Step,

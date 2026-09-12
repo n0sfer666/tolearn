@@ -1,11 +1,9 @@
 use tolearn_core::program::{ChildRow, Generation, Map, Program, Sources};
 
+use crate::build::{Kit, guarded};
 use crate::error::GenerateError;
 use crate::plan::{self, Plan, Request};
 use crate::step::Step;
-
-use super::guarded::guarded;
-use super::kit::Kit;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) struct Lineage {

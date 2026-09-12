@@ -10,9 +10,9 @@ use crate::stage::Gathered;
 use super::kit::Kit;
 use crate::halt::checked;
 
-pub(super) type Assets = BTreeMap<String, Vec<u8>>;
+pub(crate) type Assets = BTreeMap<String, Vec<u8>>;
 
-pub(super) fn assemble(
+pub(crate) fn assemble(
     kit: &Kit<'_>,
     mut stage: Stage,
     gathered: &Gathered,

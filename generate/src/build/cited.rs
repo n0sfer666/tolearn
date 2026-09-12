@@ -4,7 +4,7 @@ use crate::stage::{Chaptered, Gathered, Visited};
 
 use super::day::day;
 
-pub(super) fn cited(ids: &[String], gathered: &Gathered) -> Sources {
+pub(crate) fn cited(ids: &[String], gathered: &Gathered) -> Sources {
     Sources {
         books: ids
             .iter()

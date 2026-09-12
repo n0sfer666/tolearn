@@ -5,6 +5,7 @@ use tolearn_core::library::LibraryError;
 use tolearn_provider::CheckError;
 
 use crate::REPAIRS;
+use crate::fork::NextError;
 use crate::plan::{STAGE_MAX_HOURS, STAGE_MIN_HOURS};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -29,6 +30,7 @@ pub enum GenerateError {
     Cancelled,
     Unwritten(String),
     Library(LibraryError),
+    Next(NextError),
 }
 
 impl GenerateError {
@@ -43,6 +45,7 @@ impl GenerateError {
             Self::Cancelled => "generate.cancelled",
             Self::Unwritten(_) => "generate.unwritten",
             Self::Library(error) => error.code(),
+            Self::Next(error) => error.code(),
         }
     }
 }
@@ -55,7 +58,7 @@ impl fmt::Display for GenerateError {
                 "нет сети: {host} не ответил ({reason}), а без сети источники не проверить"
             ),
             Self::Provider(error) => write!(out, "{error}"),
-            Self::Cache(reason) => write!(out, "кэш источников недоступен: {reason}"),
+            Self::Cache(reason) => write!(out, "кэш генерации недоступен: {reason}"),
             Self::Unrepaired { what, flaws } => write!(
                 out,
                 "модель не исправила {what} за {REPAIRS} круга починки: {}",
@@ -69,9 +72,10 @@ impl fmt::Display for GenerateError {
             Self::Unfit { flaws } => {
                 write!(out, "карта не годится для генерации: {}", flaws.join("; "))
             }
-            Self::Cancelled => write!(out, "генерация отменена, программа не создана"),
+            Self::Cancelled => write!(out, "генерация отменена, библиотека не изменилась"),
             Self::Unwritten(reason) => write!(out, "не удалось записать программу: {reason}"),
             Self::Library(error) => write!(out, "{error}"),
+            Self::Next(error) => write!(out, "{error}"),
         }
     }
 }
@@ -88,6 +92,7 @@ impl std::error::Error for GenerateError {
             | Self::Unwritten(_) => None,
             Self::Provider(error) => Some(error),
             Self::Library(error) => Some(error),
+            Self::Next(error) => Some(error),
         }
     }
 }

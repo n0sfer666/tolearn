@@ -1,18 +1,14 @@
 use std::fs;
 use std::path::Path;
 
-use tolearn_core::program;
-use tolearn_core::stage::{self, Stage};
+use tolearn_core::stage::Stage;
 
+use crate::build::{Assets, described, staged};
 use crate::error::GenerateError;
 
-use super::assemble::Assets;
 use super::lineage::Lineage;
 
 const CHILDREN: &str = "children";
-const STAGES: &str = "stages";
-const ASSETS: &str = "assets";
-const PROGRAM: &str = "program.yaml";
 
 pub(super) fn lay(
     build: &Path,
@@ -26,25 +22,9 @@ pub(super) fn lay(
         if depth > 0 {
             folder = folder.join(CHILDREN).join(&program.uuid);
         }
-        let text = program::write(program).map_err(|error| unwritten(PROGRAM, &error))?;
-        put(&folder.join(PROGRAM), text.as_bytes())?;
+        if program.uuid != lineage.leaf.uuid {
+            described(&folder, program)?;
+        }
     }
-    let name = format!("{}.yaml", stage.id);
-    let text = stage::write(stage).map_err(|error| unwritten(&name, &error))?;
-    put(&folder.join(STAGES).join(name), text.as_bytes())?;
-    for (file, bytes) in assets {
-        put(&folder.join(ASSETS).join(file), bytes)?;
-    }
-    Ok(())
-}
-
-fn put(path: &Path, bytes: &[u8]) -> Result<(), GenerateError> {
-    let folder = path.parent().unwrap_or(path);
-    fs::create_dir_all(folder)
-        .and_then(|()| fs::write(path, bytes))
-        .map_err(|error| unwritten(&path.display().to_string(), &error))
-}
-
-fn unwritten(what: &str, error: &dyn std::fmt::Display) -> GenerateError {
-    GenerateError::Unwritten(format!("{what}: {error}"))
+    staged(&folder, &lineage.leaf, stage, assets)
 }

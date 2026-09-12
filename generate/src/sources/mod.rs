@@ -23,7 +23,7 @@ use tolearn_offline::store::{Fetched, Store, StoreError};
 use crate::error::GenerateError;
 use crate::ledger::{self, Kind, Record, Tally};
 
-use cache::Cache;
+pub(crate) use cache::Cache;
 
 const PAGES: &str = "pages";
 const BOOKS: &str = "books";

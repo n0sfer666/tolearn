@@ -70,6 +70,6 @@ impl fmt::Display for Flaw {
     }
 }
 
-pub(super) fn span(hours: Hours) -> String {
+pub(crate) fn span(hours: Hours) -> String {
     format!("{}–{}", hours.min, hours.max)
 }

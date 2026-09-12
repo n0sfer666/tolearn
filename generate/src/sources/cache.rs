@@ -51,6 +51,14 @@ impl Cache {
         fs::rename(&temporary, &path).map_err(|error| failed(&path, &error))
     }
 
+    pub fn forget(&self, kind: &str, key: &str) -> Result<(), GenerateError> {
+        let path = self.spot(kind, key);
+        match fs::remove_file(&path) {
+            Err(error) if error.kind() != ErrorKind::NotFound => Err(failed(&path, &error)),
+            _ => Ok(()),
+        }
+    }
+
     fn spot(&self, kind: &str, key: &str) -> PathBuf {
         self.root
             .join(kind)
