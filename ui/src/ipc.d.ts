@@ -90,48 +90,6 @@ export type Link = {
   title: string;
 };
 
-export type ProgramsIn = {
-  today: string;
-};
-
-export type ProgramsOut = {
-  programs: Card[];
-};
-
-export type Card = {
-  id: string;
-  title: string;
-  path: string;
-  reachable: boolean;
-  opened_at: string | null;
-  tally: Tally | null;
-};
-
-export type ImportIn = {
-  path: string;
-  today: string;
-};
-
-export type ImportOut = {
-  ok: boolean;
-  id: string | null;
-  title: string | null;
-  violations: Violation[];
-  report: Merged | null;
-};
-
-export type Merged = {
-  kept: string[];
-  added: string[];
-  orphaned: string[];
-  stale: StaleTopic[];
-};
-
-export type StaleTopic = {
-  id: string;
-  changed: string[];
-};
-
 export type SettingsIn = {
   save: SettingsView | null;
 };
@@ -390,9 +348,7 @@ export type Commands = {
   validate: { input: ValidateIn; output: ValidateOut };
   scan: { input: ScanIn; output: ScanOut };
   program: { input: ProgramIn; output: ProgramOut };
-  programs: { input: ProgramsIn; output: ProgramsOut };
   export: { input: ExportIn; output: ExportOut };
-  import: { input: ImportIn; output: ImportOut };
   settings: { input: SettingsIn; output: SettingsView };
   search: { input: SearchIn; output: SearchOut };
   provider: { input: ProviderIn; output: ProviderOut };

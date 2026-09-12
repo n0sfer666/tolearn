@@ -28,8 +28,6 @@ tauri-plugin-single-instance.workspace = true
 
 [dev-dependencies]
 flate2.workspace = true
-tar.workspace = true
-zip.workspace = true
 
 [build-dependencies]
 tauri-build.workspace = true

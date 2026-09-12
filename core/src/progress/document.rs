@@ -1,6 +1,5 @@
 use saphyr::{LoadableYamlNode, Yaml};
 
-use super::enums::Status;
 use super::error::DocumentError;
 use super::mark::{self, Mark};
 use super::node;
@@ -75,13 +74,6 @@ impl Document {
                 state.next_review_at.as_deref(),
             )?;
             put(root, topic, "gaps", node::texts(&state.gaps))?;
-            render(root, format)
-        })
-    }
-
-    pub fn restate(&mut self, topic: &str, status: Status) -> Result<(), DocumentError> {
-        self.edit(|root, format| {
-            set(root, topic, "status", Some(status.label()))?;
             render(root, format)
         })
     }

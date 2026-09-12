@@ -1,9 +1,7 @@
 mod args;
-mod bundle;
 mod commands;
 mod error;
 mod out;
-mod today;
 
 use std::process::ExitCode;
 
@@ -12,7 +10,7 @@ fn main() -> ExitCode {
     let code = match args::parse(&argv).and_then(|args| {
         let output = commands::run(&args)?;
         println!("{}", output.shown(args.json));
-        Ok(output.code())
+        Ok(0)
     }) {
         Ok(code) => code,
         Err(error) => {

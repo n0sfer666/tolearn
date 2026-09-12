@@ -71,14 +71,6 @@ impl Context {
         self.data.join("llm-log")
     }
 
-    pub fn unpacked(&self) -> PathBuf {
-        self.data.join("unpacked")
-    }
-
-    pub fn registry(&self) -> PathBuf {
-        self.config.join("registry.yaml")
-    }
-
     pub fn library(&self) -> Library {
         Library::at(&self.data)
     }

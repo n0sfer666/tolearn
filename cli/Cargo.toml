@@ -1,6 +1,6 @@
 [package]
 name = "tolearn-cli"
-description = "Headless entry point: validate, scan, progress, exam, merge"
+description = "Headless entry point: export, pack, unpack"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -14,8 +14,6 @@ path = "src/main.rs"
 
 [dependencies]
 tolearn-core.workspace = true
-tolearn-offline.workspace = true
-tolearn-runner.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]

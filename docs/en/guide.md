@@ -7,14 +7,14 @@ The short version of how to use the app. For installation see
 
 ## Getting started
 
-1. Take a ready learning program — a bundle, that is a folder with
-   `roadmap.yaml`, `topics/*.yaml` and `examiner.md`. Example:
-   [`examples/llm-agents-base`](../../examples/llm-agents-base). Generating a
-   program inside the app is removed for now and will come back one stage at a
-   time.
-2. On the home screen press "Choose folder" or "Choose archive". The app
-   validates the bundle and shows the errors, if any.
-3. Open a topic and start.
+1. Take a ready learning program — a `.tolearn` file. You can build one from a
+   program folder with `tolearn pack`, for example from
+   [`examples/chiptune`](../../examples/chiptune); the CLI is built from source
+   ([install/source.md](install/source.md)). Generating a program inside the app
+   is removed for now and will come back one stage at a time.
+2. Drop the file onto the home screen or pick it with the button. The app checks
+   the package and names the reason if it refuses it.
+3. Open the program, then a stage, and start.
 
 ## Screens
 
@@ -27,11 +27,8 @@ The short version of how to use the app. For installation see
 
 ## Where your data lives
 
-- Programs stay wherever you put them; the app remembers the path in its
-  registry.
-- Settings, the program registry and the store (page archives)
-  live in `~/.config/tolearn` and `~/.local/share/tolearn`, identically on all
-  three operating systems; exact paths and how to move them —
+- Settings live in `~/.config/tolearn` and data in `~/.local/share/tolearn`,
+  identically on all three operating systems; exact paths and how to move them —
   [install/](install/README.md#where-your-data-lives).
 - Uninstalling the app does not touch your data.
 - The app keeps v2 programs in its own library, in

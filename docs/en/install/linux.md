@@ -63,8 +63,8 @@ tolearn
 
 ## Check that it works
 
-Launch the app: a window with the home screen and the "Choose folder" / "Choose
-archive" buttons should appear. From there — the [guide](../guide.md).
+Launch the app: a window should appear with the home screen, where you can drop
+a `.tolearn` program file. From there — the [guide](../guide.md).
 
 ## Updating and uninstalling
 

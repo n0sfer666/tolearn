@@ -3,11 +3,6 @@ use std::fmt;
 #[derive(Debug)]
 pub enum CliError {
     Usage(String),
-    Unreadable { path: String, reason: String },
-    Bundle(String),
-    UnknownTopic(String),
-    Verdict(String),
-    Write(String),
     Package(String),
     Import(String),
     Export(String),
@@ -23,11 +18,6 @@ impl fmt::Display for CliError {
     fn fmt(&self, out: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Usage(what) => write!(out, "{what}\n\n{}", super::args::USAGE),
-            Self::Unreadable { path, reason } => write!(out, "не читается `{path}`: {reason}"),
-            Self::Bundle(reason) => write!(out, "бандл не читается: {reason}"),
-            Self::UnknownTopic(id) => write!(out, "роадмап не знает темы `{id}`"),
-            Self::Verdict(reason) => write!(out, "вердикт не принят: {reason}"),
-            Self::Write(reason) => write!(out, "не удалось записать прогресс: {reason}"),
             Self::Package(reason) => write!(out, "пакет не собран: {reason}"),
             Self::Import(reason) => write!(out, "пакет не принят: {reason}"),
             Self::Export(reason) => write!(out, "экспорт не выполнен: {reason}"),

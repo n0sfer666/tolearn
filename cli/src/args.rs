@@ -4,134 +4,68 @@ use crate::error::CliError;
 
 pub const USAGE: &str = "\
 Использование:
-  tolearn validate <бандл> [--json]
-  tolearn scan     <бандл> [--json]
-  tolearn progress <бандл> [--json] [--today ГГГГ-ММ-ДД]
-  tolearn exam     <бандл> <тема> [--verdict <файл>] [--template <файл>] [--run-checks] [--json]
-  tolearn merge    <бандл> --was <каталог> [--json]
   tolearn export   <каталог> <папка> [--json]
   tolearn pack     <каталог> <файл.tolearn> [--json]
-  tolearn unpack   <файл.tolearn> <каталог> [--json]
-
-Check-команды бандла не выполняются никогда, кроме явного `--run-checks`.";
+  tolearn unpack   <файл.tolearn> <каталог> [--json]";
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Args {
     pub command: Command,
-    pub bundle: PathBuf,
+    pub source: PathBuf,
     pub json: bool,
 }
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Command {
-    Validate,
-    Scan,
-    Progress {
-        today: Option<String>,
-    },
-    Exam {
-        topic: String,
-        verdict: Option<PathBuf>,
-        template: Option<PathBuf>,
-        run_checks: bool,
-    },
-    Merge {
-        was: PathBuf,
-    },
-    Export {
-        into: PathBuf,
-    },
-    Pack {
-        out: PathBuf,
-    },
-    Unpack {
-        into: PathBuf,
-    },
+    Export { into: PathBuf },
+    Pack { out: PathBuf },
+    Unpack { into: PathBuf },
 }
+
+type Build = fn(PathBuf) -> Command;
 
 pub fn parse(argv: &[String]) -> Result<Args, CliError> {
     let mut rest = argv.iter().map(String::as_str);
     let name = rest
         .next()
         .ok_or_else(|| CliError::Usage("команда не названа".to_owned()))?;
+    let (source, target, build): (&str, &str, Build) = match name {
+        "export" => ("каталог программы", "папку", |into| {
+            Command::Export { into }
+        }),
+        "pack" => (
+            "каталог программы",
+            "файл пакета",
+            |out| Command::Pack { out },
+        ),
+        "unpack" => ("пакет", "каталог", |into| Command::Unpack {
+            into,
+        }),
+        other => return Err(CliError::Usage(format!("неизвестная команда `{other}`"))),
+    };
+
     let mut free: Vec<&str> = Vec::new();
-    let mut flags: Vec<(&str, Option<String>)> = Vec::new();
-    let mut rest = rest.peekable();
-    while let Some(word) = rest.next() {
+    let mut json = false;
+    for word in rest {
         if let Some(flag) = word.strip_prefix("--") {
-            let value = match flag {
-                "json" | "run-checks" => None,
-                "verdict" | "template" | "was" | "today" => Some(taken(flag, rest.next())?),
-                _ => return Err(CliError::Usage(format!("неизвестный флаг `--{flag}`"))),
-            };
-            flags.push((flag, value));
+            if flag != "json" {
+                return Err(CliError::Usage(format!("неизвестный флаг `--{flag}`")));
+            }
+            json = true;
             continue;
         }
         free.push(word);
     }
 
-    let json = flags.iter().any(|(flag, _)| *flag == "json");
-    let bundle =
-        PathBuf::from(free.first().copied().ok_or_else(|| {
-            CliError::Usage(format!("команде `{name}` не назван каталог бандла"))
-        })?);
-    let value = |wanted: &str| {
-        flags
-            .iter()
-            .find(|(flag, _)| *flag == wanted)
-            .and_then(|(_, value)| value.clone())
-    };
-
-    let command = match name {
-        "validate" => Command::Validate,
-        "scan" => Command::Scan,
-        "progress" => Command::Progress {
-            today: value("today"),
-        },
-        "exam" => Command::Exam {
-            topic: free
-                .get(1)
-                .map(|topic| (*topic).to_owned())
-                .ok_or_else(|| CliError::Usage("`exam` не назвал тему".to_owned()))?,
-            verdict: value("verdict").map(PathBuf::from),
-            template: value("template").map(PathBuf::from),
-            run_checks: flags.iter().any(|(flag, _)| *flag == "run-checks"),
-        },
-        "merge" => Command::Merge {
-            was: value("was")
-                .map(PathBuf::from)
-                .ok_or_else(|| CliError::Usage("`merge` не назвал `--was`".to_owned()))?,
-        },
-        "export" => Command::Export {
-            into: free
-                .get(1)
-                .map(|folder| PathBuf::from(*folder))
-                .ok_or_else(|| CliError::Usage("`export` не назвал папку".to_owned()))?,
-        },
-        "pack" => Command::Pack {
-            out: free
-                .get(1)
-                .map(|file| PathBuf::from(*file))
-                .ok_or_else(|| CliError::Usage("`pack` не назвал файл пакета".to_owned()))?,
-        },
-        "unpack" => Command::Unpack {
-            into: free
-                .get(1)
-                .map(|directory| PathBuf::from(*directory))
-                .ok_or_else(|| CliError::Usage("`unpack` не назвал каталог".to_owned()))?,
-        },
-        other => return Err(CliError::Usage(format!("неизвестная команда `{other}`"))),
+    let given = |index: usize, what: &str| {
+        free.get(index)
+            .map(PathBuf::from)
+            .ok_or_else(|| CliError::Usage(format!("`{name}` не назвал {what}")))
     };
 
     Ok(Args {
-        command,
-        bundle,
+        source: given(0, source)?,
+        command: build(given(1, target)?),
         json,
     })
-}
-
-fn taken(flag: &str, value: Option<&str>) -> Result<String, CliError> {
-    value
-        .map(ToOwned::to_owned)
-        .ok_or_else(|| CliError::Usage(format!("у `--{flag}` нет значения")))
 }

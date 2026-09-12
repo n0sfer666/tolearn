@@ -6100,7 +6100,6 @@ dependencies = [
  "flate2",
  "serde",
  "serde_json",
- "tar",
  "tauri",
  "tauri-build",
  "tauri-plugin-dialog",
@@ -6110,7 +6109,6 @@ dependencies = [
  "tolearn-offline",
  "tolearn-provider",
  "tolearn-speech",
- "zip",
 ]
 
 [[package]]
@@ -6121,8 +6119,6 @@ dependencies = [
  "saphyr",
  "serde_json",
  "tolearn-core",
- "tolearn-offline",
- "tolearn-runner",
  "toml 0.9.12+spec-1.1.0",
 ]
 

@@ -1,7 +1,6 @@
 use std::fmt;
 
 use tolearn_core::progress::DocumentError;
-use tolearn_core::registry::RegistryError;
 use tolearn_core::scan::ScanError;
 
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
@@ -78,12 +77,6 @@ impl From<tolearn_core::package::UnpackError> for IpcError {
     }
 }
 
-impl From<tolearn_core::archive::ArchiveError> for IpcError {
-    fn from(error: tolearn_core::archive::ArchiveError) -> Self {
-        Self::new(error.code(), error.to_string())
-    }
-}
-
 impl From<ScanError> for IpcError {
     fn from(error: ScanError) -> Self {
         let code = match error {
@@ -113,17 +106,6 @@ impl From<tolearn_speech::SpeechError> for IpcError {
             Mute::Deaf(_) => "speech.deaf",
             Mute::Silent => "speech.silent",
             Mute::Failed(_) => "speech.failed",
-        };
-        Self::new(code, error.to_string())
-    }
-}
-
-impl From<RegistryError> for IpcError {
-    fn from(error: RegistryError) -> Self {
-        let code = match error {
-            RegistryError::Unreadable(_) => "registry.unreadable",
-            RegistryError::Malformed(_) => "registry.malformed",
-            RegistryError::Unwritable(_) => "registry.unwritable",
         };
         Self::new(code, error.to_string())
     }

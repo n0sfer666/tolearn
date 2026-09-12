@@ -70,39 +70,6 @@ dto!(Link {
     title: String
 });
 
-dto!(ProgramsIn { today: String });
-dto!(ProgramsOut { programs: Vec<Card> });
-dto!(Card {
-    id: String,
-    title: String,
-    path: String,
-    reachable: bool,
-    opened_at: Option<String>,
-    tally: Option<Tally>,
-});
-
-dto!(ImportIn {
-    path: String,
-    today: String,
-});
-dto!(ImportOut {
-    ok: bool,
-    id: Option<String>,
-    title: Option<String>,
-    violations: Vec<Violation>,
-    report: Option<Merged>,
-});
-dto!(Merged {
-    kept: Vec<String>,
-    added: Vec<String>,
-    orphaned: Vec<String>,
-    stale: Vec<StaleTopic>,
-});
-dto!(StaleTopic {
-    id: String,
-    changed: Vec<String>,
-});
-
 dto!(SettingsIn { save: Option<SettingsView> });
 dto!(SettingsView {
     disk_budget_mb: u32,
@@ -230,13 +197,6 @@ pub fn shapes() -> Vec<Shape> {
         Span::shape(),
         TopicStatus::shape(),
         Link::shape(),
-        ProgramsIn::shape(),
-        ProgramsOut::shape(),
-        Card::shape(),
-        ImportIn::shape(),
-        ImportOut::shape(),
-        Merged::shape(),
-        StaleTopic::shape(),
         SettingsIn::shape(),
         SettingsView::shape(),
         SearchIn::shape(),

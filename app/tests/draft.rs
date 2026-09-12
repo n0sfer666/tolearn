@@ -37,7 +37,7 @@ fn черновик_генерации_v1_приложение_не_читает
     let before = snapshot(&draft);
 
     let context = Context::new(&data);
-    call(&context, "programs", &json!({ "today": "2026-09-11" })).unwrap();
+    call(&context, "library", &json!({})).unwrap();
     for name in GONE {
         let refused = call(&context, name, &json!({ "today": "2026-09-11" })).unwrap_err();
         assert_eq!(refused.code, "ipc.unknown-command", "{name}");

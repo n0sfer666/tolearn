@@ -103,8 +103,9 @@ default); to run against the Astro dev server, pass `--no-default-features`.
 ## The CLI
 
 It doesn't ship in the installer; it's built separately. The windowless CLI —
-validate a bundle, list topics, export Markdown:
+pack a program folder into a `.tolearn` package, unpack a package back, export a
+program to Markdown:
 
 ```sh
-cargo run -p tolearn-cli --release -- validate examples/llm-agents-base
+cargo run -p tolearn-cli --release -- pack examples/chiptune ~/chiptune.tolearn
 ```

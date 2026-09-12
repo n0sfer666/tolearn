@@ -28,8 +28,8 @@ unsigned installer.
 
 ## Check that it works
 
-Start `tolearn` from the Start menu: a window with the home screen and the "Choose
-folder" / "Choose archive" buttons should appear. From there — the
+Start `tolearn` from the Start menu: a window should appear with the home screen,
+where you can drop a `.tolearn` program file. From there — the
 [guide](../guide.md).
 
 ## Updating and uninstalling

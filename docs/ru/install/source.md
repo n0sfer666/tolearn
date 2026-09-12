@@ -102,9 +102,10 @@ cargo run -p tolearn-app --release --bin tolearn-desktop
 
 ## CLI
 
-В установщик он не входит, собирается отдельно. Без окна — проверить бандл,
-посмотреть темы, выгрузить Markdown:
+В установщик он не входит, собирается отдельно. Без окна — собрать пакет
+`.tolearn` из каталога программы, распаковать пакет обратно, выгрузить
+программу в Markdown:
 
 ```sh
-cargo run -p tolearn-cli --release -- validate examples/llm-agents-base
+cargo run -p tolearn-cli --release -- pack examples/chiptune ~/chiptune.tolearn
 ```

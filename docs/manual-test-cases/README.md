@@ -49,4 +49,4 @@ rm -rf ~/.config/tolearn ~/.local/share/tolearn
 | [bundle/01-import.md](bundle/01-import.md) | импорт пакета `.tolearn`, отказы, копия, чтение этапа 1 в обеих темах |
 | [bundle/02-export.md](bundle/02-export.md) | экспорт программы и подпрограммы в папку Markdown, занятая папка, библиотека, CLI |
 | [bundle/03-search.md](bundle/03-search.md) | поиск по этапам библиотеки: этап, фрагмент с прокруткой, подпрограмма, без сети, старый индекс |
-| [platform/01-restart-state.md](platform/01-restart-state.md) | настройки, тема, язык и реестр программ после перезапуска |
+| [platform/01-restart-state.md](platform/01-restart-state.md) | настройки, тема, язык и список программ после перезапуска |
