@@ -63,6 +63,13 @@ const LAYERS: &[Layer] = &[
         own_lints: false,
     },
     Layer {
+        dir: "generate",
+        package: "tolearn-generate",
+        allowed_internal: &["tolearn-core", "tolearn-offline", "tolearn-provider"],
+        forbidden_markers: SHELL_MARKERS,
+        own_lints: false,
+    },
+    Layer {
         dir: "gestures",
         package: "tolearn-gestures",
         allowed_internal: &[],

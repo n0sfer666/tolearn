@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["core", "runner", "offline", "provider", "cli", "app", "gestures", "speech"]
+members = ["core", "runner", "offline", "provider", "generate", "cli", "app", "gestures", "speech"]
 
 [workspace.package]
 version = "0.3.0"

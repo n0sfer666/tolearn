@@ -96,6 +96,7 @@ core/       Rust: формат программы, библиотека, пак�
 runner/     Rust: исполнение check-команд       (зависит от core)
 offline/    Rust: загрузка, архивация, кэш      (ни от чего не зависит)
 provider/   Rust: настройки LLM, ключ, проверка (зависит от core, runner)
+generate/   Rust: генерация программы и этапов  (зависит от core, offline, provider)
 gestures/   Rust: нативный жест «назад»         (ни от чего не зависит)
 speech/     Rust: микрофон и whisper.cpp        (ни от чего не зависит)
 cli/        Rust: tolearn export|pack|unpack    (зависит от core)

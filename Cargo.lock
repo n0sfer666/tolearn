@@ -5077,6 +5077,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tolearn-generate"
+version = "0.3.0"
+dependencies = [
+ "tolearn-core",
+ "tolearn-offline",
+ "tolearn-provider",
+]
+
+[[package]]
 name = "tolearn-gestures"
 version = "0.3.0"
 dependencies = [
