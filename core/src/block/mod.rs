@@ -1,8 +1,10 @@
 mod parse;
 mod types;
+mod write;
 
 pub(crate) use parse::block;
 pub use types::{Block, Kind};
+pub(crate) use write::written;
 
 use std::collections::BTreeMap;
 

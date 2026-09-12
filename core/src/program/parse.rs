@@ -2,7 +2,7 @@ use super::types::{Book, ChildRow, Generation, Map, Page, Program, Sources, Stag
 use crate::hours::hours;
 use crate::yaml::{ParseError, Reader, read};
 
-const SCHEMA: &str = "tolearn/program/1";
+pub(super) const SCHEMA: &str = "tolearn/program/1";
 
 pub fn parse(source: &str) -> Result<Program, ParseError> {
     read(source, program)

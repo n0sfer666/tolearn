@@ -1,14 +1,17 @@
 mod duplicates;
+mod emit;
 mod error;
 mod failure;
 mod names;
 mod reader;
 
+pub use emit::dump;
 pub use error::ParseError;
 pub use failure::ParseFailure;
 pub use names::is_slug;
 pub use reader::Reader;
 
+pub(crate) use emit::{list, map, number, text};
 pub(crate) use names::is_uuid;
 
 use saphyr::{LoadableYamlNode, MarkedYaml};

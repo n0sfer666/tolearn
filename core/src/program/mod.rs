@@ -8,6 +8,7 @@ mod tree;
 mod types;
 mod validate;
 mod violation;
+mod write;
 
 pub use branch::Branch;
 pub use check::check;
@@ -18,6 +19,7 @@ pub use tree::Tree;
 pub use types::{Book, ChildRow, Generation, Map, Page, Program, Sources, StageRow, Volatility};
 pub use validate::validate;
 pub use violation::Violation;
+pub use write::write;
 
 pub(crate) use places::places;
 

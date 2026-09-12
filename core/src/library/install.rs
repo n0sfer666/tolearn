@@ -25,7 +25,7 @@ pub(super) fn install(root: &Path, source: &Path) -> Result<String, LibraryError
     placed.map(|()| uuid)
 }
 
-fn copy(tree: &Tree, from: &Path, to: &Path) -> Result<(), LibraryError> {
+pub(super) fn copy(tree: &Tree, from: &Path, to: &Path) -> Result<(), LibraryError> {
     fs::create_dir_all(to).map_err(|error| LibraryError::unwritable(to, &error))?;
     for file in tree.files() {
         carry(&from.join(&file), &to.join(&file))?;

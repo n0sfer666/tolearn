@@ -2,7 +2,7 @@ use super::types::{Check, Practice, Question, Stage};
 use crate::block::block;
 use crate::yaml::{ParseError, Reader, read};
 
-const SCHEMA: &str = "tolearn/stage/1";
+pub(super) const SCHEMA: &str = "tolearn/stage/1";
 
 pub fn parse(source: &str) -> Result<Stage, ParseError> {
     read(source, stage)

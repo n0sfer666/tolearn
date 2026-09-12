@@ -4,6 +4,8 @@ mod error;
 mod examine;
 mod install;
 mod refusal;
+mod replace;
+mod settle;
 
 pub use entry::Entry;
 pub use error::LibraryError;
@@ -13,11 +15,14 @@ pub use refusal::Refusal;
 use std::fs;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
+use std::sync::{Mutex, PoisonError};
 
 use crate::program::Tree;
 use crate::yaml::is_uuid;
 
 pub const PROGRAMS: &str = "programs";
+
+static WRITES: Mutex<()> = Mutex::new(());
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Library {
@@ -73,10 +78,20 @@ impl Library {
     }
 
     pub fn install(&self, source: &Path) -> Result<String, LibraryError> {
-        install::install(&self.root, source)
+        self.written(|root| install::install(root, source))
+    }
+
+    pub fn replace(&self, source: &Path) -> Result<String, LibraryError> {
+        self.written(|root| replace::replace(root, source))
     }
 
     pub fn holds(&self, path: &Path) -> bool {
         crate::export::inside(&self.root, path)
+    }
+
+    fn written<T>(&self, write: impl FnOnce(&Path) -> T) -> T {
+        let _held = WRITES.lock().unwrap_or_else(PoisonError::into_inner);
+        settle::settle(&self.root);
+        write(&self.root)
     }
 }
