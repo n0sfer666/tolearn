@@ -86,7 +86,12 @@ const LAYERS: &[Layer] = &[
     Layer {
         dir: "cli",
         package: "tolearn-cli",
-        allowed_internal: &["tolearn-core"],
+        allowed_internal: &[
+            "tolearn-core",
+            "tolearn-offline",
+            "tolearn-provider",
+            "tolearn-generate",
+        ],
         forbidden_markers: SHELL_MARKERS,
         own_lints: false,
     },

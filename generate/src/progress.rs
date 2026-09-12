@@ -11,7 +11,7 @@ impl Progress for () {
     fn ended(&self, _step: Step) {}
 }
 
-pub(crate) fn stepped<T>(
+pub fn stepped<T>(
     progress: &dyn Progress,
     step: Step,
     work: impl FnOnce() -> Result<T, GenerateError>,

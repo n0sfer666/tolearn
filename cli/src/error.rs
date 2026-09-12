@@ -1,11 +1,16 @@
 use std::fmt;
 
+use tolearn_generate::GenerateError;
+
 #[derive(Debug)]
 pub enum CliError {
     Usage(String),
     Package(String),
     Import(String),
     Export(String),
+    Setup(String),
+    Data(String),
+    Generate(String),
 }
 
 impl CliError {
@@ -21,8 +26,17 @@ impl fmt::Display for CliError {
             Self::Package(reason) => write!(out, "пакет не собран: {reason}"),
             Self::Import(reason) => write!(out, "пакет не принят: {reason}"),
             Self::Export(reason) => write!(out, "экспорт не выполнен: {reason}"),
+            Self::Setup(reason) => write!(out, "настройки генерации: {reason}"),
+            Self::Data(reason) => write!(out, "{reason}"),
+            Self::Generate(reason) => write!(out, "генерация отказала: {reason}"),
         }
     }
 }
 
 impl std::error::Error for CliError {}
+
+impl From<GenerateError> for CliError {
+    fn from(error: GenerateError) -> Self {
+        Self::Generate(format!("{} — {error}", error.code()))
+    }
+}

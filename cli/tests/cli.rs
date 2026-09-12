@@ -79,11 +79,17 @@ fn a_missing_argument_is_named_by_the_command() {
 }
 
 #[test]
-fn the_usage_names_only_export_pack_and_unpack() {
+fn the_usage_names_the_headless_commands() {
     let out = tolearn(&["fly", "somewhere"]);
 
     let usage = stderr(&out);
-    for kept in ["tolearn export", "tolearn pack", "tolearn unpack"] {
+    for kept in [
+        "tolearn export",
+        "tolearn pack",
+        "tolearn unpack",
+        "tolearn new",
+        "tolearn next",
+    ] {
         assert!(usage.contains(kept), "{kept}: {usage}");
     }
     for gone in [

@@ -5059,6 +5059,9 @@ dependencies = [
  "saphyr",
  "serde_json",
  "tolearn-core",
+ "tolearn-generate",
+ "tolearn-offline",
+ "tolearn-provider",
  "toml 0.9.12+spec-1.1.0",
 ]
 

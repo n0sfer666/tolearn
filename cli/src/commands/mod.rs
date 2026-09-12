@@ -1,16 +1,24 @@
 mod export;
+mod new;
+mod next;
+mod offered;
 mod pack;
 mod unpack;
 
 use crate::args::{Args, Command};
 use crate::error::CliError;
 use crate::out::Output;
+use crate::world::World;
 
-pub fn run(args: &Args) -> Result<Output, CliError> {
-    let root = args.source.as_path();
+pub fn run(
+    args: &Args,
+    world: impl FnOnce() -> Result<World, CliError>,
+) -> Result<Output, CliError> {
     match &args.command {
-        Command::Export { into } => export::run(root, into),
-        Command::Pack { out } => pack::run(root, out),
-        Command::Unpack { into } => unpack::run(root, into),
+        Command::Export { source, into } => export::run(source, into),
+        Command::Pack { source, out } => pack::run(source, out),
+        Command::Unpack { source, into } => unpack::run(source, into),
+        Command::New(new) => new::run(new, world()?),
+        Command::Next(next) => next::run(next, world()?),
     }
 }

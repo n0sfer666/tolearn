@@ -28,7 +28,7 @@ pub struct VaultError {
 }
 
 impl VaultError {
-    pub(crate) fn new(reason: impl fmt::Display) -> Self {
+    pub fn new(reason: impl fmt::Display) -> Self {
         Self {
             reason: reason.to_string(),
         }
