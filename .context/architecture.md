@@ -12,7 +12,7 @@ offline/    Rust: загрузка, архивация, кэш      (ни от �
 provider/   Rust: настройки LLM, ключ, проверка (зависит от core, runner)
 generate/   Rust: генерация программы и этапов  (зависит от core, offline, provider)
 gestures/   Rust: нативный жест «назад»         (ни от чего не зависит)
-cli/        Rust: tolearn export|pack|unpack    (зависит от core)
+cli/        Rust: tolearn export|pack|unpack|new|next (зависит от core, offline, provider, generate)
 app/        Tauri 2: IPC, окна, пререндер       (зависит от нижних слоёв)
 ui/         Astro + Solid                       (общается только через IPC)
 docs/       решения, спецификации, контракты
@@ -32,6 +32,7 @@ headless-окружении без GUI.
 | `runner` | Tauri, UI |
 | `provider` | Tauri, UI, программу и её файлы |
 | `generate` | Tauri, WebView, UI: схемы и события шагов — трейты, окно подставляет `app` |
+| `cli` | Tauri, WebView, UI: схемы без окна остаются исходником Mermaid |
 | `ui` | что угодно, кроме IPC-контракта |
 
 `unsafe` разрешён ровно в одном крейте — `gestures`, где включается нативный жест
@@ -306,6 +307,19 @@ S37. Общие для обоих окон `on_main` и `answer` лежат в `
   префиксу, `sealed`, подмена) и `build::settled` (убрать `build/`, журнал).
   Отказы — `RegenerateError` (`regenerate.*`) до модели. В приложении —
   `regenerate_stage` (`app/src/ipc/regenerated.rs`).
+- Генерация из CLI (S126, [ADR-025](../docs/adr/025-cli-generation.md)) —
+  библиотека `tolearn_cli::run(argv, world)`: `World` — сеть (`Reach`),
+  страницы (`Source`), хранилище ключа, каталоги настроек и данных
+  приложения, поток шагов и момент; `World::real` собирает настоящие, тесты — подставные. `session/`:
+  `Crew` (провайдер из `provider.yaml` или `--provider` через `provided`,
+  ключ `Keychain::app()` — только у удалённого, язык из `settings.yaml`, `kitted` собирает `Kit` над
+  `<data>/cache`), `Speaker` — модель с `Meter` токенов на каждый ответ,
+  `Herald` — `Progress`, пишет строку шага в stderr, `Unpainted` — художник,
+  который всегда отказывает, `position` — последний созданный этап,
+  подпрограммы первыми, `apart` — отказ для каталога в хранилище
+  приложения, `opened` — дерево записанной программы по uuid. `Places` и `places` переехали из `app` в
+  `core::places`, `Keychain::app()` — в `provider`: у CLI и приложения один
+  каталог настроек и одна запись ключа.
 - Файлы написаны LLM: могут быть неполными, невалидными и содержать
   произвольный shell. Несгенерированная часть программы — нормальное состояние
   ([ADR-007](../docs/adr/007-incomplete-bundle.md),

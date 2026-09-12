@@ -57,3 +57,24 @@ From a terminal, `tolearn export <program folder> <folder>` exports too. Unlike
 the button, it writes straight into `<folder>` with no nested folder named after
 the program, so `<folder>` must be empty or not exist yet. It never writes
 inside any program folder.
+
+## Generating from a terminal
+
+`tolearn new "<request>" --level <level> --out <folder>` builds the program map
+and its first stage into `<folder>/programs/<uuid>/`, not into the app's
+library. The model provider comes from the app's settings and a remote provider's key
+from the system keychain; another provider settings file is named with
+`--provider <file>`. Without a network the command refuses with a reason and
+never calls the model. `new` never writes into a folder that already holds a
+program, nor into the app's own data folder.
+
+While it runs, a line per step goes to standard error — time and tokens — and
+at the end the output says where the program is, which stage was built and
+which command to call next. A terminal has no window to draw diagrams in, so
+diagrams stay Mermaid source, and the "схемы" step line says so.
+
+`tolearn next <folder>` shows the fork variants after the last built stage,
+`tolearn next <folder> --choice <number>` builds the chosen one. With `--json`
+both commands print the summary as an object. `tolearn pack
+<folder>/programs/<uuid> <file>` packs the finished program, and the app
+imports it.
