@@ -58,6 +58,7 @@ pub enum CheckError {
     TimedOut(u32),
     WentQuiet(u32),
     Truncated,
+    Cancelled,
 }
 
 impl CheckError {
@@ -76,6 +77,7 @@ impl CheckError {
             Self::TimedOut(_) => "harness.timeout",
             Self::WentQuiet(_) => "harness.silence",
             Self::Truncated => "harness.truncated",
+            Self::Cancelled => "provider.cancelled",
         }
     }
 
@@ -93,7 +95,8 @@ impl CheckError {
             | Self::Rejected
             | Self::ModelMissing(_)
             | Self::NotFound(_)
-            | Self::Truncated => false,
+            | Self::Truncated
+            | Self::Cancelled => false,
         }
     }
 }
@@ -124,6 +127,7 @@ impl fmt::Display for CheckError {
                 write!(out, "харнесс начал отвечать и замолчал на {seconds} с")
             }
             Self::Truncated => write!(out, "харнесс напечатал больше, чем разрешено принять"),
+            Self::Cancelled => write!(out, "запрос к модели отменён"),
         }
     }
 }

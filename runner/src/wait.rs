@@ -5,11 +5,17 @@ use std::time::{Duration, Instant};
 use super::beat::Beat;
 use super::error::RunError;
 use super::kill;
+use super::stop::Stop;
 use super::types::{Limits, Outcome};
 
 const POLL: Duration = Duration::from_millis(10);
 
-pub fn until_end(child: &mut Child, limits: Limits, beat: &Beat) -> Result<Outcome, RunError> {
+pub fn until_end(
+    child: &mut Child,
+    limits: Limits,
+    beat: &Beat,
+    stop: &Stop,
+) -> Result<Outcome, RunError> {
     let deadline = Instant::now() + limits.timeout;
     loop {
         match child.try_wait().map_err(RunError::Broken)? {
@@ -18,6 +24,7 @@ pub fn until_end(child: &mut Child, limits: Limits, beat: &Beat) -> Result<Outco
                     code: status.code(),
                 });
             }
+            None if stop.stopped() => return cut(child, Outcome::Stopped),
             None if hushed(limits.silence, beat) => return cut(child, Outcome::WentQuiet),
             None if Instant::now() >= deadline => return cut(child, Outcome::TimedOut),
             None => sleep(POLL),

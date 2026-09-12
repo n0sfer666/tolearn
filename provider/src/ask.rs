@@ -1,7 +1,9 @@
 use std::time::Duration;
 
 use serde_json::json;
+use tolearn_runner::Stop;
 
+use crate::answer::said;
 use crate::error::CheckError;
 use crate::harness;
 use crate::types::{Api, Http, Kind, Provider, Watch};
@@ -12,7 +14,7 @@ pub const PATIENCE: Duration = Duration::from_secs(180);
 const BRIEF_TOKENS: u32 = 128;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Length {
+pub(crate) enum Length {
     Full,
     Brief,
 }
@@ -25,7 +27,16 @@ pub struct Said {
 }
 
 pub fn ask(provider: &Provider, key: Option<&str>, prompt: &str) -> Result<Said, CheckError> {
-    told(provider, key, prompt, Length::Full, None)
+    told(provider, key, prompt, Length::Full, None, &Stop::default())
+}
+
+pub fn stoppable(
+    provider: &Provider,
+    key: Option<&str>,
+    prompt: &str,
+    stop: &Stop,
+) -> Result<Said, CheckError> {
+    told(provider, key, prompt, Length::Full, None, stop)
 }
 
 pub fn watched(
@@ -34,7 +45,14 @@ pub fn watched(
     prompt: &str,
     watch: Watch,
 ) -> Result<Said, CheckError> {
-    told(provider, key, prompt, Length::Full, Some(watch))
+    told(
+        provider,
+        key,
+        prompt,
+        Length::Full,
+        Some(watch),
+        &Stop::default(),
+    )
 }
 
 pub(crate) fn briefly(
@@ -42,7 +60,7 @@ pub(crate) fn briefly(
     key: Option<&str>,
     prompt: &str,
 ) -> Result<Said, CheckError> {
-    told(provider, key, prompt, Length::Brief, None)
+    told(provider, key, prompt, Length::Brief, None, &Stop::default())
 }
 
 fn told(
@@ -51,16 +69,20 @@ fn told(
     prompt: &str,
     length: Length,
     watch: Option<Watch>,
+    stop: &Stop,
 ) -> Result<Said, CheckError> {
     if !provider.enabled {
         return Err(CheckError::Disabled);
     }
+    if stop.stopped() {
+        return Err(CheckError::Cancelled);
+    }
     match provider.active {
-        Kind::Harness => harness::ask(&provider.harness, prompt, watch),
-        Kind::Local => spoken(&provider.local, None, prompt, length),
+        Kind::Harness => harness::ask(&provider.harness, prompt, watch, stop),
+        Kind::Local => spoken(&provider.local, None, prompt, length, stop),
         Kind::Remote => {
             let key = given(key).ok_or(CheckError::NoKey)?;
-            spoken(&provider.remote, Some(key), prompt, length)
+            spoken(&provider.remote, Some(key), prompt, length, stop)
         }
     }
 }
@@ -70,6 +92,7 @@ fn spoken(
     key: Option<&str>,
     prompt: &str,
     length: Length,
+    stop: &Stop,
 ) -> Result<Said, CheckError> {
     if http.model.trim().is_empty() {
         return Err(CheckError::NoModel);
@@ -77,7 +100,7 @@ fn spoken(
     let asked = http.clone();
     let key = key.map(str::to_owned);
     let prompt = prompt.to_owned();
-    apart(move || send(&asked, key.as_deref(), &prompt, length))
+    apart(move || send(&asked, key.as_deref(), &prompt, length), stop)
 }
 
 fn send(http: &Http, key: Option<&str>, prompt: &str, length: Length) -> Result<Said, CheckError> {
@@ -134,57 +157,4 @@ fn options(http: &Http, heat: serde_json::Value, length: Length) -> serde_json::
         options["num_predict"] = json!(BRIEF_TOKENS);
     }
     options
-}
-
-fn said(api: Api, body: &str, length: Length) -> Option<Said> {
-    let answer: serde_json::Value = serde_json::from_str(body).ok()?;
-    let spent = tokens(api, &answer);
-    let message = match api {
-        Api::Ollama => answer.get("message")?,
-        Api::OpenAi => answer.get("choices")?.as_array()?.first()?.get("message")?,
-    };
-    let told = |field: &str| {
-        message
-            .get(field)
-            .and_then(serde_json::Value::as_str)
-            .map(str::trim)
-            .filter(|said| !said.is_empty())
-            .map(str::to_owned)
-    };
-    if let Some(text) = told("content") {
-        return Some(Said {
-            text,
-            thinking: false,
-            tokens: spent,
-        });
-    }
-    match length {
-        Length::Full => None,
-        Length::Brief => told(thinking(api)).map(|text| Said {
-            text,
-            thinking: true,
-            tokens: spent,
-        }),
-    }
-}
-
-fn tokens(api: Api, answer: &serde_json::Value) -> Option<u32> {
-    let counted = match api {
-        Api::Ollama => {
-            answer.get("eval_count")?.as_u64()?
-                + answer
-                    .get("prompt_eval_count")
-                    .and_then(serde_json::Value::as_u64)
-                    .unwrap_or_default()
-        }
-        Api::OpenAi => answer.get("usage")?.get("total_tokens")?.as_u64()?,
-    };
-    u32::try_from(counted).ok()
-}
-
-fn thinking(api: Api) -> &'static str {
-    match api {
-        Api::Ollama => "thinking",
-        Api::OpenAi => "reasoning_content",
-    }
 }

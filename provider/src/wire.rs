@@ -1,18 +1,36 @@
+use std::sync::mpsc::{self, RecvTimeoutError};
 use std::time::Duration;
 
 use reqwest::blocking::Client;
+use tolearn_runner::Stop;
 
 use crate::error::CheckError;
 
+const POLL: Duration = Duration::from_millis(50);
+
 pub(crate) fn apart<T>(
     work: impl FnOnce() -> Result<T, CheckError> + Send + 'static,
+    stop: &Stop,
 ) -> Result<T, CheckError>
 where
     T: Send + 'static,
 {
-    std::thread::spawn(work)
-        .join()
-        .map_err(|_| CheckError::Unreachable("запрос оборвался".to_owned()))?
+    let (sent, heard) = mpsc::channel();
+    std::thread::spawn(move || {
+        let _ = sent.send(work());
+    });
+    loop {
+        match heard.recv_timeout(POLL) {
+            Ok(result) => return result,
+            Err(RecvTimeoutError::Timeout) if stop.stopped() => {
+                return Err(CheckError::Cancelled);
+            }
+            Err(RecvTimeoutError::Timeout) => {}
+            Err(RecvTimeoutError::Disconnected) => {
+                return Err(CheckError::Unreachable("запрос оборвался".to_owned()));
+            }
+        }
+    }
 }
 
 pub(crate) fn given(key: Option<&str>) -> Option<&str> {

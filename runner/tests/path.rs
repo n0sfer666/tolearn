@@ -6,7 +6,7 @@
 
 use std::time::Duration;
 
-use tolearn_runner::{Limits, Outcome, search, spawn};
+use tolearn_runner::{Limits, Outcome, Stop, search, spawn};
 
 fn scratch(name: &str) -> std::path::PathBuf {
     let path = std::env::temp_dir().join(format!("tolearn-path-{name}-{}", std::process::id()));
@@ -31,6 +31,7 @@ fn the_program_inherits_the_search_it_was_found_by() {
             output_bytes: 64 * 1024,
         },
         None,
+        &Stop::default(),
     )
     .unwrap();
 

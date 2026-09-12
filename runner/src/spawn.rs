@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use super::beat::Beat;
 use super::error::RunError;
+use super::stop::Stop;
 use super::types::{Limits, Run, Seen};
 use super::{drain, group, path, wait};
 
@@ -15,6 +16,7 @@ pub fn spawn(
     input: &str,
     limits: Limits,
     seen: Option<Seen>,
+    stop: &Stop,
 ) -> Result<Run, RunError> {
     if !directory.is_dir() {
         return Err(RunError::NoDirectory(directory.to_owned()));
@@ -35,7 +37,7 @@ pub fn spawn(
         Arc::clone(&beat),
     );
     feed(child.stdin.take(), input);
-    let outcome = wait::until_end(&mut child, limits, &beat)?;
+    let outcome = wait::until_end(&mut child, limits, &beat, stop)?;
     let (stdout, cut_out) = drain::done(out);
     let (stderr, cut_err) = drain::done(err);
 

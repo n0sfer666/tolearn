@@ -4,15 +4,12 @@
     reason = "runner gate: a panic here is the report"
 )]
 
-use std::path::PathBuf;
+mod support;
+
 use std::time::{Duration, Instant};
 
-use tolearn_runner::{Limits, Outcome, spawn};
-
-#[cfg(unix)]
-const SHELL: (&str, &str) = ("sh", "-c");
-#[cfg(windows)]
-const SHELL: (&str, &str) = ("cmd", "/C");
+use support::{SHELL, SLEEP, args, limits, scratch};
+use tolearn_runner::{Limits, Outcome, Stop, spawn};
 
 #[cfg(unix)]
 const ECHO_STDIN: &str = "cat";
@@ -23,11 +20,6 @@ const ECHO_STDIN: &str = "findstr /R .";
 const PROMPT: &str = "ГОТОВ\n";
 #[cfg(windows)]
 const PROMPT: &str = "READY\r\n";
-
-#[cfg(unix)]
-const SLEEP: &str = "sleep 30";
-#[cfg(windows)]
-const SLEEP: &str = "ping -n 31 127.0.0.1 >nul";
 
 #[cfg(unix)]
 const FLOOD: &str = "seq 1 200000";
@@ -59,28 +51,6 @@ const MUTE: &str = "sleep 2; echo done";
 #[cfg(windows)]
 const MUTE: &str = "ping -n 3 127.0.0.1 >nul& echo done";
 
-fn scratch(name: &str) -> PathBuf {
-    let directory =
-        std::env::temp_dir().join(format!("tolearn-spawn-{name}-{}", std::process::id()));
-    if directory.exists() {
-        std::fs::remove_dir_all(&directory).unwrap();
-    }
-    std::fs::create_dir_all(&directory).unwrap();
-    directory
-}
-
-fn args(script: &str) -> Vec<String> {
-    vec![SHELL.1.to_owned(), script.to_owned()]
-}
-
-fn limits(millis: u64, bytes: usize) -> Limits {
-    Limits {
-        timeout: Duration::from_millis(millis),
-        silence: None,
-        output_bytes: bytes,
-    }
-}
-
 fn patient(millis: u64, silence: u64) -> Limits {
     Limits {
         silence: Some(Duration::from_millis(silence)),
@@ -99,6 +69,7 @@ fn a_program_that_keeps_printing_is_not_cut_off_by_the_silence() {
         "",
         patient(20_000, 3_000),
         None,
+        &Stop::default(),
     )
     .unwrap();
 
@@ -118,6 +89,7 @@ fn a_program_that_starts_talking_and_falls_silent_is_cut_off() {
         "",
         patient(20_000, 500),
         None,
+        &Stop::default(),
     )
     .unwrap();
 
@@ -139,6 +111,7 @@ fn a_program_that_says_nothing_until_the_end_keeps_the_whole_timeout() {
         "",
         patient(20_000, 500),
         None,
+        &Stop::default(),
     )
     .unwrap();
 
@@ -157,6 +130,7 @@ fn the_prompt_reaches_the_program_through_its_stdin() {
         PROMPT,
         limits(10_000, 64 * 1024),
         None,
+        &Stop::default(),
     )
     .unwrap();
 
@@ -181,6 +155,7 @@ fn a_program_sees_only_the_directory_it_was_given() {
         "",
         limits(10_000, 64 * 1024),
         None,
+        &Stop::default(),
     )
     .unwrap();
 
@@ -200,6 +175,7 @@ fn a_program_that_does_not_stop_is_cut_off_by_the_timeout() {
         "",
         limits(600, 64 * 1024),
         None,
+        &Stop::default(),
     )
     .unwrap();
 
@@ -218,6 +194,7 @@ fn a_talkative_program_is_cut_at_the_limit_and_says_so() {
         "",
         limits(20_000, 2_000),
         None,
+        &Stop::default(),
     )
     .unwrap();
 
@@ -236,6 +213,7 @@ fn a_program_that_fails_keeps_its_code_and_its_complaint() {
         "",
         limits(10_000, 64 * 1024),
         None,
+        &Stop::default(),
     )
     .unwrap();
 
@@ -254,6 +232,7 @@ fn a_program_that_is_not_installed_is_an_error_not_a_run() {
         "",
         limits(10_000, 64 * 1024),
         None,
+        &Stop::default(),
     )
     .unwrap_err();
 
@@ -271,6 +250,7 @@ fn a_directory_that_is_not_there_is_an_error_not_a_run() {
         "",
         limits(10_000, 64 * 1024),
         None,
+        &Stop::default(),
     )
     .unwrap_err();
 
@@ -295,6 +275,7 @@ fn the_children_of_a_program_die_with_it() {
         "",
         limits(800, 64 * 1024),
         None,
+        &Stop::default(),
     )
     .unwrap();
 

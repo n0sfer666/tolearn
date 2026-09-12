@@ -24,6 +24,7 @@ fn main() -> ExitCode {
         "cwd" => println!("{}", around()),
         "flood" => flood(),
         "hang" => std::thread::sleep(Duration::from_secs(30)),
+        "linger" => linger(&args[1]),
         "fail" => {
             eprintln!("не залогинен\nвыполните `fake-harness login`\nстрока три\nстрока четыре");
             return ExitCode::from(3);
@@ -67,4 +68,9 @@ fn flood() {
     for line in 0..FLOOD_LINES {
         println!("строка {line} набита буквами чтобы вывод перевалил за потолок");
     }
+}
+
+fn linger(pid: &str) {
+    let _ = std::fs::write(pid, std::process::id().to_string());
+    std::thread::sleep(Duration::from_secs(30));
 }
