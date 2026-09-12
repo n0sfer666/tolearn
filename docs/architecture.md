@@ -31,7 +31,7 @@
 | [ADR-001](adr/001-shell-tauri.md) | Оболочка: Tauri 2 | системный WebView вместо Chromium |
 | [ADR-002](adr/002-rendering-astro-mpa.md) | Рендеринг: статическая Astro MPA + острова SolidJS | почему не SSR и не SPA |
 | [ADR-003](adr/003-offline-monolith.md) | Офлайн: monolith как библиотека + свой WebView как рендерер | архивация страниц без Chromium |
-| [ADR-004](adr/004-video-external.md) | Видео не качаем сами | `yt-dlp` и `ffmpeg` — внешние |
+| [ADR-004](adr/004-video-external.md) | Видео не качаем сами | замещено ADR-023: видео не скачивается вовсе |
 | [ADR-005](adr/005-cache-outside-bundle.md) | Кэш офлайн-контента живёт вне бандла | адресация по содержимому, LRU |
 | [ADR-006](adr/006-human-verdict.md) | Вердикт практики выносит человек | `constraints` и `acceptance`, `expect` прозой |
 | [ADR-007](adr/007-incomplete-bundle.md) | Незавершённый бандл — нормальное состояние | `generated: false` не ошибка |
@@ -49,6 +49,7 @@
 | [ADR-020](adr/020-v2-program-library.md) | Программа v2: библиотека, каталог, блоки | содержимое и пользовательское раздельно, UUID, `id` блока — хэш текста |
 | [ADR-021](adr/021-tolearn-package.md) | Обмен программой: пакет `.tolearn` | zip с манифестом без подписи, SVG только через `<img>`, прогресс по галочке |
 | [ADR-022](adr/022-v1-features-not-in-v2.md) | Что из v1 не переживает v2 | что уходит в B, что пересобирается в D, `offline` остаётся, данные v1 не трогаются |
+| [ADR-023](adr/023-generation-pipeline.md) | Конвейер генерации | шаги, атомарная запись этапа, кэш источников, переделка карты и этапа |
 
 ## Бюджеты
 
