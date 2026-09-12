@@ -272,7 +272,6 @@ dto!(SettingsView {
 });
 
 dto!(SearchIn {
-    bundle: String,
     query: String,
     limit: u32,
 });
@@ -282,9 +281,12 @@ dto!(SearchOut {
 });
 dto!(HitView {
     kind: String,
-    roadmap: String,
-    topic: String,
+    program: String,
+    node: String,
+    node_title: String,
+    stage: String,
     title: String,
+    block: String,
     snippet: String,
 });
 

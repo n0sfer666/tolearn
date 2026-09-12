@@ -1,17 +1,18 @@
 mod collect;
+mod documents;
 mod error;
 mod parse;
 mod query;
 mod render;
 mod types;
 
-pub use collect::roadmap_id;
 pub use error::SearchError;
 pub use types::{Hit, Kind, Refresh};
 
 use std::path::Path;
 
 use crate::atomic;
+use crate::library::Library;
 use types::Source;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -34,9 +35,27 @@ impl Index {
         })
     }
 
-    pub fn refresh(&mut self, bundle: &Path) -> Result<Refresh, SearchError> {
-        let (roadmap, wanted) = collect::plan(bundle)?;
-        self.rebuild(&roadmap, &wanted)
+    pub fn refresh(&mut self, library: &Library) -> Result<Refresh, SearchError> {
+        let mut report = Refresh::default();
+        let mut fresh = Vec::new();
+        for want in collect::plan(library)? {
+            match self.take(&want.program) {
+                Some(source) if source.files == want.files => {
+                    report.kept += 1;
+                    fresh.push(source);
+                }
+                stale => match documents::source(library, want) {
+                    Some(source) => {
+                        report.indexed += 1;
+                        fresh.push(source);
+                    }
+                    None => report.dropped += usize::from(stale.is_some()),
+                },
+            }
+        }
+        report.dropped += self.sources.len();
+        self.sources = fresh;
+        Ok(report)
     }
 
     pub fn text(&self) -> String {
@@ -51,39 +70,15 @@ impl Index {
         Ok(Self { sources })
     }
 
-    fn rebuild(
-        &mut self,
-        roadmap: &str,
-        wanted: &[collect::Wanted],
-    ) -> Result<Refresh, SearchError> {
-        let mut report = Refresh::default();
-        let mut fresh = Vec::with_capacity(wanted.len());
-
-        for want in wanted {
-            match self.take(&want.path) {
-                Some(source) if source.stamp == want.stamp => {
-                    report.kept += 1;
-                    fresh.push(source);
-                }
-                _ => {
-                    report.indexed += 1;
-                    fresh.push(collect::source(want, roadmap)?);
-                }
-            }
-        }
-
-        report.dropped = self.sources.len();
-        fresh.sort_by(|left, right| left.path.cmp(&right.path));
-        self.sources = fresh;
-        Ok(report)
-    }
-
     pub fn find(&self, query: &str, limit: usize) -> Vec<Hit> {
         query::hits(&self.sources, query, limit)
     }
 
-    fn take(&mut self, path: &Path) -> Option<Source> {
-        let at = self.sources.iter().position(|source| source.path == path)?;
+    fn take(&mut self, program: &str) -> Option<Source> {
+        let at = self
+            .sources
+            .iter()
+            .position(|source| source.program == program)?;
         Some(self.sources.remove(at))
     }
 }

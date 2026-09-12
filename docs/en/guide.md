@@ -24,7 +24,7 @@ The short version of how to use the app. For installation see
 | Topic | materials, practice, questions |
 | Practice | the task, constraints and acceptance; check commands run when you press |
 | Exam | questions, answers and the verdict |
-| Search | across topics and materials of the open program |
+| Search | across the stages of every program in the library; a hit opens the stage at the right spot |
 | Settings | language, LLM provider, disk budget |
 
 ## The exam
@@ -49,8 +49,10 @@ bundle is ever written to.
   [install/](install/README.md#where-your-data-lives).
 - Uninstalling the app does not touch your data.
 - The app keeps v2 programs in its own library, in
-  `~/.local/share/tolearn/programs/`. v1 program data — the registry
-  `~/.config/tolearn/registry.yaml` and, under `~/.local/share/tolearn`, the
+  `~/.local/share/tolearn/programs/`, and the search index over them next to
+  it, in `search.yaml`: it rebuilds itself and is safe to delete. v1 program
+  data — the registry `~/.config/tolearn/registry.yaml` and, under
+  `~/.local/share/tolearn`, the
   `unpacked/`, `history/` and `offline/` directories and the `search-*` search
   index — is neither read nor removed by the app once it moves to v2: you can
   delete it by hand.

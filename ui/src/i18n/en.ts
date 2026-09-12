@@ -161,13 +161,13 @@ export const en: Dictionary = {
     open: "Open the topic",
   },
   search: {
-    lead: "Searches the topics and materials of the open program.",
+    lead: "Searches the stages of every program in the library.",
     placeholder: "What to look for",
     find: "Find",
     nothing: "Nothing found",
     failed: "The search failed",
-    topic: "topic",
-    material: "material",
+    stage: "stage",
+    block: "excerpt",
   },
   settings: {
     lead: "Changes take effect at once, no restart needed.",

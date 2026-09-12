@@ -1,107 +1,101 @@
+use std::collections::HashSet;
+use std::fs::{self, Metadata};
+use std::io::{self, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::time::UNIX_EPOCH;
 
 use super::error::SearchError;
-use super::types::{Document, Kind, Source};
-use crate::roadmap::{Roadmap, parse as roadmap};
-use crate::search::types::Stamp;
-use crate::topic::{Topic, parse as topic};
+use super::types::{Seen, Stamp};
+use crate::library::Library;
+use crate::yaml::is_uuid;
 
 #[derive(Debug, Clone)]
 pub struct Wanted {
-    pub path: PathBuf,
-    pub stamp: Stamp,
+    pub program: String,
+    pub files: Vec<Seen>,
 }
 
-pub fn plan(bundle: &Path) -> Result<(String, Vec<Wanted>), SearchError> {
-    let map = manifest(bundle)?;
-    let wanted = topics(bundle, &map)?;
-    Ok((map.id, wanted))
-}
-
-fn topics(bundle: &Path, map: &Roadmap) -> Result<Vec<Wanted>, SearchError> {
+pub fn plan(library: &Library) -> Result<Vec<Wanted>, SearchError> {
+    let root = library.root();
+    let listing = match fs::read_dir(root) {
+        Ok(listing) => listing,
+        Err(error) if error.kind() == ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(error) => return Err(unreadable(root, &error)),
+    };
     let mut wanted = Vec::new();
-    for entry in &map.topics {
-        let path = bundle.join(&entry.file);
-        if let Some(stamp) = stamp(&path)? {
-            wanted.push(Wanted { path, stamp });
+    for item in listing {
+        let path = item.map_err(|error| unreadable(root, &error))?.path();
+        let Some(program) = path.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+        if !is_uuid(program) || !path.is_dir() {
+            continue;
+        }
+        if let Ok(files) = files(&path) {
+            wanted.push(Wanted {
+                program: program.to_owned(),
+                files,
+            });
         }
     }
+    wanted.sort_by(|left, right| left.program.cmp(&right.program));
     Ok(wanted)
 }
 
-pub fn roadmap_id(bundle: &Path) -> Result<String, SearchError> {
-    Ok(manifest(bundle)?.id)
+fn files(home: &Path) -> io::Result<Vec<Seen>> {
+    let mut files = Vec::new();
+    walk(home, "", &mut HashSet::new(), &mut files)?;
+    files.sort_by(|left, right| left.name.cmp(&right.name));
+    Ok(files)
 }
 
-pub fn source(wanted: &Wanted, roadmap: &str) -> Result<Source, SearchError> {
-    let text = read(&wanted.path)?;
-    Ok(Source {
-        path: wanted.path.clone(),
-        roadmap: roadmap.to_owned(),
-        stamp: wanted.stamp,
-        documents: from_topic(&text),
-    })
+fn walk(
+    directory: &Path,
+    prefix: &str,
+    visited: &mut HashSet<PathBuf>,
+    files: &mut Vec<Seen>,
+) -> io::Result<()> {
+    if !visited.insert(fs::canonicalize(directory)?) {
+        return Ok(());
+    }
+    for item in fs::read_dir(directory)? {
+        let item = item?;
+        let name = item.file_name().to_string_lossy().into_owned();
+        if name.starts_with('.') {
+            continue;
+        }
+        let path = item.path();
+        let data = match fs::metadata(&path) {
+            Ok(data) => data,
+            Err(error) if error.kind() == ErrorKind::NotFound => continue,
+            Err(error) => return Err(error),
+        };
+        let relative = format!("{prefix}{name}");
+        if data.is_dir() {
+            walk(&path, &format!("{relative}/"), visited, files)?;
+        } else if data.is_file() {
+            files.push(Seen {
+                name: relative,
+                stamp: stamp(&data),
+            });
+        }
+    }
+    Ok(())
 }
 
-fn manifest(bundle: &Path) -> Result<Roadmap, SearchError> {
-    let (_, path) = crate::scan::manifest(bundle).map_err(SearchError::Bundle)?;
-    let source = read(&path)?;
-    roadmap(&source)
-        .map_err(|error| SearchError::Bundle(crate::scan::ScanError::Malformed { path, error }))
-}
-
-fn from_topic(text: &str) -> Vec<Document> {
-    let Ok(document) = topic(text) else {
-        return Vec::new();
-    };
-    let mut out = vec![Document {
-        kind: Kind::Topic,
-        topic: document.id.clone(),
-        title: document.title.clone(),
-        text: about(&document),
-    }];
-    out.extend(document.materials.iter().map(|material| Document {
-        kind: Kind::Material,
-        topic: document.id.clone(),
-        title: material.title.clone(),
-        text: format!("{}\n{}", material.url, material.note),
-    }));
-    out
-}
-
-fn about(document: &Topic) -> String {
-    let mut lines = document.outcomes.clone();
-    lines.extend(document.misconceptions.iter().cloned());
-    lines.extend(document.version_context.iter().cloned());
-    lines.push(document.practice.task.clone());
-    lines.push(document.exam.focus.clone());
-    lines.join("\n")
-}
-
-fn stamp(path: &Path) -> Result<Option<Stamp>, SearchError> {
-    let data = match std::fs::metadata(path) {
-        Ok(data) => data,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
-        Err(error) => return Err(unreadable(path, &error)),
-    };
+fn stamp(data: &Metadata) -> Stamp {
     let modified = data
         .modified()
-        .map_err(|error| unreadable(path, &error))?
-        .duration_since(UNIX_EPOCH)
+        .ok()
+        .and_then(|time| time.duration_since(UNIX_EPOCH).ok())
         .unwrap_or_default();
-
-    Ok(Some(Stamp {
+    Stamp {
         modified_nanos: modified.as_nanos(),
         size: data.len(),
-    }))
+    }
 }
 
-fn read(path: &Path) -> Result<String, SearchError> {
-    std::fs::read_to_string(path).map_err(|error| unreadable(path, &error))
-}
-
-fn unreadable(path: &Path, error: &std::io::Error) -> SearchError {
+fn unreadable(path: &Path, error: &io::Error) -> SearchError {
     SearchError::Unreadable {
         path: path.display().to_string(),
         reason: error.to_string(),

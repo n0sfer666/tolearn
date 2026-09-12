@@ -7,100 +7,149 @@
 
 mod support;
 
-use std::path::PathBuf;
-
 use serde_json::{Value, json};
-use support::copied;
-use tolearn_app::ipc::{Context, call};
+use support::shelf::{CHIPTUNE, NES_DEV, ROM, Shelf, ids};
+use support::snapshot;
 
-struct Case {
-    context: Context,
-    bundle: String,
-}
-
-fn case(name: &str) -> Case {
-    let data =
-        std::env::temp_dir().join(format!("tolearn-search-ipc-{name}-{}", std::process::id()));
-    let _ = std::fs::remove_dir_all(&data);
-    std::fs::create_dir_all(&data).unwrap();
-    Case {
-        context: Context::new(&data),
-        bundle: copied(&format!("search-{name}")).display().to_string(),
-    }
-}
-
-fn search(case: &Case, query: &str) -> Value {
-    call(
-        &case.context,
-        "search",
-        &json!({ "bundle": case.bundle, "query": query, "limit": 10 }),
-    )
-    .unwrap()
-}
-
-fn hits(out: &Value) -> &Vec<Value> {
-    out["hits"].as_array().unwrap()
+fn search(shelf: &Shelf, query: &str) -> Value {
+    shelf
+        .ask("search", json!({ "query": query, "limit": 10 }))
+        .unwrap()
 }
 
 fn first(out: &Value) -> &Value {
-    hits(out).first().expect("выдача должна быть непустой")
-}
-
-#[test]
-fn тема_находится_по_названию() {
-    let case = case("topic");
-
-    let out = search(&case, "локальный рантайм");
-
-    assert_eq!(first(&out)["kind"], "topic");
-    assert_eq!(first(&out)["topic"], "local-runtime");
-}
-
-#[test]
-fn материал_находится_по_заголовку() {
-    let case = case("material");
-
-    let out = search(&case, "context length ollama");
-
-    assert_eq!(first(&out)["kind"], "material");
-    assert_eq!(first(&out)["topic"], "local-runtime");
-}
-
-#[test]
-fn повторный_запрос_ничего_не_перечитывает() {
-    let case = case("kept");
-    let first = search(&case, "рантайм");
-
-    let second = search(&case, "рантайм");
-
-    assert_eq!(first["indexed"], 7);
-    assert_eq!(second["indexed"], 0);
-}
-
-#[test]
-fn индекс_живёт_рядом_с_данными_а_не_в_бандле() {
-    let case = case("outside");
-    search(&case, "рантайм");
-
-    let bundle: PathBuf = PathBuf::from(&case.bundle);
-    let left: Vec<String> = std::fs::read_dir(&bundle)
+    out["hits"]
+        .as_array()
         .unwrap()
-        .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
-        .collect();
+        .first()
+        .expect("выдача должна быть непустой")
+}
 
-    assert!(!left.iter().any(|name| name.contains("search")), "{left:?}");
+fn shown(shelf: &Shelf, hit: &Value) -> Vec<String> {
+    let node = if hit["node"] == hit["program"] {
+        ""
+    } else {
+        hit["node"].as_str().unwrap()
+    };
+    let stage = shelf
+        .ask(
+            "stage",
+            json!({ "program": hit["program"], "node": node, "stage": hit["stage"] }),
+        )
+        .unwrap();
+    let mut blocks = ids(&stage["blocks"], "id");
+    blocks.extend(ids(&stage["practice"]["task"], "id"));
+    blocks
 }
 
 #[test]
-fn индекс_с_конспектами_из_v1_не_ломает_поиск() {
-    let case = case("legacy");
-    search(&case, "рантайм");
-    let path = case.context.search("llm-agents-base");
-    let text = std::fs::read_to_string(&path).unwrap();
-    std::fs::write(&path, text.replacen("kind: topic", "kind: note", 1)).unwrap();
+fn a_stage_hit_names_its_program_node_and_stage() {
+    let shelf = Shelf::new("search-stage");
+    shelf.shelved("examples/chiptune");
 
-    let out = search(&case, "локальный рантайм");
+    let out = search(&shelf, "голоса чипа");
 
-    assert_eq!(out["indexed"], 7);
-    assert_eq!(first(&out)["topic"], "local-runtime");
+    let hit = first(&out);
+    assert_eq!(hit["kind"], "stage");
+    assert_eq!(hit["program"], CHIPTUNE);
+    assert_eq!(hit["node"], CHIPTUNE);
+    assert_eq!(hit["node_title"], "Chiptune: музыка звукового чипа NES");
+    assert_eq!(hit["stage"], "voices");
+    assert_eq!(hit["title"], "Голоса чипа");
+    assert_eq!(hit["block"], "");
+    assert_eq!(hit["snippet"], "");
+}
+
+#[test]
+fn a_block_hit_points_at_a_block_the_stage_screen_shows() {
+    let shelf = Shelf::new("search-block");
+    shelf.shelved("examples/chiptune");
+
+    let out = search(&shelf, "скважность периода");
+
+    let hit = first(&out);
+    assert_eq!(hit["kind"], "block");
+    assert_eq!(hit["block"], "937ff0f4");
+    assert!(hit["snippet"].as_str().unwrap().contains("скважность"));
+    assert!(shown(&shelf, hit).contains(&"937ff0f4".to_owned()));
+}
+
+#[test]
+fn a_practice_task_hit_points_at_a_task_block() {
+    let shelf = Shelf::new("search-task");
+    shelf.shelved("examples/chiptune");
+
+    let out = search(&shelf, "FamiStudio");
+
+    let hit = first(&out);
+    assert_eq!(hit["block"], "15bf109d");
+    assert!(shown(&shelf, hit).contains(&"15bf109d".to_owned()));
+}
+
+#[test]
+fn a_child_stage_is_found_with_its_node() {
+    let shelf = Shelf::new("search-child");
+    shelf.shelved("fixtures/v2/valid/nes-dev");
+
+    let out = search(&shelf, "куда в ROM класть");
+
+    let hit = first(&out);
+    assert_eq!(hit["program"], NES_DEV);
+    assert_eq!(hit["node"], ROM);
+    assert_eq!(hit["node_title"], "Первый ROM в cc65");
+    assert_eq!(hit["stage"], "linker");
+    assert_eq!(hit["block"], "e3fd4291");
+    assert!(shown(&shelf, hit).contains(&"e3fd4291".to_owned()));
+}
+
+#[test]
+fn a_repeated_query_reads_nothing_again() {
+    let shelf = Shelf::new("search-kept");
+    shelf.shelved("examples/chiptune");
+    shelf.shelved("fixtures/v2/valid/nes-dev");
+
+    let first = search(&shelf, "канал");
+    let second = search(&shelf, "канал");
+
+    assert_eq!(first["indexed"], 2);
+    assert_eq!(second["indexed"], 0);
+    assert_eq!(first["hits"], second["hits"]);
+}
+
+#[test]
+fn the_index_lives_beside_the_library_and_leaves_programs_alone() {
+    let shelf = Shelf::new("search-outside");
+    shelf.shelved("examples/chiptune");
+    let programs = shelf.data.join("programs");
+    let before = snapshot(&programs);
+
+    search(&shelf, "голоса");
+
+    assert!(shelf.context.search().is_file());
+    assert_eq!(snapshot(&programs), before);
+}
+
+#[test]
+fn a_v1_index_is_rebuilt() {
+    let shelf = Shelf::new("search-legacy");
+    shelf.shelved("examples/chiptune");
+    let v1 = "schema: tolearn/search/v1\nsources:\n  - path: \"/bundle/topics/local-runtime.yaml\"\n    roadmap: \"llm-agents-base\"\n    modified: \"1\"\n    size: \"1\"\n    documents:\n      - kind: topic\n        topic: \"local-runtime\"\n        title: \"Голоса чипа\"\n        text: \"\"\n";
+    std::fs::write(shelf.context.search(), v1).unwrap();
+
+    let out = search(&shelf, "голоса чипа");
+
+    assert_eq!(out["indexed"], 1);
+    assert_eq!(first(&out)["program"], CHIPTUNE);
+    let text = std::fs::read_to_string(shelf.context.search()).unwrap();
+    assert!(text.starts_with("schema: tolearn/search/v2"), "{text}");
+}
+
+#[test]
+fn an_empty_library_finds_nothing() {
+    let shelf = Shelf::new("search-empty");
+
+    let out = search(&shelf, "голоса");
+
+    assert_eq!(out["hits"], json!([]));
+    assert_eq!(out["indexed"], 0);
 }

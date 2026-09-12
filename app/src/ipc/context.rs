@@ -63,8 +63,8 @@ impl Context {
         self.config.join("settings.yaml")
     }
 
-    pub fn search(&self, roadmap: &str) -> PathBuf {
-        self.data.join(format!("search-{roadmap}.yaml"))
+    pub fn search(&self) -> PathBuf {
+        self.data.join("search.yaml")
     }
 
     pub fn llm_log(&self) -> PathBuf {

@@ -9,6 +9,7 @@ pub mod packages;
 pub mod pictures;
 pub mod programs;
 pub mod sealing;
+pub mod search;
 
 use std::fmt::Display;
 use std::path::{Path, PathBuf};

@@ -11,19 +11,37 @@ let document;
 
 before(
   async () => {
-    ({ document } = browser("https://tolearn.local/ru/search/?program=/bundle"));
+    ({ document } = browser("https://tolearn.local/ru/search/"));
     ({ default: Search } = await island("Search"));
     ({ render } = await import("solid-js/web"));
   },
   { timeout: 300_000 },
 );
 
-const HIT = {
-  kind: "topic",
-  roadmap: "llm-agents-base",
-  topic: "local-runtime",
-  title: "Локальный рантайм",
-  snippet: "поднять модель",
+const CHIPTUNE = "3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84";
+const NES_DEV = "7a1d4e90-2c3b-4f58-8d6e-1b9a0c5e7f23";
+const ROM = "e4c90b7a-15f2-4d6e-8b38-0a2c6f9d1e47";
+
+const STAGE = {
+  kind: "stage",
+  program: CHIPTUNE,
+  node: CHIPTUNE,
+  node_title: "Chiptune: музыка звукового чипа NES",
+  stage: "voices",
+  title: "Голоса чипа",
+  block: "",
+  snippet: "",
+};
+
+const BLOCK = {
+  kind: "block",
+  program: NES_DEV,
+  node: ROM,
+  node_title: "Первый ROM в cc65",
+  stage: "linker",
+  title: "Конфиг компоновщика",
+  block: "e3fd4291",
+  snippet: "Файл nes.cfg говорит ld65, куда в ROM класть каждый сегмент.",
 };
 
 function mount(options = {}) {
@@ -33,12 +51,12 @@ function mount(options = {}) {
   const call = (name, payload) => {
     calls.push({ name, payload });
     if (options.refuse === true) {
-      return Promise.reject({ code: "search.bundle", message: "нет" });
+      return Promise.reject({ code: "search.unreadable", message: "нет" });
     }
-    return Promise.resolve({ hits: options.hits ?? [HIT], indexed: 0 });
+    return Promise.resolve({ hits: options.hits ?? [STAGE, BLOCK], indexed: 0 });
   };
   const said = toasts(document.defaultView);
-  render(() => Search({ text: ru, locale: "ru", program: options.program ?? "/bundle", call }), host);
+  render(() => Search({ text: ru, locale: "ru", call }), host);
   return { host, calls, said };
 }
 
@@ -49,35 +67,57 @@ function ask(host, text) {
   host.querySelector("[data-find]").click();
 }
 
+function hits(host) {
+  return [...host.querySelectorAll("[data-hit]")];
+}
+
 test("экран ничего не ищет до запроса", async () => {
   const { host, calls } = mount();
   await settled();
 
   assert.equal(calls.length, 0);
-  assert.equal(host.querySelectorAll("[data-hit]").length, 0);
+  assert.equal(hits(host).length, 0);
 });
 
-test("запрос уходит в ядро вместе с программой", async () => {
+test("запрос уходит в ядро без программы: ищется вся библиотека", async () => {
   const { host, calls } = mount();
-  ask(host, "рантайм");
+  ask(host, "голоса");
   await settled();
 
-  assert.deepEqual(calls[0], {
-    name: "search",
-    payload: { bundle: "/bundle", query: "рантайм", limit: 20 },
-  });
+  assert.deepEqual(calls[0], { name: "search", payload: { query: "голоса", limit: 20 } });
 });
 
-test("находка ведёт на экран темы", async () => {
+test("находка этапа ведёт на экран этапа корня без узла и якоря", async () => {
   const { host } = mount();
-  ask(host, "рантайм");
+  ask(host, "голоса");
   await settled();
 
-  const hit = host.querySelector("[data-hit]");
-  assert.equal(hit.getAttribute("data-hit"), "topic");
-  assert.equal(hit.querySelector("a").getAttribute("href"), "/ru/topic/?program=%2Fbundle&topic=local-runtime");
-  assert.equal(hit.querySelector("[data-kind]").textContent, ru.search.topic);
-  assert.equal(hit.querySelector("[data-snippet]").textContent, "поднять модель");
+  const [stage] = hits(host);
+  assert.equal(stage.getAttribute("data-hit"), "stage");
+  assert.equal(
+    stage.querySelector("a").getAttribute("href"),
+    `/ru/stage/?program=${CHIPTUNE}&stage=voices`,
+  );
+  assert.equal(stage.querySelector("a").textContent, "Голоса чипа");
+  assert.equal(stage.querySelector("[data-kind]").textContent, ru.search.stage);
+  assert.equal(stage.querySelector("[data-node]").textContent, STAGE.node_title);
+  assert.equal(stage.querySelector("[data-snippet]") === null, true, "пустой фрагмент нарисован");
+});
+
+test("находка фрагмента ведёт на этап дочернего узла к блоку по якорю", async () => {
+  const { host } = mount();
+  ask(host, "ROM");
+  await settled();
+
+  const block = hits(host)[1];
+  assert.equal(block.getAttribute("data-hit"), "block");
+  assert.equal(
+    block.querySelector("a").getAttribute("href"),
+    `/ru/stage/?program=${NES_DEV}&node=${ROM}&stage=linker#e3fd4291`,
+  );
+  assert.equal(block.querySelector("[data-kind]").textContent, ru.search.block);
+  assert.equal(block.querySelector("[data-node]").textContent, "Первый ROM в cc65");
+  assert.equal(block.querySelector("[data-snippet]").textContent, BLOCK.snippet);
 });
 
 test("пустая выдача говорит об этом", async () => {
@@ -90,19 +130,10 @@ test("пустая выдача говорит об этом", async () => {
 
 test("отказ ядра показан, а не проглочен", async () => {
   const { host, said } = mount({ refuse: true });
-  ask(host, "рантайм");
+  ask(host, "голоса");
   await settled();
 
   assert.deepEqual(said.at(-1), { tone: "error", text: ru.search.failed });
-  assert.equal(host.querySelectorAll("[data-hit]").length, 0);
-  assert.equal(host.querySelector("[data-nothing]"), null, "отказ выдан за пустую выдачу");
-});
-
-test("без открытой программы экран зовёт выбрать её, а не ищет вслепую", async () => {
-  const { host, calls } = mount({ program: "" });
-  await settled();
-
-  assert.equal(calls.length, 0);
-  assert.equal(host.querySelector("[data-query]"), null);
-  assert.match(host.querySelector("[data-empty]").textContent, new RegExp(ru.program.none));
+  assert.equal(hits(host).length, 0);
+  assert.equal(host.querySelector("[data-nothing]") === null, true, "отказ выдан за пустую выдачу");
 });

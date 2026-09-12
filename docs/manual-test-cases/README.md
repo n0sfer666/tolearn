@@ -48,5 +48,6 @@ rm -rf ~/.config/tolearn ~/.local/share/tolearn
 | [provider/04-journal.md](provider/04-journal.md) | журнал запросов: запись, ротация, очистка, открытие папки |
 | [bundle/01-import.md](bundle/01-import.md) | импорт пакета `.tolearn`, отказы, копия, чтение этапа 1 в обеих темах |
 | [bundle/02-export.md](bundle/02-export.md) | экспорт программы и подпрограммы в папку Markdown, занятая папка, библиотека, CLI |
+| [bundle/03-search.md](bundle/03-search.md) | поиск по этапам библиотеки: этап, фрагмент с прокруткой, подпрограмма, без сети, старый индекс |
 | [learning/02-practice-runner.md](learning/02-practice-runner.md) | запуск check-команд, таймаут |
 | [platform/01-restart-state.md](platform/01-restart-state.md) | настройки, тема, язык и реестр программ после перезапуска |

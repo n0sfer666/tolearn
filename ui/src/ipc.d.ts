@@ -327,7 +327,6 @@ export type SettingsView = {
 };
 
 export type SearchIn = {
-  bundle: string;
   query: string;
   limit: number;
 };
@@ -339,9 +338,12 @@ export type SearchOut = {
 
 export type HitView = {
   kind: string;
-  roadmap: string;
-  topic: string;
+  program: string;
+  node: string;
+  node_title: string;
+  stage: string;
   title: string;
+  block: string;
   snippet: string;
 };
 
