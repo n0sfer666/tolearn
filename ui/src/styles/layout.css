@@ -60,31 +60,6 @@
   gap: var(--spacing-2) var(--spacing-3);
 }
 
-.head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-2) var(--spacing-4);
-  margin-block-end: var(--spacing-4);
-  padding-block-end: var(--spacing-2);
-  border-block-end: var(--border-width) solid var(--color-border);
-}
-
-.head > :is(h2, h3) {
-  margin: 0;
-  padding: 0;
-  border: none;
-}
-
-.head > p {
-  max-width: none;
-  margin: 0;
-}
-
-.head > :last-child:not(h2, h3) {
-  margin-inline-start: auto;
-}
-
 .page input[type="search"] {
   display: block;
   margin-block: var(--spacing-4);

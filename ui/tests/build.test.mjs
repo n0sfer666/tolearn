@@ -15,7 +15,7 @@ import { ru } from "../src/i18n/ru.ts";
 import { browser, settled } from "./support/dom.mjs";
 
 const UI = fileURLToPath(new URL("..", import.meta.url));
-const SCREENS = ["/", "/program/", "/stage/", "/topic/", "/practice/", "/exam/", "/review/", "/search/", "/settings/"];
+const SCREENS = ["/", "/program/", "/stage/", "/search/", "/settings/"];
 const ROUTES = ["/", ...["ru", "en"].flatMap((locale) => SCREENS.map((screen) => `/${locale}${screen}`))];
 
 before(() => {
@@ -75,26 +75,26 @@ test("вес JS уложен в бюджеты", async () => {
 test("гейт краснеет, когда страница выходит за бюджет", async () => {
   const dist = path.join(os.tmpdir(), `tolearn-ui-budget-${process.pid}`);
   await rm(dist, { recursive: true, force: true });
-  await mkdir(path.join(dist, "topic"), { recursive: true });
+  await mkdir(path.join(dist, "stage"), { recursive: true });
   await writeFile(path.join(dist, "big.js"), randomBytes(64 * 1024).toString("base64"));
   await writeFile(
-    path.join(dist, "topic", "index.html"),
+    path.join(dist, "stage", "index.html"),
     '<html><body><script src="/big.js"></script></body></html>',
   );
 
   const [measured] = await measure(dist);
 
-  assert.equal(measured.route, "/topic/");
-  assert.equal(measured.limit, 30 * 1024);
+  assert.equal(measured.route, "/stage/");
+  assert.equal(measured.limit, 20 * 1024);
   assert.equal(measured.ok, false, `${measured.bytes} байт прошли мимо бюджета`);
   await rm(dist, { recursive: true, force: true });
 });
 
-test("остров с состоянием собран и подключён к странице темы", async () => {
-  const topic = (await measure()).find(({ route: where }) => where === "/ru/topic/");
+test("остров с состоянием собран и подключён к странице этапа", async () => {
+  const stage = (await measure()).find(({ route: where }) => where === "/ru/stage/");
 
-  assert.ok(topic.files.length > 0, "чанки острова не попали в счёт веса");
-  assert.ok(topic.bytes > 4096, `остров весит ${topic.bytes} байт — столько не весит даже Solid`);
+  assert.ok(stage.files.length > 0, "чанки острова не попали в счёт веса");
+  assert.ok(stage.bytes > 4096, `остров весит ${stage.bytes} байт — столько не весит даже Solid`);
 });
 
 test("счётчик веса видит и подключённый файл, и встроенный код", () => {

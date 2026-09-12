@@ -6,7 +6,7 @@ export interface Name {
   title: string;
 }
 
-export type Kind = "program" | "topic";
+export type Kind = "program";
 
 export function name(kind: Kind, id: string, title: string): void {
   if (id === "" || title === "" || typeof window === "undefined") return;

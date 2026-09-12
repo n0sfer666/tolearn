@@ -1,7 +1,6 @@
 use std::fmt;
 
 use tolearn_core::progress::DocumentError;
-use tolearn_core::prompt::RenderError;
 use tolearn_core::registry::RegistryError;
 use tolearn_core::scan::ScanError;
 
@@ -28,10 +27,6 @@ impl IpcError {
 
     pub fn payload(error: &serde_json::Error) -> Self {
         Self::new("ipc.malformed-payload", error.to_string())
-    }
-
-    pub fn unknown_topic(topic: &str) -> Self {
-        Self::new("topic.unknown", format!("темы `{topic}` в бандле нет"))
     }
 
     pub fn unknown_version(version: u32, roadmap: &str) -> Self {
@@ -100,34 +95,9 @@ impl From<ScanError> for IpcError {
     }
 }
 
-impl From<tolearn_core::verdict::VerdictError> for IpcError {
-    fn from(error: tolearn_core::verdict::VerdictError) -> Self {
-        use tolearn_core::verdict::VerdictError as Broken;
-        let code = match error {
-            Broken::NoJson => "verdict.no-json",
-            Broken::Malformed { .. } => "verdict.malformed",
-            Broken::Missing { .. } => "verdict.missing-field",
-            Broken::WrongTopic { .. } => "verdict.wrong-topic",
-            Broken::NoAnswers => "verdict.no-answers",
-        };
-        Self::new(code, error.to_string())
-    }
-}
-
 impl From<DocumentError> for IpcError {
     fn from(error: DocumentError) -> Self {
         Self::new("progress.malformed", error.to_string())
-    }
-}
-
-impl From<RenderError> for IpcError {
-    fn from(error: RenderError) -> Self {
-        let code = match error {
-            RenderError::NoPrompt => "prompt.no-prompt",
-            RenderError::Unknown { .. } => "prompt.unknown-placeholder",
-            RenderError::Unclosed { .. } => "prompt.unclosed-placeholder",
-        };
-        Self::new(code, error.to_string())
     }
 }
 

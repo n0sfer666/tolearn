@@ -17,7 +17,6 @@ speech = ["tolearn-speech/speech"]
 tolearn-core.workspace = true
 tolearn-offline.workspace = true
 tolearn-provider.workspace = true
-tolearn-runner.workspace = true
 tolearn-gestures.workspace = true
 tolearn-speech.workspace = true
 base64.workspace = true

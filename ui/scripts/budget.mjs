@@ -6,10 +6,7 @@ import { fileURLToPath } from "node:url";
 
 export const DIST = fileURLToPath(new URL("../dist", import.meta.url));
 
-const LIMITS = [
-  ["/topic/", 30 * 1024],
-  ["/", 15 * 1024],
-];
+const LIMITS = [["/", 15 * 1024]];
 
 const OTHERS = 20 * 1024;
 

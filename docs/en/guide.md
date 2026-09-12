@@ -20,24 +20,10 @@ The short version of how to use the app. For installation see
 
 | Screen | What for |
 |---|---|
-| Program | every topic by stage, statuses, entry point into a topic |
-| Topic | materials, practice, questions |
-| Practice | the task, constraints and acceptance; check commands run when you press |
-| Exam | questions, answers and the verdict |
+| Program | the goal, the map, stages and subprograms |
+| Stage | the stage text, practice and questions to read |
 | Search | across the stages of every program in the library; a hit opens the stage at the right spot |
 | Settings | language, LLM provider, disk budget |
-
-## The exam
-
-Two paths, both yours:
-
-- **Copy-paste (default).** The app assembles the prompt, you paste it into any
-  chat and paste the model's answer back. No key, no account.
-- **Provider.** Settings let you point at Ollama (local) or an OpenAI-compatible
-  endpoint with a key. The key is kept in the OS keychain.
-
-The verdict is written into your program's `progress.yaml`. Nothing else in the
-bundle is ever written to.
 
 ## Where your data lives
 

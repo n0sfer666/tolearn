@@ -93,31 +93,6 @@ fn tar_gz_даёт_тот_же_результат_что_и_zip() {
 }
 
 #[test]
-fn прогресс_нового_бандла_живёт_рядом_с_ним() {
-    let (context, data) = context("progress");
-    let bundle = copied("archive-progress");
-    let archive = zipped(&bundle);
-    std::fs::remove_dir_all(&bundle).unwrap();
-    imported(&context, &archive);
-
-    let home = data.join("unpacked/llm-agents-base");
-    call(
-        &context,
-        "set_status",
-        &json!({
-            "bundle": home.display().to_string(),
-            "topic": "local-runtime",
-            "status": "passed",
-            "today": TODAY,
-        }),
-    )
-    .unwrap();
-
-    let written = std::fs::read_to_string(home.join("progress.yaml")).unwrap();
-    assert!(written.contains("local-runtime"), "{written}");
-}
-
-#[test]
 fn повторный_импорт_архива_обновляет_ту_же_папку() {
     let (context, data) = context("again");
     let bundle = copied("archive-again");

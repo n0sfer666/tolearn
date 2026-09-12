@@ -23,7 +23,7 @@ test("каждый экран собран на каждом языке", async 
   const built = (await pages()).map((file) => route(file));
 
   for (const locale of LOCALES) {
-    for (const where of ["/", "/program/", "/topic/", "/exam/", "/review/"]) {
+    for (const where of ["/", "/program/", "/stage/", "/search/", "/settings/"]) {
       assert.ok(built.includes(`/${locale}${where}`), `${locale}: нет страницы ${where}`);
     }
   }
@@ -38,13 +38,13 @@ test("страница объявляет свой язык и говорит н
 });
 
 test("экран не уводит в другой язык — переключатель живёт в настройках", () => {
-  assert.doesNotMatch(page("ru/topic"), /<a[^>]*href="\/en\//);
-  assert.doesNotMatch(page("en/topic"), /<a[^>]*href="\/ru\//);
+  assert.doesNotMatch(page("ru/stage"), /<a[^>]*href="\/en\//);
+  assert.doesNotMatch(page("en/stage"), /<a[^>]*href="\/ru\//);
 });
 
 test("ссылка назад остаётся внутри своего языка", () => {
-  assert.match(page("en/topic"), /<a href="\/en\/program\/"/);
-  assert.doesNotMatch(page("en/topic"), /<a href="\/program\/"/);
+  assert.match(page("en/stage"), /<a href="\/en\/program\/"/);
+  assert.doesNotMatch(page("en/stage"), /<a href="\/program\/"/);
 });
 
 test("выбор языка на корне запоминается, а решает ядро", () => {
@@ -71,9 +71,9 @@ test("отсутствующая форма множественного чис�
 });
 
 test("экрану уезжают формы множественного числа его языка", () => {
-  assert.match(page("ru/program"), /\{n\} тем&quot;/);
-  assert.match(page("en/program"), /\{n\} topics&quot;/);
-  assert.doesNotMatch(page("en/program"), /\{n\} тем/);
+  assert.match(page("ru/program"), /\{n\} часов&quot;/);
+  assert.match(page("en/program"), /\{n\} hours&quot;/);
+  assert.doesNotMatch(page("en/program"), /\{n\} час/);
 });
 
 test("словари покрывают друг друга ключ в ключ", () => {
@@ -98,7 +98,7 @@ test("гейт полноты словарей краснеет на пропу�
 });
 
 test("бюджет считается по экрану, а не по языковой ветке", () => {
-  assert.equal(screen("/ru/topic/"), "/topic/");
+  assert.equal(screen("/ru/stage/"), "/stage/");
   assert.equal(screen("/en/"), "/");
   assert.equal(screen("/"), "/");
 });

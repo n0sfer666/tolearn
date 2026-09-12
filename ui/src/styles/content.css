@@ -12,37 +12,7 @@
   margin-block-start: var(--spacing-1);
 }
 
-[data-header] > p,
-[data-steps] {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-2);
-  max-width: none;
-}
-
-[data-steps] {
-  margin-block-start: var(--spacing-4);
-}
-
-[data-tools] {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-3);
-}
-
-[data-tools] :where(a) {
-  display: inline-flex;
-  align-items: center;
-  min-block-size: var(--tap-target);
-  padding-inline: var(--spacing-4);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-sm);
-  text-decoration: none;
-}
-
-.row :where(button) + :where(button),
-[data-steps] :where(button) + :where(button) {
+.row :where(button) + :where(button) {
   margin-inline-start: 0;
 }
 

@@ -1,11 +1,7 @@
 ul:has(> li[data-program]),
-ol[data-materials],
-ul:has(> li[data-topic]),
 ul:has(> li[data-due]),
 ul:has(> li[data-hit]),
-ul:has(> li[data-question]),
-ul:has(> li[data-answer]),
-ul:has(> li[data-check]) {
+ul:has(> li[data-question]) {
   display: grid;
   gap: var(--spacing-2);
   margin: 0;
@@ -14,13 +10,9 @@ ul:has(> li[data-check]) {
 }
 
 li[data-program],
-li[data-material],
-li[data-topic],
 li[data-due],
 li[data-hit],
-li[data-question],
-li[data-answer],
-li[data-check] {
+li[data-question] {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -36,46 +28,19 @@ li[data-check] {
     border-color var(--duration) var(--easing);
 }
 
-:is(
-  li[data-program],
-  li[data-material],
-  li[data-topic],
-  li[data-due],
-  li[data-hit]
-):has(> a):hover {
+:is(li[data-program], li[data-due], li[data-hit]):has(> a):hover {
   border-color: var(--color-border-strong);
   background: var(--color-bg-subtle);
 }
 
-:is(li[data-topic], li[data-due], li[data-hit]) > a {
+:is(li[data-due], li[data-hit]) > a {
   flex: 1 1 auto;
 }
 
-li[data-material] > a,
 li[data-program] > a,
-:is(li[data-topic], li[data-due], li[data-hit]) > a {
+:is(li[data-due], li[data-hit]) > a {
   display: inline-flex;
   align-items: center;
-}
-
-ol[data-materials] {
-  counter-reset: material;
-}
-
-li[data-material]::before {
-  content: counter(material);
-  counter-increment: material;
-  color: var(--color-fg-muted);
-  font-size: var(--font-size-sm);
-  font-variant-numeric: tabular-nums;
-}
-
-li[data-material] [data-note] {
-  flex: 0 0 100%;
-  max-width: none;
-  margin: 0;
-  color: var(--color-fg-muted);
-  font-size: var(--font-size-sm);
 }
 
 ul[data-hits] {
@@ -112,15 +77,13 @@ li[data-program] {
   gap: var(--spacing-2);
 }
 
-li[data-question],
-li[data-answer] {
+li[data-question] {
   flex-direction: column;
   align-items: stretch;
   gap: var(--spacing-1);
 }
 
-li[data-question] > p,
-li[data-answer] > p {
+li[data-question] > p {
   max-width: none;
   margin: 0;
 }

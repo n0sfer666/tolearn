@@ -2,22 +2,17 @@ const KEEP: Record<string, readonly string[]> = {
   "/program/": ["program", "node"],
   "/stage/": ["program", "node", "stage"],
   "/search/": ["program"],
-  "/topic/": ["program", "topic"],
-  "/exam/": ["program", "topic"],
-  "/review/": ["program", "topic"],
-  "/practice/": ["program", "topic"],
 };
 
 export function keep(href: string): readonly string[] {
   return KEEP[href] ?? [];
 }
 
-const NAMED: Record<string, "program" | "topic"> = {
+const NAMED: Record<string, "program"> = {
   "/program/": "program",
-  "/topic/": "topic",
 };
 
-export function entity(href: string): "program" | "topic" | undefined {
+export function entity(href: string): "program" | undefined {
   return NAMED[href];
 }
 

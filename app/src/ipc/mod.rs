@@ -14,7 +14,6 @@ mod shelf;
 pub mod types;
 pub mod typescript;
 mod unpack;
-mod verdict;
 
 pub use context::{Context, of};
 pub use contract::{Descriptor, NAMES, call, descriptors};

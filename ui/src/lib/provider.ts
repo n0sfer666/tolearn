@@ -1,5 +1,5 @@
 import type { Dictionary } from "../i18n/ru";
-import type { CheckedView, HttpView, PresetView, ProbedView, ProviderView } from "../ipc";
+import type { CheckedView, HttpView, PresetView, ProbedView } from "../ipc";
 
 const OLLAMA_ENDPOINT = "http://127.0.0.1:11434";
 const OPENAI_ENDPOINT = "http://127.0.0.1:8080/v1";
@@ -71,14 +71,6 @@ export function reason(error: unknown, text: Dictionary): string {
     "harness.truncated": text.provider.truncated,
   };
   return problems[code(error)] ?? text.provider.failed;
-}
-
-export function named(provider: ProviderView, text: Dictionary): string {
-  if (provider.active === "harness") {
-    return preset(provider.harness.id, text) || provider.harness.command;
-  }
-  const http = provider.active === "remote" ? provider.remote : provider.local;
-  return http.model || text.provider.model;
 }
 
 export function preset(id: string, text: Dictionary): string {

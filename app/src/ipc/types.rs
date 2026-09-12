@@ -70,92 +70,6 @@ dto!(Link {
     title: String
 });
 
-dto!(TopicIn {
-    bundle: String,
-    topic: String,
-    today: String,
-});
-dto!(TopicOut {
-    id: String,
-    title: String,
-    program: String,
-    stage: u32,
-    checkpoint: bool,
-    status: String,
-    hours: Span,
-    blocked_by: Vec<Link>,
-    verified_at: String,
-    outdated: bool,
-    outcomes: Vec<String>,
-    misconceptions: Vec<String>,
-    materials: Vec<MaterialView>,
-    practice: PracticeView,
-    questions: Vec<QuestionView>,
-    exam: ExamView,
-});
-dto!(MaterialView {
-    title: String,
-    url: String,
-    kind: String,
-    tier: String,
-    lang: String,
-    stale: bool,
-    delta: Option<String>,
-    note: String,
-});
-dto!(PracticeView {
-    kind: String,
-    tier: String,
-    task: String,
-    deliverable: String,
-    starting_point: Option<String>,
-    fallback: Option<String>,
-    time_box_min: u32,
-    smoke_checked: bool,
-    constraints: Vec<CheckView>,
-    acceptance: Vec<CheckView>,
-});
-dto!(CheckView {
-    id: String,
-    claim: String,
-    check: String,
-    expect: String,
-});
-dto!(QuestionView {
-    id: String,
-    kind: String,
-    text: String,
-});
-dto!(ExamView {
-    focus: String,
-    artifact_required: bool,
-    max_exchanges: u32,
-});
-
-dto!(RunCheckIn {
-    bundle: String,
-    topic: String,
-    check: String
-});
-dto!(RunCheckOut {
-    id: String,
-    command: String,
-    expect: String,
-    code: Option<i32>,
-    timed_out: bool,
-    stdout: String,
-    stderr: String,
-    truncated: bool
-});
-
-dto!(SetStatusIn {
-    bundle: String,
-    topic: String,
-    status: String,
-    today: String,
-});
-dto!(SetStatusOut { status: String });
-
 dto!(ProgramsIn { today: String });
 dto!(ProgramsOut { programs: Vec<Card> });
 dto!(Card {
@@ -188,81 +102,6 @@ dto!(StaleTopic {
     id: String,
     changed: Vec<String>,
 });
-
-dto!(AnswerView {
-    id: String,
-    outcome: String,
-    missed: Vec<String>
-});
-dto!(VerdictView {
-    result: String,
-    status: String,
-    gaps: Vec<String>,
-    notes: Vec<String>,
-    missing: Vec<String>,
-    unknown_questions: Vec<String>,
-    failed_checks: Vec<String>,
-    per_question: Vec<AnswerView>,
-    hinted: bool,
-    practice_accepted: bool,
-    next_action: Option<String>,
-    retry_after_days: Option<u32>
-});
-dto!(ParseVerdictIn {
-    bundle: String,
-    topic: String,
-    text: String
-});
-dto!(ApplyVerdictIn {
-    bundle: String,
-    topic: String,
-    text: String,
-    today: String
-});
-dto!(ApplyVerdictOut {
-    status: String,
-    gaps: Vec<String>,
-    retry: Vec<String>,
-    split_suggested: bool
-});
-
-dto!(ReviewedView {
-    id: String,
-    kind: String,
-    text: String,
-    outcome: Option<String>,
-    missed: Vec<String>,
-});
-dto!(PastView {
-    at: String,
-    verdict: String
-});
-dto!(ReviewIn {
-    bundle: String,
-    topic: String,
-});
-dto!(ReviewOut {
-    id: String,
-    title: String,
-    questions: Vec<ReviewedView>,
-    loose: Vec<String>,
-    last: Option<PastView>,
-    history: Vec<PastView>,
-    split_suggested: bool,
-    split_request: String,
-});
-
-dto!(PromptIn {
-    bundle: String,
-    topic: String,
-});
-dto!(PromptOut { text: String });
-
-dto!(ExamineIn {
-    bundle: String,
-    topic: String,
-});
-dto!(ExamineOut { text: String });
 
 dto!(SettingsIn { save: Option<SettingsView> });
 dto!(SettingsView {
@@ -391,17 +230,6 @@ pub fn shapes() -> Vec<Shape> {
         Span::shape(),
         TopicStatus::shape(),
         Link::shape(),
-        TopicIn::shape(),
-        TopicOut::shape(),
-        MaterialView::shape(),
-        PracticeView::shape(),
-        CheckView::shape(),
-        QuestionView::shape(),
-        ExamView::shape(),
-        RunCheckIn::shape(),
-        RunCheckOut::shape(),
-        SetStatusIn::shape(),
-        SetStatusOut::shape(),
         ProgramsIn::shape(),
         ProgramsOut::shape(),
         Card::shape(),
@@ -409,19 +237,6 @@ pub fn shapes() -> Vec<Shape> {
         ImportOut::shape(),
         Merged::shape(),
         StaleTopic::shape(),
-        AnswerView::shape(),
-        VerdictView::shape(),
-        ParseVerdictIn::shape(),
-        ApplyVerdictIn::shape(),
-        ApplyVerdictOut::shape(),
-        ReviewedView::shape(),
-        PastView::shape(),
-        ReviewIn::shape(),
-        ReviewOut::shape(),
-        PromptIn::shape(),
-        PromptOut::shape(),
-        ExamineIn::shape(),
-        ExamineOut::shape(),
         SettingsIn::shape(),
         SettingsView::shape(),
         SearchIn::shape(),

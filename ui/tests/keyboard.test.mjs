@@ -7,7 +7,7 @@ import { browser } from "./support/dom.mjs";
 let document;
 
 before(() => {
-  ({ document } = browser("https://tolearn.local/ru/topic/"));
+  ({ document } = browser("https://tolearn.local/ru/stage/"));
   bind(document);
 });
 
@@ -47,7 +47,7 @@ test("слэш ставит курсор в поле фильтра", () => {
 });
 
 test("слэш внутри поля ввода печатается, а не перехватывается", () => {
-  screen(`<main><textarea data-verdict-input></textarea><input data-filter /></main>`);
+  screen(`<main><textarea></textarea><input data-filter /></main>`);
   const area = document.querySelector("textarea");
   area.focus();
 

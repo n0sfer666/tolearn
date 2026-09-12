@@ -203,32 +203,21 @@ fn кривая_дата_отвечает_кодом() {
 }
 
 #[test]
-fn промпт_темы_собирается_из_шаблона() {
-    let root = copied("prompt");
-    let topics = call(&context(), "scan", &json!({ "bundle": &root })).unwrap();
-    let first = topics["topics"][0].as_str().unwrap().to_owned();
-
-    let out = call(
-        &context(),
+fn команды_экранов_изучения_v1_убраны() {
+    for name in [
+        "topic",
+        "run_check",
+        "set_status",
+        "parse_verdict",
+        "apply_verdict",
+        "review",
         "prompt",
-        &json!({ "bundle": root, "topic": first }),
-    )
-    .unwrap();
+        "examine",
+    ] {
+        let error = call(&context(), name, &json!({})).unwrap_err();
 
-    assert!(!out["text"].as_str().unwrap().is_empty());
-}
-
-#[test]
-fn неизвестная_тема_отвечает_кодом() {
-    let root = copied("unknown-topic");
-    let error = call(
-        &context(),
-        "prompt",
-        &json!({ "bundle": root, "topic": "нет-такой" }),
-    )
-    .unwrap_err();
-
-    assert_eq!(error.code, "topic.unknown");
+        assert_eq!(error.code, "ipc.unknown-command", "{name}");
+    }
 }
 
 #[test]

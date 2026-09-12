@@ -10,7 +10,7 @@ import { DIST } from "../scripts/budget.mjs";
 import { early } from "../scripts/theme.mjs";
 
 const UI = fileURLToPath(new URL("..", import.meta.url));
-const PAGES = ["", ...["ru", "en"].flatMap((locale) => ["", "program", "topic", "exam", "review"].map((screen) => path.join(locale, screen)))];
+const PAGES = ["", ...["ru", "en"].flatMap((locale) => ["", "program", "stage", "search"].map((screen) => path.join(locale, screen)))];
 
 before(() => {
   execFileSync("pnpm", ["exec", "astro", "build"], { cwd: UI, stdio: "inherit" });
@@ -77,7 +77,7 @@ test("переключатель темы живёт только в настр�
 });
 
 test("тема не мешает языку: у страницы два независимых ключа", () => {
-  const html = page("ru/topic");
+  const html = page("ru/stage");
   assert.ok(html.includes("tolearn.locale"));
   assert.ok(html.includes("tolearn.theme"));
 });

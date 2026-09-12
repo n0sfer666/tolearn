@@ -38,14 +38,8 @@ function mount() {
   );
 }
 
-test("ссылка на тему ведёт прямо на тему выбранного языка", () => {
-  assert.equal(
-    landing("ru", "?program=%2Fprograms%2Fbase&topic=agents"),
-    "/ru/topic/?program=%2Fprograms%2Fbase&topic=agents",
-  );
-});
-
-test("половина адреса не считается адресом темы", () => {
+test("адрес темы v1 ведёт в список программ выбранного языка", () => {
+  assert.equal(landing("ru", "?program=%2Fprograms%2Fbase&topic=agents"), "/ru/");
   assert.equal(landing("en", "?program=%2Fprograms%2Fbase"), "/en/");
   assert.equal(landing("en", "?topic=agents"), "/en/");
   assert.equal(landing("ru", ""), "/ru/");
