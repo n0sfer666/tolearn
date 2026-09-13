@@ -5,13 +5,14 @@ import Block from "../components/reading/Block";
 import Clarify from "../components/reading/Clarify";
 import Empty from "../components/reading/Empty";
 import Exam from "../components/reading/Exam";
+import Orphans from "../components/reading/Orphans";
 import Practice from "../components/reading/Practice";
 import Skip from "../components/reading/Skip";
 import { desk } from "../components/reading/desk";
 import Trail from "../components/reading/Trail";
 import type { Copier, Words } from "../components/rich/Snip";
 import type { Dictionary } from "../i18n/ru";
-import type { StageIn, StageOut } from "../ipc";
+import type { ClarificationView, StageIn, StageOut } from "../ipc";
 import { reveal } from "../lib/anchor";
 import { pickFolder, quiet, steps } from "../lib/ipc";
 import type { Listen, Transport } from "../lib/ipc";
@@ -95,6 +96,14 @@ export default function Stage(props: Props) {
       chosen: (workdir) => setView({ ...out(), workdir }),
     });
 
+  const rethread = (out: () => StageOut) => (clarifications: ClarificationView[]) =>
+    setView({ ...out(), clarifications });
+
+  const orphans = (out: StageOut) =>
+    out.clarifications.filter(
+      (chain) => !out.blocks.some((block) => block.kind !== "heading" && block.id === chain.block),
+    );
+
   const up = (out: StageOut) => [
     { href: nodeHref(props.locale, out.program, out.node), title: out.node_title },
   ];
@@ -128,7 +137,7 @@ export default function Stage(props: Props) {
                       chains={out().clarifications.filter((chain) => chain.block === block.id)}
                       words={words()}
                       copy={props.copy}
-                      changed={(clarifications) => setView({ ...out(), clarifications })}
+                      changed={rethread(out)}
                     />
                   </Show>
                 </>
@@ -146,6 +155,15 @@ export default function Stage(props: Props) {
             words={words()}
             copy={props.copy}
             done={() => void reload(props.text.stage.unread)}
+          />
+          <Orphans
+            text={props.text}
+            call={call()}
+            at={at(out())}
+            chains={orphans(out())}
+            words={words()}
+            copy={props.copy}
+            changed={rethread(out)}
           />
           <footer data-stage-end>
             <nav data-tools aria-label={props.text.generate.tools}>

@@ -78,6 +78,39 @@ test("«Убрать» удаляет цепочку", async () => {
   assert.equal(host.querySelector("[data-clarify='p1'] [data-chain]"), null);
 });
 
+test("врезка к исчезнувшему блоку — в свёрнутом списке в конце этапа с началом исходного текста", async () => {
+  const lost = { chain: 1, block: "gone", excerpt: "Прежний абзац про шум", turns: [{ asked: null, answer: "Шум — это случайный сигнал" }], clear: true };
+  const out = { ...OUT, clarifications: [chain([{ asked: null, answer: "Иначе" }]), lost] };
+  const { host } = opened({}, out);
+  await settled();
+  const orphans = host.querySelector("[data-orphans]");
+  assert.equal(orphans.open, false);
+  assert.ok(orphans.closest("[data-stage-body]") === null, "список сирот внутри текста этапа");
+  assert.match(orphans.querySelector("summary").textContent, new RegExp(ru.stage.orphans));
+  const orphan = orphans.querySelector("[data-orphan='1']");
+  assert.match(orphan.querySelector("[data-excerpt]").textContent, /Прежний абзац про шум/);
+  assert.match(orphan.querySelector("aside[data-clarified]").textContent, /случайный сигнал/);
+  assert.equal(orphans.querySelectorAll("[data-orphan]").length, 1);
+  assert.equal(host.querySelectorAll("[data-clarify='p1'] [data-chain]").length, 1);
+  assert.ok(orphan.querySelector("[data-yes], [data-no], [data-clarify-open]") === null, "у сироты есть продолжение цепочки");
+});
+
+test("«Убрать» у сироты удаляет её, пустой список исчезает", async () => {
+  const lost = { chain: 0, block: "gone", excerpt: "Прежний абзац", turns: [{ asked: null, answer: "Иначе" }], clear: false };
+  const { host, calls } = opened({ unclarify: () => ({ clarifications: [] }) }, { ...OUT, clarifications: [lost] });
+  await settled();
+  press(host, "[data-orphans] [data-orphan='0'] [data-unclarify]");
+  for (let round = 0; round < 3; round += 1) await settled();
+  assert.deepEqual(named(calls, "unclarify")[0].payload, { ...AT, chain: 0 });
+  assert.ok(host.querySelector("[data-orphans]") === null, "пустой список сирот остался");
+});
+
+test("без сирот списка нет", async () => {
+  const { host } = opened({}, { ...OUT, clarifications: [chain([{ asked: null, answer: "Иначе" }])] });
+  await settled();
+  assert.ok(host.querySelector("[data-orphans]") === null, "список сирот без сирот");
+});
+
 test("отказ показывает причину, сбой «Да» — тост", async () => {
   const out = { ...OUT, clarifications: [chain([{ asked: null, answer: "Иначе" }])] };
   const { host } = opened(

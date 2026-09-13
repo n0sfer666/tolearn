@@ -63,4 +63,5 @@ export const stage = {
   asked: "Question",
   clarifyGone: "This clarification is gone — open the stage again.",
   clarifyFailed: "The clarification was not saved — open the stage again.",
+  orphans: "Clarifications of blocks that are gone",
 };

@@ -364,6 +364,9 @@ S37. Общие для обоих окон `on_main` и `answer` лежат в `
 - «Уточнить» (S139) — `generate::clarify` строит промпт из блока, места этапа
   (`stage::prompt::situated`), цепочки и вопроса; `app::ipc::clarifying::chained`
   общий для `understood` и `unclarify`; цепочки лежат в `State.clarifications`.
+  Перегенерация (S140) их не трогает: `State::rewritten` чистит только галочки и
+  черновики. Сирота — цепочка, чьего `block` нет среди не-заголовков этапа;
+  вычисляет её UI (`Stage.tsx` → `Orphans`), бэкенд отдаёт все цепочки этапа.
 - Незачтённое в развилку и следующий этап (S138) — `State::lapses(&Tree)`
   собирает `Lapse {stage, question, missed}` по последним попыткам этапов
   дерева в порядке `every_stage`; `generate::unpassed::block` делает из них

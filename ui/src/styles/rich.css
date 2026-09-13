@@ -87,3 +87,21 @@ aside[data-clarified] {
   gap: var(--spacing-2);
   justify-self: stretch;
 }
+
+[data-orphans] > ul {
+  display: grid;
+  gap: var(--spacing-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+[data-orphan] {
+  display: grid;
+  gap: var(--spacing-2);
+  justify-items: start;
+}
+
+[data-orphan] > aside[data-clarified] {
+  justify-self: stretch;
+}

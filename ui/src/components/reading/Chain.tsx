@@ -1,12 +1,12 @@
-import { For, Show, createSignal } from "solid-js";
+import { Show, createSignal } from "solid-js";
 
 import type { Dictionary } from "../../i18n/ru";
 import type { ClarificationView, ClarificationsOut, StageIn } from "../../ipc";
 import type { Transport } from "../../lib/ipc";
-import { toast } from "../../lib/toast";
-import Rich from "../rich/Rich";
 import type { Copier, Words } from "../rich/Snip";
 import Asking from "./Asking";
+import { settle } from "./settle";
+import Turns from "./Turns";
 
 interface Props {
   text: Dictionary;
@@ -24,13 +24,8 @@ export default function Chain(props: Props) {
   const [asking, setAsking] = createSignal(false);
   const place = () => ({ ...props.at, chain: props.chain.chain });
 
-  const settle = async (work: () => Promise<ClarificationsOut>) => {
-    try {
-      props.changed((await work()).clarifications);
-    } catch {
-      toast("error", props.text.stage.clarifyFailed);
-    }
-  };
+  const settled = (work: () => Promise<ClarificationsOut>) =>
+    settle(work, props.changed, props.text.stage.clarifyFailed);
 
   const followed = async (question: string) => {
     if (await props.ask(props.chain.chain, question)) setAsking(false);
@@ -39,22 +34,7 @@ export default function Chain(props: Props) {
   return (
     <details data-chain open={!props.chain.clear}>
       <summary>{props.text.stage.clarified}</summary>
-      <For each={props.chain.turns}>
-        {(turn) => (
-          <>
-            <Show when={turn.asked}>
-              {(asked) => (
-                <p data-asked>
-                  {props.text.stage.asked}: {asked()}
-                </p>
-              )}
-            </Show>
-            <aside data-clarified>
-              <Rich text={turn.answer} words={props.words} copy={props.copy} />
-            </aside>
-          </>
-        )}
-      </For>
+      <Turns text={props.text} turns={props.chain.turns} words={props.words} copy={props.copy} />
       <Show when={!props.chain.clear}>
         <Show
           when={asking()}
@@ -65,7 +45,7 @@ export default function Chain(props: Props) {
                 type="button"
                 data-yes
                 disabled={props.locked}
-                onClick={() => void settle(() => props.call("understood", place()))}
+                onClick={() => void settled(() => props.call("understood", place()))}
               >
                 {props.text.stage.yes}
               </button>
@@ -87,7 +67,7 @@ export default function Chain(props: Props) {
         type="button"
         data-unclarify
         disabled={props.locked}
-        onClick={() => void settle(() => props.call("unclarify", place()))}
+        onClick={() => void settled(() => props.call("unclarify", place()))}
       >
         {props.text.stage.unclarify}
       </button>
