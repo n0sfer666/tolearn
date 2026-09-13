@@ -191,6 +191,6 @@ li[data-question] > label {
   margin-block: var(--spacing-2);
 }
 
-div[data-examination] {
+:is(div[data-examination], details[data-copypaste]) {
   margin-block-start: var(--spacing-3);
 }

@@ -38,6 +38,14 @@ goes as "no answer".
 An accepted verdict becomes a `written` attempt with the model's name, and each
 question shows its result and what was missed.
 
+The exam can also be taken through any other chat, with no provider and no
+network. "Copy the prompt" puts the same prompt the model would get, with the
+person's answers, on the clipboard. The chat's whole reply goes into "Paste the
+reply" and passes the same parsing, without the repair: a refusal shows its
+reason from the "When a verdict is rejected" table and the state stays as it
+was. An accepted verdict becomes a `copypaste` attempt with no model, and
+nothing goes to the request log.
+
 ## The verdict
 
 The app takes the **last** top-level JSON object from the answer text — inside

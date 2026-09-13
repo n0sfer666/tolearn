@@ -11,6 +11,7 @@ import { toast } from "../../lib/toast";
 import Progress from "../generate/Progress";
 import Refusal from "../generate/Refusal";
 import type { Copier, Words } from "../rich/Snip";
+import Paste from "./Paste";
 import Question from "./Question";
 
 interface Props {
@@ -32,16 +33,17 @@ export default function Exam(props: Props) {
     () => toast("error", props.text.stage.unsaved),
   );
   const typed = (ask: AskView) => store.typed(ask.id) ?? ask.draft;
+  const answers = () => props.questions.map((ask) => ({ id: ask.id, text: typed(ask) }));
 
   const submit = async () => {
-    const answers = props.questions.map((ask) => ({ id: ask.id, text: typed(ask) }));
-    if (answers.every((answer) => answer.text.trim() === "")) {
+    const given = answers();
+    if (given.every((answer) => answer.text.trim() === "")) {
       work.refuse(props.text.stage.blank);
       return;
     }
     const sat = await work.run(async () => {
       await store.flush();
-      return props.call("exam", { ...props.at, answers });
+      return props.call("exam", { ...props.at, answers: given });
     }, EXAMINING);
     if (sat === null) return;
     toast(sat.passed ? "ok" : "info", sat.passed ? props.text.stage.passed : props.text.stage.graded);
@@ -76,6 +78,17 @@ export default function Exam(props: Props) {
           </Show>
           <Refusal text={props.text} locale={props.locale} refused={work.refused()} />
         </div>
+        <Paste
+          text={props.text}
+          locale={props.locale}
+          call={props.call}
+          at={props.at}
+          answers={answers}
+          flush={store.flush}
+          locked={work.running()}
+          copy={props.copy}
+          done={props.done}
+        />
       </section>
     </Show>
   );

@@ -2,6 +2,8 @@ pub mod answer;
 pub mod cancel_generation;
 pub mod check_claim;
 pub mod exam;
+pub mod exam_paste;
+pub mod exam_prompt;
 pub mod export;
 pub mod fork;
 pub mod import_package;

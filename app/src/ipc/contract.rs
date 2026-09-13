@@ -71,6 +71,8 @@ commands! {
     check_claim(practiced::CheckClaimIn) -> practiced::CheckClaimOut,
     answer(examined::AnswerIn) -> examined::AnswerOut,
     exam(examined::ExamIn) -> examined::ExamOut,
+    exam_prompt(examined::ExamIn) -> examined::ExamPromptOut,
+    exam_paste(examined::ExamPasteIn) -> examined::ExamOut,
 }
 
 #[tauri::command]

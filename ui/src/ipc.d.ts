@@ -450,6 +450,17 @@ export type ExamOut = {
   passed: boolean;
 };
 
+export type ExamPromptOut = {
+  prompt: string;
+};
+
+export type ExamPasteIn = {
+  program: string;
+  node: string;
+  stage: string;
+  text: string;
+};
+
 export type Commands = {
   export: { input: ExportIn; output: ExportOut };
   settings: { input: SettingsIn; output: SettingsView };
@@ -475,6 +486,8 @@ export type Commands = {
   check_claim: { input: CheckClaimIn; output: CheckClaimOut };
   answer: { input: AnswerIn; output: AnswerOut };
   exam: { input: ExamIn; output: ExamOut };
+  exam_prompt: { input: ExamIn; output: ExamPromptOut };
+  exam_paste: { input: ExamPasteIn; output: ExamOut };
 };
 
 export type CommandName = keyof Commands;

@@ -262,7 +262,12 @@ S37. Общие для обоих окон `on_main` и `answer` лежат в `
   удалённого провайдера (`Voiced::remote`), локальный идёт через
   `generate::local`; `generate::exam::sit` — один вызов и одна починка
   (`MENDS`), затем `generate.verdict`, запись в журнал шагом `exam`; принятый
-  вердикт — `State::attempt` с `written` и моделью. До `package::import`
+  вердикт — `State::attempt` с `written` и моделью. Копипаст (S136):
+  `exam_prompt` отдаёт тот же `exam::prompt`, `exam_paste` читает вставку
+  `verdict::read` (отказ — `exam.verdict`, состояние не тронуто) и пишет
+  попытку `copypaste` без модели — без провайдера, сети, слота генерации и
+  журнала; общий разбор ответов — `examining::{answered, paper}`. Словарь
+  экрана этапа вынесен в `i18n/stage/`. До `package::import`
   приложение отсекает не-пакеты: каталог программы — `package.folder`, каталог
   или архив v1 (`roadmap.yaml`/`roadmap.json`, `.zip`, `.gz`, `.tgz`) —
   `package.v1` (ADR-016), прочее — `package.foreign`.

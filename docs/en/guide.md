@@ -27,7 +27,7 @@ The short version of how to use the app. For installation see
 |---|---|
 | New program | the request and level, the map to confirm, the current generation step and "Cancel" |
 | Program | the goal, the map, stages and subprograms |
-| Stage | the stage text, practice and questions with an answer field: "Submit" hands the answers to the model, and each question shows its result and what was missed; "Regenerate the stage" explains it differently, the old text stays until the end |
+| Stage | the stage text, practice and questions with an answer field: "Submit" hands the answers to the model, "Submit through another chat" copies the prompt into any chat and takes its reply, and each question shows its result and what was missed; "Regenerate the stage" explains it differently, the old text stays until the end |
 | What next | the choices for the next stage, the recommended one marked; a choice creates the stage and opens it |
 | Search | across the stages of every program in the library; a hit opens the stage at the right spot |
 | Settings | language, LLM provider, disk budget |

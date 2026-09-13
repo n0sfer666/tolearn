@@ -20,6 +20,13 @@ dto!(AnswerView {
     text: String,
 });
 dto!(ExamOut { passed: bool });
+dto!(ExamPromptOut { prompt: String });
+dto!(ExamPasteIn {
+    program: String,
+    node: String,
+    stage: String,
+    text: String,
+});
 
 pub fn shapes() -> Vec<Shape> {
     vec![
@@ -28,5 +35,7 @@ pub fn shapes() -> Vec<Shape> {
         ExamIn::shape(),
         AnswerView::shape(),
         ExamOut::shape(),
+        ExamPromptOut::shape(),
+        ExamPasteIn::shape(),
     ]
 }
