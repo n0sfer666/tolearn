@@ -1,5 +1,6 @@
 mod attempt;
 mod choices;
+mod draft;
 mod error;
 mod key;
 mod parse;

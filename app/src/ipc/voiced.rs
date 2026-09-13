@@ -1,7 +1,7 @@
 use std::fmt;
 
 use tolearn_generate::Model;
-use tolearn_provider::{CheckError, Provider, Said, Stop, stoppable};
+use tolearn_provider::{CheckError, Kind, Provider, Said, Stop, stoppable};
 
 use crate::journal::Journal;
 
@@ -28,6 +28,19 @@ impl Voiced {
             kind,
             stop,
         }
+    }
+
+    pub fn remote(&self) -> bool {
+        self.provider.active != Kind::Local
+    }
+
+    pub fn named(&self) -> Option<String> {
+        let name = match self.provider.active {
+            Kind::Local => &self.provider.local.model,
+            Kind::Remote => &self.provider.remote.model,
+            Kind::Harness => &self.provider.harness.id,
+        };
+        (!name.is_empty()).then(|| name.clone())
     }
 }
 

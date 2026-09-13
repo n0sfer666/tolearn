@@ -22,9 +22,9 @@ test("практика читается целиком, запуск стоит 
   assert.equal(host.querySelector("#c1 [data-run]"), null, "у пункта без команды есть кнопка");
   assert.ok(host.querySelector("#a1 [data-run]"));
   assert.equal(
-    host.querySelectorAll("button:not([data-snip], [data-regenerate], [data-run], [data-choose]), textarea").length,
+    host.querySelectorAll("button:not([data-snip], [data-regenerate], [data-run], [data-choose], [data-exam])").length,
     0,
-    "появился ответ",
+    "появилась лишняя кнопка",
   );
   assert.deepEqual(
     calls.map((made) => made.name),

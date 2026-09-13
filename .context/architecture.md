@@ -250,13 +250,19 @@ S37. Общие для обоих окон `on_main` и `answer` лежат в `
   (`State::open` с датой `clock::now()`), `node` отдаёт у строк этапов `status`
   и `pass`, у узла — `summary` (S132); битое состояние — `state.*`, и экран
   не открывается. `stage` отдаёт и `ticks`/`workdir`, а у вопросов — `result` и
-  `missed` последней попытки (S134); практика — команды
+  `missed` последней попытки и `draft` — черновик ответа (S135); практика — команды
   `tick`, `workdir`, `check_claim` (`app/src/ipc/{practice,practiced}.rs`,
   S133): пункт ищется в `constraints`+`acceptance` (`claim.absent`), папка —
   абсолютный существующий каталог вне `<data>` (`workdir.absent`/`inside`),
   `check_claim` зовёт `runner::run` в ней с лимитами 120 с и 64 КиБ и отдаёт
   исход, код и вывод без вердикта; без `check` — `claim.unchecked`, без папки —
-  `workdir.unset`. До `package::import`
+  `workdir.unset`. Зачёт (S135, `app/src/ipc/{examined,examining}.rs`) —
+  команды `answer` (черновик в `State::draft`, пустой текст его убирает) и
+  `exam`: пустой набор ответов — `exam.empty`; сеть проверяется только у
+  удалённого провайдера (`Voiced::remote`), локальный идёт через
+  `generate::local`; `generate::exam::sit` — один вызов и одна починка
+  (`MENDS`), затем `generate.verdict`, запись в журнал шагом `exam`; принятый
+  вердикт — `State::attempt` с `written` и моделью. До `package::import`
   приложение отсекает не-пакеты: каталог программы — `package.folder`, каталог
   или архив v1 (`roadmap.yaml`/`roadmap.json`, `.zip`, `.gz`, `.tgz`) —
   `package.v1` (ADR-016), прочее — `package.foreign`.

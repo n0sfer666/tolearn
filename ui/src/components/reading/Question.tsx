@@ -10,6 +10,10 @@ interface Props {
   text: Dictionary;
   words: Words;
   copy?: Copier;
+  answer: string;
+  locked: boolean;
+  onType: (text: string) => void;
+  onLeave: () => void;
 }
 
 export default function Question(props: Props) {
@@ -22,6 +26,17 @@ export default function Question(props: Props) {
   return (
     <li id={props.ask.id} data-question={props.ask.id} data-result={props.ask.result ?? undefined}>
       <Rich text={props.ask.text} words={props.words} copy={props.copy} />
+      <label>
+        {stage().answer}
+        <textarea
+          data-answer
+          rows="3"
+          readOnly={props.locked}
+          value={props.answer}
+          onInput={(event) => props.onType(event.currentTarget.value)}
+          onBlur={() => props.onLeave()}
+        />
+      </label>
       <Show when={props.ask.result}>{(result) => <p data-grade>{grade(result())}</p>}</Show>
       <Show when={props.ask.missed.length > 0}>
         <ul data-missed>

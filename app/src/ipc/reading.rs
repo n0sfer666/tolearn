@@ -111,6 +111,7 @@ dto!(AskView {
     text: String,
     result: Option<String>,
     missed: Vec<String>,
+    draft: String,
 });
 dto!(ExportIn {
     program: String,

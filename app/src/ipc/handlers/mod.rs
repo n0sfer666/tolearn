@@ -1,5 +1,7 @@
+pub mod answer;
 pub mod cancel_generation;
 pub mod check_claim;
+pub mod exam;
 pub mod export;
 pub mod fork;
 pub mod import_package;

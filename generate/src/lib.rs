@@ -9,6 +9,7 @@ mod progress;
 mod step;
 
 pub mod diagram;
+pub mod exam;
 pub mod fork;
 pub mod ledger;
 pub mod plan;
@@ -18,7 +19,7 @@ pub mod stage;
 pub mod start;
 
 pub use error::GenerateError;
-pub use gate::{HOSTS, Online, REACH_TIMEOUT_SECS, online};
+pub use gate::{HOSTS, Online, REACH_TIMEOUT_SECS, local, online};
 pub use model::Model;
 pub use progress::{Progress, stepped};
 pub use step::Step;

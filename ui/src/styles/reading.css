@@ -186,3 +186,11 @@ li[data-question] > ul[data-missed] {
   margin: 0;
   padding-inline-start: var(--spacing-6);
 }
+
+li[data-question] > label {
+  margin-block: var(--spacing-2);
+}
+
+div[data-examination] {
+  margin-block-start: var(--spacing-3);
+}

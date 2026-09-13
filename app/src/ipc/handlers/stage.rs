@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use tolearn_core::block::Block;
 use tolearn_core::library::Library;
 use tolearn_core::program::Tree;
@@ -23,14 +25,16 @@ pub fn run(context: &Context, input: &StageIn) -> Result<StageOut, IpcError> {
     })?;
     let today = tolearn_generate::start::day(clock::now());
     let node = &branch.tree.program.uuid;
-    let (ticks, workdir, last) = State::update(context.data(), &tree.program.uuid, |state| {
-        state.open(node, &stage.id, &today);
-        (
-            state.ticks(node, &stage.id),
-            state.workdir.clone(),
-            state.last_attempt(node, &stage.id).cloned(),
-        )
-    })?;
+    let (ticks, workdir, last, drafts) =
+        State::update(context.data(), &tree.program.uuid, |state| {
+            state.open(node, &stage.id, &today);
+            (
+                state.ticks(node, &stage.id),
+                state.workdir.clone(),
+                state.last_attempt(node, &stage.id).cloned(),
+                state.drafts(node, &stage.id),
+            )
+        })?;
     let view = |block: &Block| viewed(&library, &tree, &branch.prefix, block);
     Ok(StageOut {
         program: tree.program.uuid.clone(),
@@ -53,7 +57,7 @@ pub fn run(context: &Context, input: &StageIn) -> Result<StageOut, IpcError> {
         questions: stage
             .questions
             .iter()
-            .map(|question| asked(question, last.as_ref()))
+            .map(|question| asked(question, last.as_ref(), &drafts))
             .collect(),
         ticks,
         workdir,
@@ -85,7 +89,11 @@ fn viewed(
     })
 }
 
-fn asked(question: &Question, last: Option<&Attempt>) -> AskView {
+fn asked(
+    question: &Question,
+    last: Option<&Attempt>,
+    drafts: &BTreeMap<String, String>,
+) -> AskView {
     let graded = last.and_then(|attempt| {
         attempt
             .per_question
@@ -97,6 +105,7 @@ fn asked(question: &Question, last: Option<&Attempt>) -> AskView {
         text: question.text.clone(),
         result: graded.map(|row| row.result.label().to_owned()),
         missed: graded.map(|row| row.missed.clone()).unwrap_or_default(),
+        draft: drafts.get(&question.id).cloned().unwrap_or_default(),
     }
 }
 

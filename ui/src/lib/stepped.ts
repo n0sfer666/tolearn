@@ -11,6 +11,7 @@ function labels(text: Dictionary): ReadonlyMap<string, string> {
     ["text", text.generate.stepText],
     ["diagrams", text.generate.stepDiagrams],
     ["write", text.generate.stepWrite],
+    ["exam", text.generate.stepExam],
   ]);
 }
 

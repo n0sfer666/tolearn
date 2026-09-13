@@ -9,13 +9,14 @@ export interface Refused {
   failed: boolean;
 }
 
-const TUNED = new Set(["generate.unrepaired"]);
+const TUNED = new Set(["generate.unrepaired", "generate.verdict"]);
 
 function known(text: Dictionary): ReadonlyMap<string, string> {
   return new Map([
     ...problems(text),
     ["generate.busy", text.generate.busy],
     ["generate.offline", text.generate.offline],
+    ["exam.empty", text.stage.blank],
   ]);
 }
 

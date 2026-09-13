@@ -269,6 +269,7 @@ export type AskView = {
   text: string;
   result: string | null;
   missed: string[];
+  draft: string;
 };
 
 export type ExportIn = {
@@ -421,6 +422,34 @@ export type CheckClaimOut = {
   truncated: boolean;
 };
 
+export type AnswerIn = {
+  program: string;
+  node: string;
+  stage: string;
+  question: string;
+  text: string;
+};
+
+export type AnswerOut = {
+  draft: string;
+};
+
+export type ExamIn = {
+  program: string;
+  node: string;
+  stage: string;
+  answers: AnswerView[];
+};
+
+export type AnswerView = {
+  id: string;
+  text: string;
+};
+
+export type ExamOut = {
+  passed: boolean;
+};
+
 export type Commands = {
   export: { input: ExportIn; output: ExportOut };
   settings: { input: SettingsIn; output: SettingsView };
@@ -444,6 +473,8 @@ export type Commands = {
   tick: { input: TickIn; output: TickOut };
   workdir: { input: WorkdirIn; output: WorkdirOut };
   check_claim: { input: CheckClaimIn; output: CheckClaimOut };
+  answer: { input: AnswerIn; output: AnswerOut };
+  exam: { input: ExamIn; output: ExamOut };
 };
 
 export type CommandName = keyof Commands;

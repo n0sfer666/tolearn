@@ -13,6 +13,31 @@ model in one request ([ADR-017](../adr/017-written-exam-only.md)), and in
 copypaste, when the same prompt is sent to someone else's chat and the answer
 is pasted back. Reading the verdict calls no model and touches no network.
 
+## The written exam
+
+Under each question on the stage screen there is an answer field. The draft is
+written to the stage's state after a pause in typing, on leaving the field and
+on closing the window, so it survives a restart; an empty field removes the
+draft.
+
+"Submit" gathers the answers together with the stage's reference `answer`s,
+the program's level and language into one prompt; a question with no answer
+goes as "no answer".
+
+1. All fields empty — refused with "answer at least one question", no model is
+   called.
+2. A remote provider — an HTTP service or a CLI harness — needs the network,
+   and the app checks it before the call. A local model needs no check.
+3. One model call, and its answer is read as the verdict below. If the verdict
+   cannot be read, the model gets its answer back with the reason once and
+   repairs it. If that fails too — refused with the reason, and nothing is
+   written to the state.
+4. Every call, the repair included, is written to the request log as the
+   `exam` step.
+
+An accepted verdict becomes a `written` attempt with the model's name, and each
+question shows its result and what was missed.
+
 ## The verdict
 
 The app takes the **last** top-level JSON object from the answer text — inside

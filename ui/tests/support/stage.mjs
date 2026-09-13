@@ -45,8 +45,8 @@ export const OUT = {
     acceptance: [{ id: "a1", claim: "Гамма звучит", check: "python play.py", expect: "exit 0" }],
   },
   questions: [
-    { id: "q1", text: "Сколько каналов у чипа?", result: null, missed: [] },
-    { id: "q2", text: "Чем пульс отличается от треугольника?", result: null, missed: [] },
+    { id: "q1", text: "Сколько каналов у чипа?", result: null, missed: [], draft: "" },
+    { id: "q2", text: "Чем пульс отличается от треугольника?", result: null, missed: [], draft: "" },
   ],
   ticks: [],
   workdir: null,
@@ -74,10 +74,10 @@ export function stageScreen() {
     const picks = [];
     const call = (name, payload) => {
       calls.push({ name, payload });
-      if (name === "stage") return options.fail ? Promise.reject(options.fail) : Promise.resolve(options.out ?? OUT);
       const reply = options.replies?.[name];
-      if (reply === undefined) return Promise.reject(new Error(`лишняя команда ${name}`));
-      return Promise.resolve().then(() => reply(payload));
+      if (reply !== undefined) return Promise.resolve().then(() => reply(payload));
+      if (name === "stage") return options.fail ? Promise.reject(options.fail) : Promise.resolve(options.out ?? OUT);
+      return Promise.reject(new Error(`лишняя команда ${name}`));
     };
     const pick = () => {
       picks.push(true);

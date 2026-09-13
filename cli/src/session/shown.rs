@@ -18,6 +18,7 @@ pub fn named(step: Step) -> String {
         Step::Repair(round) => format!("починка {round}"),
         Step::Diagrams => "схемы".to_owned(),
         Step::Write => "запись".to_owned(),
+        Step::Exam => "зачёт".to_owned(),
     }
 }
 

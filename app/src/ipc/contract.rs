@@ -2,6 +2,7 @@ use serde_json::Value;
 
 use super::context::Context;
 use super::error::IpcError;
+use super::examined;
 use super::forked;
 use super::handlers;
 use super::planned;
@@ -68,6 +69,8 @@ commands! {
     tick(practiced::TickIn) -> practiced::TickOut,
     workdir(practiced::WorkdirIn) -> practiced::WorkdirOut,
     check_claim(practiced::CheckClaimIn) -> practiced::CheckClaimOut,
+    answer(examined::AnswerIn) -> examined::AnswerOut,
+    exam(examined::ExamIn) -> examined::ExamOut,
 }
 
 #[tauri::command]

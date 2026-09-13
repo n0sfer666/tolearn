@@ -57,8 +57,12 @@ pub fn online<'a>(reach: &dyn Reach, model: &'a dyn Model) -> Result<Online<'a>,
                 reason,
             })?;
     }
-    Ok(Online {
+    Ok(local(model))
+}
+
+pub fn local(model: &dyn Model) -> Online<'_> {
+    Online {
         model,
         tally: Tally::default(),
-    })
+    }
 }

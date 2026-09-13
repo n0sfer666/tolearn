@@ -29,16 +29,16 @@ export function transport(answers) {
 }
 
 export function heard() {
-  let emit = () => {};
+  const handlers = new Set();
   let stops = 0;
   const steps = (handler) => {
-    emit = handler;
+    handlers.add(handler);
     return () => {
       stops += 1;
-      emit = () => {};
+      handlers.delete(handler);
     };
   };
-  return { steps, emit: (step) => emit(step), stops: () => stops };
+  return { steps, emit: (step) => handlers.forEach((handler) => handler(step)), stops: () => stops };
 }
 
 export function sequence(...answers) {

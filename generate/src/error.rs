@@ -2,6 +2,7 @@ use std::fmt;
 
 use tolearn_core::Hours;
 use tolearn_core::library::LibraryError;
+use tolearn_core::verdict::VerdictError;
 use tolearn_provider::CheckError;
 
 use crate::REPAIRS;
@@ -33,6 +34,7 @@ pub enum GenerateError {
     Library(LibraryError),
     Next(NextError),
     Regenerate(RegenerateError),
+    Verdict(VerdictError),
 }
 
 impl GenerateError {
@@ -49,6 +51,7 @@ impl GenerateError {
             Self::Library(error) => error.code(),
             Self::Next(error) => error.code(),
             Self::Regenerate(error) => error.code(),
+            Self::Verdict(_) => "generate.verdict",
         }
     }
 }
@@ -80,6 +83,10 @@ impl fmt::Display for GenerateError {
             Self::Library(error) => write!(out, "{error}"),
             Self::Next(error) => write!(out, "{error}"),
             Self::Regenerate(error) => write!(out, "{error}"),
+            Self::Verdict(error) => write!(
+                out,
+                "модель не прислала годный вердикт и после починки: {error}"
+            ),
         }
     }
 }
@@ -98,6 +105,7 @@ impl std::error::Error for GenerateError {
             Self::Library(error) => Some(error),
             Self::Next(error) => Some(error),
             Self::Regenerate(error) => Some(error),
+            Self::Verdict(error) => Some(error),
         }
     }
 }

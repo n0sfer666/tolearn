@@ -3,13 +3,13 @@ import { For, Show, createSignal, onMount } from "solid-js";
 import Regenerate from "../components/generate/Regenerate";
 import Block from "../components/reading/Block";
 import Empty from "../components/reading/Empty";
+import Exam from "../components/reading/Exam";
 import Practice from "../components/reading/Practice";
-import Question from "../components/reading/Question";
 import { desk } from "../components/reading/desk";
 import Trail from "../components/reading/Trail";
 import type { Copier, Words } from "../components/rich/Snip";
 import type { Dictionary } from "../i18n/ru";
-import type { StageOut } from "../ipc";
+import type { StageIn, StageOut } from "../ipc";
 import { reveal } from "../lib/anchor";
 import { pickFolder, quiet, steps } from "../lib/ipc";
 import type { Listen, Transport } from "../lib/ipc";
@@ -62,11 +62,11 @@ export default function Stage(props: Props) {
     }
   };
 
-  const reload = async () => {
+  const reload = async (failed: string) => {
     try {
       setView(await fetched());
     } catch {
-      toast("error", props.text.generate.unread);
+      toast("error", failed);
     }
   };
 
@@ -78,11 +78,13 @@ export default function Stage(props: Props) {
     void load();
   });
 
+  const at = (out: StageOut): StageIn => ({ program: out.program, node: out.node, stage: out.id });
+
   const bench = (out: () => StageOut) =>
     desk({
       call: call(),
       pick: props.pick ?? pickFolder,
-      at: () => ({ program: out().program, node: out().node, stage: out().id }),
+      at: () => at(out()),
       text: props.text,
       ticks: () => out().ticks,
       workdir: () => out().workdir,
@@ -113,16 +115,17 @@ export default function Stage(props: Props) {
             </For>
           </div>
           <Practice practice={out().practice} desk={bench(out)} text={props.text} words={words()} copy={props.copy} />
-          <Show when={out().questions.length > 0}>
-            <section data-questions>
-              <h3>{props.text.stage.questions}</h3>
-              <ol>
-                <For each={out().questions}>
-                  {(ask) => <Question ask={ask} text={props.text} words={words()} copy={props.copy} />}
-                </For>
-              </ol>
-            </section>
-          </Show>
+          <Exam
+            text={props.text}
+            locale={props.locale}
+            call={call()}
+            listen={props.steps ?? steps}
+            at={at(out())}
+            questions={out().questions}
+            words={words()}
+            copy={props.copy}
+            done={() => void reload(props.text.stage.unread)}
+          />
           <footer data-stage-end>
             <nav data-tools aria-label={props.text.generate.tools}>
               <a href={nextHref(props.locale, out().program, out().node, out().id)} data-next>
@@ -134,8 +137,8 @@ export default function Stage(props: Props) {
               locale={props.locale}
               call={call()}
               listen={props.steps ?? steps}
-              at={{ program: out().program, node: out().node, stage: out().id }}
-              done={() => void reload()}
+              at={at(out())}
+              done={() => void reload(props.text.generate.unread)}
             />
           </footer>
         </article>

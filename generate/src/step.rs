@@ -9,6 +9,7 @@ pub enum Step {
     Repair(usize),
     Diagrams,
     Write,
+    Exam,
 }
 
 impl Step {
@@ -23,6 +24,7 @@ impl Step {
             Self::Repair(_) => "repair",
             Self::Diagrams => "diagrams",
             Self::Write => "write",
+            Self::Exam => "exam",
         }
     }
 }

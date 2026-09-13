@@ -7,6 +7,7 @@ export interface Job {
 export const PLANNING: Job = { claims: false, seals: false, steps: new Set(["plan"]) };
 export const REVISING: Job = { claims: false, seals: false, steps: new Set(["revise"]) };
 export const FORKING: Job = { claims: true, seals: false, steps: new Set(["fork"]) };
+export const EXAMINING: Job = { claims: true, seals: false, steps: new Set(["exam"]) };
 export const BUILDING: Job = {
   claims: true,
   seals: true,
