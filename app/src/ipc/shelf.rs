@@ -57,16 +57,20 @@ pub fn summary(tree: &Tree, state: &State) -> SummaryView {
     }
 }
 
-pub fn children(tree: &Tree) -> Vec<RowView> {
+pub fn children(tree: &Tree, state: &State) -> Vec<RowView> {
     tree.program
         .map
         .children
         .iter()
-        .map(|row| RowView {
-            id: row.uuid.clone(),
-            title: row.title.clone(),
-            hours: span(row.hours),
-            ready: tree.children.contains_key(&row.uuid),
+        .map(|row| {
+            let child = tree.children.get(&row.uuid);
+            RowView {
+                id: row.uuid.clone(),
+                title: row.title.clone(),
+                hours: span(row.hours),
+                ready: child.is_some(),
+                summary: child.map(|child| summary(child, state)),
+            }
         })
         .collect()
 }

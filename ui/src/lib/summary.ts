@@ -6,3 +6,7 @@ export function summary(template: string, view: SummaryView): string {
     .replace("{of}", String(view.total))
     .replace("{skipped}", String(view.skipped));
 }
+
+export function counted(view: SummaryView | null): SummaryView | null {
+  return view !== null && view.total > 0 ? view : null;
+}

@@ -43,7 +43,7 @@ li:is([data-stage], [data-child]) > :first-child {
   flex: 1 1 auto;
 }
 
-li:is([data-stage], [data-child]) :is([data-hours], [data-note], [data-status], [data-pass]),
+li:is([data-stage], [data-child]) :is([data-hours], [data-note], [data-status], [data-pass], [data-subtree]),
 li[data-broken] p,
 figcaption,
 p[data-workdir] > [data-unset],

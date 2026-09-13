@@ -1,20 +1,16 @@
 import { Show } from "solid-js";
 
 import type { Dictionary } from "../../i18n/ru";
-import type { ShelfView, SummaryView } from "../../ipc";
+import type { ShelfView } from "../../ipc";
 import { day } from "../../lib/day";
 import { hours } from "../../lib/hours";
 import { nodeHref } from "../../lib/links";
-import { summary } from "../../lib/summary";
+import { counted, summary } from "../../lib/summary";
 
 interface Props {
   shelf: ShelfView;
   text: Dictionary["programs"];
   locale: string;
-}
-
-function counted(view: SummaryView | null): SummaryView | null {
-  return view !== null && view.total > 0 ? view : null;
 }
 
 export default function Shelf(props: Props) {

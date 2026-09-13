@@ -4,6 +4,7 @@ import Empty from "../components/reading/Empty";
 import Export from "../components/reading/Export";
 import Mark from "../components/reading/Mark";
 import Rows from "../components/reading/Rows";
+import Subtree from "../components/reading/Subtree";
 import Trail from "../components/reading/Trail";
 import type { Dictionary } from "../i18n/ru";
 import type { NodeOut } from "../ipc";
@@ -122,6 +123,7 @@ export default function Program(props: Props) {
                 href={(row) => nodeHref(props.locale, out().program, row.id)}
                 pending={props.text.program.pending}
                 unit={props.text.program.hours}
+                mark={(row) => <Subtree template={props.text.program.summary} view={row.summary} />}
               />
             </ul>
           </Show>

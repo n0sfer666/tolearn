@@ -35,8 +35,14 @@ const ROOT = {
     { id: "sprites", title: "Спрайты", hours: span(3, 4), ready: false, status: "fresh", pass: null },
   ],
   children: [
-    { id: "tools", title: "Инструменты сборки", hours: span(8, 12), ready: true },
-    { id: "sound", title: "Звук", hours: span(6, 10), ready: false },
+    {
+      id: "tools",
+      title: "Инструменты сборки",
+      hours: span(8, 12),
+      ready: true,
+      summary: { passed: 0, total: 2, skipped: 0 },
+    },
+    { id: "sound", title: "Звук", hours: span(6, 10), ready: false, summary: null },
   ],
   summary: { passed: 1, total: 2, skipped: 0 },
 };

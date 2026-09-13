@@ -1,10 +1,17 @@
 import { For, Show } from "solid-js";
 import type { JSX } from "solid-js";
 
-import type { RowView } from "../../ipc";
+import type { Span } from "../../ipc";
 import { hours } from "../../lib/hours";
 
-interface Props<TRow extends RowView> {
+interface Row {
+  id: string;
+  title: string;
+  hours: Span;
+  ready: boolean;
+}
+
+interface Props<TRow extends Row> {
   kind: "stage" | "child";
   rows: TRow[];
   href: (row: TRow) => string;
@@ -13,7 +20,7 @@ interface Props<TRow extends RowView> {
   mark?: (row: TRow) => JSX.Element;
 }
 
-export default function Rows<TRow extends RowView>(props: Props<TRow>) {
+export default function Rows<TRow extends Row>(props: Props<TRow>) {
   return (
     <For each={props.rows}>
       {(row) => (

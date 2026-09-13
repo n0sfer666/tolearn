@@ -27,6 +27,7 @@ dto!(RowView {
     title: String,
     hours: Span,
     ready: bool,
+    summary: Option<SummaryView>,
 });
 
 dto!(ImportPackageIn { path: String });

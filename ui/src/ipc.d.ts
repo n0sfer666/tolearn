@@ -172,6 +172,7 @@ export type RowView = {
   title: string;
   hours: Span;
   ready: boolean;
+  summary: SummaryView | null;
 };
 
 export type ImportPackageIn = {

@@ -26,7 +26,7 @@ pub fn run(context: &Context, input: &NodeIn) -> Result<NodeOut, IpcError> {
             })
             .collect(),
         stages: shelf::stages(branch.tree, &state),
-        children: shelf::children(branch.tree),
+        children: shelf::children(branch.tree, &state),
         summary: shelf::summary(branch.tree, &state),
     })
 }

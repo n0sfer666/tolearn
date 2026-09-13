@@ -49,6 +49,7 @@ rm -rf ~/.config/tolearn ~/.local/share/tolearn
 | [bundle/01-import.md](bundle/01-import.md) | импорт пакета `.tolearn`, отказы, копия, чтение этапа 1 в обеих темах |
 | [bundle/02-export.md](bundle/02-export.md) | экспорт программы и подпрограммы в папку Markdown, занятая папка, библиотека, CLI |
 | [bundle/03-search.md](bundle/03-search.md) | поиск по этапам библиотеки: этап, фрагмент с прокруткой, подпрограмма, без сети, старый индекс |
+| [bundle/04-tree-progress.md](bundle/04-tree-progress.md) | прогресс по дереву nes-dev: лист, подпрограмма, корень и карточка библиотеки называют одни числа, перезапуск, битое состояние |
 | [generate/01-cli.md](generate/01-cli.md) | `tolearn new` и `tolearn next` на живом провайдере: шаги, развилка, выбор, пакет, отказы |
 | [generate/02-new-program-screen.md](generate/02-new-program-screen.md) | экран «Новая программа», шаги и отмена, «Что дальше», переход к следующей подпрограмме, перегенерация этапа, отказы, обе темы |
 | [generate/03-clarify.md](generate/03-clarify.md) | «Уточнить» у блока этапа: цепочка «понятно?», новая цепочка, «Убрать», отказ без сети, шаг `clarify` в журнале |
