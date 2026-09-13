@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 
 import { blocks, declarations } from "./css.mjs";
 import { ratio, themes } from "./contrast.mjs";
+import { targets } from "./targets.mjs";
+import { typeset } from "./typeset.mjs";
 
 export const SOURCE = fileURLToPath(new URL("../../docs/design/tokens.css", import.meta.url));
 
@@ -136,6 +138,7 @@ export function values(source, file) {
         if (!replaced) problems.push({ file, message: `outline: none без замены в ${where}` });
       }
     }
+    problems.push(...typeset(found, media, where, file));
 
     for (const size of media?.match(PX) ?? []) {
       if (!BREAKPOINTS.includes(size)) {
@@ -178,9 +181,12 @@ export function contrasts(map) {
 export async function lint() {
   const map = tokens(read());
   const problems = [...naming([...map.keys()]), ...contrasts(map)];
-  for (const file of await styles()) {
-    problems.push(...values(readFileSync(file, "utf8"), path.relative(path.join(SRC, ".."), file)));
-  }
+  const sheets = (await styles()).map((file) => ({
+    file: path.relative(path.join(SRC, ".."), file),
+    source: style(readFileSync(file, "utf8")),
+  }));
+  for (const { source, file } of sheets) problems.push(...values(source, file));
+  problems.push(...targets(sheets));
   return problems;
 }
 

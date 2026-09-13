@@ -1,7 +1,11 @@
 :where(button, input, textarea, select) {
-  font-family: inherit;
+  font-family: var(--font-family-ui);
   font-size: var(--font-size-md);
   line-height: var(--line-height-tight);
+}
+
+:where(summary) {
+  font-family: var(--font-family-ui);
 }
 
 :where(button) {
@@ -111,10 +115,17 @@ nav[data-tools] a {
   align-items: center;
   border-radius: var(--radius-sm);
   text-decoration: none;
-  transition:
-    background var(--duration) var(--easing),
-    border-color var(--duration) var(--easing),
-    color var(--duration) var(--easing);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bar-back,
+  .bar-nav a,
+  nav[data-tools] a {
+    transition:
+      background var(--duration) var(--easing),
+      border-color var(--duration) var(--easing),
+      color var(--duration) var(--easing);
+  }
 }
 
 .bar-back,
@@ -163,4 +174,20 @@ nav[data-tools] > button {
 
 .bar-nav a[aria-current] {
   color: var(--color-fg);
+}
+
+button[data-hint-open],
+button[data-snip],
+button[data-toast-close] {
+  position: relative;
+}
+
+button[data-hint-open]::after,
+button[data-snip]::after,
+button[data-toast-close]::after {
+  content: "";
+  position: absolute;
+  inset: min(0%, (100% - var(--tap-target)) / 2);
+  min-inline-size: var(--tap-target);
+  min-block-size: var(--tap-target);
 }

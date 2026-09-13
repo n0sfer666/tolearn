@@ -23,9 +23,17 @@ li[data-question] {
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-bg-raised);
-  transition:
-    background var(--duration) var(--easing),
-    border-color var(--duration) var(--easing);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  li[data-program],
+  li[data-due],
+  li[data-hit],
+  li[data-question] {
+    transition:
+      background var(--duration) var(--easing),
+      border-color var(--duration) var(--easing);
+  }
 }
 
 :is(li[data-program], li[data-due], li[data-hit]):has(> a):hover {

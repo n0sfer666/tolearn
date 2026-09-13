@@ -19,7 +19,7 @@ button[data-hint-open] {
   aspect-ratio: 1;
   color: var(--color-fg-muted);
   font-size: var(--font-size-sm);
-  line-height: 1;
+  line-height: var(--line-height-tight);
 }
 
 span[data-hint-body] {
