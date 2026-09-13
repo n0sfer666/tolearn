@@ -333,12 +333,116 @@ mermaid берётся из бинарника. Тесты `generate/tests/diagr
 
 ## Генерация из CLI (руками, с сетью)
 
-`cargo test -p tolearn-cli` гоняет `tolearn new` и `tolearn next` через
+`cargo test -p tolearn-cli` гоняет `tolearn new`, `tolearn next` и `tolearn ledger` через
 библиотеку на HTTP-заглушке модели и фикстурных страницах, без сети. Живой
 провайдер, время и токены шагов, отказ без сети и путь до импорта в
 приложение — руками по
 [generate/01-cli.md](../docs/manual-test-cases/generate/01-cli.md), после
 `cargo build -p tolearn-cli --release`.
+
+## Замер S128 (руками, с сетью)
+
+Два эталонных запроса на двух классах моделей: харнесс claude и локальная
+Ollama. По каждой паре — карта и первые три этапа через CLI, потом сводка
+журнала. Итог решает минимальный класс модели для урока (ADR-023, раздел
+«Модель») и сверяет оценку всей программы с 0,3–0,8 млн токенов ADR-013.
+
+**Подготовка** — из корня репозитория, в Nushell. Харнесс claude с
+рекомендованными аргументами уже сохранён в «Настройках»; локальная модель —
+самая крупная, что идёт на этой машине по таблице S63. `num_ctx` поднят до
+32 768: промпт текста доходит до 30 000 знаков, и с окном Ollama по умолчанию
+он молча обрезается.
+
+```nu
+cargo build -p tolearn-cli --release
+mkdir ~/s128
+open ~/.config/tolearn/provider.yaml | update enabled true | update active harness | to yaml | save -f ~/s128/claude.yaml
+open ~/.config/tolearn/provider.yaml | update enabled true | update active local | update local.model "<модель Ollama>" | update local.num_ctx 32768 | to yaml | save -f ~/s128/ollama.yaml
+def s128-run [model: string, name: string, request: string, level: string] {
+  let dir = $"~/s128/($model)-($name)" | path expand
+  let provider = $"~/s128/($model).yaml" | path expand
+  ./target/release/tolearn new $request --level $level --out $dir --provider $provider
+  for _ in 1..2 {
+    let choice = ./target/release/tolearn next $dir --provider $provider --json | from json | get variants | where recommended | first | get choice
+    ./target/release/tolearn next $dir --choice $choice --provider $provider
+  }
+  ./target/release/tolearn ledger $dir
+}
+```
+
+**Прогон** — четыре каталога, каждый строит карту и три этапа, выбирая
+рекомендованный вариант развилки:
+
+```nu
+s128-run claude chiptune "Хочу писать чиптюн" "Нот не знаю"
+s128-run claude llm "Хочу запускать локальные LLM" "Пишу на Python, с моделями не работал"
+s128-run ollama chiptune "Хочу писать чиптюн" "Нот не знаю"
+s128-run ollama llm "Хочу запускать локальные LLM" "Пишу на Python, с моделями не работал"
+```
+
+Отказ на любом шаге — тоже результат замера: причину записать в строку этапа, а
+продолжить с `next` вручную. Этапы лежат в
+`~/s128/<модель>-<запрос>/programs/<uuid>/stages/`, источники — в
+`program.yaml` рядом.
+
+**Чек-лист по этапу:**
+
+| Графа | Как проверить |
+|---|---|
+| инстр. | только у первого этапа: практика требует ровно один инструмент |
+| т+п | теория и практика про одно и то же, практика опирается на прочитанное |
+| ист. | 2–3 страницы из `sources.pages` открываются и говорят то, на что ссылается текст |
+| книги | у книги есть `chapter`, и это глава, а не вся книга и не страница |
+| схемы | блок `kind: diagram` — исходник Mermaid, строка шага «схемы» об этом сказала; схемы нет — «—» |
+| часы | `hours` строки этапа в `map` — в пределах 2–4 |
+| починка | вызовов шага `repair` в группе этапа по сводке: 0 — сошлось с первого раза, 3 — предел |
+| время, токены | «итого» группы этапа из `tolearn ledger` |
+
+| Модель | Запрос | Этап | инстр. | т+п | ист. | книги | схемы | часы | починка | время, с | токены |
+|---|---|---|---|---|---|---|---|---|---:|---:|---:|
+| claude | chiptune | 1 | | | | | | | | | |
+| claude | chiptune | 2 | — | | | | | | | | |
+| claude | chiptune | 3 | — | | | | | | | | |
+| claude | llm | 1 | | | | | | | | | |
+| claude | llm | 2 | — | | | | | | | | |
+| claude | llm | 3 | — | | | | | | | | |
+| ollama | chiptune | 1 | | | | | | | | | |
+| ollama | chiptune | 2 | — | | | | | | | | |
+| ollama | chiptune | 3 | — | | | | | | | | |
+| ollama | llm | 1 | | | | | | | | | |
+| ollama | llm | 2 | — | | | | | | | | |
+| ollama | llm | 3 | — | | | | | | | | |
+
+**Оценка всей программы.** Этапов в программе ≈ часы карты / 3: этап 2–4 ч,
+подпрограммы считаются их строками. Цена этапа — среднее по трём этапам
+прогона вместе с развилками, карта — один раз:
+
+```nu
+def s128-estimate [dir: string] {
+  let dir = $dir | path expand
+  let summary = ./target/release/tolearn ledger $dir --json | from json
+  let all = $summary.total.input + $summary.total.output
+  let plan = $summary.rows | where step == plan | each {|row| $row.input + $row.output } | math sum
+  let map = open (glob $"($dir)/programs/*/program.yaml" | first) | get map
+  let hours = $map.stages | append $map.children | get hours | each {|h| $h | math avg } | math sum
+  let stages = $hours / 3 | math ceil
+  let stage = ($all - $plan) / 3
+  {hours: $hours, stages: $stages, plan: $plan, stage: ($stage | math round), program: ($plan + $stages * $stage | math round), unknown: $summary.total.unknown}
+}
+```
+
+| Модель | Запрос | Часы карты | Этапов | Карта, ток. | Этап, ток. | Программа, ток. | В 0,3–0,8 млн |
+|---|---|---:|---:|---:|---:|---:|---|
+| claude | chiptune | | | | | | |
+| claude | llm | | | | | | |
+| ollama | chiptune | | | | | | |
+| ollama | llm | | | | | | |
+
+У харнесса вход записан без чтения кэша (ADR-024), поэтому оценка claude —
+нижняя граница; `unknown` больше нуля значит, что часть вызовов без токенов и
+оценка занижена ещё сильнее. Выход за 0,8 млн — запись о пересмотре размера
+этапа в ADR-013. Минимальный класс модели для урока — младший из двух, у
+которого все графы чек-листа без провалов, — записывается в ADR-023.
 
 ## Упаковка
 

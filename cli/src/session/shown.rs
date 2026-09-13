@@ -43,7 +43,7 @@ pub fn hours(hours: Hours) -> String {
     }
 }
 
-fn grouped(value: u64) -> String {
+pub fn grouped(value: u64) -> String {
     let digits = value.to_string();
     let mut shown = String::new();
     for (index, digit) in digits.chars().enumerate() {

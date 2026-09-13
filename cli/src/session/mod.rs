@@ -9,6 +9,7 @@ mod shelf;
 mod shown;
 mod speaker;
 mod spent;
+mod summary;
 mod unpainted;
 
 pub use apart::apart;
@@ -18,3 +19,4 @@ pub use herald::Herald;
 pub use row::row;
 pub use shelf::{empty, only, opened, unsettled};
 pub use shown::hours;
+pub use summary::Summary;

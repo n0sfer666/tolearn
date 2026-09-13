@@ -1,4 +1,5 @@
 mod export;
+mod ledger;
 mod new;
 mod next;
 mod offered;
@@ -20,5 +21,6 @@ pub fn run(
         Command::Unpack { source, into } => unpack::run(source, into),
         Command::New(new) => new::run(new, world()?),
         Command::Next(next) => next::run(next, world()?),
+        Command::Ledger { source } => ledger::run(source),
     }
 }

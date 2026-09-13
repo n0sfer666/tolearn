@@ -85,3 +85,7 @@ diagrams stay Mermaid source, and the "схемы" step line says so.
 both commands print the summary as an object. `tolearn pack
 <folder>/programs/<uuid> <file>` packs the finished program, and the app
 imports it.
+
+`tolearn ledger <folder>` sums up the program's request ledger into a table:
+model calls, source checks, time and tokens per stage and step. It needs
+neither the model nor a network.

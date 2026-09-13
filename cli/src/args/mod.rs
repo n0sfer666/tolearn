@@ -16,7 +16,8 @@ pub const USAGE: &str = "\
   tolearn pack     <каталог> <файл.tolearn> [--json]
   tolearn unpack   <файл.tolearn> <каталог> [--json]
   tolearn new      \"<запрос>\" --level <уровень> --out <каталог> [--provider <файл>] [--json]
-  tolearn next     <каталог> [--choice <номер>] [--provider <файл>] [--json]";
+  tolearn next     <каталог> [--choice <номер>] [--provider <файл>] [--json]
+  tolearn ledger   <каталог> [--json]";
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Args {
@@ -31,16 +32,18 @@ pub enum Command {
     Unpack { source: PathBuf, into: PathBuf },
     New(New),
     Next(Next),
+    Ledger { source: PathBuf },
 }
 
 type Build = fn(&Words<'_>) -> Result<Command, CliError>;
 
-const COMMANDS: [(&str, &[&str], Build); 5] = [
+const COMMANDS: [(&str, &[&str], Build); 6] = [
     ("export", &["json"], export),
     ("pack", &["json"], pack),
     ("unpack", &["json"], unpack),
     ("new", &["json", "level", "out", "provider"], new::read),
     ("next", &["json", "choice", "provider"], next::read),
+    ("ledger", &["json"], ledger),
 ];
 
 pub fn parse(argv: &[String]) -> Result<Args, CliError> {
@@ -76,5 +79,11 @@ fn unpack(words: &Words<'_>) -> Result<Command, CliError> {
     Ok(Command::Unpack {
         source: words.path(0, "пакет")?,
         into: words.path(1, "каталог")?,
+    })
+}
+
+fn ledger(words: &Words<'_>) -> Result<Command, CliError> {
+    Ok(Command::Ledger {
+        source: words.path(0, "каталог")?,
     })
 }

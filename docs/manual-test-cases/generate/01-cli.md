@@ -1,4 +1,4 @@
-# Генерация из терминала: `tolearn new` и `tolearn next`
+# Генерация из терминала: `tolearn new`, `tolearn next` и `tolearn ledger`
 
 Автотесты зовут заглушку модели и фикстурные страницы: живой провайдер, настоящая
 сеть, время и токены шагов проверяются только руками.
@@ -46,7 +46,16 @@ Mermaid: окна для схем нет», если в этапе есть сх
 ОР: строки шагов «источники», «текст», «схемы», «запись» и итог с id выбранного
 этапа.
 
-5) выполнить `tolearn pack ~/tolearn-cli/programs/<uuid> ~/tolearn-cli.tolearn`,
+5) выполнить `tolearn ledger ~/tolearn-cli`.
+
+ОР: мгновенно, без вызова модели: строка
+`журнал: ~/tolearn-cli/cache/<uuid>/ledger.jsonl` и таблица «этап | шаг |
+вызовы | проверки | время, с | вход | выход». В группе «—» — `plan` и `fork`, в
+группах двух созданных этапов — их `sources` и `text`; у каждой группы строка
+«итого», в конце «всё | итого» и «токенов всего: N». Токены строк `plan`,
+`fork`, `sources`, `text` совпадают с теми, что печатали строки шагов 1, 2 и 4.
+
+6) выполнить `tolearn pack ~/tolearn-cli/programs/<uuid> ~/tolearn-cli.tolearn`,
    запустить приложение и импортировать пакет
    ([bundle/01-import.md](../bundle/01-import.md)).
 
@@ -60,6 +69,13 @@ Mermaid: окна для схем нет», если в этапе есть сх
 ОР: stdout — один JSON-объект с полями `program`, `path`, `node`, `stage`,
 `title`, `ms`, `calls`, `input`, `output`, `unknown`, `mermaid`; строки шагов
 по-прежнему идут в stderr.
+
+2) выполнить `tolearn ledger <каталог> --json` для того же каталога.
+
+ОР: один JSON-объект с `path`, `program`, `rows` (у каждой строки `stage`,
+`step`, `calls`, `checks`, `ms`, `input`, `output`, `unknown`; у `plan` —
+`stage: null`) и `total`; `total.calls` и токены равны полям `calls`,
+`input`, `output` из шага 1.
 
 ## Ветка: занятый каталог
 
