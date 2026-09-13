@@ -6,17 +6,17 @@ use crate::plan::{self, Plan, Request};
 use crate::step::Step;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(super) struct Lineage {
-    pub(super) ancestors: Vec<Program>,
-    pub(super) leaf: Program,
+pub(crate) struct Lineage {
+    pub(crate) ancestors: Vec<Program>,
+    pub(crate) leaf: Program,
 }
 
 impl Lineage {
-    pub(super) fn root(&self) -> &Program {
+    pub(crate) fn root(&self) -> &Program {
         self.ancestors.first().unwrap_or(&self.leaf)
     }
 
-    pub(super) fn programs(&self) -> impl Iterator<Item = &Program> {
+    pub(crate) fn programs(&self) -> impl Iterator<Item = &Program> {
         self.ancestors.iter().chain([&self.leaf])
     }
 }
@@ -26,12 +26,22 @@ pub(super) fn lineage(
     request: &Request,
     plan: &Plan,
 ) -> Result<Lineage, GenerateError> {
+    descend(kit, request, plan, fresh(), 1)
+}
+
+pub(crate) fn descend(
+    kit: &Kit<'_>,
+    request: &Request,
+    plan: &Plan,
+    uuid: String,
+    depth: usize,
+) -> Result<Lineage, GenerateError> {
     let mut ancestors = Vec::new();
-    let mut leaf = program(plan, request, fresh());
+    let mut leaf = program(plan, request, uuid);
     let mut current = plan.clone();
     while let (Some(part), Some(row)) = (current.children.first(), leaf.map.children.first()) {
         let uuid = row.uuid.clone();
-        let depth = ancestors.len() + 2;
+        let depth = depth + ancestors.len() + 1;
         let mark = kit.online.tally().len();
         let next = guarded(kit.progress, kit.stop, Step::Part, || {
             plan::expand(kit.online, request, part, depth)
@@ -63,6 +73,7 @@ fn program(plan: &Plan, request: &Request, uuid: String) -> Program {
                 .map(|part| ChildRow {
                     uuid: fresh(),
                     title: part.title.clone(),
+                    goal: Some(part.goal.clone()),
                     hours: part.hours,
                 })
                 .collect(),

@@ -1,24 +1,27 @@
 mod lay;
 mod lineage;
+mod opened;
 
 pub use crate::build::{Kit, day};
+
+pub(crate) use lay::lay;
+pub(crate) use lineage::{Lineage, descend};
+pub(crate) use opened::{Opened, opened};
 
 use std::fs;
 use std::path::Path;
 
 use tolearn_core::library::Library;
 
-use crate::build::{BUILD, build, guarded};
+use crate::build::{BUILD, guarded};
 use crate::error::GenerateError;
 use crate::halt::sealed;
 use crate::ledger;
 use crate::plan::{self, Flaw, Plan, Request};
 use crate::sources::CACHE;
-use crate::stage::Place;
 use crate::step::Step;
 
-use lay::lay;
-use lineage::{Lineage, lineage};
+use lineage::lineage;
 
 pub fn start(mut kit: Kit<'_>, request: &Request, plan: &Plan) -> Result<String, GenerateError> {
     let flaws = plan::check(plan, 1);
@@ -41,24 +44,15 @@ pub fn start(mut kit: Kit<'_>, request: &Request, plan: &Plan) -> Result<String,
 }
 
 fn first(kit: &mut Kit<'_>, lineage: &Lineage, folder: &Path) -> Result<String, GenerateError> {
-    let leaf = &lineage.leaf;
-    let row = leaf
-        .map
-        .stages
-        .first()
-        .ok_or_else(|| unfit(&[Flaw::Empty]))?;
-    let place = Place {
-        program: leaf,
-        row,
-        index: 0,
-        lapses: &[],
-    };
-    let built = build(kit, &place)?;
-    let mut landed = lineage.clone();
-    landed.leaf.sources = built.cited;
+    let Opened {
+        lineage: landed,
+        stage,
+        assets,
+    } = opened(kit, lineage, &[])?;
     let (stop, tally) = (kit.stop, kit.online.tally());
     guarded(kit.progress, stop, Step::Write, || {
-        lay(folder, &landed, &built.stage, &built.assets)?;
+        let _ = fs::remove_dir_all(folder);
+        lay(folder, &landed, &stage, &assets)?;
         let root = &lineage.root().uuid;
         tally.stamp(0, root, None);
         tally.date(kit.at);

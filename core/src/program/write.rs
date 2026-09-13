@@ -50,11 +50,12 @@ fn stage_row(row: &StageRow) -> Yaml<'_> {
 }
 
 fn child_row(row: &ChildRow) -> Yaml<'_> {
-    map([
-        ("uuid", text(&row.uuid)),
-        ("title", text(&row.title)),
-        ("hours", hours(row.hours)),
-    ])
+    let mut fields = vec![("uuid", text(&row.uuid)), ("title", text(&row.title))];
+    if let Some(goal) = &row.goal {
+        fields.push(("goal", text(goal)));
+    }
+    fields.push(("hours", hours(row.hours)));
+    map(fields)
 }
 
 fn hours(hours: Hours) -> Yaml<'static> {

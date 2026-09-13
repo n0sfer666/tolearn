@@ -2,9 +2,13 @@ mod after;
 mod ahead;
 mod answer;
 mod error;
+mod expanded;
 mod flaw;
 mod kept;
+mod landed;
+mod looked;
 mod offered;
+mod onward;
 mod prompt;
 mod rules;
 mod take;
@@ -12,13 +16,13 @@ mod variant;
 
 pub use after::After;
 pub use error::NextError;
+pub use landed::Landed;
 pub use offered::Fork;
 pub use take::take;
 pub use variant::Variant;
 
 use std::path::Path;
 
-use tolearn_core::library::Library;
 use tolearn_core::state::Lapse;
 
 use crate::REPAIRS;
@@ -27,14 +31,18 @@ use crate::gate::Online;
 use crate::ledger;
 use crate::step::Step;
 
-use ahead::{Ahead, ahead};
+use ahead::Ahead;
+use looked::{Looked, looked};
 
 pub const MAX_ALTERNATIVES: usize = 2;
 
 const WHAT: &str = "развилку";
 
 pub fn known(data: &Path, after: &After<'_>) -> Result<Option<Fork>, GenerateError> {
-    looked(data, after).map(|(_, fork)| fork)
+    Ok(match looked(data, after)? {
+        Looked::Ready(_, fork) => Some(fork),
+        Looked::Open(_) => None,
+    })
 }
 
 pub fn propose(
@@ -44,10 +52,10 @@ pub fn propose(
     at: i64,
     lapses: &[Lapse],
 ) -> Result<Fork, GenerateError> {
-    let (ahead, kept) = looked(data, after)?;
-    if let Some(fork) = kept {
-        return Ok(fork);
-    }
+    let ahead = match looked(data, after)? {
+        Looked::Ready(_, fork) => return Ok(fork),
+        Looked::Open(ahead) => ahead,
+    };
     let tally = online.tally();
     let drawn =
         draw(online, &ahead, lapses).and_then(|fork| kept::save(data, after, &fork).map(|()| fork));
@@ -55,22 +63,6 @@ pub fn propose(
     tally.date(at);
     let _ = ledger::append(&ledger::path(data, after.program), &tally.take());
     drawn
-}
-
-fn looked(data: &Path, after: &After<'_>) -> Result<(Ahead, Option<Fork>), GenerateError> {
-    let tree = Library::at(data)
-        .open(after.program)
-        .map_err(GenerateError::Library)?;
-    let ahead = ahead(tree, after)?;
-    let fork = kept::load(data, after)?.filter(|fork| fresh(fork, &ahead));
-    Ok((ahead, fork))
-}
-
-fn fresh(fork: &Fork, ahead: &Ahead) -> bool {
-    fork.variants
-        .first()
-        .is_some_and(|variant| variant.row == ahead.next)
-        && rules::check(fork, &ahead.leaf.map).is_empty()
 }
 
 fn draw(online: &Online<'_>, ahead: &Ahead, lapses: &[Lapse]) -> Result<Fork, GenerateError> {

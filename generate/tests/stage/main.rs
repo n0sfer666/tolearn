@@ -25,6 +25,8 @@ mod ledger_file;
 mod mend;
 mod next;
 mod next_cancel;
+mod onward;
+mod onward_cancel;
 mod prompts;
 mod refused;
 mod regenerate;

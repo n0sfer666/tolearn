@@ -1,4 +1,3 @@
-use std::fs;
 use std::path::Path;
 
 use tolearn_core::stage::Stage;
@@ -10,13 +9,12 @@ use super::lineage::Lineage;
 
 const CHILDREN: &str = "children";
 
-pub(super) fn lay(
+pub(crate) fn lay(
     build: &Path,
     lineage: &Lineage,
     stage: &Stage,
     assets: &Assets,
 ) -> Result<(), GenerateError> {
-    let _ = fs::remove_dir_all(build);
     let mut folder = build.to_path_buf();
     for (depth, program) in lineage.programs().enumerate() {
         if depth > 0 {

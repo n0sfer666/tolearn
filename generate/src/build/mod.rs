@@ -28,7 +28,7 @@ use cited::cited;
 pub(crate) use guarded::guarded;
 pub(crate) use settled::settled;
 pub(crate) use staged::{described, staged};
-pub(crate) use swapped::{Swap, swapped};
+pub(crate) use swapped::{Swap, replaced, swapped};
 
 pub(crate) const BUILD: &str = "build";
 

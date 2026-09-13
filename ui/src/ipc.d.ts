@@ -374,6 +374,7 @@ export type TakeNextIn = {
 };
 
 export type TakeNextOut = {
+  node: string;
   stage: string;
 };
 

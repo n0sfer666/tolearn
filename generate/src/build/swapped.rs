@@ -35,15 +35,24 @@ pub(crate) fn swapped(
         sources: merged(leaf.sources.clone(), cited),
         ..leaf.clone()
     };
+    replaced(kit, swap.tree, swap.folder, || {
+        staged(&swap.folder.join(swap.prefix), &landed, &stage, &assets)
+    })
+}
+
+pub(crate) fn replaced(
+    kit: &Kit<'_>,
+    tree: &Tree,
+    folder: &Path,
+    put: impl FnOnce() -> Result<(), GenerateError>,
+) -> Result<(), GenerateError> {
     guarded(kit.progress, kit.stop, Step::Write, || {
         let library = Library::at(kit.data);
-        let _ = fs::remove_dir_all(swap.folder);
-        library
-            .copy(swap.tree, swap.folder)
-            .map_err(GenerateError::Library)?;
-        staged(&swap.folder.join(swap.prefix), &landed, &stage, &assets)?;
+        let _ = fs::remove_dir_all(folder);
+        library.copy(tree, folder).map_err(GenerateError::Library)?;
+        put()?;
         sealed(kit.stop)?;
-        library.replace(swap.folder).map_err(GenerateError::Library)
+        library.replace(folder).map_err(GenerateError::Library)
     })?;
     Ok(())
 }

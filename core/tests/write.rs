@@ -102,6 +102,21 @@ fn awkward_texts_survive_the_round_trip() {
 }
 
 #[test]
+fn a_child_row_goal_is_written_only_when_it_is_known() {
+    let tree = program::load(&support::root().join(FIXTURES[0])).unwrap();
+    let mut program = tree.program.clone();
+    assert!(program.map.children.iter().all(|row| row.goal.is_none()));
+
+    let bare = program::write(&program).unwrap();
+    program.map.children[0].goal = Some("Собрать первый ROM: goal".to_owned());
+    let written = program::write(&program).unwrap();
+
+    assert_eq!(bare.matches("goal:").count(), 1, "{bare}");
+    assert_eq!(written.matches("  goal:").count(), 1, "{written}");
+    assert_eq!(program::parse(&written).unwrap(), program, "{written}");
+}
+
+#[test]
 fn code_is_written_as_a_literal_block() {
     let tree = program::load(&support::root().join(LEAF)).unwrap();
 

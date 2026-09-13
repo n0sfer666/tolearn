@@ -72,6 +72,7 @@ pub struct StageRow {
 pub struct ChildRow {
     pub uuid: String,
     pub title: String,
+    pub goal: Option<String>,
     pub hours: Hours,
 }
 

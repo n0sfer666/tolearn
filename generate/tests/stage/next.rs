@@ -2,7 +2,7 @@ use std::path::Path;
 
 use tolearn_core::Hours;
 use tolearn_core::library::Library;
-use tolearn_generate::fork::{self, After};
+use tolearn_generate::fork::{self, After, Landed};
 use tolearn_generate::{Step, ledger};
 
 use crate::forking::{ALONE, TAKEN_AT, after, begun, forked, leaf, noise, proposed, said, taken};
@@ -17,9 +17,10 @@ fn taking_an_alternative_lands_its_stage_in_place_of_the_next_map_row() {
     let before = files(&folder);
     let recorder = Recorder::default();
 
-    let stage = taken(&mut bench, &after(&uuid, "tracker"), 1, &flat(), &recorder).unwrap();
+    let landed = taken(&mut bench, &after(&uuid, "tracker"), 1, &flat(), &recorder).unwrap();
 
-    assert_eq!(stage, "noise");
+    let (node, stage) = (uuid.clone(), "noise".to_owned());
+    assert_eq!(landed, Landed { node, stage });
     let tree = Library::at(&bench.dir).open(&uuid).unwrap();
     let ids: Vec<&str> = tree
         .program
@@ -66,7 +67,7 @@ fn taking_the_next_row_keeps_the_map_and_lists_each_source_once() {
         &Recorder::default(),
     );
 
-    assert_eq!(stage.as_deref(), Ok("voices"));
+    assert_eq!(stage.map(|landed| landed.stage).as_deref(), Ok("voices"));
     let program = leaf(&bench, &uuid);
     assert_eq!(program.map, map);
     let urls: Vec<&str> = program
@@ -148,7 +149,8 @@ fn a_take_inside_a_subprogram_lands_in_its_branch_and_logs_to_the_root() {
 
     let stage = taken(&mut bench, &at, 0, &flat(), &Recorder::default());
 
-    assert_eq!(stage.as_deref(), Ok("bits"));
+    let (node, bits) = (child.clone(), "bits".to_owned());
+    assert_eq!(stage, Ok(Landed { node, stage: bits }));
     let tree = Library::at(&bench.dir).open(&uuid).unwrap();
     assert!(tree.stages.is_empty());
     let landed: Vec<&String> = tree.children[&child].stages.keys().collect();

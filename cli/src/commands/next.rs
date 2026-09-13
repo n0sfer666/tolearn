@@ -61,22 +61,22 @@ fn take(next: &Next, world: World, after: &After<'_>, choice: usize) -> Result<O
     let crew = Crew::gathered(world, next.provider.as_deref())?;
     let online = crew.online()?;
     let herald = Herald::new(&crew);
-    let stage = crew.kitted(&online, &herald, &next.data, |kit| {
+    let landed = crew.kitted(&online, &herald, &next.data, |kit| {
         fork::take(kit, after, index, &[])
     })?;
     let tree = opened(&next.data, after.program)?;
-    let made = row(&tree, after.node, &stage).ok_or_else(|| {
+    let made = row(&tree, &landed.node, &landed.stage).ok_or_else(|| {
         unsettled(
             &next.data,
             after.program,
-            format!("этапа `{stage}` нет в карте"),
+            format!("этапа `{}` нет в карте", landed.stage),
         )
     })?;
     Ok(Built {
         data: &next.data,
         program: after.program,
-        node: after.node,
-        stage: &stage,
+        node: &landed.node,
+        stage: &landed.stage,
         title: &made.title,
         elapsed: began.elapsed(),
         spent: crew.speaker.meter.spent(),

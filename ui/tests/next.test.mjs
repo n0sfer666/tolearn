@@ -37,7 +37,7 @@ function mount(options = {}) {
   const gone = [];
   const { calls, call } = transport({
     fork: FORK,
-    take_next: { stage: "dpcm" },
+    take_next: { node: "rom", stage: "dpcm" },
     cancel_generation: { cancelled: true },
     ...options.answers,
   });
@@ -82,6 +82,15 @@ test("выбор строит выбранный этап и открывает 
 
   assert.deepEqual(named(calls, "take_next")[0].payload, { program: "chip", node: "rom", stage: "voices", choice: 1 });
   assert.deepEqual(gone, ["/ru/stage/?program=chip&node=rom&stage=dpcm"]);
+});
+
+test("переход к следующей подпрограмме открывает её первый этап", async () => {
+  const { host, gone } = mount({ answers: { take_next: { node: "sound", stage: "pulse" } } });
+  await settled();
+  press(host, '[data-variant="noise"] [data-choose]');
+  await settled();
+
+  assert.deepEqual(gone, ["/ru/stage/?program=chip&node=sound&stage=pulse"]);
 });
 
 test("пока открывается развилка — её шаг и «Отменить», после отмены — повтор в фокусе", async () => {

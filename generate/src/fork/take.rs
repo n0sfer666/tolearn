@@ -9,18 +9,22 @@ use crate::sources::CACHE;
 use crate::stage::Place;
 
 use super::after::After;
-use super::ahead::Ahead;
+use super::ahead::{Ahead, Road};
 use super::error::NextError;
-use super::{kept, looked};
+use super::expanded::expanded;
+use super::kept;
+use super::landed::Landed;
+use super::looked::{Looked, looked};
 
 pub fn take(
     mut kit: Kit<'_>,
     after: &After<'_>,
     choice: usize,
     lapses: &[Lapse],
-) -> Result<String, GenerateError> {
-    let (ahead, kept) = looked(kit.data, after)?;
-    let fork = kept.ok_or_else(|| NextError::Unforked(after.stage.to_owned()))?;
+) -> Result<Landed, GenerateError> {
+    let Looked::Ready(road, fork) = looked(kit.data, after)? else {
+        return Err(NextError::Unforked(after.stage.to_owned()).into());
+    };
     let count = fork.variants.len();
     let variant = fork
         .variants
@@ -28,7 +32,10 @@ pub fn take(
         .nth(choice)
         .ok_or(NextError::Choice { choice, count })?;
     let folder = kit.data.join(CACHE).join(after.program).join(BUILD);
-    let landed = landed(&mut kit, &ahead, variant.row, &folder, lapses);
+    let landed = match road {
+        Road::Stage(ahead) => in_place(&mut kit, &ahead, variant.row, &folder, lapses),
+        Road::Part(onward) => expanded(&mut kit, &onward, &folder, lapses),
+    };
     if landed.is_ok() {
         let _ = kept::forget(kit.data, after);
     }
@@ -36,13 +43,13 @@ pub fn take(
     landed
 }
 
-fn landed(
+fn in_place(
     kit: &mut Kit<'_>,
     ahead: &Ahead,
     row: StageRow,
     folder: &Path,
     lapses: &[Lapse],
-) -> Result<String, GenerateError> {
+) -> Result<Landed, GenerateError> {
     let id = row.id.clone();
     let mut leaf = ahead.leaf.clone();
     if let Some(slot) = leaf.map.stages.get_mut(ahead.index + 1) {
@@ -57,5 +64,8 @@ fn landed(
         folder,
     };
     swapped(kit, &swap, &leaf, built)?;
-    Ok(id)
+    Ok(Landed {
+        node: leaf.uuid,
+        stage: id,
+    })
 }

@@ -13,6 +13,7 @@ map:
   children:
     - uuid: e4c90b7a-15f2-4d6e-8b38-0a2c6f9d1e47
       title: Первый ROM в cc65
+      goal: Собрать первый ROM и разобрать, что делает компоновщик.
       hours: [4, 6]
 sources:
   books: []

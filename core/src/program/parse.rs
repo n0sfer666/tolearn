@@ -57,6 +57,10 @@ fn child_row(node: &Reader<'_>) -> Result<ChildRow, ParseError> {
     Ok(ChildRow {
         uuid: node.field("uuid")?.uuid()?,
         title: node.field("title")?.text()?,
+        goal: node
+            .optional_field("goal")?
+            .map(|goal| goal.text())
+            .transpose()?,
         hours: hours(&node.field("hours")?)?,
     })
 }

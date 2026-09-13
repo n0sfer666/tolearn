@@ -10,6 +10,7 @@ pub enum NextError {
     Ungenerated(String),
     End(String),
     Taken(String),
+    Begun(String),
     Unforked(String),
     Choice { choice: usize, count: usize },
 }
@@ -21,7 +22,7 @@ impl NextError {
             Self::Stage(_) => "next.stage",
             Self::Ungenerated(_) => "next.ungenerated",
             Self::End(_) => "next.end",
-            Self::Taken(_) => "next.taken",
+            Self::Taken(_) | Self::Begun(_) => "next.taken",
             Self::Unforked(_) => "next.unforked",
             Self::Choice { .. } => "next.choice",
         }
@@ -39,9 +40,10 @@ impl fmt::Display for NextError {
             ),
             Self::End(stage) => write!(
                 out,
-                "этап «{stage}» последний в карте: переход к следующей подпрограмме появится позже"
+                "этап «{stage}» последний в программе: карта пройдена до конца"
             ),
             Self::Taken(stage) => write!(out, "следующий этап «{stage}» уже создан"),
+            Self::Begun(title) => write!(out, "следующая подпрограмма «{title}» уже начата"),
             Self::Unforked(stage) => write!(
                 out,
                 "развилка после этапа «{stage}» не открыта: сначала открой её"

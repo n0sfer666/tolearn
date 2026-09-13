@@ -47,7 +47,7 @@ export default function Next(props: Props) {
   const choose = async (choice: number) => {
     const here = at();
     const done = await work.run(() => call()("take_next", { ...here, choice }), BUILDING);
-    if (done !== null) (props.go ?? go)(stageHref(props.locale, here.program, here.node, done.stage));
+    if (done !== null) (props.go ?? go)(stageHref(props.locale, here.program, done.node, done.stage));
   };
 
   onMount(() => {

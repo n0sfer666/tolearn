@@ -23,7 +23,10 @@ dto!(TakeNextIn {
     stage: String,
     choice: u32,
 });
-dto!(TakeNextOut { stage: String });
+dto!(TakeNextOut {
+    node: String,
+    stage: String,
+});
 
 pub fn shapes() -> Vec<Shape> {
     vec![

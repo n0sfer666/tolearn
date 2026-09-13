@@ -19,8 +19,11 @@ pub fn run(context: &Context, input: &TakeNextIn) -> Result<TakeNextOut, IpcErro
     let online = online(reach.as_ref(), &model).map_err(refused)?;
     let choice = usize::try_from(input.choice).unwrap_or(usize::MAX);
     let lapses = lapses(context, &input.program)?;
-    let stage = kitted(context, &online, claim.stop(), |kit| {
+    let landed = kitted(context, &online, claim.stop(), |kit| {
         fork::take(kit, &after, choice, &lapses).map_err(refused)
     })?;
-    Ok(TakeNextOut { stage })
+    Ok(TakeNextOut {
+        node: landed.node,
+        stage: landed.stage,
+    })
 }

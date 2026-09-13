@@ -72,7 +72,7 @@ fn развилка_предлагает_следующий_этап_и_выбр
             "recommended": true,
         })
     );
-    assert_eq!(taken, json!({ "stage": "noise" }));
+    assert_eq!(taken, json!({ "node": program, "stage": "noise" }));
     let tree = Library::at(&case.data).open(&program).unwrap();
     assert_eq!(tree.program.map.stages[1].id, "noise");
     assert_eq!(tree.stages.keys().collect::<Vec<_>>(), ["noise", "tracker"]);

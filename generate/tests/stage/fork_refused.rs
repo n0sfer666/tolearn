@@ -55,5 +55,9 @@ fn the_last_stage_of_the_map_has_no_fork_yet() {
         error,
         GenerateError::Next(NextError::End("tracker".to_owned()))
     );
-    assert!(error.to_string().contains("последний"), "{error}");
+    let text = error.to_string();
+    assert!(
+        text.contains("последний в программе") && !text.contains("позже"),
+        "{text}"
+    );
 }

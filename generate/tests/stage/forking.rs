@@ -1,7 +1,7 @@
 use serde_json::{Value, json};
 use tolearn_core::library::Library;
 use tolearn_core::program::Program;
-use tolearn_generate::fork::{self, After, Fork};
+use tolearn_generate::fork::{self, After, Fork, Landed};
 use tolearn_generate::regenerate;
 use tolearn_generate::start::Kit;
 use tolearn_generate::{GenerateError, Model, Step, online};
@@ -94,7 +94,7 @@ pub fn taken(
     choice: usize,
     model: &dyn Model,
     recorder: &Recorder,
-) -> Result<String, GenerateError> {
+) -> Result<Landed, GenerateError> {
     kitted(bench, model, recorder, |kit| {
         fork::take(kit, after, choice, &[])
     })
