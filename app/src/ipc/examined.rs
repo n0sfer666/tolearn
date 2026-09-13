@@ -27,6 +27,7 @@ dto!(ExamPasteIn {
     stage: String,
     text: String,
 });
+dto!(SkipOut { skipped: bool });
 
 pub fn shapes() -> Vec<Shape> {
     vec![
@@ -37,5 +38,6 @@ pub fn shapes() -> Vec<Shape> {
         ExamOut::shape(),
         ExamPromptOut::shape(),
         ExamPasteIn::shape(),
+        SkipOut::shape(),
     ]
 }

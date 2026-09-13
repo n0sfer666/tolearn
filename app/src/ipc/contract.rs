@@ -73,6 +73,7 @@ commands! {
     exam(examined::ExamIn) -> examined::ExamOut,
     exam_prompt(examined::ExamIn) -> examined::ExamPromptOut,
     exam_paste(examined::ExamPasteIn) -> examined::ExamOut,
+    skip(reading::StageIn) -> examined::SkipOut,
 }
 
 #[tauri::command]

@@ -5,6 +5,7 @@ mod error;
 mod key;
 mod parse;
 mod render;
+mod skip;
 mod status;
 mod summary;
 mod tick;

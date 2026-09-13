@@ -16,6 +16,7 @@ pub mod regenerate_stage;
 pub mod revise_plan;
 pub mod search;
 pub mod settings;
+pub mod skip;
 pub mod speech_start;
 pub mod speech_state;
 pub mod speech_stop;

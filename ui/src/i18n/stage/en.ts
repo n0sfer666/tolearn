@@ -44,6 +44,7 @@ export const stage = {
   paste: "Paste the reply",
   apply: "Accept the reply",
   pasteBlank: "Paste the chat's whole reply",
+  unskipped: "The skip was not saved — the stage stays as it was",
   license: "License",
   attribution: "Author",
   source: "Source",

@@ -117,6 +117,13 @@ material already or put the check off. A skip is written as `passed.by: skip`,
 it has no attempt, and the summary counts such stages separately — "without an
 exam" — otherwise the "passed" number stops meaning anything.
 
+"Skip the check" at the end of a stage records the skip with the day it was
+pressed, opens the stage if it was not open yet, and leads to the fork. A stage
+already passed is left alone: a passed exam stays passed and its date does not
+change. The exam can still be taken after a skip, by the rules above. A skip
+adds nothing to the fork and next-stage prompts: it has no questions not
+passed.
+
 ## The shape of an attempt
 
 An attempt lives in `stages.<key>.attempts[]` of `state.yaml`

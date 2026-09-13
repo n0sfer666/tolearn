@@ -461,6 +461,10 @@ export type ExamPasteIn = {
   text: string;
 };
 
+export type SkipOut = {
+  skipped: boolean;
+};
+
 export type Commands = {
   export: { input: ExportIn; output: ExportOut };
   settings: { input: SettingsIn; output: SettingsView };
@@ -488,6 +492,7 @@ export type Commands = {
   exam: { input: ExamIn; output: ExamOut };
   exam_prompt: { input: ExamIn; output: ExamPromptOut };
   exam_paste: { input: ExamPasteIn; output: ExamOut };
+  skip: { input: StageIn; output: SkipOut };
 };
 
 export type CommandName = keyof Commands;

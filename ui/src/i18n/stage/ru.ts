@@ -44,6 +44,7 @@ export const stage = {
   paste: "Вставить ответ",
   apply: "Принять ответ",
   pasteBlank: "Вставьте ответ чата целиком",
+  unskipped: "Пропуск не записался — этап остался как был",
   license: "Лицензия",
   attribution: "Автор",
   source: "Источник",

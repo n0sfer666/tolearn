@@ -5,6 +5,7 @@ import Block from "../components/reading/Block";
 import Empty from "../components/reading/Empty";
 import Exam from "../components/reading/Exam";
 import Practice from "../components/reading/Practice";
+import Skip from "../components/reading/Skip";
 import { desk } from "../components/reading/desk";
 import Trail from "../components/reading/Trail";
 import type { Copier, Words } from "../components/rich/Snip";
@@ -13,7 +14,7 @@ import type { StageIn, StageOut } from "../ipc";
 import { reveal } from "../lib/anchor";
 import { pickFolder, quiet, steps } from "../lib/ipc";
 import type { Listen, Transport } from "../lib/ipc";
-import { nextHref, nodeHref } from "../lib/links";
+import { nodeHref } from "../lib/links";
 import { query } from "../lib/query";
 import { toast } from "../lib/toast";
 import { told } from "../lib/told";
@@ -28,6 +29,7 @@ interface Props {
   steps?: Listen;
   copy?: Copier;
   pick?: () => Promise<string | null>;
+  go?: (href: string) => void;
 }
 
 export default function Stage(props: Props) {
@@ -128,9 +130,7 @@ export default function Stage(props: Props) {
           />
           <footer data-stage-end>
             <nav data-tools aria-label={props.text.generate.tools}>
-              <a href={nextHref(props.locale, out().program, out().node, out().id)} data-next>
-                {props.text.generate.skip}
-              </a>
+              <Skip text={props.text} locale={props.locale} call={call()} at={at(out())} go={props.go} />
             </nav>
             <Regenerate
               text={props.text}
