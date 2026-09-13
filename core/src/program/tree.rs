@@ -41,6 +41,7 @@ impl Tree {
             .map
             .stages
             .iter()
+            .filter(|row| self.stages.contains_key(&row.id))
             .map(|row| (node, row.id.as_str()))
             .collect();
         for row in &self.program.map.children {

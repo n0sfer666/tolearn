@@ -17,17 +17,10 @@ fn load(relative: &str) -> Tree {
 }
 
 #[test]
-fn a_leaf_lists_its_map_stages_generated_or_not() {
+fn a_leaf_lists_only_its_generated_stages() {
     let tree = load("examples/chiptune");
 
-    assert_eq!(
-        tree.every_stage(),
-        [
-            (CHIPTUNE, "voices"),
-            (CHIPTUNE, "envelope"),
-            (CHIPTUNE, "first-track"),
-        ]
-    );
+    assert_eq!(tree.every_stage(), [(CHIPTUNE, "voices")]);
 }
 
 #[test]

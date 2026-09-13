@@ -93,7 +93,7 @@ fn the_map_shows_every_stage_status_and_how_it_was_passed() {
     let fresh = node();
     assert_eq!(
         fresh["summary"],
-        json!({ "passed": 0, "total": 3, "skipped": 0 })
+        json!({ "passed": 0, "total": 1, "skipped": 0 })
     );
     assert!(
         marks(&fresh)
@@ -122,7 +122,23 @@ fn the_map_shows_every_stage_status_and_how_it_was_passed() {
     );
     assert_eq!(
         done["summary"],
-        json!({ "passed": 2, "total": 3, "skipped": 1 })
+        json!({ "passed": 1, "total": 1, "skipped": 0 })
+    );
+}
+
+#[test]
+fn a_stage_waiting_for_generation_counts_nowhere_even_when_passed() {
+    let shelf = Shelf::new("progress-pending");
+    shelf.shelved("examples/chiptune");
+
+    pass(&shelf, CHIPTUNE, CHIPTUNE, "envelope", Pass::Skip);
+
+    let node = shelf
+        .ask("node", json!({ "program": CHIPTUNE, "node": "" }))
+        .unwrap();
+    assert_eq!(
+        node["summary"],
+        json!({ "passed": 0, "total": 1, "skipped": 0 })
     );
 }
 
