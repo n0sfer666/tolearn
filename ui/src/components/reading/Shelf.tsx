@@ -1,15 +1,20 @@
 import { Show } from "solid-js";
 
-import Rows from "./Rows";
 import type { Dictionary } from "../../i18n/ru";
-import type { ShelfView } from "../../ipc";
+import type { ShelfView, SummaryView } from "../../ipc";
+import { day } from "../../lib/day";
 import { hours } from "../../lib/hours";
 import { nodeHref } from "../../lib/links";
+import { summary } from "../../lib/summary";
 
 interface Props {
   shelf: ShelfView;
   text: Dictionary["programs"];
   locale: string;
+}
+
+function counted(view: SummaryView | null): SummaryView | null {
+  return view !== null && view.total > 0 ? view : null;
 }
 
 export default function Shelf(props: Props) {
@@ -18,16 +23,27 @@ export default function Shelf(props: Props) {
       <a href={nodeHref(props.locale, props.shelf.uuid)}>{props.shelf.title}</a>
       <p data-goal>{props.shelf.goal}</p>
       <p data-hours>{hours(props.shelf.hours, props.text.hours)}</p>
-      <Show when={props.shelf.children.length > 0}>
-        <ul data-children aria-label={props.text.children}>
-          <Rows
-            kind="child"
-            rows={props.shelf.children}
-            href={(row) => nodeHref(props.locale, props.shelf.uuid, row.id)}
-            pending={props.text.pending}
-            unit={props.text.hours}
-          />
-        </ul>
+      <Show when={counted(props.shelf.summary)}>
+        {(view) => (
+          <>
+            <progress value={view().passed} max={view().total} aria-label={props.text.progress} />
+            <p data-summary>{summary(props.text.summary, view())}</p>
+          </>
+        )}
+      </Show>
+      <Show when={props.shelf.active}>
+        {(on) => (
+          <p data-active>
+            {props.text.active}: {day(on(), props.locale)}
+          </p>
+        )}
+      </Show>
+      <Show when={props.shelf.unread}>
+        {(reason) => (
+          <p data-unread>
+            {props.text.unread}: {reason()}
+          </p>
+        )}
       </Show>
     </li>
   );

@@ -9,7 +9,7 @@ mod support;
 
 use serde_json::{Value, json};
 use support::repository;
-use support::shelf::{CHIPTUNE, NES_DEV, SOUND, Shelf, TOOLS};
+use support::shelf::{CHIPTUNE, Shelf};
 
 #[test]
 fn an_empty_library_lists_nothing() {
@@ -39,26 +39,11 @@ fn an_imported_package_is_shelved_with_its_goal_and_map_hours() {
         "{card}"
     );
     assert_eq!(card["hours"], json!({ "min": 7, "max": 11 }));
-    assert_eq!(card["children"], json!([]));
-    assert_eq!(listed["refused"], json!([]));
-}
-
-#[test]
-fn shelved_subprograms_say_which_are_generated() {
-    let shelf = Shelf::new("children");
-
-    shelf.shelved("fixtures/v2/valid/nes-dev");
-
-    let listed = shelf.library();
-    let card = &listed["programs"][0];
-    assert_eq!(card["uuid"], NES_DEV);
     assert_eq!(
-        card["children"],
-        json!([
-            { "id": TOOLS, "title": "Инструменты сборки", "hours": { "min": 8, "max": 12 }, "ready": true },
-            { "id": SOUND, "title": "Звук и музыка", "hours": { "min": 6, "max": 10 }, "ready": false },
-        ])
+        card["summary"],
+        json!({ "passed": 0, "total": 1, "skipped": 0 })
     );
+    assert_eq!(listed["refused"], json!([]));
 }
 
 #[test]

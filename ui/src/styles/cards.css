@@ -108,6 +108,15 @@ li[data-program] p {
   font-size: var(--font-size-sm);
 }
 
+li[data-program] progress {
+  inline-size: 100%;
+  accent-color: var(--color-accent);
+}
+
+li[data-program] p[data-unread] {
+  color: var(--color-warning);
+}
+
 .unreachable {
   color: var(--color-warning);
 }

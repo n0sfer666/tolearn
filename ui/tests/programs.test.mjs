@@ -23,7 +23,9 @@ const SHELF = {
   title: "Chiptune: музыка звукового чипа NES",
   goal: "Написать и проиграть мелодию на пяти голосах",
   hours: span(7, 11),
-  children: [],
+  summary: { passed: 0, total: 1, skipped: 0 },
+  active: null,
+  unread: null,
 };
 
 const NES = {
@@ -31,10 +33,9 @@ const NES = {
   title: "Разработка игр для NES",
   goal: "Собрать игру",
   hours: span(14, 22),
-  children: [
-    { id: "tools", title: "Инструменты сборки", hours: span(8, 12), ready: true },
-    { id: "sound", title: "Звук", hours: span(6, 10), ready: false },
-  ],
+  summary: { passed: 1, total: 2, skipped: 0 },
+  active: "2026-09-10",
+  unread: null,
 };
 
 const refusal = (code, message) => ({ code, message });
@@ -81,20 +82,6 @@ test("карточка несёт название, цель и часы кар�
   assert.match(card.textContent, /Chiptune: музыка звукового чипа NES/);
   assert.match(card.querySelector("[data-goal]").textContent, /Написать и проиграть/);
   assert.match(card.querySelector("[data-hours]").textContent, /7\D+11/);
-});
-
-test("подпрограммы видны, и видно, какие ещё не сгенерированы", async () => {
-  const { host } = mount({ listing: [NES] });
-  await settled();
-
-  const children = [...host.querySelectorAll("[data-child]")];
-  assert.deepEqual(
-    children.map((child) => child.dataset.child),
-    ["tools", "sound"],
-  );
-  assert.equal(children[0].dataset.pending, undefined);
-  assert.equal(children[1].dataset.pending, "");
-  assert.match(children[1].textContent, new RegExp(ru.programs.pending));
 });
 
 test("битая запись библиотеки видна с причиной, а не пропала", async () => {

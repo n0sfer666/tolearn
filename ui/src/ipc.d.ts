@@ -156,7 +156,9 @@ export type ShelfView = {
   title: string;
   goal: string;
   hours: Span;
-  children: RowView[];
+  summary: SummaryView | null;
+  active: string | null;
+  unread: string | null;
 };
 
 export type RefusedView = {

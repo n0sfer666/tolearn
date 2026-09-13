@@ -13,7 +13,9 @@ dto!(ShelfView {
     title: String,
     goal: String,
     hours: Span,
-    children: Vec<RowView>,
+    summary: Option<SummaryView>,
+    active: Option<String>,
+    unread: Option<String>,
 });
 dto!(RefusedView {
     directory: String,
