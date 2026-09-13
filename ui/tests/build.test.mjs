@@ -40,6 +40,7 @@ test("страница несёт содержимое, а не пустой к�
   for (const file of await pages()) {
     const html = readFileSync(file, "utf8");
     assert.match(html, /<h1[\s>]/, `${route(file)} без заголовка`);
+    if (route(file) === "/") continue;
     assert.match(html, /<section /, `${route(file)} без секций`);
   }
 });

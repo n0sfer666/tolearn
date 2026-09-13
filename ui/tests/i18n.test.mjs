@@ -47,10 +47,10 @@ test("ссылка назад остаётся внутри своего язы�
   assert.doesNotMatch(page("en/stage"), /<a href="\/program\/"/);
 });
 
-test("выбор языка на корне запоминается, а решает ядро", () => {
+test("корень не выбирает язык — ждёт ядро, а выбор живёт в настройках", () => {
   const root = page(".");
 
-  assert.match(root, /localStorage\.setItem\("tolearn\.locale"/);
+  assert.doesNotMatch(root, /data-locale="/);
   assert.doesNotMatch(root, /localStorage\.getItem\("tolearn\.locale"\)/);
   assert.match(root, /<script type="module" src="[^"]*BootLocale[^"]*"><\/script>/);
 });
