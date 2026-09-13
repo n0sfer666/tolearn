@@ -10,6 +10,7 @@ import Practice from "../components/reading/Practice";
 import Skip from "../components/reading/Skip";
 import { desk } from "../components/reading/desk";
 import Trail from "../components/reading/Trail";
+import { voice } from "../components/reading/voice";
 import type { Copier, Words } from "../components/rich/Snip";
 import type { Dictionary } from "../i18n/ru";
 import type { ClarificationView, StageIn, StageOut } from "../ipc";
@@ -82,6 +83,8 @@ export default function Stage(props: Props) {
     void load();
   });
 
+  const speech = voice(call, program, () => props.text);
+
   const at = (out: StageOut): StageIn => ({ program: out.program, node: out.node, stage: out.id });
 
   const bench = (out: () => StageOut) =>
@@ -135,6 +138,7 @@ export default function Stage(props: Props) {
                       at={at(out())}
                       block={block}
                       chains={out().clarifications.filter((chain) => chain.block === block.id)}
+                      voice={speech}
                       words={words()}
                       copy={props.copy}
                       changed={rethread(out)}
@@ -152,6 +156,7 @@ export default function Stage(props: Props) {
             listen={props.steps ?? steps}
             at={at(out())}
             questions={out().questions}
+            voice={speech}
             words={words()}
             copy={props.copy}
             done={() => void reload(props.text.stage.unread)}

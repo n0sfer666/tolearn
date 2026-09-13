@@ -73,7 +73,12 @@ export function stageScreen() {
     screen.window.document.body.append(host);
     const calls = [];
     const picks = [];
+    const probes = [];
     const call = (name, payload) => {
+      if (name === "speech_state") {
+        probes.push(payload);
+        return Promise.resolve({ available: false, listening: false, language: "ru", ...options.speech });
+      }
       calls.push({ name, payload });
       const reply = options.replies?.[name];
       if (reply !== undefined) return Promise.resolve().then(() => reply(payload));
@@ -95,7 +100,7 @@ export function stageScreen() {
       ...options.props,
     };
     render(() => Stage(props), host);
-    return { host, calls, picks };
+    return { host, calls, picks, probes };
   };
 
   return { screen, mount };

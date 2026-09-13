@@ -7,12 +7,14 @@ import type { Copier, Words } from "../rich/Snip";
 import Asking from "./Asking";
 import { settle } from "./settle";
 import Turns from "./Turns";
+import type { Voice } from "./voice";
 
 interface Props {
   text: Dictionary;
   call: Transport;
   at: StageIn;
   chain: ClarificationView;
+  voice: Voice;
   words: Words;
   copy?: Copier;
   locked: boolean;
@@ -57,6 +59,8 @@ export default function Chain(props: Props) {
         >
           <Asking
             text={props.text}
+            voice={props.voice}
+            field={`chain:${props.chain.chain}`}
             locked={props.locked}
             send={(question) => void followed(question)}
             cancel={() => setAsking(false)}

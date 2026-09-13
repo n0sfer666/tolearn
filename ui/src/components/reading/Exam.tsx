@@ -13,6 +13,7 @@ import Refusal from "../generate/Refusal";
 import type { Copier, Words } from "../rich/Snip";
 import Paste from "./Paste";
 import Question from "./Question";
+import type { Voice } from "./voice";
 
 interface Props {
   text: Dictionary;
@@ -21,6 +22,7 @@ interface Props {
   listen: Listen;
   at: StageIn;
   questions: AskView[];
+  voice: Voice;
   words: Words;
   copy?: Copier;
   done: () => void;
@@ -63,6 +65,7 @@ export default function Exam(props: Props) {
                 words={props.words}
                 copy={props.copy}
                 answer={typed(ask)}
+                voice={props.voice}
                 locked={work.running()}
                 onType={(text) => store.type(ask.id, text)}
                 onLeave={() => void store.leave(ask.id)}

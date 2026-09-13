@@ -10,6 +10,7 @@ import Refusal from "../generate/Refusal";
 import type { Copier, Words } from "../rich/Snip";
 import Asking from "./Asking";
 import Chain from "./Chain";
+import type { Voice } from "./voice";
 
 interface Props {
   text: Dictionary;
@@ -19,6 +20,7 @@ interface Props {
   at: StageIn;
   block: BlockView;
   chains: ClarificationView[];
+  voice: Voice;
   words: Words;
   copy?: Copier;
   changed: (clarifications: ClarificationView[]) => void;
@@ -51,6 +53,7 @@ export default function Clarify(props: Props) {
             call={props.call}
             at={props.at}
             chain={chain}
+            voice={props.voice}
             words={props.words}
             copy={props.copy}
             locked={work.running()}
@@ -69,6 +72,8 @@ export default function Clarify(props: Props) {
       >
         <Asking
           text={props.text}
+          voice={props.voice}
+          field={`block:${props.block.id}`}
           locked={work.running()}
           send={(question) => void opened(question)}
           cancel={() => setAsking(false)}

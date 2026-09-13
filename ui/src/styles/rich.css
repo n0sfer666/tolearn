@@ -88,6 +88,11 @@ aside[data-clarified] {
   justify-self: stretch;
 }
 
+[data-dictate][data-listening="true"] {
+  border-color: var(--color-accent);
+  background: var(--color-accent-bg);
+}
+
 [data-orphans] > ul {
   display: grid;
   gap: var(--spacing-4);

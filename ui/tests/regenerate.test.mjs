@@ -55,6 +55,7 @@ function mount(options = {}) {
     stage: () => Promise.resolve(shown.shift() ?? AGAIN),
     regenerate_stage: { stage: "voices" },
     cancel_generation: { cancelled: true },
+    speech_state: { available: false, listening: false, language: "ru" },
     ...options.answers,
   });
   const said = toasts(window);
