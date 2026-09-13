@@ -28,9 +28,8 @@ impl Tally {
 
     pub fn restore(&self, records: Vec<Record>) {
         let mut held = self.held();
-        if held.is_empty() {
-            *held = records;
-        }
+        let later = std::mem::replace(&mut *held, records);
+        held.extend(later);
     }
 
     pub fn replace(&self, records: Vec<Record>) {

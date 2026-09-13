@@ -83,7 +83,7 @@ fn развилка_предлагает_следующий_этап_и_выбр
     );
     assert_eq!(read.unwrap()["program"], json!(program));
     let steps: Vec<(String, String)> = case.steps().split_off(before);
-    let expected: Vec<(String, String)> = ["sources", "text", "diagrams", "write"]
+    let expected: Vec<(String, String)> = ["fork", "sources", "text", "diagrams", "write"]
         .iter()
         .flat_map(|step| ["began", "ended"].map(|state| (state.to_owned(), (*step).to_owned())))
         .collect();

@@ -1,3 +1,4 @@
+use tolearn_generate::Step;
 use tolearn_generate::ledger::Tally;
 use tolearn_generate::plan;
 
@@ -14,6 +15,7 @@ pub fn run(context: &Context, input: &RevisePlanIn) -> Result<PlanOut, IpcError>
     drawn(
         context,
         KIND,
+        Step::Revise,
         &input.request,
         &input.level,
         Tally::extend,

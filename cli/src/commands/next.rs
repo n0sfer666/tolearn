@@ -1,5 +1,6 @@
 use std::time::Instant;
 
+use tolearn_core::program::position;
 use tolearn_generate::fork::{self, After, NextError};
 use tolearn_generate::{GenerateError, Step, stepped};
 
@@ -7,7 +8,7 @@ use super::offered::offered;
 use crate::args::Next;
 use crate::error::CliError;
 use crate::out::Output;
-use crate::session::{Built, Crew, Herald, apart, only, opened, position, row, unsettled};
+use crate::session::{Built, Crew, Herald, apart, only, opened, row, unsettled};
 use crate::world::World;
 
 pub fn run(next: &Next, world: World) -> Result<Output, CliError> {

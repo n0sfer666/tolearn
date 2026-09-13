@@ -12,7 +12,7 @@ use std::time::{Duration, Instant};
 
 use serde_json::json;
 use support::speaking::speaking;
-use support::starter::{Case, LEVEL, flat, started, told};
+use support::starter::{Case, LEVEL, REQUEST, flat, started, told};
 use support::web::{SVG, THUMBNAIL};
 use tolearn_app::ipc::call;
 use tolearn_core::block::Kind;
@@ -32,6 +32,8 @@ fn начать_ставит_программу_с_первым_этапом_с�
 
     let started = case.start(&plan, LEVEL).unwrap();
     let program = started["program"].as_str().unwrap();
+    assert_eq!(started["node"], json!(program));
+    assert_eq!(started["stage"], json!("tracker"));
 
     let library = Library::at(&case.data);
     let tree = library.open(program).unwrap();
@@ -61,11 +63,22 @@ fn начать_ставит_программу_с_первым_этапом_с�
     assert_eq!(read.unwrap()["program"], json!(program));
     assert_eq!(
         case.steps(),
-        paired(&["sources", "text", "diagrams", "write"])
+        paired(&["plan", "sources", "text", "diagrams", "write"])
     );
     assert_eq!(case.model.heard().len(), 3);
     assert_eq!(case.leftovers(), [program]);
     assert!(!case.data.join("cache").join(program).join("build").exists());
+}
+
+#[test]
+fn карта_и_её_переделка_называют_свой_шаг() {
+    let case = Case::new(true, told(vec![flat()[0].clone(); 2]));
+    let plan = case.plan();
+
+    let wish = json!({ "request": REQUEST, "level": LEVEL, "plan": plan, "wish": "Короче" });
+    call(&case.context, "revise_plan", &wish).unwrap();
+
+    assert_eq!(case.steps(), paired(&["plan", "revise"]));
 }
 
 #[test]
@@ -88,7 +101,7 @@ fn без_уровня_с_чужой_или_негодной_картой_ста
     );
 
     assert_eq!(case.model.heard().len(), 1);
-    assert!(case.steps().is_empty());
+    assert_eq!(case.steps(), paired(&["plan"]));
     assert!(!case.data.join("programs").exists());
 }
 
@@ -136,7 +149,7 @@ fn вторая_генерация_занята_а_отмена_снимает_�
 
     assert_eq!(refused.code, "generate.cancelled");
     assert_eq!(case.cancel(), json!({ "cancelled": false }));
-    assert_eq!(case.steps(), paired(&["sources"]));
+    assert_eq!(case.steps(), paired(&["plan", "sources"]));
     assert!(!case.data.join("programs").exists());
     assert!(case.leftovers().is_empty(), "{:?}", case.leftovers());
 }

@@ -308,6 +308,8 @@ export type StartProgramIn = {
 
 export type StartProgramOut = {
   program: string;
+  node: string;
+  stage: string;
 };
 
 export type CancelGenerationIn = {
@@ -321,6 +323,7 @@ export type GenerationStep = {
   step: string;
   state: string;
   round: number;
+  of: number;
 };
 
 export type ForkIn = {

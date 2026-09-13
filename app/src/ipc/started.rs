@@ -9,13 +9,18 @@ dto!(StartProgramIn {
     level: String,
     plan: PlanView,
 });
-dto!(StartProgramOut { program: String });
+dto!(StartProgramOut {
+    program: String,
+    node: String,
+    stage: String,
+});
 dto!(CancelGenerationIn {});
 dto!(CancelGenerationOut { cancelled: bool });
 dto!(GenerationStep {
     step: String,
     state: String,
     round: u32,
+    of: u32,
 });
 
 pub fn shapes() -> Vec<Shape> {

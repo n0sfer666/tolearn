@@ -1,3 +1,4 @@
+use tolearn_generate::Step;
 use tolearn_generate::ledger::Tally;
 use tolearn_generate::plan;
 
@@ -12,6 +13,7 @@ pub fn run(context: &Context, input: &PlanProgramIn) -> Result<PlanOut, IpcError
     drawn(
         context,
         KIND,
+        Step::Plan,
         &input.request,
         &input.level,
         Tally::replace,

@@ -106,6 +106,10 @@ impl Context {
         self.ledger.tally()
     }
 
+    pub fn book(&self) -> &Ledger {
+        &self.ledger
+    }
+
     pub fn data(&self) -> &Path {
         &self.data
     }

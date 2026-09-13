@@ -1,4 +1,4 @@
-use tolearn_core::program::{StageRow, Tree};
+use super::{StageRow, Tree};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Position<'a> {
@@ -28,15 +28,4 @@ pub fn position(tree: &Tree) -> Option<Position<'_>> {
             .find(|row| tree.stages.contains_key(&row.id))
             .map(|row| Position { node: tree, row })
     })
-}
-
-pub fn row<'a>(tree: &'a Tree, node: &str, stage: &str) -> Option<&'a StageRow> {
-    let branch = tree.branch(node)?;
-    branch
-        .tree
-        .program
-        .map
-        .stages
-        .iter()
-        .find(|row| row.id == stage)
 }

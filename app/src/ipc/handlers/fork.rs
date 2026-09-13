@@ -1,5 +1,4 @@
-use tolearn_generate::fork;
-use tolearn_generate::online;
+use tolearn_generate::{Step, fork, online, stepped};
 
 use crate::ipc::clock::now;
 use crate::ipc::context::Context;
@@ -19,6 +18,10 @@ pub fn run(context: &Context, input: &ForkIn) -> Result<ForkOut, IpcError> {
     let model = voiced(context, KIND, claim.stop().clone())?;
     let reach = context.reach()?;
     let online = online(reach.as_ref(), &model).map_err(refused)?;
-    let fork = fork::propose(&online, context.data(), &after, now()).map_err(refused)?;
+    let progress = context.tools().progress();
+    let fork = stepped(progress.as_ref(), Step::Fork, || {
+        fork::propose(&online, context.data(), &after, now())
+    })
+    .map_err(refused)?;
     Ok(view(&fork))
 }

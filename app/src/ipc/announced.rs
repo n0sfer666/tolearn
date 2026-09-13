@@ -1,4 +1,4 @@
-use tolearn_generate::{Progress, Step};
+use tolearn_generate::{Progress, REPAIRS, Step};
 
 use super::started::GenerationStep;
 use super::tools::Herald;
@@ -15,6 +15,7 @@ impl Announced {
             step: step.label().to_owned(),
             state: state.to_owned(),
             round: round(step),
+            of: limit(step),
         });
     }
 }
@@ -32,6 +33,13 @@ impl Progress for Announced {
 fn round(step: Step) -> u32 {
     match step {
         Step::Repair(round) => u32::try_from(round).unwrap_or(u32::MAX),
+        _ => 0,
+    }
+}
+
+fn limit(step: Step) -> u32 {
+    match step {
+        Step::Repair(_) => u32::try_from(REPAIRS).unwrap_or(u32::MAX),
         _ => 0,
     }
 }

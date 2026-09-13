@@ -1,12 +1,13 @@
 use std::time::Instant;
 
+use tolearn_core::program::position;
 use tolearn_generate::plan::{self, Request};
 use tolearn_generate::{Step, start, stepped};
 
 use crate::args::New;
 use crate::error::CliError;
 use crate::out::Output;
-use crate::session::{Built, Crew, Herald, apart, empty, opened, position, unsettled};
+use crate::session::{Built, Crew, Herald, apart, empty, opened, unsettled};
 use crate::world::World;
 
 pub fn run(new: &New, world: World) -> Result<Output, CliError> {

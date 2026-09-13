@@ -1,3 +1,4 @@
+use tolearn_core::program::position;
 use tolearn_generate::online;
 use tolearn_generate::start;
 
@@ -18,11 +19,23 @@ pub fn run(context: &Context, input: &StartProgramIn) -> Result<StartProgramOut,
     let reach = context.reach()?;
     let online = online(reach.as_ref(), &model).map_err(refused)?;
     let program = kitted(context, &online, claim.stop(), |kit| {
-        online.tally().extend(context.ledger().take());
+        online.tally().extend(context.book().take());
         start::start(kit, &request, &plan).map_err(|error| {
             context.ledger().restore(online.tally().release());
             refused(error)
         })
     })?;
-    Ok(StartProgramOut { program })
+    Ok(opened(context, program))
+}
+
+fn opened(context: &Context, program: String) -> StartProgramOut {
+    let tree = context.library().open(&program).ok();
+    let at = tree.as_ref().and_then(position);
+    StartProgramOut {
+        node: at
+            .map(|at| at.node.program.uuid.clone())
+            .unwrap_or_default(),
+        stage: at.map(|at| at.row.id.clone()).unwrap_or_default(),
+        program,
+    }
 }
