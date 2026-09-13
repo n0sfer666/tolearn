@@ -10,6 +10,7 @@ mod forked;
 mod forking;
 mod handlers;
 mod kitted;
+mod lapsed;
 pub mod layout;
 mod ledger;
 mod picture;

@@ -361,6 +361,17 @@ S37. Общие для обоих окон `on_main` и `answer` лежат в `
   префиксу, `sealed`, подмена) и `build::settled` (убрать `build/`, журнал).
   Отказы — `RegenerateError` (`regenerate.*`) до модели. В приложении —
   `regenerate_stage` (`app/src/ipc/regenerated.rs`).
+- Незачтённое в развилку и следующий этап (S138) — `State::lapses(&Tree)`
+  собирает `Lapse {stage, question, missed}` по последним попыткам этапов
+  дерева в порядке `every_stage`; `generate::unpassed::block` делает из них
+  блок не длиннее `UNPASSED_CHARS` (1 500), оставляя конец списка.
+  `fork::propose(.., lapses)` и `fork::take(.., lapses)` кладут блок в промпт
+  развилки и в `Place::lapses` следующего этапа; пустой список — промпт прежний
+  байт в байт. `stage::text` при переполнении `TEXT_PROMPT_CHARS` укорачивает
+  выдержки страниц (`stage::cap`, общий с перегенерацией). В приложении —
+  `ipc::lapsed::lapses`, CLI передаёт `&[]`. `regenerate_stage` после записи
+  зовёт `State::rewritten`: `since` = число попыток, `ticks` и `answers`
+  очищены; `last_attempt` смотрит только попытки после `since`.
 - Генерация из CLI (S126, [ADR-025](../docs/adr/025-cli-generation.md)) —
   библиотека `tolearn_cli::run(argv, world)`: `World` — сеть (`Reach`),
   страницы (`Source`), хранилище ключа, каталоги настроек и данных

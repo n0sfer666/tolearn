@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use tolearn_core::program::StageRow;
+use tolearn_core::state::Lapse;
 
 use crate::build::{BUILD, Kit, Swap, build, settled, swapped};
 use crate::error::GenerateError;
@@ -12,7 +13,12 @@ use super::ahead::Ahead;
 use super::error::NextError;
 use super::{kept, looked};
 
-pub fn take(mut kit: Kit<'_>, after: &After<'_>, choice: usize) -> Result<String, GenerateError> {
+pub fn take(
+    mut kit: Kit<'_>,
+    after: &After<'_>,
+    choice: usize,
+    lapses: &[Lapse],
+) -> Result<String, GenerateError> {
     let (ahead, kept) = looked(kit.data, after)?;
     let fork = kept.ok_or_else(|| NextError::Unforked(after.stage.to_owned()))?;
     let count = fork.variants.len();
@@ -22,7 +28,7 @@ pub fn take(mut kit: Kit<'_>, after: &After<'_>, choice: usize) -> Result<String
         .nth(choice)
         .ok_or(NextError::Choice { choice, count })?;
     let folder = kit.data.join(CACHE).join(after.program).join(BUILD);
-    let landed = landed(&mut kit, &ahead, variant.row, &folder);
+    let landed = landed(&mut kit, &ahead, variant.row, &folder, lapses);
     if landed.is_ok() {
         let _ = kept::forget(kit.data, after);
     }
@@ -35,13 +41,15 @@ fn landed(
     ahead: &Ahead,
     row: StageRow,
     folder: &Path,
+    lapses: &[Lapse],
 ) -> Result<String, GenerateError> {
     let id = row.id.clone();
     let mut leaf = ahead.leaf.clone();
     if let Some(slot) = leaf.map.stages.get_mut(ahead.index + 1) {
         *slot = row;
     }
-    let place = Place::find(&leaf, &id).ok_or_else(|| NextError::Stage(id.clone()))?;
+    let found = Place::find(&leaf, &id).ok_or_else(|| NextError::Stage(id.clone()))?;
+    let place = Place { lapses, ..found };
     let built = build(kit, &place)?;
     let swap = Swap {
         tree: &ahead.tree,

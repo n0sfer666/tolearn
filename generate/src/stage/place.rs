@@ -1,10 +1,12 @@
 use tolearn_core::program::{Program, StageRow};
+use tolearn_core::state::Lapse;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Place<'a> {
     pub program: &'a Program,
     pub row: &'a StageRow,
     pub index: usize,
+    pub lapses: &'a [Lapse],
 }
 
 impl<'a> Place<'a> {
@@ -19,6 +21,7 @@ impl<'a> Place<'a> {
                 program,
                 row,
                 index,
+                lapses: &[],
             })
     }
 

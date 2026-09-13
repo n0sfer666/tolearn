@@ -2,10 +2,18 @@ use tolearn_core::Hours;
 use tolearn_core::program::Volatility;
 
 use crate::sources::{PAGE_CHARS, excerpt};
+use crate::unpassed::block;
 
+use super::cap::cap;
 use super::gathered::{Dropped, Gathered};
 use super::place::Place;
-use super::{MAX_BOOKS, MAX_IMAGES, MAX_PAGES, MAX_TERMS, MAX_THEORY_CHARS, MIN_THEORY_CHARS};
+use super::{
+    MAX_BOOKS, MAX_IMAGES, MAX_PAGES, MAX_TERMS, MAX_THEORY_CHARS, MIN_THEORY_CHARS,
+    TEXT_PROMPT_CHARS,
+};
+
+const TOUCH: &str =
+    "Если незачтённое связано с этим этапом, заново объясни упущенное там, где этап его касается.";
 
 const PROPOSAL: &str = r#"{"books": [{"title": "название книги", "author": "автор", "isbn": "только если уверен", "chapter": "глава или раздел для этого этапа"}], "pages": [{"url": "https://..."}], "images": [{"query": "запрос к Wikimedia Commons на английском", "caption": "подпись под картинкой"}]}"#;
 
@@ -42,22 +50,31 @@ pub(super) fn replace(task: &str, answer: &str, dropped: &[Dropped]) -> String {
 }
 
 pub(super) fn text(place: &Place<'_>, gathered: &Gathered) -> String {
-    text_within(place, gathered, PAGE_CHARS)
+    let prompt = text_within(place, gathered, PAGE_CHARS);
+    match prompt.chars().count().saturating_sub(TEXT_PROMPT_CHARS) {
+        0 => prompt,
+        overflow => text_within(place, gathered, cap(gathered, overflow)),
+    }
 }
 
 pub(super) fn text_within(place: &Place<'_>, gathered: &Gathered, chars: usize) -> String {
     format!(
         "Ты пишешь один этап учебной программы: теорию, практику и вопросы с эталонными ответами.\n\n\
          {}\n\
-         Язык программы: {} — на нём пиши весь текст.\n\n\
+         {}Язык программы: {} — на нём пиши весь текст.\n\n\
          Проверенные источники:\n{}\n\n\
          Правила:\n{}\n\n\
          Ответь одним объектом JSON без пояснений:\n{STAGE}",
         whereabouts(place),
+        unpassed(place),
         place.program.generation.locale,
         listed(gathered, Some(chars)),
         rules(place)
     )
+}
+
+fn unpassed(place: &Place<'_>) -> String {
+    block(place.lapses).map_or_else(String::new, |block| format!("\n{block}\n{TOUCH}\n\n"))
 }
 
 pub(super) fn rules(place: &Place<'_>) -> String {

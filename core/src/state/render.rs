@@ -3,7 +3,7 @@ use std::fmt;
 use saphyr::Yaml;
 
 use super::types::{Answered, Attempt, Clarification, StageState, State, Turn};
-use crate::yaml::{dump, flag, list, map, text};
+use crate::yaml::{dump, flag, list, map, number, text};
 
 pub const SCHEMA: &str = "tolearn/state/1";
 
@@ -43,6 +43,10 @@ fn stage(entry: &StageState) -> Yaml<'_> {
     }
     if !entry.attempts.is_empty() {
         entries.push(("attempts", list(entry.attempts.iter().map(attempt))));
+    }
+    if entry.since > 0 {
+        let since = u32::try_from(entry.since).unwrap_or(u32::MAX);
+        entries.push(("since", number(since)));
     }
     map(entries)
 }

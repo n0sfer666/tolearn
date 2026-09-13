@@ -1,3 +1,4 @@
+use tolearn_core::state::State;
 use tolearn_generate::{online, regenerate};
 
 use crate::ipc::context::Context;
@@ -17,6 +18,9 @@ pub fn run(context: &Context, input: &RegenerateStageIn) -> Result<RegenerateSta
     let online = online(reach.as_ref(), &model).map_err(refused)?;
     kitted(context, &online, claim.stop(), |kit| {
         regenerate::regenerate(kit, &at).map_err(refused)
+    })?;
+    State::update(context.data(), at.program, |state| {
+        state.rewritten(at.node, at.stage);
     })?;
     Ok(RegenerateStageOut {
         stage: input.stage.clone(),

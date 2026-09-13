@@ -19,6 +19,7 @@ pub use variant::Variant;
 use std::path::Path;
 
 use tolearn_core::library::Library;
+use tolearn_core::state::Lapse;
 
 use crate::REPAIRS;
 use crate::error::GenerateError;
@@ -41,13 +42,15 @@ pub fn propose(
     data: &Path,
     after: &After<'_>,
     at: i64,
+    lapses: &[Lapse],
 ) -> Result<Fork, GenerateError> {
     let (ahead, kept) = looked(data, after)?;
     if let Some(fork) = kept {
         return Ok(fork);
     }
     let tally = online.tally();
-    let drawn = draw(online, &ahead).and_then(|fork| kept::save(data, after, &fork).map(|()| fork));
+    let drawn =
+        draw(online, &ahead, lapses).and_then(|fork| kept::save(data, after, &fork).map(|()| fork));
     tally.stamp(0, after.node, None);
     tally.date(at);
     let _ = ledger::append(&ledger::path(data, after.program), &tally.take());
@@ -70,8 +73,8 @@ fn fresh(fork: &Fork, ahead: &Ahead) -> bool {
         && rules::check(fork, &ahead.leaf.map).is_empty()
 }
 
-fn draw(online: &Online<'_>, ahead: &Ahead) -> Result<Fork, GenerateError> {
-    let task = prompt::task(ahead);
+fn draw(online: &Online<'_>, ahead: &Ahead, lapses: &[Lapse]) -> Result<Fork, GenerateError> {
+    let task = prompt::task(ahead, lapses);
     let mut prompt = task.clone();
     let mut flaws = Vec::new();
     for round in 0..=REPAIRS {

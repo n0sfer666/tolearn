@@ -53,7 +53,8 @@
         "attempts": {
           "type": "array",
           "items": { "$ref": "#/$defs/attempt" }
-        }
+        },
+        "since": { "type": "integer", "minimum": 1 }
       }
     },
     "attempt": {

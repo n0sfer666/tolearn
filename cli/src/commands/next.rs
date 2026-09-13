@@ -39,7 +39,7 @@ fn offer(next: &Next, world: World, after: &After<'_>) -> Result<Output, CliErro
     let online = crew.online()?;
     let herald = Herald::new(&crew);
     let fork = stepped(&herald, Step::Fork, || {
-        fork::propose(&online, &next.data, after, crew.at)
+        fork::propose(&online, &next.data, after, crew.at, &[])
     })?;
     Ok(offered(&next.data, after, &fork))
 }
@@ -62,7 +62,7 @@ fn take(next: &Next, world: World, after: &After<'_>, choice: usize) -> Result<O
     let online = crew.online()?;
     let herald = Herald::new(&crew);
     let stage = crew.kitted(&online, &herald, &next.data, |kit| {
-        fork::take(kit, after, index)
+        fork::take(kit, after, index, &[])
     })?;
     let tree = opened(&next.data, after.program)?;
     let made = row(&tree, after.node, &stage).ok_or_else(|| {

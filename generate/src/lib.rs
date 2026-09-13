@@ -17,6 +17,7 @@ pub mod regenerate;
 pub mod sources;
 pub mod stage;
 pub mod start;
+pub mod unpassed;
 
 pub use error::GenerateError;
 pub use gate::{HOSTS, Online, REACH_TIMEOUT_SECS, local, online};

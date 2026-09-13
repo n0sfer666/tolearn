@@ -73,7 +73,13 @@ pub fn proposed(
     after: &After<'_>,
     model: &dyn Model,
 ) -> Result<Fork, GenerateError> {
-    fork::propose(&online(&Up, model).unwrap(), &bench.dir, after, FORKED_AT)
+    fork::propose(
+        &online(&Up, model).unwrap(),
+        &bench.dir,
+        after,
+        FORKED_AT,
+        &[],
+    )
 }
 
 pub fn forked(bench: &mut Bench, answer: &str) -> String {
@@ -89,7 +95,9 @@ pub fn taken(
     model: &dyn Model,
     recorder: &Recorder,
 ) -> Result<String, GenerateError> {
-    kitted(bench, model, recorder, |kit| fork::take(kit, after, choice))
+    kitted(bench, model, recorder, |kit| {
+        fork::take(kit, after, choice, &[])
+    })
 }
 
 pub fn regenerated(

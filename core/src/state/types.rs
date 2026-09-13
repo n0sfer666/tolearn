@@ -32,6 +32,7 @@ pub struct StageState {
     pub ticks: Vec<String>,
     pub answers: BTreeMap<String, String>,
     pub attempts: Vec<Attempt>,
+    pub since: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

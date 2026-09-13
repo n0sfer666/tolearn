@@ -51,6 +51,7 @@ fn first(kit: &mut Kit<'_>, lineage: &Lineage, folder: &Path) -> Result<String, 
         program: leaf,
         row,
         index: 0,
+        lapses: &[],
     };
     let built = build(kit, &place)?;
     let mut landed = lineage.clone();

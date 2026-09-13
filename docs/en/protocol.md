@@ -108,7 +108,15 @@ An accepted verdict becomes an attempt on the stage.
 A question not passed is one whose `result` is not `ok` in the **last**
 attempt of its stage. These questions are shown on the stage screen along with
 `missed` and go into the following prompts as ADR-026 describes under "What
-the exam passes on".
+the exam passes on". The "questions not passed" block is at most 1,500
+characters: when it does not fit, the questions of stages nearer the end of
+the map stay.
+
+Regenerating a stage changes its questions and practice, so the earlier
+attempts no longer belong to the new text: the stage entry gets `since` — the
+number of attempts at that moment — and only a later attempt counts as the
+last one. The attempts stay in the file, answer drafts and practice ticks are
+cleared, and "passed" is not taken away.
 
 ## Skipping
 

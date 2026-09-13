@@ -96,6 +96,7 @@ fn voices() -> StageState {
                 },
             ],
         }],
+        since: 0,
     }
 }
 
@@ -116,6 +117,7 @@ fn envelope() -> StageState {
                 missed: vec![owned("весь ответ")],
             }],
         }],
+        since: 1,
         ..StageState::default()
     }
 }

@@ -29,6 +29,8 @@ fn stage(node: &Reader<'_>) -> Result<StageState, ParseError> {
             .unwrap_or_default(),
         attempts: optional(node, "attempts", |attempts| attempts.list(attempt))?
             .unwrap_or_default(),
+        since: optional(node, "since", |since| since.number(1))?
+            .map_or(0, |since| usize::try_from(since).unwrap_or(usize::MAX)),
     })
 }
 

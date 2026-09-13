@@ -26,6 +26,7 @@ impl State {
     }
 
     pub fn last_attempt(&self, node: &str, stage: &str) -> Option<&Attempt> {
-        self.stages.get(&key(node, stage))?.attempts.last()
+        let entry = self.stages.get(&key(node, stage))?;
+        entry.attempts.get(entry.since..)?.last()
     }
 }

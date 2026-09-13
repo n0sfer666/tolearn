@@ -1,6 +1,9 @@
 use std::cmp::Ordering;
 
+use tolearn_core::state::Lapse;
+
 use crate::plan::{MAX_HOURS, STAGE_MAX_HOURS, STAGE_MIN_HOURS, span};
+use crate::unpassed::block;
 
 use super::MAX_ALTERNATIVES;
 use super::ahead::Ahead;
@@ -8,7 +11,9 @@ use super::flaw::Flaw;
 
 const FORMAT: &str = r#"{"next": {"why": "чем ученику полезен следующий по карте этап", "recommended": true}, "alternatives": [{"id": "latin-kebab-case", "title": "название этапа", "hours": [2, 4], "why": "чем этот этап лучше ведёт к цели", "recommended": false}]}"#;
 
-pub(super) fn task(ahead: &Ahead) -> String {
+const REPEAT: &str = "Если незачтённое мешает идти дальше, можешь предложить в alternatives этап повторения по нему и отметить его recommended.";
+
+pub(super) fn task(ahead: &Ahead, lapses: &[Lapse]) -> String {
     let program = &ahead.leaf;
     let passed = program
         .map
@@ -42,7 +47,7 @@ pub(super) fn task(ahead: &Ahead) -> String {
          Уровень ученика: {}\n\
          Язык программы: {} — на нём пиши title и why.\n\n\
          Карта (✓ — пройдено, → — следующий по карте):\n{}\n\n\
-         Объясни в next.why, чем ученику полезен следующий по карте этап. Если другие этапы лучше ведут к цели, предложи их в alternatives, не больше {MAX_ALTERNATIVES}: выбранная альтернатива встанет в карту вместо следующего этапа.\n\n\
+         {}Объясни в next.why, чем ученику полезен следующий по карте этап. Если другие этапы лучше ведут к цели, предложи их в alternatives, не больше {MAX_ALTERNATIVES}: выбранная альтернатива встанет в карту вместо следующего этапа.\n\n\
          Правила:\n\
          - Этап занимает {STAGE_MIN_HOURS}–{STAGE_MAX_HOURS} ч: теория вместе с практикой.\n\
          - id альтернативы — строчная латиница, цифры и одиночные дефисы; не совпадает ни с id в карте, ни с другой альтернативой.\n\
@@ -54,7 +59,8 @@ pub(super) fn task(ahead: &Ahead) -> String {
         program.goal,
         program.level,
         program.generation.locale,
-        listed.join("\n")
+        listed.join("\n"),
+        block(lapses).map_or_else(String::new, |block| format!("{block}\n{REPEAT}\n\n"))
     )
 }
 
