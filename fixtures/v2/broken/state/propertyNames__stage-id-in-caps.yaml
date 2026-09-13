@@ -2,7 +2,7 @@ schema: tolearn/state/1
 program: 3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84
 workdir: /Users/learner/practice/chiptune
 stages:
-  Envelope:
+  3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84/Envelope:
     opened: 2026-09-15
     passed:
       "on": 2026-09-16
@@ -15,7 +15,7 @@ stages:
             result: miss
             missed:
               - весь ответ
-  voices:
+  3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84/voices:
     opened: 2026-09-13
     passed:
       "on": 2026-09-14
@@ -41,7 +41,7 @@ stages:
             result: ok
             missed: []
 clarifications:
-  - stage: voices
+  - stage: 3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84/voices
     block: 1a2b3c4d
     excerpt: Звуковой чип NES
     turns:
@@ -49,7 +49,7 @@ clarifications:
         answer: "Доля периода, когда сигнал высокий."
       - answer: "Иначе: сколько времени из такта звучит «верх»."
     clear: true
-  - stage: envelope
+  - stage: 3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84/envelope
     block: 5e6f7a8b-2
     excerpt: Громкость спадает
     turns:

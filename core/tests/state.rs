@@ -7,7 +7,7 @@
 mod support;
 
 use support::states::{PROGRAM, file, full, placed, scratch};
-use tolearn_core::state::{State, StateError};
+use tolearn_core::state::{State, StateError, key};
 use tolearn_core::yaml::ParseFailure;
 
 const OTHER: &str = "9b2e4f60-1c3d-4a5b-8e7f-0a1b2c3d4e5f";
@@ -148,7 +148,7 @@ fn осиротевшие_этапы_и_врезки_переживают_чте
     .unwrap();
 
     let after = State::read(&data, PROGRAM).unwrap();
-    assert!(after.stages.contains_key("gone"));
+    assert!(after.stages.contains_key(&key(PROGRAM, "gone")));
     assert_eq!(after.stages, before.stages);
     assert_eq!(after.clarifications, before.clarifications);
     assert_eq!(after.clarifications[0].block, "deadbeef");
@@ -159,11 +159,11 @@ fn orphans() -> String {
         "schema: tolearn/state/1".to_owned(),
         format!("program: {PROGRAM}"),
         "stages:".to_owned(),
-        "  gone:".to_owned(),
+        format!("  {PROGRAM}/gone:"),
         "    opened: 2026-09-01".to_owned(),
         "    ticks: [a1]".to_owned(),
         "clarifications:".to_owned(),
-        "  - stage: voices".to_owned(),
+        format!("  - stage: {PROGRAM}/voices"),
         "    block: deadbeef".to_owned(),
         "    excerpt: Абзац, которого больше нет".to_owned(),
         "    turns:".to_owned(),

@@ -1,11 +1,13 @@
 mod choices;
 mod error;
+mod key;
 mod parse;
 mod render;
 mod types;
 
 pub use choices::{Grade, Pass, Sitting};
 pub use error::StateError;
+pub use key::key;
 pub use parse::parse;
 pub use render::{SCHEMA, render};
 pub use types::{Answered, Attempt, Clarification, Passed, StageState, State, Turn};

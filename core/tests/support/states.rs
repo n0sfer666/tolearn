@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use tolearn_core::state::{
-    Answered, Attempt, Clarification, Grade, Pass, Passed, Sitting, StageState, State, Turn,
+    Answered, Attempt, Clarification, Grade, Pass, Passed, Sitting, StageState, State, Turn, key,
 };
 
 pub const PROGRAM: &str = "3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84";
@@ -31,11 +31,11 @@ pub fn placed(data: &Path, body: &str) -> PathBuf {
 pub fn full() -> State {
     let mut state = State::new(PROGRAM);
     state.workdir = Some(owned("/Users/learner/practice/chiptune"));
-    state.stages.insert(owned("voices"), voices());
-    state.stages.insert(owned("envelope"), envelope());
+    state.stages.insert(key(PROGRAM, "voices"), voices());
+    state.stages.insert(key(PROGRAM, "envelope"), envelope());
     state.clarifications = vec![
         Clarification {
-            stage: owned("voices"),
+            stage: key(PROGRAM, "voices"),
             block: owned("1a2b3c4d"),
             excerpt: owned("Звуковой чип NES"),
             turns: vec![
@@ -51,7 +51,7 @@ pub fn full() -> State {
             clear: true,
         },
         Clarification {
-            stage: owned("envelope"),
+            stage: key(PROGRAM, "envelope"),
             block: owned("5e6f7a8b-2"),
             excerpt: owned("Громкость спадает"),
             turns: vec![Turn {

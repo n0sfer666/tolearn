@@ -15,7 +15,7 @@
     "workdir": { "$ref": "#/$defs/text" },
     "stages": {
       "type": "object",
-      "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+      "propertyNames": { "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[a-z0-9]+(-[a-z0-9]+)*$" },
       "additionalProperties": { "$ref": "#/$defs/stage" }
     },
     "clarifications": {
@@ -86,7 +86,7 @@
       "additionalProperties": false,
       "required": ["stage", "block", "excerpt", "turns", "clear"],
       "properties": {
-        "stage": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+        "stage": { "type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/[a-z0-9]+(-[a-z0-9]+)*$" },
         "block": { "type": "string", "pattern": "^[0-9a-f]{8}(-([2-9]|[1-9][0-9]+))?$" },
         "excerpt": { "$ref": "#/$defs/text" },
         "turns": {
