@@ -45,8 +45,22 @@ dto!(NodeOut {
     level: String,
     hours: Span,
     trail: Vec<CrumbView>,
-    stages: Vec<RowView>,
+    stages: Vec<StageRowView>,
     children: Vec<RowView>,
+    summary: SummaryView,
+});
+dto!(StageRowView {
+    id: String,
+    title: String,
+    hours: Span,
+    ready: bool,
+    status: String,
+    pass: Option<String>,
+});
+dto!(SummaryView {
+    passed: u32,
+    total: u32,
+    skipped: u32,
 });
 dto!(CrumbView {
     uuid: String,
@@ -115,6 +129,8 @@ pub fn shapes() -> Vec<Shape> {
         ImportPackageOut::shape(),
         NodeIn::shape(),
         NodeOut::shape(),
+        StageRowView::shape(),
+        SummaryView::shape(),
         CrumbView::shape(),
         StageIn::shape(),
         StageOut::shape(),

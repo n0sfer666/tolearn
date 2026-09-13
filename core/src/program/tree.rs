@@ -33,4 +33,21 @@ impl Tree {
         found.extend(self.program.map.children.iter().map(|row| row.uuid.clone()));
         found
     }
+
+    pub fn every_stage(&self) -> Vec<(&str, &str)> {
+        let node = self.program.uuid.as_str();
+        let mut found: Vec<(&str, &str)> = self
+            .program
+            .map
+            .stages
+            .iter()
+            .map(|row| (node, row.id.as_str()))
+            .collect();
+        for row in &self.program.map.children {
+            if let Some(child) = self.children.get(&row.uuid) {
+                found.extend(child.every_stage());
+            }
+        }
+        found
+    }
 }

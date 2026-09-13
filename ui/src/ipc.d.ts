@@ -195,8 +195,24 @@ export type NodeOut = {
   level: string;
   hours: Span;
   trail: CrumbView[];
-  stages: RowView[];
+  stages: StageRowView[];
   children: RowView[];
+  summary: SummaryView;
+};
+
+export type StageRowView = {
+  id: string;
+  title: string;
+  hours: Span;
+  ready: boolean;
+  status: string;
+  pass: string | null;
+};
+
+export type SummaryView = {
+  passed: number;
+  total: number;
+  skipped: number;
 };
 
 export type CrumbView = {

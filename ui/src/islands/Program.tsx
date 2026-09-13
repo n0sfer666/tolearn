@@ -2,6 +2,7 @@ import { Show, createSignal, onMount } from "solid-js";
 
 import Empty from "../components/reading/Empty";
 import Export from "../components/reading/Export";
+import Mark from "../components/reading/Mark";
 import Rows from "../components/reading/Rows";
 import Trail from "../components/reading/Trail";
 import type { Dictionary } from "../i18n/ru";
@@ -12,6 +13,7 @@ import type { Transport } from "../lib/ipc";
 import { nodeHref, stageHref } from "../lib/links";
 import { name } from "../lib/name";
 import { query } from "../lib/query";
+import { summary } from "../lib/summary";
 import { told } from "../lib/told";
 
 interface Props {
@@ -84,6 +86,11 @@ export default function Program(props: Props) {
           <p data-node-hours>
             <strong>{props.text.program.span}:</strong> {hours(out().hours, props.text.program.hours)}
           </p>
+          <Show when={out().summary.total > 0}>
+            <p data-summary>
+              <strong>{props.text.program.progress}:</strong> {summary(props.text.program.summary, out().summary)}
+            </p>
+          </Show>
           <Export
             text={props.text}
             program={out().program}
@@ -101,6 +108,7 @@ export default function Program(props: Props) {
                 href={(row) => stageHref(props.locale, out().program, out().uuid, row.id)}
                 pending={props.text.program.pending}
                 unit={props.text.program.hours}
+                mark={(row) => <Mark text={props.text.program} row={row} />}
               />
             </ol>
           </Show>

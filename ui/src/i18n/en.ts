@@ -62,6 +62,13 @@ export const en: Dictionary = {
     pending: "not generated yet",
     children: "Subprograms",
     trail: "Path through the program",
+    fresh: "not started",
+    opened: "started",
+    passed: "passed",
+    exam: "exam passed",
+    skipped: "exam skipped",
+    progress: "Progress",
+    summary: "passed {n} of {of}, {skipped} without exam",
   },
   stage: {
     none: "No stage is open or it is not generated yet — start from the program list:",

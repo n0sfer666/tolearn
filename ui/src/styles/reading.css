@@ -14,7 +14,7 @@ nav[data-trail] > a:not(:first-child)::before {
   color: var(--color-fg-muted);
 }
 
-:is(p[data-goal], p[data-level], p[data-node-hours]) {
+:is(p[data-goal], p[data-level], p[data-node-hours], p[data-summary]) {
   margin-block: var(--spacing-1);
 }
 
@@ -43,7 +43,7 @@ li:is([data-stage], [data-child]) > :first-child {
   flex: 1 1 auto;
 }
 
-li:is([data-stage], [data-child]) :is([data-hours], [data-note]),
+li:is([data-stage], [data-child]) :is([data-hours], [data-note], [data-status], [data-pass]),
 li[data-broken] p,
 [data-later],
 figcaption,

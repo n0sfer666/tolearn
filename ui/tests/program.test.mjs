@@ -31,13 +31,25 @@ const ROOT = {
   hours: span(14, 22),
   trail: [],
   stages: [
-    { id: "setup", title: "Окружение", hours: span(2, 3), ready: true },
-    { id: "sprites", title: "Спрайты", hours: span(3, 4), ready: false },
+    { id: "setup", title: "Окружение", hours: span(2, 3), ready: true, status: "passed", pass: "exam" },
+    { id: "sprites", title: "Спрайты", hours: span(3, 4), ready: false, status: "fresh", pass: null },
   ],
   children: [
     { id: "tools", title: "Инструменты сборки", hours: span(8, 12), ready: true },
     { id: "sound", title: "Звук", hours: span(6, 10), ready: false },
   ],
+  summary: { passed: 1, total: 2, skipped: 0 },
+};
+
+const MARKED = {
+  ...ROOT,
+  stages: [
+    { id: "setup", title: "Окружение", hours: span(2, 3), ready: true, status: "passed", pass: "exam" },
+    { id: "loop", title: "Главный цикл", hours: span(2, 3), ready: true, status: "passed", pass: "skip" },
+    { id: "input", title: "Ввод", hours: span(1, 2), ready: true, status: "opened", pass: null },
+    { id: "sprites", title: "Спрайты", hours: span(3, 4), ready: false, status: "fresh", pass: null },
+  ],
+  summary: { passed: 2, total: 5, skipped: 1 },
 };
 
 const NESTED = {
@@ -181,4 +193,36 @@ test("у узла без этапов нет пустого заголовка �
 
   assert.equal(host.querySelector("[data-stages]"), null);
   assert.ok(![...host.querySelectorAll("h2")].some((head) => head.textContent === ru.program.stages));
+});
+
+test("у каждого этапа виден статус, у пройденного — сдан зачёт или пропущен", async () => {
+  const { host } = mount({ out: MARKED });
+  await settled();
+
+  const mark = (id) => {
+    const row = host.querySelector(`[data-stage="${id}"]`);
+    return [row.querySelector("[data-status]").textContent, row.querySelector("[data-pass]")?.textContent ?? null];
+  };
+  assert.deepEqual(mark("setup"), [ru.program.passed, ru.program.exam]);
+  assert.deepEqual(mark("loop"), [ru.program.passed, ru.program.skipped]);
+  assert.deepEqual(mark("input"), [ru.program.opened, null]);
+  assert.deepEqual(mark("sprites"), [ru.program.fresh, null]);
+  assert.equal(host.querySelector('[data-stage="loop"] [data-pass]').dataset.pass, "skip");
+  assert.equal(host.querySelector('[data-child="tools"] [data-status]'), null, "у подпрограммы статус этапа");
+});
+
+test("сводка программы считает пройденное и пропущенное на языке словаря", async () => {
+  const { host } = mount({ out: MARKED });
+  const english = mount({ out: MARKED, props: { text: en, locale: "en" } });
+  await settled();
+
+  assert.match(host.querySelector("[data-summary]").textContent, /пройдено 2 из 5, без зачёта 1/);
+  assert.match(english.host.querySelector("[data-summary]").textContent, /passed 2 of 5, 1 without exam/);
+});
+
+test("у программы без этапов в карте сводки нет", async () => {
+  const { host } = mount({ out: { ...ROOT, stages: [], summary: { passed: 0, total: 0, skipped: 0 } } });
+  await settled();
+
+  assert.equal(host.querySelector("[data-summary]"), null);
 });

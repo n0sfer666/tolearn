@@ -3,6 +3,8 @@ mod error;
 mod key;
 mod parse;
 mod render;
+mod status;
+mod summary;
 mod types;
 
 pub use choices::{Grade, Pass, Sitting};
@@ -10,6 +12,8 @@ pub use error::StateError;
 pub use key::key;
 pub use parse::parse;
 pub use render::{SCHEMA, render};
+pub use status::Status;
+pub use summary::Summary;
 pub use types::{Answered, Attempt, Clarification, Passed, StageState, State, Turn};
 
 use std::io::{self, ErrorKind};
@@ -38,7 +42,11 @@ impl State {
         let path = file(data, program)?;
         let _writing = WRITES.lock().unwrap_or_else(PoisonError::into_inner);
         let mut state = load(&path, program)?;
+        let before = state.clone();
         let outcome = change(&mut state);
+        if state == before {
+            return Ok(outcome);
+        }
         let text =
             render(&state).map_err(|error| StateError::Unwritable(io::Error::other(error)))?;
         if let Some(directory) = path.parent() {

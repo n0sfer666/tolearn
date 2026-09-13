@@ -1,17 +1,19 @@
 import { For, Show } from "solid-js";
+import type { JSX } from "solid-js";
 
 import type { RowView } from "../../ipc";
 import { hours } from "../../lib/hours";
 
-interface Props {
+interface Props<TRow extends RowView> {
   kind: "stage" | "child";
-  rows: RowView[];
-  href: (row: RowView) => string;
+  rows: TRow[];
+  href: (row: TRow) => string;
   pending: string;
   unit: string;
+  mark?: (row: TRow) => JSX.Element;
 }
 
-export default function Rows(props: Props) {
+export default function Rows<TRow extends RowView>(props: Props<TRow>) {
   return (
     <For each={props.rows}>
       {(row) => (
@@ -24,6 +26,7 @@ export default function Rows(props: Props) {
             <a href={props.href(row)}>{row.title}</a>
           </Show>
           <span data-hours>{hours(row.hours, props.unit)}</span>
+          {props.mark?.(row)}
           <Show when={!row.ready}>
             <span data-note>{props.pending}</span>
           </Show>

@@ -51,6 +51,20 @@ impl From<tolearn_core::library::LibraryError> for IpcError {
     }
 }
 
+impl From<tolearn_core::state::StateError> for IpcError {
+    fn from(error: tolearn_core::state::StateError) -> Self {
+        use tolearn_core::state::StateError as Broken;
+        let code = match &error {
+            Broken::Stray(_) => "state.stray",
+            Broken::Unreadable(_) => "state.unreadable",
+            Broken::Malformed(_) => "state.malformed",
+            Broken::Foreign(_) => "state.foreign",
+            Broken::Unwritable(_) => "state.unwritable",
+        };
+        Self::new(code, error.to_string())
+    }
+}
+
 impl From<tolearn_core::export::ExportError> for IpcError {
     fn from(error: tolearn_core::export::ExportError) -> Self {
         Self::new(error.code(), error.to_string())

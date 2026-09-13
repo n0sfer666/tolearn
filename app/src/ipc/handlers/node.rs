@@ -1,3 +1,5 @@
+use tolearn_core::state::State;
+
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
 use crate::ipc::reading::{CrumbView, NodeIn, NodeOut};
@@ -6,6 +8,7 @@ use crate::ipc::shelf;
 pub fn run(context: &Context, input: &NodeIn) -> Result<NodeOut, IpcError> {
     let tree = context.library().open(&input.program)?;
     let branch = shelf::branch(&tree, &input.node)?;
+    let state = State::read(context.data(), &tree.program.uuid)?;
     let program = &branch.tree.program;
     Ok(NodeOut {
         program: tree.program.uuid.clone(),
@@ -22,7 +25,8 @@ pub fn run(context: &Context, input: &NodeIn) -> Result<NodeOut, IpcError> {
                 title: node.program.title.clone(),
             })
             .collect(),
-        stages: shelf::stages(branch.tree),
+        stages: shelf::stages(branch.tree, &state),
         children: shelf::children(branch.tree),
+        summary: shelf::summary(branch.tree, &state),
     })
 }

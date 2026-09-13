@@ -30,8 +30,9 @@ const NODE = {
   level: "Начинающий",
   hours: span(3, 5),
   trail: [{ uuid: "nes-dev", title: "Разработка игр для NES" }],
-  stages: [{ id: "first-rom", title: "Первый ROM", hours: span(1, 2), ready: true }],
+  stages: [{ id: "first-rom", title: "Первый ROM", hours: span(1, 2), ready: true, status: "fresh", pass: null }],
   children: [],
+  summary: { passed: 0, total: 1, skipped: 0 },
 };
 
 const FOLDER = "/Users/me/Выгрузка";

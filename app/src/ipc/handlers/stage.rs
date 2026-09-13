@@ -2,7 +2,9 @@ use tolearn_core::block::Block;
 use tolearn_core::library::Library;
 use tolearn_core::program::Tree;
 use tolearn_core::stage::Check;
+use tolearn_core::state::State;
 
+use crate::ipc::clock;
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
 use crate::ipc::picture;
@@ -18,6 +20,10 @@ pub fn run(context: &Context, input: &StageIn) -> Result<StageOut, IpcError> {
             "stage.absent",
             format!("этапа `{}` нет или он ещё не сгенерирован", input.stage),
         )
+    })?;
+    let today = tolearn_generate::start::day(clock::now());
+    State::update(context.data(), &tree.program.uuid, |state| {
+        state.open(&branch.tree.program.uuid, &stage.id, &today)
     })?;
     let view = |block: &Block| viewed(&library, &tree, &branch.prefix, block);
     Ok(StageOut {
