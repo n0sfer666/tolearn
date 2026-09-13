@@ -1,5 +1,5 @@
 import { gzipSync } from "node:zlib";
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,6 +9,8 @@ export const DIST = fileURLToPath(new URL("../dist", import.meta.url));
 const LIMITS = [["/", 15 * 1024]];
 
 const OTHERS = 20 * 1024;
+
+const FONTS = 240 * 1024;
 
 export const LOCALES = ["ru", "en"];
 
@@ -79,14 +81,29 @@ export async function measure(dist = DIST) {
   });
 }
 
+export async function fonts(dist = DIST) {
+  const files = [];
+  for (const entry of await readdir(dist, { recursive: true, withFileTypes: true })) {
+    if (entry.isFile() && /\.(woff2?|ttf|otf)$/.test(entry.name)) files.push(path.join(entry.parentPath, entry.name));
+  }
+  const bytes = files.reduce((sum, file) => sum + statSync(file).size, 0);
+  return { bytes, files: files.sort(), limit: FONTS, ok: bytes <= FONTS };
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
   const measured = await measure();
   for (const { route: where, bytes, limit: allowed, ok } of measured) {
     const mark = ok ? "ok" : "ПРЕВЫШЕНО";
     console.log(`${where.padEnd(12)} ${String(bytes).padStart(6)} / ${allowed} байт (gzip) — ${mark}`);
   }
+  const faces = await fonts();
+  console.log(`шрифты      ${String(faces.bytes).padStart(6)} / ${faces.limit} байт — ${faces.ok ? "ok" : "ПРЕВЫШЕНО"}`);
   if (measured.some(({ ok }) => !ok)) {
     console.error("вес JS вышел за бюджет из docs/architecture.md");
+    process.exit(1);
+  }
+  if (!faces.ok) {
+    console.error("вес шрифтов вышел за бюджет из docs/architecture.md");
     process.exit(1);
   }
 }

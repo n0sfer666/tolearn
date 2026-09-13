@@ -9,7 +9,7 @@ import path from "node:path";
 import test, { before } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { DIST, measure, pages, route, scripts } from "../scripts/budget.mjs";
+import { DIST, fonts, measure, pages, route, scripts } from "../scripts/budget.mjs";
 import { hydratable } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
 import { browser, settled } from "./support/dom.mjs";
@@ -120,4 +120,41 @@ test("остров поиска гидратируется поверх собр
   await settled();
 
   assert.ok(host.querySelector("[data-query]") !== null, "поле поиска не появилось");
+});
+
+function faced(source) {
+  return [...source.matchAll(/@font-face\s*{([^}]*)}/g)].flatMap(([, body]) =>
+    [...body.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/g)].map(([, url]) => url),
+  );
+}
+
+test("шрифты грузятся только со своего origin", async () => {
+  const urls = new Set();
+  for (const file of await files()) {
+    if (/\.(css|html)$/.test(file)) faced(readFileSync(file, "utf8")).forEach((url) => urls.add(url));
+  }
+  const built = (await fonts()).files.map((file) => `/${path.relative(DIST, file).split(path.sep).join("/")}`);
+
+  assert.ok(urls.size > 0, "в сборке нет ни одного @font-face");
+  for (const url of urls) assert.match(url, /^\/(?!\/)/, `${url} грузится не со своего origin`);
+  assert.deepEqual([...urls].sort(), built.sort());
+});
+
+test("вес шрифтов уложен в бюджет", async () => {
+  const { bytes, limit, ok } = await fonts();
+
+  assert.ok(ok, `шрифты: ${bytes} байт против бюджета ${limit}`);
+});
+
+test("гейт шрифтов краснеет, когда шрифты выходят за бюджет", async () => {
+  const dist = path.join(os.tmpdir(), `tolearn-ui-fonts-${process.pid}`);
+  await rm(dist, { recursive: true, force: true });
+  await mkdir(path.join(dist, "_astro"), { recursive: true });
+  await writeFile(path.join(dist, "_astro", "big.woff2"), randomBytes(241 * 1024));
+
+  const measured = await fonts(dist);
+
+  assert.equal(measured.limit, 240 * 1024);
+  assert.equal(measured.ok, false, `${measured.bytes} байт прошли мимо бюджета`);
+  await rm(dist, { recursive: true, force: true });
 });

@@ -63,6 +63,12 @@ gzipped. The local macOS arm64 dmg from `cargo tauri build --bundles dmg` on
 2026-09-12 grew from 3,911,162 to 4,703,122 bytes, so by 791,960 bytes
 (0.76 MB). The table numbers will be updated by the next `package` run.
 
+Then the Literata and Golos Text fonts went into `ui/dist` (S147): six variable
+woff2 files, 223,504 bytes. woff2 is already compressed, and neither the asset
+compression in the binary nor the package's xz shrinks it (`xz -9e` gives
+223,584 bytes), so every installer grows by about 0.22 MB. The Linux `.deb`
+keeps about 0.2 MB below its 14 MB ceiling.
+
 The base variant's ceilings are [budgets](../architecture.md#бюджеты) (in
 Russian), and going over one fails the build. `-with-speech` has no installer
 ceiling: its weight is set by the model weights, which have a budget of their own
