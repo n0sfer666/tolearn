@@ -46,6 +46,13 @@ impl Grade {
     pub fn label(self) -> &'static str {
         label(&GRADE, self)
     }
+
+    pub fn named(name: &str) -> Option<Self> {
+        GRADE
+            .iter()
+            .find(|(known, _)| *known == name)
+            .map(|&(_, grade)| grade)
+    }
 }
 
 fn label<T: Copy + PartialEq>(options: &[(&'static str, T)], value: T) -> &'static str {

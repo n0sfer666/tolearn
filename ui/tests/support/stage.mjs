@@ -45,8 +45,8 @@ export const OUT = {
     acceptance: [{ id: "a1", claim: "Гамма звучит", check: "python play.py", expect: "exit 0" }],
   },
   questions: [
-    { id: "q1", text: "Сколько каналов у чипа?" },
-    { id: "q2", text: "Чем пульс отличается от треугольника?" },
+    { id: "q1", text: "Сколько каналов у чипа?", result: null, missed: [] },
+    { id: "q2", text: "Чем пульс отличается от треугольника?", result: null, missed: [] },
   ],
   ticks: [],
   workdir: null,

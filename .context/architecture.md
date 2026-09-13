@@ -209,6 +209,14 @@ S37. Общие для обоих окон `on_main` и `answer` лежат в `
   программы. Сироты (этап вне карты, врезка к исчезнувшему блоку) — обычные
   записи, чтение их не фильтрует. Корпус схемы — `fixtures/v2/states/`, вывод
   `render` байт в байт.
+- Вердикт зачёта — `tolearn_core::verdict::read(текст, &Stage)` (S134,
+  [protocol.md](../docs/ru/protocol.md)): последний JSON-объект верхнего уровня
+  (`verdict/block.rs`), затем `stage`, `per_question`, `result` через
+  `Grade::named`, `missed` у незачтённого и покрытие вопросов этапа; отказ —
+  `VerdictError` (`Absent`, `Stage`, `Shape`, `Questions`), частичного разбора
+  нет. Применение — `State::attempt(узел, этап, Attempt)`: попытка дописывается,
+  все `ok` ставят `passed: exam` (пропуск меняется, сданный зачёт дату не
+  меняет), провал `passed` не снимает; `last_attempt` — источник незачтённого.
 - Библиотека v2 — `tolearn_core::library` (S100) над `<data>/programs/`:
   `list` не падает на битом каталоге, а кладёт в строку причину (`Refusal`);
   `open(uuid)` сверяет UUID с шаблоном до того, как он станет путём;
@@ -241,7 +249,8 @@ S37. Общие для обоих окон `on_main` и `answer` лежат в `
   узел и этап — `node.absent`, `stage.absent`. `stage` отмечает этап открытым
   (`State::open` с датой `clock::now()`), `node` отдаёт у строк этапов `status`
   и `pass`, у узла — `summary` (S132); битое состояние — `state.*`, и экран
-  не открывается. `stage` отдаёт и `ticks`/`workdir`; практика — команды
+  не открывается. `stage` отдаёт и `ticks`/`workdir`, а у вопросов — `result` и
+  `missed` последней попытки (S134); практика — команды
   `tick`, `workdir`, `check_claim` (`app/src/ipc/{practice,practiced}.rs`,
   S133): пункт ищется в `constraints`+`acceptance` (`claim.absent`), папка —
   абсолютный существующий каталог вне `<data>` (`workdir.absent`/`inside`),

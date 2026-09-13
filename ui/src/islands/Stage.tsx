@@ -4,9 +4,9 @@ import Regenerate from "../components/generate/Regenerate";
 import Block from "../components/reading/Block";
 import Empty from "../components/reading/Empty";
 import Practice from "../components/reading/Practice";
+import Question from "../components/reading/Question";
 import { desk } from "../components/reading/desk";
 import Trail from "../components/reading/Trail";
-import Rich from "../components/rich/Rich";
 import type { Copier, Words } from "../components/rich/Snip";
 import type { Dictionary } from "../i18n/ru";
 import type { StageOut } from "../ipc";
@@ -118,11 +118,7 @@ export default function Stage(props: Props) {
               <h3>{props.text.stage.questions}</h3>
               <ol>
                 <For each={out().questions}>
-                  {(ask) => (
-                    <li id={ask.id} data-question={ask.id}>
-                      <Rich text={ask.text} words={words()} copy={props.copy} />
-                    </li>
-                  )}
+                  {(ask) => <Question ask={ask} text={props.text} words={words()} copy={props.copy} />}
                 </For>
               </ol>
             </section>

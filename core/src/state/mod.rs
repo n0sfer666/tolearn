@@ -1,3 +1,4 @@
+mod attempt;
 mod choices;
 mod error;
 mod key;

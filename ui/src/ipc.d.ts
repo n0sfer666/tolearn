@@ -267,6 +267,8 @@ export type ClaimView = {
 export type AskView = {
   id: string;
   text: string;
+  result: string | null;
+  missed: string[];
 };
 
 export type ExportIn = {

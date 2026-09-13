@@ -122,6 +122,32 @@ test("якорь в адресе прокручивает к своему бло
   assert.deepEqual(seen, ["k1"]);
 });
 
+test("у вопросов стоит итог последней попытки и что в ней упущено", async () => {
+  const fresh = mount();
+  const graded = mount({
+    out: {
+      ...OUT,
+      questions: [
+        { id: "q1", text: "Сколько каналов у чипа?", result: "ok", missed: [] },
+        { id: "q2", text: "Чем пульс отличается?", result: "partial", missed: ["форма волны", "громкость"] },
+      ],
+    },
+  });
+  await settled();
+
+  assert.equal(fresh.host.querySelector("[data-grade], [data-missed]"), null);
+  const [q1, q2] = ["#q1", "#q2"].map((id) => graded.host.querySelector(id));
+  assert.equal(q1.dataset.result, "ok");
+  assert.equal(q1.querySelector("[data-grade]").textContent, ru.stage.ok);
+  assert.equal(q1.querySelector("[data-missed]"), null);
+  assert.equal(q2.dataset.result, "partial");
+  assert.equal(q2.querySelector("[data-grade]").textContent, `${ru.stage.partial}. ${ru.stage.missed}:`);
+  assert.deepEqual(
+    [...q2.querySelectorAll("[data-missed] li")].map((node) => node.textContent),
+    ["форма волны", "громкость"],
+  );
+});
+
 test("экран говорит на языке словаря", async () => {
   const { host } = mount({ text: en });
   await settled();

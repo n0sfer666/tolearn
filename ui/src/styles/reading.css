@@ -171,3 +171,18 @@ section[data-questions] ol {
   margin: 0;
   padding-inline-start: var(--spacing-6);
 }
+
+li[data-question] > p[data-grade] {
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+li[data-question]:not([data-result="ok"]) > p[data-grade] {
+  color: var(--color-critical);
+}
+
+li[data-question] > ul[data-missed] {
+  margin: 0;
+  padding-inline-start: var(--spacing-6);
+}

@@ -186,7 +186,7 @@
 | `stages.*.attempts[].per_question` | логика | вердикт по вопросам: зачёт сдан, когда у каждого `ok` |
 | `stages.*.attempts[].per_question[].id` | логика | вопрос этапа |
 | `stages.*.attempts[].per_question[].result` | логика | `ok`, `partial` или `miss` |
-| `stages.*.attempts[].per_question[].missed` | рендер | что упущено в ответе |
+| `stages.*.attempts[].per_question[].missed` | рендер | что упущено в ответе; у незачтённого не пуст |
 | `clarifications` | рендер | врезки-уточнения к блокам этапов |
 | `clarifications[].stage` | логика | этап врезки тем же ключом `<uuid узла>/<id>` |
 | `clarifications[].block` | логика | `id` блока; блока нет — врезка уходит в свёрнутый список в конце этапа |

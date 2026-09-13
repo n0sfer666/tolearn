@@ -1,8 +1,8 @@
 use tolearn_core::block::Block;
 use tolearn_core::library::Library;
 use tolearn_core::program::Tree;
-use tolearn_core::stage::Check;
-use tolearn_core::state::State;
+use tolearn_core::stage::{Check, Question};
+use tolearn_core::state::{Attempt, State};
 
 use crate::ipc::clock;
 use crate::ipc::context::Context;
@@ -23,9 +23,13 @@ pub fn run(context: &Context, input: &StageIn) -> Result<StageOut, IpcError> {
     })?;
     let today = tolearn_generate::start::day(clock::now());
     let node = &branch.tree.program.uuid;
-    let (ticks, workdir) = State::update(context.data(), &tree.program.uuid, |state| {
+    let (ticks, workdir, last) = State::update(context.data(), &tree.program.uuid, |state| {
         state.open(node, &stage.id, &today);
-        (state.ticks(node, &stage.id), state.workdir.clone())
+        (
+            state.ticks(node, &stage.id),
+            state.workdir.clone(),
+            state.last_attempt(node, &stage.id).cloned(),
+        )
     })?;
     let view = |block: &Block| viewed(&library, &tree, &branch.prefix, block);
     Ok(StageOut {
@@ -49,10 +53,7 @@ pub fn run(context: &Context, input: &StageIn) -> Result<StageOut, IpcError> {
         questions: stage
             .questions
             .iter()
-            .map(|question| AskView {
-                id: question.id.clone(),
-                text: question.text.clone(),
-            })
+            .map(|question| asked(question, last.as_ref()))
             .collect(),
         ticks,
         workdir,
@@ -82,6 +83,21 @@ fn viewed(
         attribution: block.attribution.clone(),
         source: block.source.clone(),
     })
+}
+
+fn asked(question: &Question, last: Option<&Attempt>) -> AskView {
+    let graded = last.and_then(|attempt| {
+        attempt
+            .per_question
+            .iter()
+            .find(|row| row.id == question.id)
+    });
+    AskView {
+        id: question.id.clone(),
+        text: question.text.clone(),
+        result: graded.map(|row| row.result.label().to_owned()),
+        missed: graded.map(|row| row.missed.clone()).unwrap_or_default(),
+    }
 }
 
 fn claim(check: &Check) -> ClaimView {

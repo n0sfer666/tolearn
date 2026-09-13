@@ -109,6 +109,8 @@ dto!(ClaimView {
 dto!(AskView {
     id: String,
     text: String,
+    result: Option<String>,
+    missed: Vec<String>,
 });
 dto!(ExportIn {
     program: String,

@@ -15,6 +15,7 @@ pub mod search;
 pub mod settings;
 pub mod stage;
 pub mod state;
+pub mod verdict;
 pub mod yaml;
 
 pub use hours::Hours;
