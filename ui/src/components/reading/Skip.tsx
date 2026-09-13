@@ -33,7 +33,7 @@ export default function Skip(props: Props) {
   };
 
   return (
-    <a href={href()} data-next aria-busy={busy()} onClick={(event) => void skip(event)}>
+    <a href={href()} data-next data-action aria-busy={busy()} onClick={(event) => void skip(event)}>
       {props.text.generate.skip}
     </a>
   );

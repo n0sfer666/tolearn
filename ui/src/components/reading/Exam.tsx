@@ -75,7 +75,7 @@ export default function Exam(props: Props) {
         </ol>
         <div data-examination>
           <Show when={!work.running()} fallback={<Progress text={props.text} work={work} />}>
-            <button type="button" data-exam ref={regain(work.calm)} onClick={() => void submit()}>
+            <button type="button" data-exam data-action ref={regain(work.calm)} onClick={() => void submit()}>
               {props.text.stage.submit}
             </button>
           </Show>

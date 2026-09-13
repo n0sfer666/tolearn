@@ -41,7 +41,7 @@ export default function Export(props: Props): JSX.Element {
   };
 
   return (
-    <button type="button" data-export onClick={() => void run()} aria-disabled={busy()}>
+    <button type="button" data-export data-action onClick={() => void run()} aria-disabled={busy()}>
       {props.text.program.export}
     </button>
   );

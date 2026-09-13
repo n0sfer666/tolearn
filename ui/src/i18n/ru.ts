@@ -6,6 +6,7 @@ export const ru = {
   language: { ru: "Русский", en: "English", switch: "Язык" },
   theme: { switch: "Тема", system: "Системная", light: "Светлая", dark: "Тёмная" },
   toast: { close: "Закрыть сообщение", broke: "Не получилось" },
+  actions: { title: "Действия", query: "Действие или переход", none: "Ничего не нашлось" },
   nav: {
     programs: "Программы",
     program: "Программа",

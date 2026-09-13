@@ -32,7 +32,7 @@ export default function Regenerate(props: Props) {
   return (
     <div data-regeneration>
       <Show when={!work.running()} fallback={<Progress text={props.text} work={work} />}>
-        <button type="button" data-regenerate ref={regain(work.calm)} onClick={() => void again()}>
+        <button type="button" data-regenerate data-action ref={regain(work.calm)} onClick={() => void again()}>
           {props.text.generate.regenerate}
         </button>
       </Show>

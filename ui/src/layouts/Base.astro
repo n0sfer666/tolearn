@@ -15,7 +15,9 @@ import "../styles/hint.css";
 import "../styles/rich.css";
 import "../styles/reading.css";
 import "../styles/toast.css";
+import "../styles/actions.css";
 
+import Actions from "../components/Actions";
 import Toasts from "../components/Toasts";
 import EarlyTheme from "../components/EarlyTheme.astro";
 import KeepContext from "../components/KeepContext.astro";
@@ -84,6 +86,7 @@ const named = entity(route(here, locale));
       <slot />
     </main>
     <Toasts client:load close={text.toast.close} />
+    <Actions client:load text={text.actions} />
     <RememberLocale />
     <KeepContext />
     <Names />

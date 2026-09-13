@@ -7,6 +7,7 @@ export const en: Dictionary = {
   language: { ru: "Русский", en: "English", switch: "Language" },
   theme: { switch: "Theme", system: "System", light: "Light", dark: "Dark" },
   toast: { close: "Dismiss the message", broke: "It did not work" },
+  actions: { title: "Actions", query: "Action or destination", none: "Nothing found" },
   nav: {
     programs: "Programs",
     program: "Program",
