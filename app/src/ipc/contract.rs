@@ -5,6 +5,7 @@ use super::error::IpcError;
 use super::forked;
 use super::handlers;
 use super::planned;
+use super::practiced;
 use super::reading;
 use super::regenerated;
 use super::shape::Shape;
@@ -64,6 +65,9 @@ commands! {
     fork(forked::ForkIn) -> forked::ForkOut,
     take_next(forked::TakeNextIn) -> forked::TakeNextOut,
     regenerate_stage(regenerated::RegenerateStageIn) -> regenerated::RegenerateStageOut,
+    tick(practiced::TickIn) -> practiced::TickOut,
+    workdir(practiced::WorkdirIn) -> practiced::WorkdirOut,
+    check_claim(practiced::CheckClaimIn) -> practiced::CheckClaimOut,
 }
 
 #[tauri::command]

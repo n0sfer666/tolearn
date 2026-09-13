@@ -5,6 +5,7 @@ mod parse;
 mod render;
 mod status;
 mod summary;
+mod tick;
 mod types;
 
 pub use choices::{Grade, Pass, Sitting};

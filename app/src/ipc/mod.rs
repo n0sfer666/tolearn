@@ -13,6 +13,8 @@ mod ledger;
 mod picture;
 mod planned;
 mod planning;
+mod practice;
+mod practiced;
 mod provider;
 pub mod reading;
 mod regenerated;

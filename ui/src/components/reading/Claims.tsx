@@ -1,6 +1,7 @@
 import { For, Show } from "solid-js";
 
-import Snip from "../rich/Snip";
+import Claim from "./Claim";
+import type { Desk } from "./desk";
 import type { Copier, Words } from "../rich/Snip";
 import type { Dictionary } from "../../i18n/ru";
 import type { ClaimView } from "../../ipc";
@@ -8,6 +9,7 @@ import type { ClaimView } from "../../ipc";
 interface Props {
   title: string;
   claims: ClaimView[];
+  desk: Desk;
   text: Dictionary;
   words: Words;
   copy?: Copier;
@@ -20,21 +22,7 @@ export default function Claims(props: Props) {
       <ul data-claims>
         <For each={props.claims}>
           {(claim) => (
-            <li id={claim.id} data-claim={claim.id}>
-              <span>{claim.claim}</span>
-              <Show when={claim.check}>
-                {(check) => (
-                  <span data-command>
-                    {props.text.stage.check}: <Snip text={check()} words={props.words} copy={props.copy} />
-                  </span>
-                )}
-              </Show>
-              <Show when={claim.expect !== ""}>
-                <span data-expect>
-                  {props.text.stage.expect}: {claim.expect}
-                </span>
-              </Show>
-            </li>
+            <Claim claim={claim} desk={props.desk} text={props.text} words={props.words} copy={props.copy} />
           )}
         </For>
       </ul>

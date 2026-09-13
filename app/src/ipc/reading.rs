@@ -81,6 +81,8 @@ dto!(StageOut {
     blocks: Vec<BlockView>,
     practice: TaskView,
     questions: Vec<AskView>,
+    ticks: Vec<String>,
+    workdir: Option<String>,
 });
 dto!(BlockView {
     id: String,

@@ -235,6 +235,8 @@ export type StageOut = {
   blocks: BlockView[];
   practice: TaskView;
   questions: AskView[];
+  ticks: string[];
+  workdir: string | null;
 };
 
 export type BlockView = {
@@ -381,6 +383,42 @@ export type RegenerateStageOut = {
   stage: string;
 };
 
+export type TickIn = {
+  program: string;
+  node: string;
+  stage: string;
+  claim: string;
+  on: boolean;
+};
+
+export type TickOut = {
+  ticks: string[];
+};
+
+export type WorkdirIn = {
+  program: string;
+  path: string;
+};
+
+export type WorkdirOut = {
+  workdir: string;
+};
+
+export type CheckClaimIn = {
+  program: string;
+  node: string;
+  stage: string;
+  claim: string;
+};
+
+export type CheckClaimOut = {
+  outcome: string;
+  code: number | null;
+  stdout: string;
+  stderr: string;
+  truncated: boolean;
+};
+
 export type Commands = {
   export: { input: ExportIn; output: ExportOut };
   settings: { input: SettingsIn; output: SettingsView };
@@ -401,6 +439,9 @@ export type Commands = {
   fork: { input: ForkIn; output: ForkOut };
   take_next: { input: TakeNextIn; output: TakeNextOut };
   regenerate_stage: { input: RegenerateStageIn; output: RegenerateStageOut };
+  tick: { input: TickIn; output: TickOut };
+  workdir: { input: WorkdirIn; output: WorkdirOut };
+  check_claim: { input: CheckClaimIn; output: CheckClaimOut };
 };
 
 export type CommandName = keyof Commands;

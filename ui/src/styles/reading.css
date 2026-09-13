@@ -45,9 +45,10 @@ li:is([data-stage], [data-child]) > :first-child {
 
 li:is([data-stage], [data-child]) :is([data-hours], [data-note], [data-status], [data-pass]),
 li[data-broken] p,
-[data-later],
 figcaption,
-ul[data-claims] :is([data-command], [data-expect]) {
+p[data-workdir] > [data-unset],
+ul[data-claims] :is([data-command], [data-expect]),
+div[data-output] > span {
   margin: 0;
   color: var(--color-fg-muted);
   font-size: var(--font-size-sm);
@@ -127,11 +128,41 @@ aside[data-block="callout"] {
   background: var(--color-accent-bg);
 }
 
-ul[data-claims] > li {
+ul[data-claims] > li,
+p[data-workdir] {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--spacing-1) var(--spacing-3);
+}
+
+ul[data-claims] > li > label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+}
+
+ul[data-claims] > li > :is(div[data-output], p[data-failed]) {
+  flex-basis: 100%;
+}
+
+div[data-output] {
+  display: grid;
+  gap: var(--spacing-1);
+}
+
+div[data-output] > pre {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+div[data-output] > pre[data-stderr] {
+  border-color: var(--color-warning);
+}
+
+p[data-failed] {
+  margin: 0;
+  color: var(--color-critical);
 }
 
 section[data-questions] ol {

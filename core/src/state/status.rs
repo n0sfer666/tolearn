@@ -21,12 +21,13 @@ impl Status {
 
 impl State {
     pub fn status(&self, node: &str, stage: &str) -> Status {
-        match self.stages.get(&key(node, stage)) {
-            None => Status::Fresh,
-            Some(entry) => entry
-                .passed
-                .as_ref()
-                .map_or(Status::Opened, |passed| Status::Passed(passed.by)),
+        let Some(entry) = self.stages.get(&key(node, stage)) else {
+            return Status::Fresh;
+        };
+        match (&entry.passed, &entry.opened) {
+            (Some(passed), _) => Status::Passed(passed.by),
+            (None, Some(_)) => Status::Opened,
+            (None, None) => Status::Fresh,
         }
     }
 

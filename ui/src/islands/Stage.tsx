@@ -4,13 +4,14 @@ import Regenerate from "../components/generate/Regenerate";
 import Block from "../components/reading/Block";
 import Empty from "../components/reading/Empty";
 import Practice from "../components/reading/Practice";
+import { desk } from "../components/reading/desk";
 import Trail from "../components/reading/Trail";
 import Rich from "../components/rich/Rich";
 import type { Copier, Words } from "../components/rich/Snip";
 import type { Dictionary } from "../i18n/ru";
 import type { StageOut } from "../ipc";
 import { reveal } from "../lib/anchor";
-import { quiet, steps } from "../lib/ipc";
+import { pickFolder, quiet, steps } from "../lib/ipc";
 import type { Listen, Transport } from "../lib/ipc";
 import { nextHref, nodeHref } from "../lib/links";
 import { query } from "../lib/query";
@@ -26,6 +27,7 @@ interface Props {
   call?: Transport;
   steps?: Listen;
   copy?: Copier;
+  pick?: () => Promise<string | null>;
 }
 
 export default function Stage(props: Props) {
@@ -76,6 +78,18 @@ export default function Stage(props: Props) {
     void load();
   });
 
+  const bench = (out: () => StageOut) =>
+    desk({
+      call: call(),
+      pick: props.pick ?? pickFolder,
+      at: () => ({ program: out().program, node: out().node, stage: out().id }),
+      text: props.text,
+      ticks: () => out().ticks,
+      workdir: () => out().workdir,
+      ticked: (ticks) => setView({ ...out(), ticks }),
+      chosen: (workdir) => setView({ ...out(), workdir }),
+    });
+
   const up = (out: StageOut) => [
     { href: nodeHref(props.locale, out.program, out.node), title: out.node_title },
   ];
@@ -98,7 +112,7 @@ export default function Stage(props: Props) {
               {(block) => <Block block={block} text={props.text} words={words()} copy={props.copy} />}
             </For>
           </div>
-          <Practice practice={out().practice} text={props.text} words={words()} copy={props.copy} />
+          <Practice practice={out().practice} desk={bench(out)} text={props.text} words={words()} copy={props.copy} />
           <Show when={out().questions.length > 0}>
             <section data-questions>
               <h3>{props.text.stage.questions}</h3>

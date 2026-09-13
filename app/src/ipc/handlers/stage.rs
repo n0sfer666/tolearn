@@ -22,8 +22,10 @@ pub fn run(context: &Context, input: &StageIn) -> Result<StageOut, IpcError> {
         )
     })?;
     let today = tolearn_generate::start::day(clock::now());
-    State::update(context.data(), &tree.program.uuid, |state| {
-        state.open(&branch.tree.program.uuid, &stage.id, &today)
+    let node = &branch.tree.program.uuid;
+    let (ticks, workdir) = State::update(context.data(), &tree.program.uuid, |state| {
+        state.open(node, &stage.id, &today);
+        (state.ticks(node, &stage.id), state.workdir.clone())
     })?;
     let view = |block: &Block| viewed(&library, &tree, &branch.prefix, block);
     Ok(StageOut {
@@ -52,6 +54,8 @@ pub fn run(context: &Context, input: &StageIn) -> Result<StageOut, IpcError> {
                 text: question.text.clone(),
             })
             .collect(),
+        ticks,
+        workdir,
     })
 }
 

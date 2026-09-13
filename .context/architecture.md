@@ -241,7 +241,13 @@ S37. Общие для обоих окон `on_main` и `answer` лежат в `
   узел и этап — `node.absent`, `stage.absent`. `stage` отмечает этап открытым
   (`State::open` с датой `clock::now()`), `node` отдаёт у строк этапов `status`
   и `pass`, у узла — `summary` (S132); битое состояние — `state.*`, и экран
-  не открывается. До `package::import`
+  не открывается. `stage` отдаёт и `ticks`/`workdir`; практика — команды
+  `tick`, `workdir`, `check_claim` (`app/src/ipc/{practice,practiced}.rs`,
+  S133): пункт ищется в `constraints`+`acceptance` (`claim.absent`), папка —
+  абсолютный существующий каталог вне `<data>` (`workdir.absent`/`inside`),
+  `check_claim` зовёт `runner::run` в ней с лимитами 120 с и 64 КиБ и отдаёт
+  исход, код и вывод без вердикта; без `check` — `claim.unchecked`, без папки —
+  `workdir.unset`. До `package::import`
   приложение отсекает не-пакеты: каталог программы — `package.folder`, каталог
   или архив v1 (`roadmap.yaml`/`roadmap.json`, `.zip`, `.gz`, `.tgz`) —
   `package.v1` (ADR-016), прочее — `package.foreign`.

@@ -40,6 +40,8 @@ const OUT = {
   blocks: [paragraph("Прежний текст этапа")],
   practice: { task: [], deliverable: "", constraints: [], acceptance: [] },
   questions: [],
+  ticks: [],
+  workdir: null,
 };
 const AGAIN = { ...OUT, blocks: [paragraph("Новый текст этапа")] };
 const focused = () => window.document.activeElement;
