@@ -11,7 +11,7 @@ pub use failure::ParseFailure;
 pub use names::is_slug;
 pub use reader::Reader;
 
-pub(crate) use emit::{list, map, number, text};
+pub(crate) use emit::{flag, list, map, number, text};
 pub(crate) use names::is_uuid;
 
 use saphyr::{LoadableYamlNode, MarkedYaml};

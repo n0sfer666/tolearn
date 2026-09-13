@@ -1,6 +1,8 @@
 use jsonschema::Validator;
 use serde_json::Value;
 
+const KEY_NAMES: &str = "propertyNames";
+
 pub fn declared_code(path: &str) -> String {
     let name = path.rsplit('/').next().unwrap_or_default();
     name.split("__")
@@ -18,6 +20,9 @@ pub fn codes(validator: &Validator, instance: &Value) -> Vec<String> {
 }
 
 fn keyword(schema_path: &str) -> String {
+    if schema_path.split('/').any(|segment| segment == KEY_NAMES) {
+        return KEY_NAMES.to_owned();
+    }
     schema_path
         .rsplit('/')
         .find(|segment| !segment.is_empty() && !segment.chars().all(char::is_numeric))

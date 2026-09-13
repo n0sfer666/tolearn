@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/n0sfer666/tolearn/blob/master/docs/schemas/state.schema.json",
+  "title": "tolearn/state/1",
+  "description": "Состояние программы v2: <data>/state/<uuid>/state.yaml — всё, что сделал человек.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "program", "stages", "clarifications"],
+  "properties": {
+    "schema": { "const": "tolearn/state/1" },
+    "program": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "workdir": { "$ref": "#/$defs/text" },
+    "stages": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+      "additionalProperties": { "$ref": "#/$defs/stage" }
+    },
+    "clarifications": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/clarification" }
+    }
+  },
+  "$defs": {
+    "text": { "type": "string", "minLength": 1 },
+    "date": { "type": "string", "format": "date" },
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "opened": { "$ref": "#/$defs/date" },
+        "passed": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["on", "by"],
+          "properties": {
+            "on": { "$ref": "#/$defs/date" },
+            "by": { "enum": ["exam", "skip"] }
+          }
+        },
+        "ticks": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[ac][0-9]+$" }
+        },
+        "answers": {
+          "type": "object",
+          "propertyNames": { "pattern": "^q[0-9]+$" },
+          "additionalProperties": { "$ref": "#/$defs/text" }
+        },
+        "attempts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/attempt" }
+        }
+      }
+    },
+    "attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["on", "by", "per_question"],
+      "properties": {
+        "on": { "$ref": "#/$defs/date" },
+        "by": { "enum": ["written", "copypaste"] },
+        "model": { "$ref": "#/$defs/text" },
+        "per_question": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/answered" }
+        }
+      }
+    },
+    "answered": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "result", "missed"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^q[0-9]+$" },
+        "result": { "enum": ["ok", "partial", "miss"] },
+        "missed": { "type": "array", "items": { "$ref": "#/$defs/text" } }
+      }
+    },
+    "clarification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage", "block", "excerpt", "turns", "clear"],
+      "properties": {
+        "stage": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+        "block": { "type": "string", "pattern": "^[0-9a-f]{8}(-([2-9]|[1-9][0-9]+))?$" },
+        "excerpt": { "$ref": "#/$defs/text" },
+        "turns": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/turn" }
+        },
+        "clear": { "type": "boolean" }
+      }
+    },
+    "turn": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["answer"],
+      "properties": {
+        "asked": { "$ref": "#/$defs/text" },
+        "answer": { "$ref": "#/$defs/text" }
+      }
+    }
+  }
+}

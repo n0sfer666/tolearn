@@ -7,6 +7,10 @@ pub(crate) fn text(value: &str) -> Yaml<'_> {
     Yaml::Value(Scalar::String(Cow::Borrowed(value)))
 }
 
+pub(crate) fn flag(value: bool) -> Yaml<'static> {
+    Yaml::Value(Scalar::Boolean(value))
+}
+
 pub(crate) fn number(value: u32) -> Yaml<'static> {
     Yaml::Value(Scalar::Integer(i64::from(value)))
 }

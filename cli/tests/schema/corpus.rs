@@ -3,6 +3,8 @@ use serde_json::Value;
 use super::{programs, yaml};
 use crate::repo::{read, root};
 
+const STATES: &str = "fixtures/v2/states";
+
 pub fn document(path: &str) -> Value {
     yaml::load(&read(path), path)
 }
@@ -20,7 +22,11 @@ pub fn listed(relative: &str) -> Vec<String> {
 }
 
 pub fn valid_documents(kind: &str) -> Vec<(String, Value)> {
-    programs::documents(kind)
+    let paths = match kind {
+        "state" => listed(STATES),
+        _ => programs::documents(kind),
+    };
+    paths
         .into_iter()
         .map(|path| {
             let document = document(&path);

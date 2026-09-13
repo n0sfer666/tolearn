@@ -162,6 +162,30 @@ impl<'a> Reader<'a> {
         self.node.span.start.index()..self.node.span.end.index()
     }
 
+    pub fn entries(&self) -> Result<Vec<(String, Self)>, ParseError> {
+        let mapping = self
+            .node
+            .data
+            .as_mapping()
+            .ok_or_else(|| self.fail(ParseFailure::WrongType, "expected a mapping"))?;
+        mapping
+            .iter()
+            .map(|(key, value)| {
+                let name = key
+                    .data
+                    .as_str()
+                    .ok_or_else(|| self.fail(ParseFailure::WrongType, "expected a string key"))?;
+                Ok((
+                    name.to_owned(),
+                    Self {
+                        node: value,
+                        path: nested(&self.path, name),
+                    },
+                ))
+            })
+            .collect()
+    }
+
     pub fn malformed(&self, message: impl fmt::Display) -> ParseError {
         self.fail(ParseFailure::WrongType, message.to_string())
     }

@@ -181,7 +181,8 @@ S37. Общие для обоих окон `on_main` и `answer` лежат в `
 
 ## Чтение программы
 
-- Формат v2 — две схемы `tolearn/program/1` и `tolearn/stage/1` в
+- Формат v2 — три схемы `tolearn/program/1`, `tolearn/stage/1` и
+  `tolearn/state/1` в
   [docs/schemas/](../docs/schemas/) (JSON Schema draft 2020-12, без внешних
   `$ref`, `additionalProperties: false` на каждом объекте), роли полей —
   [docs/format.md](../docs/format.md), эталон — `examples/chiptune/`, корпус —
@@ -194,6 +195,14 @@ S37. Общие для обоих окон `on_main` и `answer` лежат в `
   `validate` — все нарушения, а не первое. Строка карты без файла или каталога —
   ещё не сгенерированная часть, не ошибка; глубже третьего уровня `load` не
   спускается.
+- Состояние программы v2 — `tolearn_core::state` (S131, ADR-026):
+  `State::read(data, uuid)` и `State::update(data, uuid, |state| …)` над
+  `<data>/state/<uuid>/state.yaml`. Правка идёт под мьютексом: чтение → замыкание
+  → `render` → `atomic::write`; отказ чтения (`Malformed` с местом, `Foreign`,
+  `Stray` для не-UUID) до записи не доходит. Нет файла — `State::new`, каталог не
+  создаётся. Сироты (этап вне карты, врезка к исчезнувшему блоку) — обычные
+  записи, чтение их не фильтрует. Корпус схемы — `fixtures/v2/states/`, вывод
+  `render` байт в байт.
 - Библиотека v2 — `tolearn_core::library` (S100) над `<data>/programs/`:
   `list` не падает на битом каталоге, а кладёт в строку причину (`Refusal`);
   `open(uuid)` сверяет UUID с шаблоном до того, как он станет путём;

@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
 use serde_json::Value;
-use tolearn_core::{program, stage};
+use tolearn_core::{program, stage, state};
 
 use crate::repo::read;
 use crate::schema::paths::{described_fields, objects};
@@ -18,6 +18,13 @@ fn the_program_parser_reads_every_field_the_schema_describes() {
 fn the_stage_parser_reads_every_field_the_schema_describes() {
     every_described_field_is_read("stage", &documents("stage"), &|source| {
         stage::parse(source).map(drop).map_err(|e| e.to_string())
+    });
+}
+
+#[test]
+fn the_state_parser_reads_every_field_the_schema_describes() {
+    every_described_field_is_read("state", &documents("state"), &|source| {
+        state::parse(source).map(drop).map_err(|e| e.to_string())
     });
 }
 
@@ -107,6 +114,9 @@ fn carries(value: &Value, path: &str) -> bool {
                 .get(name)
                 .and_then(Value::as_array)
                 .is_some_and(|items| items.iter().any(|item| carries(item, rest))),
+            None if segment == "*" => value
+                .as_object()
+                .is_some_and(|entries| entries.values().any(|entry| carries(entry, rest))),
             None => value.get(segment).is_some_and(|child| carries(child, rest)),
         },
     }
@@ -133,6 +143,9 @@ fn spoil(value: &mut Value, remaining: &str, path: &str, broken: bool) {
                     .get_mut(name)
                     .and_then(Value::as_array_mut)
                     .and_then(|items| items.iter_mut().find(|item| carries(item, rest))),
+                None if segment == "*" => value
+                    .as_object_mut()
+                    .and_then(|entries| entries.values_mut().find(|entry| carries(entry, rest))),
                 None => value.get_mut(segment),
             };
             let child =

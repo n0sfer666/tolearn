@@ -1,0 +1,57 @@
+schema: tolearn/state/1
+program: 3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84
+workdir: /Users/learner/practice/chiptune
+stages:
+  envelope:
+    opened: 2026-09-15
+    passed:
+      "on": 2026-09-16
+      by: skip
+    attempts:
+      - "on": 2026-09-16
+        by: copypaste
+        per_question:
+          - id: q1
+            result: miss
+            missed:
+              - весь ответ
+  voices:
+    opened: 2026-09-13
+    passed:
+      "on": 2026-09-14
+      by: exam
+    ticks:
+      - c1
+      - a1
+    answers:
+      q1: |-
+        Два импульсных канала,
+        треугольник и шум.
+      q2: Огибающая.
+    attempts:
+      - "on": 2026-09-14
+        by: written
+        model: claude-opus-5
+        per_question:
+          - id: q1
+            result: partial
+            missed:
+              - канал DPCM
+          - id: q2
+            result: ok
+            missed: []
+clarifications:
+  - stage: voices
+    block: 1a2b3c4d
+    excerpt: Звуковой чип NES
+    turns:
+      - asked: Что такое скважность?
+        answer: "Доля периода, когда сигнал высокий."
+      - answer: "Иначе: сколько времени из такта звучит «верх»."
+    clear: true
+  - stage: envelope
+    block: 5e6f7a8b-2
+    excerpt: Громкость спадает
+    turns:
+      - answer: Каждый кадр счётчик уменьшает громкость на единицу.
+    clear: false

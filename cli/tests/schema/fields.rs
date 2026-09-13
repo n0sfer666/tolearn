@@ -7,6 +7,7 @@ const LISTS: [(&str, &[(&str, &str)]); 1] = [(
     &[
         ("## program.yaml", "program"),
         ("## stages/*.yaml", "stage"),
+        ("## state.yaml", "state"),
     ],
 )];
 
