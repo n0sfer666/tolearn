@@ -210,6 +210,53 @@ cacheCreationInputTokens + cacheReadInputTokens` **по всем моделям*
 не для красоты: тест-файлы поднимают `astro build` в общий `dist/`, и два
 параллельных прогона роняют сборку друг другу.
 
+## Стенд экранов
+
+`make stand` (`scripts/stand.sh`, S146) поднимает связку «живое ядро +
+браузер» одной командой: мост `app/examples/bridge.rs` на `127.0.0.1:4319` и
+`astro dev` на `localhost:4321`. `XDG_CONFIG_HOME` и `XDG_DATA_HOME` смотрят в
+`$TMPDIR/tolearn-stand.*`, настоящий `<data>` стенд не видит. Программы
+chiptune и nes-dev пакуются `tolearn pack` и ставятся импортом через мост, как
+их ставит человек; состояние кладётся из `fixtures/v2/stand/`: этап начат, с
+незачтённым вопросом в попытке и врезкой уточнения, пройден со сданным зачётом
+и пройден с пропуском. Провайдера нет: генерация отказывает с причиной, чтение
+работает.
+
+Занятый 4319 или 4321 — отказ до сборки. Ctrl+C гасит мост и astro со всеми
+дочерними процессами и убирает каталог стенда. Лог astro — `ui.log` в каталоге
+стенда, мост печатает каждый вызов в терминал (`ок  stage`, `НЕТ plan_program:
+…`). Снимки — `scripts/shot.sh` из соседнего терминала
+([testing.md](testing.md#стенд-для-живой-проверки-t3)).
+
+Ожидаемый вывод после сборки:
+
+```
+стенд: /var/folders/…/T/tolearn-stand.XXXXXX
+мост: http://127.0.0.1:4319
+конфиг: /var/folders/…/T/tolearn-stand.XXXXXX/config/tolearn
+данные: /var/folders/…/T/tolearn-stand.XXXXXX/data/tolearn
+ок  import_package
+ок  import_package
+экраны:
+  библиотека        http://localhost:4321/ru/
+  программа         http://localhost:4321/ru/program/?program=3f6c2a1e-…
+  этап: начат       http://localhost:4321/ru/stage/?program=3f6c2a1e-…&stage=voices
+  развилка          http://localhost:4321/ru/next/?program=3f6c2a1e-…&stage=voices
+  ветка nes-dev     http://localhost:4321/ru/program/?program=7a1d4e90-…&node=e4c90b7a-…
+  этап: зачёт сдан  http://localhost:4321/ru/stage/?program=7a1d4e90-…&node=e4c90b7a-…&stage=first-rom
+  этап: пропущен    http://localhost:4321/ru/stage/?program=7a1d4e90-…&node=e4c90b7a-…&stage=linker
+  новая программа   http://localhost:4321/ru/new/
+  поиск             http://localhost:4321/ru/search/
+  настройки         http://localhost:4321/ru/settings/
+снимок: SHOT_THEME=dark sh scripts/shot.sh '/ru/settings/' shot.png
+Ctrl+C гасит мост и astro
+```
+
+Дальше мост печатает вызовы экранов; генерация без провайдера даёт `НЕТ
+plan_program: {"code":"provider.disabled","message":"провайдер выключен"}`.
+После Ctrl+C — `стенд погашен`, код выхода 130, ни моста, ни node, ни esbuild
+стенда в `pgrep`, порты 4319 и 4321 свободны.
+
 ## Токены
 
 `ui/scripts/tokens.mjs` читает `docs/design/tokens.css` напрямую (копии в `ui/`

@@ -1,0 +1,27 @@
+schema: tolearn/state/1
+program: 7a1d4e90-2c3b-4f58-8d6e-1b9a0c5e7f23
+stages:
+  e4c90b7a-15f2-4d6e-8b38-0a2c6f9d1e47/first-rom:
+    opened: 2026-09-09
+    passed:
+      "on": 2026-09-10
+      by: exam
+    ticks:
+      - c1
+      - a1
+    answers:
+      q1: По нему эмулятор узнаёт маппер и размеры банков.
+    attempts:
+      - "on": 2026-09-10
+        by: written
+        model: claude-opus-5
+        per_question:
+          - id: q1
+            result: ok
+            missed: []
+  e4c90b7a-15f2-4d6e-8b38-0a2c6f9d1e47/linker:
+    opened: 2026-09-10
+    passed:
+      "on": 2026-09-11
+      by: skip
+clarifications: []

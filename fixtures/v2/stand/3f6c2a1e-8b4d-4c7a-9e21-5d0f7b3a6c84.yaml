@@ -1,0 +1,38 @@
+schema: tolearn/state/1
+program: 3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84
+stages:
+  3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84/voices:
+    opened: 2026-09-11
+    ticks:
+      - c1
+    answers:
+      q1: |-
+        Пять: два импульсных для мелодии,
+        треугольный для баса, шумовой для ударных
+        и DPCM для сэмплов.
+      q2: Потому что громкость у них одна.
+    attempts:
+      - "on": 2026-09-12
+        by: written
+        model: claude-opus-5
+        per_question:
+          - id: q1
+            result: ok
+            missed: []
+          - id: q2
+            result: miss
+            missed:
+              - волна 75 % — перевёрнутая волна 25 %
+          - id: q3
+            result: ok
+            missed: []
+          - id: q4
+            result: ok
+            missed: []
+clarifications:
+  - stage: 3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84/voices
+    block: 874672f8
+    excerpt: APU
+    turns:
+      - answer: "Звуковой блок внутри 2A03: он сам считает волны пяти каналов, процессору остаётся писать в его регистры."
+    clear: true

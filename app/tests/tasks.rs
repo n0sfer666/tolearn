@@ -32,6 +32,7 @@ fn обе_цели_зовут_существующие_скрипты() {
     for (target, script) in [
         ("dev:", "scripts/check.sh"),
         ("install:", "scripts/install-macos.sh"),
+        ("stand:", "scripts/stand.sh"),
     ] {
         assert!(makefile.contains(target), "в Makefile нет цели `{target}`");
         assert!(
@@ -82,6 +83,7 @@ fn цели_описаны_в_документации() {
     for (page, mention) in [
         (".context/checks.md", "make dev"),
         (".context/checks.md", "make install"),
+        (".context/checks.md", "make stand"),
         ("docs/ru/install/source.md", "make install"),
         ("docs/en/install/source.md", "make install"),
         ("CLAUDE.md", "make dev"),

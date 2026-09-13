@@ -4,6 +4,7 @@ use super::{programs, yaml};
 use crate::repo::{read, root};
 
 const STATES: &str = "fixtures/v2/states";
+const STAND: &str = "fixtures/v2/stand";
 
 pub fn document(path: &str) -> Value {
     yaml::load(&read(path), path)
@@ -23,7 +24,7 @@ pub fn listed(relative: &str) -> Vec<String> {
 
 pub fn valid_documents(kind: &str) -> Vec<(String, Value)> {
     let paths = match kind {
-        "state" => listed(STATES),
+        "state" => [listed(STATES), listed(STAND)].concat(),
         _ => programs::documents(kind),
     };
     paths
