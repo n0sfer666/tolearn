@@ -1,3 +1,4 @@
+use super::clarified::ClarificationView;
 use super::dto::dto;
 use super::shape::Shape;
 use super::types::Span;
@@ -83,6 +84,7 @@ dto!(StageOut {
     questions: Vec<AskView>,
     ticks: Vec<String>,
     workdir: Option<String>,
+    clarifications: Vec<ClarificationView>,
 });
 dto!(BlockView {
     id: String,

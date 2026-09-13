@@ -10,6 +10,7 @@ pub enum Step {
     Diagrams,
     Write,
     Exam,
+    Clarify,
 }
 
 impl Step {
@@ -25,6 +26,7 @@ impl Step {
             Self::Diagrams => "diagrams",
             Self::Write => "write",
             Self::Exam => "exam",
+            Self::Clarify => "clarify",
         }
     }
 }

@@ -2,6 +2,7 @@ import { For, Show, createSignal, onMount } from "solid-js";
 
 import Regenerate from "../components/generate/Regenerate";
 import Block from "../components/reading/Block";
+import Clarify from "../components/reading/Clarify";
 import Empty from "../components/reading/Empty";
 import Exam from "../components/reading/Exam";
 import Practice from "../components/reading/Practice";
@@ -113,7 +114,25 @@ export default function Stage(props: Props) {
           <h2 data-stage-title>{out().title}</h2>
           <div data-stage-body>
             <For each={out().blocks}>
-              {(block) => <Block block={block} text={props.text} words={words()} copy={props.copy} />}
+              {(block) => (
+                <>
+                  <Block block={block} text={props.text} words={words()} copy={props.copy} />
+                  <Show when={block.kind !== "heading"}>
+                    <Clarify
+                      text={props.text}
+                      locale={props.locale}
+                      call={call()}
+                      listen={props.steps ?? steps}
+                      at={at(out())}
+                      block={block}
+                      chains={out().clarifications.filter((chain) => chain.block === block.id)}
+                      words={words()}
+                      copy={props.copy}
+                      changed={(clarifications) => setView({ ...out(), clarifications })}
+                    />
+                  </Show>
+                </>
+              )}
             </For>
           </div>
           <Practice practice={out().practice} desk={bench(out)} text={props.text} words={words()} copy={props.copy} />

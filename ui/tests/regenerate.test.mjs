@@ -42,6 +42,7 @@ const OUT = {
   questions: [],
   ticks: [],
   workdir: null,
+  clarifications: [],
 };
 const AGAIN = { ...OUT, blocks: [paragraph("Новый текст этапа")] };
 const focused = () => window.document.activeElement;

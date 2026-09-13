@@ -19,6 +19,7 @@ pub fn named(step: Step) -> String {
         Step::Diagrams => "схемы".to_owned(),
         Step::Write => "запись".to_owned(),
         Step::Exam => "зачёт".to_owned(),
+        Step::Clarify => "уточнение".to_owned(),
     }
 }
 

@@ -51,4 +51,5 @@ rm -rf ~/.config/tolearn ~/.local/share/tolearn
 | [bundle/03-search.md](bundle/03-search.md) | поиск по этапам библиотеки: этап, фрагмент с прокруткой, подпрограмма, без сети, старый индекс |
 | [generate/01-cli.md](generate/01-cli.md) | `tolearn new` и `tolearn next` на живом провайдере: шаги, развилка, выбор, пакет, отказы |
 | [generate/02-new-program-screen.md](generate/02-new-program-screen.md) | экран «Новая программа», шаги и отмена, «Что дальше», перегенерация этапа, отказы, обе темы |
+| [generate/03-clarify.md](generate/03-clarify.md) | «Уточнить» у блока этапа: цепочка «понятно?», новая цепочка, «Убрать», отказ без сети, шаг `clarify` в журнале |
 | [platform/01-restart-state.md](platform/01-restart-state.md) | настройки, тема, язык и список программ после перезапуска |

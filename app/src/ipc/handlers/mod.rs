@@ -1,6 +1,7 @@
 pub mod answer;
 pub mod cancel_generation;
 pub mod check_claim;
+pub mod clarify;
 pub mod exam;
 pub mod exam_paste;
 pub mod exam_prompt;
@@ -24,4 +25,6 @@ pub mod stage;
 pub mod start_program;
 pub mod take_next;
 pub mod tick;
+pub mod unclarify;
+pub mod understood;
 pub mod workdir;

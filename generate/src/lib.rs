@@ -2,12 +2,14 @@ mod build;
 mod error;
 mod gate;
 mod halt;
+mod latest;
 mod located;
 mod model;
 mod object;
 mod progress;
 mod step;
 
+pub mod clarify;
 pub mod diagram;
 pub mod exam;
 pub mod fork;

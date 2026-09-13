@@ -58,3 +58,32 @@ button[data-snip]:hover {
 [data-rich-code]:hover {
   border-color: var(--color-border-strong);
 }
+
+[data-clarify] {
+  display: grid;
+  gap: var(--spacing-2);
+  justify-items: start;
+}
+
+[data-chain] {
+  display: grid;
+  gap: var(--spacing-2);
+  justify-self: stretch;
+}
+
+aside[data-clarified] {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-inline-start: var(--focus-ring) solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-bg);
+}
+
+[data-asked] {
+  color: var(--color-fg-muted);
+}
+
+[data-asking] {
+  display: grid;
+  gap: var(--spacing-2);
+  justify-self: stretch;
+}

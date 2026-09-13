@@ -237,6 +237,7 @@ export type StageOut = {
   questions: AskView[];
   ticks: string[];
   workdir: string | null;
+  clarifications: ClarificationView[];
 };
 
 export type BlockView = {
@@ -465,6 +466,39 @@ export type SkipOut = {
   skipped: boolean;
 };
 
+export type ClarifyIn = {
+  program: string;
+  node: string;
+  stage: string;
+  block: string;
+  question: string;
+  chain: number | null;
+};
+
+export type ChainIn = {
+  program: string;
+  node: string;
+  stage: string;
+  chain: number;
+};
+
+export type ClarificationsOut = {
+  clarifications: ClarificationView[];
+};
+
+export type ClarificationView = {
+  chain: number;
+  block: string;
+  excerpt: string;
+  turns: TurnView[];
+  clear: boolean;
+};
+
+export type TurnView = {
+  asked: string | null;
+  answer: string;
+};
+
 export type Commands = {
   export: { input: ExportIn; output: ExportOut };
   settings: { input: SettingsIn; output: SettingsView };
@@ -493,6 +527,9 @@ export type Commands = {
   exam_prompt: { input: ExamIn; output: ExamPromptOut };
   exam_paste: { input: ExamPasteIn; output: ExamOut };
   skip: { input: StageIn; output: SkipOut };
+  clarify: { input: ClarifyIn; output: ClarificationsOut };
+  understood: { input: ChainIn; output: ClarificationsOut };
+  unclarify: { input: ChainIn; output: ClarificationsOut };
 };
 
 export type CommandName = keyof Commands;

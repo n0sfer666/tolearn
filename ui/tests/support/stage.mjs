@@ -50,6 +50,7 @@ export const OUT = {
   ],
   ticks: [],
   workdir: null,
+  clarifications: [],
 };
 
 export function stageScreen() {

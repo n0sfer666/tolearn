@@ -35,6 +35,7 @@ pub enum GenerateError {
     Next(NextError),
     Regenerate(RegenerateError),
     Verdict(VerdictError),
+    Unclear,
 }
 
 impl GenerateError {
@@ -52,6 +53,7 @@ impl GenerateError {
             Self::Next(error) => error.code(),
             Self::Regenerate(error) => error.code(),
             Self::Verdict(_) => "generate.verdict",
+            Self::Unclear => "generate.unclear",
         }
     }
 }
@@ -87,6 +89,7 @@ impl fmt::Display for GenerateError {
                 out,
                 "модель не прислала годный вердикт и после починки: {error}"
             ),
+            Self::Unclear => write!(out, "модель прислала пустое объяснение"),
         }
     }
 }
@@ -100,7 +103,8 @@ impl std::error::Error for GenerateError {
             | Self::StageHours { .. }
             | Self::Unfit { .. }
             | Self::Cancelled
-            | Self::Unwritten(_) => None,
+            | Self::Unwritten(_)
+            | Self::Unclear => None,
             Self::Provider(error) => Some(error),
             Self::Library(error) => Some(error),
             Self::Next(error) => Some(error),

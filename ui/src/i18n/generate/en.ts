@@ -30,6 +30,8 @@ export const generate: Dictionary["generate"] = {
   stepDiagrams: "Drawing the diagrams",
   stepWrite: "Saving the stage",
   stepExam: "Checking the answers",
+  stepClarify: "Explaining it another way",
+  unclear: "The model sent an empty explanation — try again.",
   regenerate: "Regenerate the stage",
   regenerated: "Stage regenerated",
   unread: "The stage was regenerated but could not be shown — open it again.",

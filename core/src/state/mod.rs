@@ -1,7 +1,9 @@
 mod attempt;
 mod choices;
+mod clarified;
 mod draft;
 mod error;
+mod excerpt;
 mod key;
 mod lapse;
 mod parse;
@@ -15,6 +17,7 @@ mod types;
 
 pub use choices::{Grade, Pass, Sitting};
 pub use error::StateError;
+pub use excerpt::{EXCERPT_CHARS, excerpt};
 pub use key::key;
 pub use lapse::Lapse;
 pub use parse::parse;

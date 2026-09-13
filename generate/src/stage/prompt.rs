@@ -100,6 +100,20 @@ pub(super) fn rules(place: &Place<'_>) -> String {
 }
 
 pub(super) fn whereabouts(place: &Place<'_>) -> String {
+    let order = if place.first() {
+        "Это первый этап: ученик ещё ничего не знает."
+    } else {
+        "Этапы выше ученик уже прошёл — не повторяй их."
+    };
+    format!(
+        "{}\n\nЭтап «{}» занимает {} ч вместе с практикой. {order}",
+        situated(place),
+        place.row.title,
+        span(place.row.hours)
+    )
+}
+
+pub(crate) fn situated(place: &Place<'_>) -> String {
     let program = place.program;
     let rows: Vec<String> = program
         .map
@@ -117,19 +131,12 @@ pub(super) fn whereabouts(place: &Place<'_>) -> String {
             )
         })
         .collect();
-    let order = if place.first() {
-        "Это первый этап: ученик ещё ничего не знает."
-    } else {
-        "Этапы выше ученик уже прошёл — не повторяй их."
-    };
     format!(
-        "Программа: {}\nЦель: {}\nУровень ученика: {}\n\nКарта, текущий этап отмечен стрелкой:\n{}\n\nЭтап «{}» занимает {} ч вместе с практикой. {order}",
+        "Программа: {}\nЦель: {}\nУровень ученика: {}\n\nКарта, текущий этап отмечен стрелкой:\n{}",
         program.title,
         program.goal,
         program.level,
-        rows.join("\n"),
-        place.row.title,
-        span(place.row.hours)
+        rows.join("\n")
     )
 }
 

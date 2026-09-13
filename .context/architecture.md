@@ -361,6 +361,9 @@ S37. Общие для обоих окон `on_main` и `answer` лежат в `
   префиксу, `sealed`, подмена) и `build::settled` (убрать `build/`, журнал).
   Отказы — `RegenerateError` (`regenerate.*`) до модели. В приложении —
   `regenerate_stage` (`app/src/ipc/regenerated.rs`).
+- «Уточнить» (S139) — `generate::clarify` строит промпт из блока, места этапа
+  (`stage::prompt::situated`), цепочки и вопроса; `app::ipc::clarifying::chained`
+  общий для `understood` и `unclarify`; цепочки лежат в `State.clarifications`.
 - Незачтённое в развилку и следующий этап (S138) — `State::lapses(&Tree)`
   собирает `Lapse {stage, question, missed}` по последним попыткам этапов
   дерева в порядке `every_stage`; `generate::unpassed::block` делает из них

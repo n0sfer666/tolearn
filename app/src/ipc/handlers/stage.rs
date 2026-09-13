@@ -6,6 +6,7 @@ use tolearn_core::program::Tree;
 use tolearn_core::stage::{Check, Question};
 use tolearn_core::state::{Attempt, State};
 
+use crate::ipc::clarifying::views;
 use crate::ipc::clock;
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
@@ -25,7 +26,7 @@ pub fn run(context: &Context, input: &StageIn) -> Result<StageOut, IpcError> {
     })?;
     let today = tolearn_generate::start::day(clock::now());
     let node = &branch.tree.program.uuid;
-    let (ticks, workdir, last, drafts) =
+    let (ticks, workdir, last, drafts, clarifications) =
         State::update(context.data(), &tree.program.uuid, |state| {
             state.open(node, &stage.id, &today);
             (
@@ -33,6 +34,7 @@ pub fn run(context: &Context, input: &StageIn) -> Result<StageOut, IpcError> {
                 state.workdir.clone(),
                 state.last_attempt(node, &stage.id).cloned(),
                 state.drafts(node, &stage.id),
+                views(state, node, &stage.id),
             )
         })?;
     let view = |block: &Block| viewed(&library, &tree, &branch.prefix, block);
@@ -61,6 +63,7 @@ pub fn run(context: &Context, input: &StageIn) -> Result<StageOut, IpcError> {
             .collect(),
         ticks,
         workdir,
+        clarifications,
     })
 }
 

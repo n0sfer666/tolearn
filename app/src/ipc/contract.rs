@@ -1,5 +1,6 @@
 use serde_json::Value;
 
+use super::clarified;
 use super::context::Context;
 use super::error::IpcError;
 use super::examined;
@@ -74,6 +75,9 @@ commands! {
     exam_prompt(examined::ExamIn) -> examined::ExamPromptOut,
     exam_paste(examined::ExamPasteIn) -> examined::ExamOut,
     skip(reading::StageIn) -> examined::SkipOut,
+    clarify(clarified::ClarifyIn) -> clarified::ClarificationsOut,
+    understood(clarified::ChainIn) -> clarified::ClarificationsOut,
+    unclarify(clarified::ChainIn) -> clarified::ClarificationsOut,
 }
 
 #[tauri::command]

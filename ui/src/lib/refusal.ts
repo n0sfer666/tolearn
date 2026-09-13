@@ -17,6 +17,8 @@ function known(text: Dictionary): ReadonlyMap<string, string> {
     ["generate.busy", text.generate.busy],
     ["generate.offline", text.generate.offline],
     ["exam.empty", text.stage.blank],
+    ["generate.unclear", text.generate.unclear],
+    ["clarification.absent", text.stage.clarifyGone],
   ]);
 }
 

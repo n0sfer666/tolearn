@@ -23,6 +23,7 @@ pub use flaw::Flaw;
 pub use gather::gather;
 pub use gathered::{Chaptered, Dropped, Gathered, Visited};
 pub use place::Place;
+pub(crate) use prompt::situated;
 pub use rules::invariants;
 pub use text::text;
 
