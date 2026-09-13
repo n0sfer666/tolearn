@@ -1,0 +1,79 @@
+[data-progress] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-3);
+  max-width: var(--measure);
+  margin-block: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border: var(--border-width) solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: var(--color-accent-bg);
+}
+
+[data-progress] [data-step] {
+  flex: 1 1 auto;
+  margin: 0;
+}
+
+[data-intent],
+[data-plan-tools] {
+  margin-block: var(--spacing-4);
+}
+
+[data-plan-map] > ol,
+[data-plan-map] > ul,
+ul[data-variants] {
+  display: grid;
+  gap: var(--spacing-2);
+  margin: 0 0 var(--spacing-4);
+  padding: 0;
+  list-style: none;
+}
+
+li[data-plan-stage],
+li[data-plan-part],
+li[data-variant] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2) var(--spacing-3);
+  max-width: none;
+  margin: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-raised);
+}
+
+li[data-plan-stage] > span:first-child,
+:is(li[data-plan-part], li[data-variant]) > strong {
+  flex: 1 1 auto;
+}
+
+:is(li[data-plan-part], li[data-variant]) > p {
+  flex: 0 0 100%;
+  max-width: none;
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+li[data-recommended] {
+  border-color: var(--color-accent);
+  background: var(--color-accent-bg);
+}
+
+li[data-variant] > button {
+  margin-inline-start: auto;
+}
+
+footer[data-stage-end] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  margin-block-start: var(--spacing-6);
+  padding-block-start: var(--spacing-4);
+  border-block-start: var(--border-width) solid var(--color-border);
+}

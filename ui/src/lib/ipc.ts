@@ -1,10 +1,12 @@
-import type { CommandName, Commands } from "../ipc";
+import type { CommandName, Commands, GenerationStep } from "../ipc";
 import { explain, toast } from "./toast";
 
 export type Transport = <Name extends CommandName>(
   name: Name,
   payload: Commands[Name]["input"],
 ) => Promise<Commands[Name]["output"]>;
+
+export type Listen = (handler: (step: GenerationStep) => void) => () => void;
 
 const BRIDGE = "http://127.0.0.1:4319";
 
@@ -25,6 +27,17 @@ export const quiet: Transport = async (name, payload) => {
   if (import.meta.env.DEV && !shell()) return bridged(name, payload);
   const { invoke } = await import("@tauri-apps/api/core");
   return invoke("command", { name, payload });
+};
+
+const heard = async (handler: (step: GenerationStep) => void): Promise<() => void> => {
+  const { listen } = await import("@tauri-apps/api/event");
+  return listen<GenerationStep>("generation-step", (event) => handler(event.payload));
+};
+
+export const steps: Listen = (handler) => {
+  if (!shell()) return () => undefined;
+  const held = heard(handler).catch(() => () => undefined);
+  return () => void held.then((stop) => stop());
 };
 
 export const transport: Transport = async (name, payload) => {

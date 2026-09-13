@@ -1,3 +1,4 @@
+import { generate } from "./generate/en.ts";
 import type { Dictionary } from "./ru.ts";
 
 export const en: Dictionary = {
@@ -13,6 +14,8 @@ export const en: Dictionary = {
     search: "Search",
     back: "Back",
     sections: "Sections",
+    new: "New program",
+    next: "What next",
   },
   programs: {
     import: "Import",
@@ -80,6 +83,7 @@ export const en: Dictionary = {
     manual: "clipboard unavailable — select the text and copy it by hand",
     snip: "Copy",
   },
+  generate,
   search: {
     lead: "Searches the stages of every program in the library.",
     placeholder: "What to look for",

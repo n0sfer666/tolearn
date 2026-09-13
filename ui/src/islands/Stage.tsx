@@ -1,5 +1,6 @@
 import { For, Show, createSignal, onMount } from "solid-js";
 
+import Regenerate from "../components/generate/Regenerate";
 import Block from "../components/reading/Block";
 import Empty from "../components/reading/Empty";
 import Practice from "../components/reading/Practice";
@@ -9,10 +10,11 @@ import type { Copier, Words } from "../components/rich/Snip";
 import type { Dictionary } from "../i18n/ru";
 import type { StageOut } from "../ipc";
 import { reveal } from "../lib/anchor";
-import { quiet } from "../lib/ipc";
-import type { Transport } from "../lib/ipc";
-import { nodeHref } from "../lib/links";
+import { quiet, steps } from "../lib/ipc";
+import type { Listen, Transport } from "../lib/ipc";
+import { nextHref, nodeHref } from "../lib/links";
 import { query } from "../lib/query";
+import { toast } from "../lib/toast";
 import { told } from "../lib/told";
 
 interface Props {
@@ -22,6 +24,7 @@ interface Props {
   node?: string;
   stage?: string;
   call?: Transport;
+  steps?: Listen;
   copy?: Copier;
 }
 
@@ -46,19 +49,31 @@ export default function Stage(props: Props) {
   const [view, setView] = createSignal<StageOut | null>(null);
   const [gone, setGone] = createSignal<string | null>(null);
 
+  const fetched = () => call()("stage", { program: program(), node: node(), stage: id() });
+
+  const load = async () => {
+    try {
+      setView(await fetched());
+      reveal();
+    } catch (failure) {
+      setGone(told(failure, missing()) || props.text.stage.none);
+    }
+  };
+
+  const reload = async () => {
+    try {
+      setView(await fetched());
+    } catch {
+      toast("error", props.text.generate.unread);
+    }
+  };
+
   onMount(() => {
     if (program() === "" || id() === "") {
       setGone(props.text.stage.none);
       return;
     }
-    void (async () => {
-      try {
-        setView(await call()("stage", { program: program(), node: node(), stage: id() }));
-        reveal();
-      } catch (failure) {
-        setGone(told(failure, missing()) || props.text.stage.none);
-      }
-    })();
+    void load();
   });
 
   const up = (out: StageOut) => [
@@ -98,6 +113,21 @@ export default function Stage(props: Props) {
               </ol>
             </section>
           </Show>
+          <footer data-stage-end>
+            <nav data-tools aria-label={props.text.generate.tools}>
+              <a href={nextHref(props.locale, out().program, out().node, out().id)} data-next>
+                {props.text.generate.skip}
+              </a>
+            </nav>
+            <Regenerate
+              text={props.text}
+              locale={props.locale}
+              call={call()}
+              listen={props.steps ?? steps}
+              at={{ program: out().program, node: out().node, stage: out().id }}
+              done={() => void reload()}
+            />
+          </footer>
         </article>
       )}
     </Show>

@@ -1,0 +1,19 @@
+---
+import { LOCALES, localeOf, strings } from "../../../i18n";
+import New from "../../../islands/New";
+import Base from "../../../layouts/Base.astro";
+
+export function getStaticPaths() {
+  return LOCALES.map((locale) => ({ params: { locale } }));
+}
+
+const locale = localeOf(Astro.params.locale);
+const text = strings(locale);
+---
+
+<Base locale={locale} title={text.nav.new} back={{ href: "/", text: text.nav.programs }}>
+  <section id="new" aria-label={text.nav.new}>
+    <p>{text.generate.lead}</p>
+    <New client:load text={text} locale={locale} />
+  </section>
+</Base>

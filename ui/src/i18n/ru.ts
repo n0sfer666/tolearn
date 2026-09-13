@@ -1,3 +1,5 @@
+import { generate } from "./generate/ru.ts";
+
 export const ru = {
   app: "tolearn",
   language: { ru: "Русский", en: "English", switch: "Язык" },
@@ -11,6 +13,8 @@ export const ru = {
     search: "Поиск",
     back: "Назад",
     sections: "Разделы",
+    new: "Новая программа",
+    next: "Что дальше",
   },
   programs: {
     import: "Импорт",
@@ -78,6 +82,7 @@ export const ru = {
     manual: "буфер недоступен — выделите текст и скопируйте вручную",
     snip: "Скопировать",
   },
+  generate,
   search: {
     lead: "Ищет по этапам всех программ библиотеки.",
     placeholder: "Что искать",

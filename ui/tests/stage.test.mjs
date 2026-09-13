@@ -172,7 +172,11 @@ test("практика и вопросы читаются без запуска 
     [...host.querySelectorAll("[data-question]")].map((node) => node.id),
     ["q1", "q2"],
   );
-  assert.equal(host.querySelectorAll("button:not([data-snip]), textarea").length, 0, "появился запуск или ответ");
+  assert.equal(
+    host.querySelectorAll("button:not([data-snip], [data-regenerate]), textarea").length,
+    0,
+    "появился запуск или ответ",
+  );
 });
 
 test("Esc уводит к узлу этапа, а на вложенном узле — к подпрограмме", async () => {

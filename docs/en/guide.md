@@ -7,21 +7,28 @@ The short version of how to use the app. For installation see
 
 ## Getting started
 
-1. Take a ready learning program — a `.tolearn` file. You can build one from a
-   program folder with `tolearn pack`, for example from
+1. In the library press "New program", describe what you want to learn and what
+   you come with, and press "Draw the map". Refine the map with a wish as many
+   times as you like; "Start" creates the program with its first stage and opens
+   it. Generation needs the network and a model provider from Settings.
+2. Or take a ready program — a `.tolearn` file. You can build one from a program
+   folder with `tolearn pack`, for example from
    [`examples/chiptune`](../../examples/chiptune); the CLI is built from source
-   ([install/source.md](install/source.md)). Generating a program inside the app
-   is removed for now and will come back one stage at a time.
-2. Drop the file onto the home screen or pick it with the button. The app checks
-   the package and names the reason if it refuses it.
-3. Open the program, then a stage, and start.
+   ([install/source.md](install/source.md)). Drop the file onto the home screen
+   or pick it with the button: the app checks the package and names the reason
+   if it refuses it.
+3. Open the program, then a stage, and start. The next stage is created one at a
+   time: at the end of a stage "Skip the check" opens the choices of where to go
+   next.
 
 ## Screens
 
 | Screen | What for |
 |---|---|
+| New program | the request and level, the map to confirm, the current generation step and "Cancel" |
 | Program | the goal, the map, stages and subprograms |
-| Stage | the stage text, practice and questions to read |
+| Stage | the stage text, practice and questions to read; "Regenerate the stage" explains it differently, the old text stays until the end |
+| What next | the choices for the next stage, the recommended one marked; a choice creates the stage and opens it |
 | Search | across the stages of every program in the library; a hit opens the stage at the right spot |
 | Settings | language, LLM provider, disk budget |
 
