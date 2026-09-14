@@ -69,6 +69,12 @@ compression in the binary nor the package's xz shrinks it (`xz -9e` gives
 223,584 bytes), so every installer grows by about 0.22 MB. The Linux `.deb`
 keeps about 0.2 MB below its 14 MB ceiling.
 
+The `release` profile now builds with `lto = true` and `codegen-units = 1`. The
+macOS arm64 binary went from 20,183,040 to 16,808,096 bytes, and from 5,411,104
+to 5,014,556 bytes after `xz -9e`, so about 0.38 MB less. The `.deb` is
+compressed with the same xz, so its headroom should grow to about 0.6 MB; the
+next `package` run will give the Linux x64 number.
+
 The base variant's ceilings are [budgets](../architecture.md#бюджеты) (in
 Russian), and going over one fails the build. `-with-speech` has no installer
 ceiling: its weight is set by the model weights, which have a budget of their own
