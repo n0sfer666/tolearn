@@ -4,6 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
+import { carried, carriers } from "../scripts/carriers.mjs";
 import { blocks, declarations } from "../scripts/css.mjs";
 import { parts, targets } from "../scripts/targets.mjs";
 import { read, styles, tokens, values } from "../scripts/tokens.mjs";
@@ -141,9 +142,24 @@ test("кнопка ниже цели касания без зоны ::after ло
   assert.deepEqual(targets([{ file: "c.css", source: ':where(input[type="checkbox"]) { min-height: auto }' }]), []);
 });
 
+test("кнопка, стилизованная одним data-атрибутом, узнаётся по разметке", () => {
+  const markup = [
+    '<button\n  type="button"\n  onClick={() => go(1 > 0)}\n  data-close\n>x</button>',
+    '<a href="/" data-home>h</a><summary data-more>s</summary>',
+    "<abbr data-short>a</abbr><div data-plain />",
+  ].join("\n");
+  const found = carried(markup);
+  const lowered = { file: "a.css", source: "[data-close] { min-height: 0 }" };
+
+  assert.deepEqual([...found].sort(), ["data-close", "data-home", "data-more"]);
+  assert.equal(targets([lowered], found).length, 1);
+  assert.deepEqual(targets([lowered]), []);
+  assert.deepEqual(targets([{ file: "b.css", source: "[data-plain] { min-height: 0 }" }], found), []);
+});
+
 test("стили приложения держат цель касания", async () => {
   const sheets = (await styles()).map((file) => ({ file: path.relative(UI, file), source: readFileSync(file, "utf8") }));
-  const problems = targets(sheets);
+  const problems = targets(sheets, await carriers(path.join(UI, "src")));
 
   assert.deepEqual(problems, [], problems.map(({ message }) => message).join("\n"));
 });

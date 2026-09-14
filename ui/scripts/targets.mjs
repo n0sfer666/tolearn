@@ -22,7 +22,11 @@ export function parts(selector) {
   return found;
 }
 
-export function targets(sheets) {
+function interactive(part, carried) {
+  return ELEMENT.test(part) || [...part.matchAll(/\[(data-[\w-]+)/g)].some(([, name]) => carried.has(name));
+}
+
+export function targets(sheets, carried = new Set()) {
   const lowered = [];
   const covered = new Set();
 
@@ -35,7 +39,7 @@ export function targets(sheets) {
       for (const part of parts(selector)) {
         const area = part.match(AREA);
         if (area && tapped("min-inline-size") && tapped("min-block-size")) covered.add(area[1]);
-        if (!area && floored && ELEMENT.test(part)) lowered.push({ part, file });
+        if (!area && floored && interactive(part, carried)) lowered.push({ part, file });
       }
     }
   }

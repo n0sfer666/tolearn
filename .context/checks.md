@@ -267,7 +267,9 @@ plan_program: {"code":"provider.disabled","message":"провайдер выкл
 (hex, `px`, брейкпойнт кроме объявленных, `outline: none` без замены; размер,
 семейство и интерлиньяж не токеном, шорткат `font`, время в движении и движение
 вне `prefers-reduced-motion: no-preference` — `typeset.mjs`; кнопка ниже
-`--tap-target` без зоны `::after` — `targets.mjs`; шкалу, меру, длительность и
+`--tap-target` без зоны `::after` — `targets.mjs`, кнопка узнаётся по тегу в
+селекторе или по `data-*`, который в разметке несёт `a`/`button`/`summary`
+(`carriers.mjs`); шкалу, меру, длительность и
 цель касания самих токенов держит `ui/tests/typography.test.mjs`) и контраст
 WCAG — 4.5:1 для текста, 3:1 для `--color-border-strong` и `--color-focus`, на
 обеих темах и всех трёх поверхностях. `light-dark()` разбирается по веткам:

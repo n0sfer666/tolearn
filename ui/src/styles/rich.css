@@ -66,9 +66,12 @@ button[data-snip]:hover {
 }
 
 [data-chain] {
+  justify-self: stretch;
+}
+
+[data-chain][open] {
   display: grid;
   gap: var(--spacing-2);
-  justify-self: stretch;
 }
 
 aside[data-clarified] {

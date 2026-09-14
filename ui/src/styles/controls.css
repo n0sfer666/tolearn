@@ -184,7 +184,8 @@ button[data-toast-close] {
 
 button[data-hint-open]::after,
 button[data-snip]::after,
-button[data-toast-close]::after {
+button[data-toast-close]::after,
+summary::after {
   content: "";
   position: absolute;
   inset: min(0%, (100% - var(--tap-target)) / 2);

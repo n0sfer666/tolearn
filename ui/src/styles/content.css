@@ -24,6 +24,8 @@ details {
 }
 
 summary {
+  position: relative;
+  min-height: auto;
   color: var(--color-fg-muted);
   cursor: pointer;
 }

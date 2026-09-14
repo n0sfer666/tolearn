@@ -62,7 +62,12 @@
   - время в `transition` и `animation`;
   - движение вне `@media (prefers-reduced-motion: no-preference)`.
 
-  Кнопка меньше `--tap-target` получает зону `::after`.
+  Кнопка меньше `--tap-target` получает зону `::after`. Кнопкой линт считает
+  `a`, `button` и `summary` в селекторе и любой `data-*`, который в разметке
+  `.tsx`/`.astro` стоит на таком теге. `summary` набрана высотой строки, 44 px
+  ей даёт зона.
+- Сетка и flex у `details` — только при `[open]`: закрытый `details` иначе
+  держит место под спрятанное содержимое (`ui/tests/details.test.mjs`).
 - Именование токенов: шкала — семейство с префиксом (`--color-*`, `--spacing-*`,
   `--font-size-*`, `--radius-*`, `--z-*`, `--breakpoint-*`); одиночный токен —
   одно слово по смыслу (`--measure`, `--duration`). Семейство заводится, когда

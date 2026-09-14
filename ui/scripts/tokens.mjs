@@ -3,6 +3,7 @@ import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { carriers } from "./carriers.mjs";
 import { blocks, declarations } from "./css.mjs";
 import { ratio, themes } from "./contrast.mjs";
 import { targets } from "./targets.mjs";
@@ -186,7 +187,7 @@ export async function lint() {
     source: style(readFileSync(file, "utf8")),
   }));
   for (const { source, file } of sheets) problems.push(...values(source, file));
-  problems.push(...targets(sheets));
+  problems.push(...targets(sheets, await carriers(SRC)));
   return problems;
 }
 
