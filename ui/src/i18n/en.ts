@@ -9,7 +9,8 @@ export const en: Dictionary = {
   toast: { close: "Dismiss the message", broke: "It did not work" },
   actions: { title: "Actions", query: "Action or destination", none: "Nothing found" },
   nav: {
-    programs: "Programs",
+    library: "Library",
+    help: "Help",
     program: "Program",
     stage: "Stage",
     settings: "Settings",

@@ -64,7 +64,7 @@ export default function Next(props: Props) {
   return (
     <Show
       when={!missing()}
-      fallback={<Empty reason={props.text.generate.none} locale={props.locale} label={props.text.nav.programs} />}
+      fallback={<Empty reason={props.text.generate.none} locale={props.locale} label={props.text.nav.library} />}
     >
       <h2>{props.text.generate.variants}</h2>
       <p>{props.text.generate.variantsLead}</p>

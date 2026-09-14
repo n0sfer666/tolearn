@@ -46,6 +46,17 @@ test("каждый блок стоит под якорем своего id и в
   assert.equal(host.querySelector("[data-stage-title]").textContent, "Голоса чипа");
 });
 
+test("прочитанный этап называет себя в шапке", async () => {
+  const names = [];
+  const heard = (event) => names.push(event.detail);
+  screen.window.addEventListener("tolearn:name", heard);
+  mount();
+  await settled();
+  screen.window.removeEventListener("tolearn:name", heard);
+
+  assert.deepEqual(names, [{ kind: "stage", id: OUT.id, title: OUT.title }]);
+});
+
 test("текст идёт разметкой, код — блоком кода своего языка", async () => {
   const { host } = mount();
   await settled();

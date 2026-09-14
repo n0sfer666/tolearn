@@ -33,6 +33,32 @@
   gap: var(--spacing-1);
 }
 
+.bar[data-folded] .bar-nav {
+  display: none;
+}
+
+.bar[data-folded] .bar-back::before {
+  content: none;
+}
+
+.bar[data-folded] .bar-title::before {
+  content: "/" / "";
+  margin-inline-end: var(--spacing-3);
+  color: var(--color-fg-muted);
+}
+
+.bar-summon {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.bar-summon kbd {
+  color: var(--color-fg-muted);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+}
+
 .page {
   width: 100%;
   max-width: calc(var(--width-page) + var(--spacing-6) * 2);

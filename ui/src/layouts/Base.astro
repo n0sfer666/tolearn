@@ -20,25 +20,22 @@ import "../styles/actions.css";
 import Actions from "../components/Actions";
 import Toasts from "../components/Toasts";
 import EarlyTheme from "../components/EarlyTheme.astro";
+import Header from "../components/Header.astro";
 import KeepContext from "../components/KeepContext.astro";
 import Names from "../components/Names.astro";
 import Keyboard from "../components/Keyboard.astro";
 import RememberLocale from "../components/RememberLocale.astro";
-import { type Locale, localized, strings } from "../i18n";
-import { entity, keep, route } from "../lib/context";
+import { type Locale, strings } from "../i18n";
 
 interface Props {
   locale: Locale;
   title: string;
-  back?: { href: string; text: string };
+  back?: { href: string; text: string } | undefined;
+  folded?: boolean | undefined;
 }
 
-const { locale, title, back } = Astro.props;
+const { locale, title, back, folded } = Astro.props;
 const text = strings(locale);
-const here = Astro.url.pathname;
-const current = (href: string): "page" | undefined =>
-  here === localized(href, locale) ? "page" : undefined;
-const named = entity(route(here, locale));
 ---
 
 <!doctype html>
@@ -51,37 +48,7 @@ const named = entity(route(here, locale));
     <EarlyTheme />
   </head>
   <body>
-    <header class="bar">
-      <div class="bar-here">
-        {
-          back && (
-            <a
-              href={localized(back.href, locale)}
-              class="bar-back"
-              data-back
-              data-keep={keep(back.href).join(",")}
-              data-name={entity(back.href)}
-            >
-              {back.text}
-            </a>
-          )
-        }
-        <h1 class="bar-title" data-name={named}>{title}</h1>
-      </div>
-      <nav class="bar-nav" aria-label={text.nav.sections}>
-        <a
-          href={localized("/search/", locale)}
-          data-search
-          data-keep={keep("/search/").join(",")}
-          aria-current={current("/search/")}
-        >
-          {text.nav.search}
-        </a>
-        <a href={localized("/settings/", locale)} data-settings aria-current={current("/settings/")}>
-          {text.nav.settings}
-        </a>
-      </nav>
-    </header>
+    <Header locale={locale} title={title} back={back} folded={folded} />
     <main class="page">
       <slot />
     </main>

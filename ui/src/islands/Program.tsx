@@ -68,7 +68,7 @@ export default function Program(props: Props) {
       when={view()}
       fallback={
         <Show when={gone()}>
-          {(reason) => <Empty reason={reason()} locale={props.locale} label={props.text.nav.programs} />}
+          {(reason) => <Empty reason={reason()} locale={props.locale} label={props.text.nav.library} />}
         </Show>
       }
     >

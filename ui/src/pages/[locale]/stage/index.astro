@@ -11,7 +11,7 @@ const locale = localeOf(Astro.params.locale);
 const text = strings(locale);
 ---
 
-<Base locale={locale} title={text.nav.stage} back={{ href: "/program/", text: text.nav.program }}>
+<Base locale={locale} title={text.nav.stage} back={{ href: "/program/", text: text.nav.program }} folded>
   <section id="stage" aria-label={text.nav.stage}>
     <Stage client:load text={text} locale={locale} />
   </section>

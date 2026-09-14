@@ -87,6 +87,31 @@ test("название приезжает островом, когда экра�
   assert.equal(window.document.querySelector(".bar-title").textContent, TITLE);
 });
 
+test("свёрнутая шапка этапа зовёт этап по имени, когда остров его прочёл", () => {
+  const window = visit("ru/stage", `?program=${PROGRAM}&node=rom&stage=first-rom`, KNOWN);
+
+  window.dispatchEvent(
+    new window.CustomEvent("tolearn:name", {
+      detail: { kind: "stage", id: "first-rom", title: "Первый ROM" },
+    }),
+  );
+
+  assert.equal(window.document.querySelector(".bar-title").textContent, "Первый ROM");
+  assert.equal(window.document.querySelector("[data-back]").textContent, TITLE);
+});
+
+test("имя чужого этапа в шапку не попадает", () => {
+  const window = visit("ru/stage", `?program=${PROGRAM}&node=rom&stage=first-rom`, KNOWN);
+
+  window.dispatchEvent(
+    new window.CustomEvent("tolearn:name", {
+      detail: { kind: "stage", id: "sprites", title: "Спрайты" },
+    }),
+  );
+
+  assert.equal(window.document.querySelector(".bar-title").textContent, "Этап");
+});
+
 test("экран без выбранной программы остаётся при своём заголовке", () => {
   const { document } = visit("ru/settings", "", KNOWN);
 

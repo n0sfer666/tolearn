@@ -25,6 +25,8 @@ export default function Actions(props: Props) {
   let layer: HTMLDivElement | undefined;
 
   const inside = (target: EventTarget | null) => target instanceof Node && layer?.contains(target) === true;
+  const kept = (target: EventTarget | null) =>
+    inside(target) || (target instanceof Element && target.closest("[data-summon]") !== null);
 
   const escaped = (event: KeyboardEvent) => {
     if (event.key !== "Escape") return;
@@ -34,7 +36,7 @@ export default function Actions(props: Props) {
   };
 
   const aside = (event: Event) => {
-    if (!inside(event.target)) close(false);
+    if (!kept(event.target)) close(false);
   };
 
   const close = (back: boolean) => {
@@ -99,7 +101,7 @@ export default function Actions(props: Props) {
         aria-label={props.text.title}
         ref={layer}
         onFocusOut={(event) => {
-          if (!inside(event.relatedTarget)) close(false);
+          if (!kept(event.relatedTarget)) close(false);
         }}
       >
         <input

@@ -1,0 +1,66 @@
+---
+import { type Locale, localized, strings } from "../i18n";
+import { entity, keep, route } from "../lib/context";
+
+interface Props {
+  locale: Locale;
+  title: string;
+  back?: { href: string; text: string } | undefined;
+  folded?: boolean | undefined;
+}
+
+const { locale, title, back, folded = false } = Astro.props;
+const text = strings(locale);
+const here = Astro.url.pathname;
+const current = (href: string): "page" | undefined =>
+  here === localized(href, locale) ? "page" : undefined;
+const named = entity(route(here, locale));
+---
+
+<header class="bar" data-folded={folded ? "" : undefined}>
+  <div class="bar-here">
+    {
+      back && (
+        <a
+          href={localized(back.href, locale)}
+          class="bar-back"
+          data-back
+          data-keep={keep(back.href).join(",")}
+          data-name={entity(back.href)}
+        >
+          {back.text}
+        </a>
+      )
+    }
+    <h1 class="bar-title" data-name={named}>{title}</h1>
+  </div>
+  <nav class="bar-nav" aria-label={text.nav.sections}>
+    <a href={localized("/", locale)} data-library aria-current={current("/")}>
+      {text.nav.library}
+    </a>
+    <a
+      href={localized("/search/", locale)}
+      data-search
+      data-keep={keep("/search/").join(",")}
+      aria-current={current("/search/")}
+    >
+      {text.nav.search}
+    </a>
+    <a href={localized("/settings/", locale)} data-settings aria-current={current("/settings/")}>
+      {text.nav.settings}
+    </a>
+    <a href={localized("/help/", locale)} data-help aria-current={current("/help/")}>
+      {text.nav.help}
+    </a>
+  </nav>
+  {
+    folded && (
+      <button type="button" class="bar-summon" data-summon>
+        {text.actions.title}
+        <kbd data-chord aria-hidden="true">
+          ⌘K
+        </kbd>
+      </button>
+    )
+  }
+</header>

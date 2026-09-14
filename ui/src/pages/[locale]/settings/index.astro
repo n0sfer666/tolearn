@@ -12,7 +12,7 @@ const locale = localeOf(Astro.params.locale);
 const text = strings(locale);
 ---
 
-<Base locale={locale} title={text.nav.settings} back={{ href: "/", text: text.nav.programs }}>
+<Base locale={locale} title={text.nav.settings} back={{ href: "/", text: text.nav.library }}>
   <p>{text.settings.lead}</p>
   <section class="grid" aria-label={text.nav.settings}>
     <Settings text={text} locale={locale} client:load />

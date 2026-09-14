@@ -43,6 +43,13 @@
   `aria-disabled="true"` и всё внутри `hidden` или `inert` в слой не попадает.
   Пункты шапки слой берёт сам, текущий (`aria-current="page"`) пропускает. Слой
   зовут событием `tolearn:actions` на `window` — `summon()` из `lib/actions.ts`.
+- Шапка — `components/Header.astro`, одна на все экраны через `Base.astro` (S150).
+  `folded` сворачивает её на этапе: `nav` прячется стилем, но остаётся в DOM и
+  в слое ⌘K. Кнопку `data-summon` обслуживает `lib/keys.ts` делегированным
+  кликом, её `mousedown` гасится — в WebKit иначе поле слоя теряет фокус и слой
+  закрывается до клика. Подсказку `data-chord` и `aria-keyshortcuts` ставит
+  `shortcut()` по ОС. Название экрана в шапке подставляет `Names.astro` по
+  событию `tolearn:name` (`name()` из `lib/name.ts`), виды — `program` и `stage`.
 - В UI-тестах узел DOM не отдаётся в ассерт как `actual`: упавший
   `assert.equal(node, null)` заставляет репортер node:test печатать узел вместе
   с окном happy-dom — десятки ГБ памяти, SIGKILL, и оставшиеся тесты файла

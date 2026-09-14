@@ -18,6 +18,7 @@ import { reveal } from "../lib/anchor";
 import { pickFolder, quiet, steps } from "../lib/ipc";
 import type { Listen, Transport } from "../lib/ipc";
 import { nodeHref } from "../lib/links";
+import { name } from "../lib/name";
 import { query } from "../lib/query";
 import { toast } from "../lib/toast";
 import { told } from "../lib/told";
@@ -58,9 +59,14 @@ export default function Stage(props: Props) {
 
   const fetched = () => call()("stage", { program: program(), node: node(), stage: id() });
 
+  const opened = (out: StageOut) => {
+    setView(out);
+    name("stage", out.id, out.title);
+  };
+
   const load = async () => {
     try {
-      setView(await fetched());
+      opened(await fetched());
       reveal();
     } catch (failure) {
       setGone(told(failure, missing()) || props.text.stage.none);
@@ -69,7 +75,7 @@ export default function Stage(props: Props) {
 
   const reload = async (failed: string) => {
     try {
-      setView(await fetched());
+      opened(await fetched());
     } catch {
       toast("error", failed);
     }
@@ -116,7 +122,7 @@ export default function Stage(props: Props) {
       when={view()}
       fallback={
         <Show when={gone()}>
-          {(reason) => <Empty reason={reason()} locale={props.locale} label={props.text.nav.programs} />}
+          {(reason) => <Empty reason={reason()} locale={props.locale} label={props.text.nav.library} />}
         </Show>
       }
     >

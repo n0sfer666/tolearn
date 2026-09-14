@@ -40,8 +40,25 @@ function up(doc: Document, event: KeyboardEvent): void {
   if (back instanceof HTMLElement) back.click();
 }
 
+export function shortcut(doc: Document, mac: boolean): void {
+  const [label, keys] = mac ? ["⌘K", "Meta+K"] : ["Ctrl+K", "Control+K"];
+  for (const hint of doc.querySelectorAll("[data-chord]")) hint.textContent = label;
+  for (const button of doc.querySelectorAll("[data-summon]")) button.setAttribute("aria-keyshortcuts", keys);
+}
+
+function summoner(event: Event): boolean {
+  return event.target instanceof Element && event.target.closest("[data-summon]") !== null;
+}
+
 export function bind(doc: Document): void {
   const mac = apple(doc.defaultView?.navigator.userAgent ?? "");
+  shortcut(doc, mac);
+  doc.addEventListener("mousedown", (event) => {
+    if (summoner(event)) event.preventDefault();
+  });
+  doc.addEventListener("click", (event) => {
+    if (summoner(event)) summon();
+  });
   doc.addEventListener("keydown", (event) => {
     if (summoned(event, mac)) {
       event.preventDefault();

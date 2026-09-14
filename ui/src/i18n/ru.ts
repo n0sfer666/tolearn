@@ -8,7 +8,8 @@ export const ru = {
   toast: { close: "Закрыть сообщение", broke: "Не получилось" },
   actions: { title: "Действия", query: "Действие или переход", none: "Ничего не нашлось" },
   nav: {
-    programs: "Программы",
+    library: "Библиотека",
+    help: "Помощь",
     program: "Программа",
     stage: "Этап",
     settings: "Настройки",

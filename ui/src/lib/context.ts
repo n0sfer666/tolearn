@@ -1,3 +1,5 @@
+import type { Kind } from "./name";
+
 const KEEP: Record<string, readonly string[]> = {
   "/program/": ["program", "node"],
   "/stage/": ["program", "node", "stage"],
@@ -8,11 +10,12 @@ export function keep(href: string): readonly string[] {
   return KEEP[href] ?? [];
 }
 
-const NAMED: Record<string, "program"> = {
+const NAMED: Record<string, Kind> = {
   "/program/": "program",
+  "/stage/": "stage",
 };
 
-export function entity(href: string): "program" | undefined {
+export function entity(href: string): Kind | undefined {
   return NAMED[href];
 }
 
