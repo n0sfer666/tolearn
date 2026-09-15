@@ -1,5 +1,7 @@
 import { type JSX, Show, createSignal, onCleanup } from "solid-js";
 
+import { pressed } from "../lib/shortcuts";
+
 interface Props {
   label: string;
   seconds?: number;
@@ -31,7 +33,7 @@ export default function Hint(props: Props) {
   };
 
   const escaped = (event: KeyboardEvent) => {
-    if (event.key !== "Escape") return;
+    if (!pressed(event, "close")) return;
     event.stopPropagation();
     unpin();
   };

@@ -18,10 +18,11 @@ const SECTIONS = [
   ["settings", "/settings/"],
   ["help", "/help/"],
 ];
-const CURRENT = { "/": "/", "/search/": "/search/", "/settings/": "/settings/" };
+const CURRENT = { "/": "/", "/search/": "/search/", "/settings/": "/settings/", "/help/": "/help/" };
 const UP = {
   "/program/": "library",
   "/settings/": "library",
+  "/help/": "library",
   "/new/": "library",
   "/stage/": "program",
   "/search/": "program",

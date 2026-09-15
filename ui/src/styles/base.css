@@ -59,7 +59,8 @@ a {
 }
 
 pre,
-code {
+code,
+kbd {
   font-family: var(--font-family-mono);
   font-size: var(--font-size-sm);
 }

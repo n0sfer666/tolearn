@@ -39,11 +39,13 @@ const after_ms = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const pressed = (node, kind) =>
   node.dispatchEvent(new document.defaultView.Event(kind, { bubbles: true }));
 
-function escape() {
+function key(name) {
   const event = new document.defaultView.Event("keydown", { bubbles: true });
-  Object.defineProperty(event, "key", { value: "Escape" });
+  Object.defineProperty(event, "key", { value: name });
   document.body.dispatchEvent(event);
 }
+
+const escape = () => key("Escape");
 
 test("подсказка живёт под мышью и уходит вместе с ней", async () => {
   const host = mount();
@@ -109,6 +111,19 @@ test("Esc закрывает подсказку и не доходит до эк
   escape();
   document.removeEventListener("keydown", listen);
   assert.deepEqual(heard, ["escape"]);
+});
+
+test("другая клавиша закреплённую подсказку не закрывает", async () => {
+  const host = mount(60);
+  await settled();
+
+  open(host).click();
+  await settled();
+  key("Tab");
+  await settled();
+
+  assert.ok(body(host) !== null, "подсказка закрылась не от Esc");
+  escape();
 });
 
 test("клик мимо закрывает подсказку, клик внутри — нет", async () => {

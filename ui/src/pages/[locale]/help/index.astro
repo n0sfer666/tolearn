@@ -1,0 +1,23 @@
+---
+import Learning from "../../../components/help/Learning.astro";
+import Legacy from "../../../components/help/Legacy.astro";
+import Notes from "../../../components/help/Notes.astro";
+import Shortcuts from "../../../components/help/Shortcuts.astro";
+import { LOCALES, localeOf, strings } from "../../../i18n";
+import Base from "../../../layouts/Base.astro";
+
+export function getStaticPaths() {
+  return LOCALES.map((locale) => ({ params: { locale } }));
+}
+
+const locale = localeOf(Astro.params.locale);
+const text = strings(locale);
+---
+
+<Base locale={locale} title={text.nav.help} back={{ href: "/", text: text.nav.library }}>
+  <p>{text.help.lead}</p>
+  <Learning locale={locale} />
+  <Shortcuts locale={locale} />
+  <Notes locale={locale} />
+  <Legacy locale={locale} />
+</Base>

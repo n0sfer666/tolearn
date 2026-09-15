@@ -1,5 +1,7 @@
 import { generate } from "./generate/en.ts";
+import { help } from "./help/en.ts";
 import type { Dictionary } from "./ru.ts";
+import { shortcuts } from "./shortcuts/en.ts";
 import { stage } from "./stage/en.ts";
 
 export const en: Dictionary = {
@@ -77,6 +79,8 @@ export const en: Dictionary = {
   },
   stage,
   generate,
+  help,
+  shortcuts,
   search: {
     lead: "Searches the stages of every program in the library.",
     placeholder: "What to look for",

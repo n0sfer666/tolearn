@@ -1,0 +1,37 @@
+---
+import { type Locale, strings } from "../../i18n";
+import { SCOPES, SHORTCUTS, chorded } from "../../lib/shortcuts";
+
+interface Props {
+  locale: Locale;
+}
+
+const text = strings(Astro.props.locale);
+---
+
+<section data-help="keys" aria-labelledby="help-keys">
+  <h2 id="help-keys">{text.help.keys}</h2>
+  {
+    SCOPES.map((scope) => (
+      <table data-scope={scope}>
+        <caption>{text.help[scope]}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{text.help.keyColumn}</th>
+            <th scope="col">{text.help.actionColumn}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {SHORTCUTS.filter((shortcut) => shortcut.scope === scope).map((shortcut) => (
+            <tr data-shortcut={shortcut.id}>
+              <th scope="row">
+                <kbd data-chord={chorded(shortcut) ? "" : undefined}>{shortcut.label}</kbd>
+              </th>
+              <td>{text.shortcuts[shortcut.id]}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    ))
+  }
+</section>

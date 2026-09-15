@@ -1,4 +1,5 @@
 import { summon } from "./actions.ts";
+import { pressed } from "./shortcuts.ts";
 
 const EDITABLE = new Set(["INPUT", "TEXTAREA"]);
 const APPLE = /Macintosh|iPhone|iPad/;
@@ -8,9 +9,8 @@ export function apple(agent: string): boolean {
 }
 
 export function summoned(event: KeyboardEvent, mac: boolean): boolean {
-  const key = event.code === "KeyK" || event.key.toLowerCase() === "k";
   const held = mac ? event.metaKey && !event.ctrlKey : event.ctrlKey && !event.metaKey;
-  return key && held && !event.altKey && !event.shiftKey;
+  return pressed(event, "summon") && held && !event.altKey && !event.shiftKey;
 }
 
 function editing(node: EventTarget | null): node is HTMLElement {
@@ -64,7 +64,7 @@ export function bind(doc: Document): void {
       event.preventDefault();
       summon();
     }
-    if (event.key === "/" && !editing(event.target)) focusFilter(doc, event);
-    if (event.key === "Escape") up(doc, event);
+    if (pressed(event, "filter") && !editing(event.target)) focusFilter(doc, event);
+    if (pressed(event, "up")) up(doc, event);
   });
 }

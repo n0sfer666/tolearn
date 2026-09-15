@@ -1,4 +1,6 @@
 import { generate } from "./generate/ru.ts";
+import { help } from "./help/ru.ts";
+import { shortcuts } from "./shortcuts/ru.ts";
 import { stage } from "./stage/ru.ts";
 
 export const ru = {
@@ -76,6 +78,8 @@ export const ru = {
   },
   stage,
   generate,
+  help,
+  shortcuts,
   search: {
     lead: "Ищет по этапам всех программ библиотеки.",
     placeholder: "Что искать",

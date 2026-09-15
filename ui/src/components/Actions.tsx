@@ -2,6 +2,7 @@ import { For, Show, createMemo, createSignal, onCleanup, onMount } from "solid-j
 
 import { type Offer, SUMMONED, narrowed, offered } from "../lib/actions";
 import { grab } from "../lib/grab";
+import { pressed } from "../lib/shortcuts";
 
 interface ActionsText {
   title: string;
@@ -29,7 +30,7 @@ export default function Actions(props: Props) {
     inside(target) || (target instanceof Element && target.closest("[data-summon]") !== null);
 
   const escaped = (event: KeyboardEvent) => {
-    if (event.key !== "Escape") return;
+    if (!pressed(event, "close")) return;
     event.preventDefault();
     event.stopPropagation();
     close(true);
@@ -73,9 +74,9 @@ export default function Actions(props: Props) {
 
   const keyed = (event: KeyboardEvent) => {
     if (event.isComposing) return;
-    if (event.key === "ArrowDown") step(1);
-    else if (event.key === "ArrowUp") step(-1);
-    else if (event.key === "Enter") run(shown()[chosen()]);
+    if (pressed(event, "next")) step(1);
+    else if (pressed(event, "previous")) step(-1);
+    else if (pressed(event, "run")) run(shown()[chosen()]);
     else return;
     event.preventDefault();
   };

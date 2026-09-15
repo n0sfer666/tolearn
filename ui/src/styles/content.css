@@ -48,6 +48,22 @@ thead th {
   font-weight: normal;
 }
 
+caption {
+  padding-block-end: var(--spacing-2);
+  font-weight: bold;
+  text-align: start;
+}
+
+dt {
+  margin-block-start: var(--spacing-4);
+  font-weight: bold;
+}
+
+dd {
+  max-width: var(--measure);
+  margin: var(--spacing-1) 0 0;
+}
+
 progress {
   inline-size: 100%;
   block-size: var(--spacing-2);

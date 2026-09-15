@@ -31,6 +31,7 @@ The short version of how to use the app. For installation see
 | What next | the choices for the next stage, the recommended one marked; a choice creates the stage and opens it |
 | Search | across the stages of every program in the library; a hit opens the stage at the right spot |
 | Settings | language, LLM provider, disk budget |
+| Help | how learning works, the keys, where to keep notes, and where the previous version's data lives |
 
 ## Where your data lives
 

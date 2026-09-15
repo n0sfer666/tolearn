@@ -69,10 +69,12 @@ test("ссылка на уровень вверх стоит перед соде
 });
 
 test("обработчик клавиатуры уехал в сборку и подключён к каждой странице", async () => {
-  const keys = (await bundled(".js")).filter((source) => source.includes("data-filter"));
+  const sources = await bundled(".js");
+  const keys = sources.filter((source) => source.includes("data-filter"));
 
   assert.ok(
-    keys.some((source) => source.includes("Escape")),
+    keys.some((source) => /from"\.\/shortcuts\.[\w-]+\.js"/.test(source)) &&
+      sources.some((source) => source.includes("Escape") && source.includes("ArrowUp")),
     "в сборке нет обработчика Esc и слэша",
   );
   for (const file of await pages()) {

@@ -23,7 +23,7 @@ test("каждый экран собран на каждом языке", async 
   const built = (await pages()).map((file) => route(file));
 
   for (const locale of LOCALES) {
-    for (const where of ["/", "/program/", "/stage/", "/search/", "/settings/", "/new/", "/next/"]) {
+    for (const where of ["/", "/program/", "/stage/", "/search/", "/settings/", "/help/", "/new/", "/next/"]) {
       assert.ok(built.includes(`/${locale}${where}`), `${locale}: нет страницы ${where}`);
     }
   }
