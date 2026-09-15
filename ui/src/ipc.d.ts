@@ -156,6 +156,8 @@ export type ShelfView = {
   title: string;
   goal: string;
   hours: Span;
+  stages: number;
+  subprograms: number;
   summary: SummaryView | null;
   active: string | null;
   unread: string | null;

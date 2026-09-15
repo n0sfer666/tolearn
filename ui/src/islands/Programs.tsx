@@ -1,6 +1,7 @@
 import { For, Show, createSignal, onMount } from "solid-js";
 
 import Shelf from "../components/reading/Shelf";
+import type { Locale } from "../i18n";
 import type { Dictionary } from "../i18n/ru";
 import type { ImportPackageOut, RefusedView, ShelfView } from "../ipc";
 import { matches } from "../lib/filter";
@@ -14,7 +15,7 @@ type Words = Dictionary["programs"];
 
 interface Props {
   text: Words;
-  locale: string;
+  locale: Locale;
   call?: Transport;
   pick?: () => Promise<string | null>;
   drops?: (handler: (paths: string[]) => void) => void;
@@ -87,6 +88,34 @@ export default function Programs(props: Props) {
 
   return (
     <section>
+      <Show when={shelves().length > 0}>
+        <input
+          type="search"
+          data-filter
+          aria-label={props.text.filter}
+          placeholder={props.text.filter}
+          value={needle()}
+          onInput={(event) => setNeedle(event.currentTarget.value)}
+        />
+      </Show>
+      <Show when={shelves().length + broken().length > 0}>
+        <ul class="cards">
+          <For each={shown()}>
+            {(shelf) => <Shelf shelf={shelf} text={props.text} locale={props.locale} />}
+          </For>
+          <For each={failed()}>
+            {(entry) => (
+              <li data-broken={entry.directory}>
+                <strong>{entry.directory}</strong>
+                <p>
+                  {props.text.broken}: {entry.message}
+                </p>
+              </li>
+            )}
+          </For>
+        </ul>
+      </Show>
+
       <div class="intake">
         <p>{props.text.drop}</p>
         <button type="button" data-pick data-action onClick={() => void take()} aria-disabled={busy()}>
@@ -100,33 +129,6 @@ export default function Programs(props: Props) {
           <p>{refused()}</p>
         </div>
       </Show>
-
-      <h2>{props.text.list}</h2>
-      <Show when={shelves().length > 0} fallback={<p>{props.text.listLead}</p>}>
-        <input
-          type="search"
-          data-filter
-          aria-label={props.text.filter}
-          placeholder={props.text.filter}
-          value={needle()}
-          onInput={(event) => setNeedle(event.currentTarget.value)}
-        />
-      </Show>
-      <ul class="cards">
-        <For each={shown()}>
-          {(shelf) => <Shelf shelf={shelf} text={props.text} locale={props.locale} />}
-        </For>
-        <For each={failed()}>
-          {(entry) => (
-            <li data-broken={entry.directory}>
-              <strong>{entry.directory}</strong>
-              <p>
-                {props.text.broken}: {entry.message}
-              </p>
-            </li>
-          )}
-        </For>
-      </ul>
     </section>
   );
 }

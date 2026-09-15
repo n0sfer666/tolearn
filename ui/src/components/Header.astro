@@ -34,6 +34,7 @@ const named = entity(route(here, locale));
     }
     <h1 class="bar-title" data-name={named}>{title}</h1>
   </div>
+  <slot name="action" />
   <nav class="bar-nav" aria-label={text.nav.sections}>
     <a href={localized("/", locale)} data-library aria-current={current("/")}>
       {text.nav.library}

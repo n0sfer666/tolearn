@@ -84,3 +84,19 @@ fn a_broken_state_keeps_the_card_and_names_the_reason_instead_of_progress() {
         "schema: tolearn/state/9\n"
     );
 }
+
+#[test]
+fn the_card_counts_the_rows_of_the_map_not_only_the_generated_ones() {
+    let shelf = Shelf::new("card-size");
+    shelf.shelved("fixtures/v2/valid/nes-dev");
+    shelf.shelved("examples/chiptune");
+
+    let container = card(&shelf, NES_DEV);
+    let leaf = card(&shelf, CHIPTUNE);
+
+    assert_eq!(container["stages"], json!(0));
+    assert_eq!(container["subprograms"], json!(2));
+    assert_eq!(leaf["stages"], json!(3));
+    assert_eq!(leaf["subprograms"], json!(0));
+    assert_eq!(leaf["summary"]["total"], json!(1));
+}

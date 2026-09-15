@@ -23,10 +23,6 @@ export const en: Dictionary = {
     next: "What next",
   },
   programs: {
-    import: "Import",
-    importLead: "Drop a .tolearn program file here or pick it with the button.",
-    list: "Library",
-    listLead: "Imported programs show up here.",
     choose: "Choose a file",
     drop: "Drop a .tolearn file here",
     importing: "Importing…",
@@ -43,6 +39,8 @@ export const en: Dictionary = {
     unread: "Progress is unreadable",
     hours: "h",
     filter: "Filter (/)",
+    stages: { one: "{n} stage", other: "{n} stages" },
+    subprograms: { one: "{n} subprogram", other: "{n} subprograms" },
   },
   program: {
     none: "No program is open — pick one from the list:",

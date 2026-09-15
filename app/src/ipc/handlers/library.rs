@@ -30,8 +30,14 @@ fn card(context: &Context, tree: &Tree) -> ShelfView {
         title: tree.program.title.clone(),
         goal: tree.program.goal.clone(),
         hours: shelf::span(tree.program.map.hours()),
+        stages: rows(tree.program.map.stages.len()),
+        subprograms: rows(tree.program.map.children.len()),
         summary: state.as_ref().ok().map(|state| shelf::summary(tree, state)),
         active: state.as_ref().ok().and_then(State::active),
         unread: state.err().map(|error| error.to_string()),
     }
+}
+
+fn rows(count: usize) -> u32 {
+    u32::try_from(count).unwrap_or(u32::MAX)
 }

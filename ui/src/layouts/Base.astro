@@ -9,6 +9,7 @@ import "../styles/controls.css";
 import "../styles/switches.css";
 import "../styles/content.css";
 import "../styles/cards.css";
+import "../styles/library.css";
 import "../styles/status.css";
 import "../styles/generate.css";
 import "../styles/hint.css";
@@ -48,7 +49,9 @@ const text = strings(locale);
     <EarlyTheme />
   </head>
   <body>
-    <Header locale={locale} title={title} back={back} folded={folded} />
+    <Header locale={locale} title={title} back={back} folded={folded}>
+      <slot name="action" slot="action" />
+    </Header>
     <main class="page">
       <slot />
     </main>

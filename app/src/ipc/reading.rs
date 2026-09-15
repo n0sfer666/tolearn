@@ -13,6 +13,8 @@ dto!(ShelfView {
     title: String,
     goal: String,
     hours: Span,
+    stages: u32,
+    subprograms: u32,
     summary: Option<SummaryView>,
     active: Option<String>,
     unread: Option<String>,

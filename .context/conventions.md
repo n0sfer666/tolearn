@@ -50,6 +50,9 @@
   закрывается до клика. Подсказку `data-chord` и `aria-keyshortcuts` ставит
   `shortcut()` по ОС. Название экрана в шапке подставляет `Names.astro` по
   событию `tolearn:name` (`name()` из `lib/name.ts`), виды — `program` и `stage`.
+  Главное действие экрана кладётся в шапку слотом `action` (`slot="action"` на
+  странице, `Base.astro` пробрасывает его в `Header.astro`) — вне `nav` разделов,
+  с `data-action`; так в шапке библиотеки стоит «Новая программа» (S152).
 - Клавиши — только через `lib/shortcuts.ts` (S151): обработчик спрашивает
   `pressed(event, id)`, а не сравнивает `event.key`/`event.code` с литералом;
   таблица на `/help/` строится из того же `SHORTCUTS`. Новое сочетание — строка в

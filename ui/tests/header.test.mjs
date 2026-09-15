@@ -119,6 +119,23 @@ test("на этапе шапка свёрнута до крошек «прогр
   }
 });
 
+test("«Новая программа» — действие шапки библиотеки вне пунктов разделов, других экранов оно не касается", async () => {
+  for (const { at, locale, screen, html } of await screens()) {
+    const create = header(html).querySelector("a[data-new]");
+
+    if (screen !== "/") {
+      assert.ok(create === null, `${at}: «Новая программа» в чужой шапке`);
+      continue;
+    }
+    assert.ok(create !== null, `${at}: в шапке нет «Новой программы»`);
+    assert.equal(create.getAttribute("href"), `/${locale}/new/`, at);
+    assert.equal(create.textContent.trim(), TEXT[locale].nav.new, at);
+    assert.ok(create.hasAttribute("data-action"), `${at}: действие выпало из слоя ⌘K`);
+    assert.ok(create.closest("nav") === null, `${at}: действие попало в пункты разделов`);
+    assert.doesNotMatch(html, /<h2/, `${at}: заголовок раздела на библиотеке`);
+  }
+});
+
 test("тема и язык — только в настройках: ни в шапке, ни на библиотеке, ни на стартовом экране", async () => {
   for (const { at, html } of await built()) {
     const own = at.match(/^\/(ru|en)\//)?.[1];

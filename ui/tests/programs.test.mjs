@@ -1,100 +1,12 @@
 import assert from "node:assert/strict";
-import test, { before } from "node:test";
+import test from "node:test";
 
-import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled, toasts } from "./support/dom.mjs";
+import { settled } from "./support/dom.mjs";
+import { named, refusal } from "./support/generation.mjs";
+import { CHIPTUNE, SHELF, programsScreen } from "./support/programs.mjs";
 
-let Programs;
-let render;
-let window;
-
-before(async () => {
-  window = browser();
-  ({ default: Programs } = await island("Programs"));
-  ({ render } = await import("solid-js/web"));
-}, { timeout: 300_000 });
-
-const CHIPTUNE = "0d4f6c8a-2b1e-4f3a-9c5d-7e8f9a0b1c2d";
-const span = (min, max) => ({ min, max });
-
-const SHELF = {
-  uuid: CHIPTUNE,
-  title: "Chiptune: музыка звукового чипа NES",
-  goal: "Написать и проиграть мелодию на пяти голосах",
-  hours: span(7, 11),
-  summary: { passed: 0, total: 1, skipped: 0 },
-  active: null,
-  unread: null,
-};
-
-const NES = {
-  uuid: "nes-dev",
-  title: "Разработка игр для NES",
-  goal: "Собрать игру",
-  hours: span(14, 22),
-  summary: { passed: 1, total: 2, skipped: 0 },
-  active: "2026-09-10",
-  unread: null,
-};
-
-const refusal = (code, message) => ({ code, message });
-
-function mount(options = {}) {
-  const host = window.document.createElement("div");
-  window.document.body.append(host);
-  const calls = [];
-  let drop = () => {};
-  const call = (name, payload) => {
-    calls.push({ name, payload });
-    if (name === "library") {
-      return Promise.resolve({ programs: options.listing ?? [SHELF], refused: options.refused ?? [] });
-    }
-    if (name !== "import_package") throw new Error(`лишняя команда ${name}`);
-    if (options.hold) return new Promise(() => {});
-    if (options.fail) return Promise.reject(options.fail);
-    return Promise.resolve(options.imported ?? { uuid: CHIPTUNE, title: SHELF.title, copy_of: null });
-  };
-  const said = toasts(window);
-  const dispose = render(
-    () =>
-      Programs({
-        text: ru.programs,
-        locale: options.locale ?? "ru",
-        call,
-        pick: options.pick ?? (() => Promise.resolve("/incoming/chiptune.tolearn")),
-        drops: (handler) => {
-          drop = handler;
-        },
-      }),
-    host,
-  );
-  return { host, calls, said, dispose, drop: (paths) => drop(paths) };
-}
-
-const named = (calls, name) => calls.filter((made) => made.name === name);
-
-test("карточка несёт название, цель и часы карты", async () => {
-  const { host } = mount();
-  await settled();
-
-  const card = host.querySelector(`[data-program="${CHIPTUNE}"]`);
-  assert.match(card.textContent, /Chiptune: музыка звукового чипа NES/);
-  assert.match(card.querySelector("[data-goal]").textContent, /Написать и проиграть/);
-  assert.match(card.querySelector("[data-hours]").textContent, /7\D+11/);
-});
-
-test("битая запись библиотеки видна с причиной, а не пропала", async () => {
-  const { host } = mount({
-    refused: [{ directory: "5f0e", code: "library.malformed", message: "program.yaml не читается" }],
-  });
-  await settled();
-
-  const broken = host.querySelector("[data-broken]");
-  assert.match(broken.textContent, /5f0e/);
-  assert.match(broken.textContent, /program\.yaml не читается/);
-  assert.match(broken.textContent, new RegExp(ru.programs.broken));
-});
+const { mount } = programsScreen();
 
 test("выбор файла и перетаскивание дают один импорт", async () => {
   const picked = mount();
@@ -187,46 +99,4 @@ test("отменённый выбор файла ничего не импорт�
   await settled();
 
   assert.equal(named(calls, "import_package").length, 0);
-});
-
-test("фильтр оставляет только совпавшие программы", async () => {
-  const { host } = mount({ listing: [SHELF, NES] });
-  await settled();
-
-  const field = host.querySelector("[data-filter]");
-  field.value = "nes";
-  field.dispatchEvent(new Event("input", { bubbles: true }));
-  await settled();
-
-  assert.ok(host.querySelector('[data-program="nes-dev"]'), "совпавшая программа пропала");
-  assert.ok(host.querySelector(`[data-program="${CHIPTUNE}"]`), "совпадение по NES в названии потеряно");
-  field.value = "игр";
-  field.dispatchEvent(new Event("input", { bubbles: true }));
-  await settled();
-  assert.equal(host.querySelector(`[data-program="${CHIPTUNE}"]`), null);
-});
-
-test("фильтр прячет и битые записи, которые не совпали", async () => {
-  const { host } = mount({
-    refused: [{ directory: "5f0e", code: "library.malformed", message: "program.yaml не читается" }],
-  });
-  await settled();
-
-  const field = host.querySelector("[data-filter]");
-  field.value = "chiptune";
-  field.dispatchEvent(new Event("input", { bubbles: true }));
-  await settled();
-  assert.equal(host.querySelector("[data-broken]"), null, "битая запись пережила фильтр");
-
-  field.value = "5f0e";
-  field.dispatchEvent(new Event("input", { bubbles: true }));
-  await settled();
-  assert.ok(host.querySelector("[data-broken]"), "совпавшая битая запись пропала");
-});
-
-test("ссылка на программу ведёт на её экран текущего языка", async () => {
-  const { host } = mount({ locale: "en" });
-  await settled();
-
-  assert.equal(host.querySelector("li[data-program] a").getAttribute("href"), `/en/program/?program=${CHIPTUNE}`);
 });
