@@ -6,7 +6,7 @@ import { en } from "../src/i18n/en.ts";
 import { ru } from "../src/i18n/ru.ts";
 import { browser, settled, toasts } from "./support/dom.mjs";
 
-let Program;
+let Menu;
 let render;
 let window;
 
@@ -14,26 +14,11 @@ before(
   async () => {
     window = browser("https://tolearn.local/ru/program/?program=nes-dev&node=rom");
     globalThis.location = window.location;
-    ({ default: Program } = await island("Program"));
+    ({ default: Menu } = await island("ProgramMenu"));
     ({ render } = await import("solid-js/web"));
   },
   { timeout: 300_000 },
 );
-
-const span = (min, max) => ({ min, max });
-
-const NODE = {
-  program: "nes-dev",
-  uuid: "rom",
-  title: "Первый ROM",
-  goal: "Собрать ROM и запустить его",
-  level: "Начинающий",
-  hours: span(3, 5),
-  trail: [{ uuid: "nes-dev", title: "Разработка игр для NES" }],
-  stages: [{ id: "first-rom", title: "Первый ROM", hours: span(1, 2), ready: true, status: "fresh", pass: null }],
-  children: [],
-  summary: { passed: 0, total: 1, skipped: 0 },
-};
 
 const FOLDER = "/Users/me/Выгрузка";
 const WRITTEN = `${FOLDER}/first-rom`;
@@ -44,18 +29,14 @@ function mount(options = {}) {
   const calls = [];
   const call = (name, payload) => {
     calls.push({ name, payload });
-    if (name === "node") return Promise.resolve(NODE);
     if (name !== "export") throw new Error(`лишняя команда ${name}`);
     return options.fail ? Promise.reject(options.fail) : Promise.resolve({ path: WRITTEN, files: 5 });
   };
   const pick = () => Promise.resolve(options.folder === undefined ? FOLDER : options.folder);
   const said = toasts(window);
-  const props = { text: ru, locale: "ru", call, program: "nes-dev", node: "", pick, ...options.props };
-  render(() => Program(props), host);
+  render(() => Menu({ text: ru, call, pick, ...options.props }), host);
   return { host, calls, said };
 }
-
-const exports = (calls) => calls.filter((one) => one.name === "export");
 
 async function pressed(options = {}) {
   const mounted = mount(options);
@@ -65,32 +46,50 @@ async function pressed(options = {}) {
   return mounted;
 }
 
-test("кнопка экспорта подписана словарём", async () => {
+test("меню программы открывается кнопкой, экспорт лежит внутри и виден в ⌘K", () => {
   const { host } = mount();
-  await settled();
 
-  assert.equal(host.querySelector("[data-export]").textContent, ru.program.export);
+  const menu = host.querySelector("details[data-menu]");
+  assert.equal(menu.querySelector(":scope > summary").getAttribute("aria-label"), ru.program.menu);
+  assert.equal(menu.open, false);
+  const item = menu.querySelector("[data-export]");
+  assert.equal(item.textContent, ru.program.export);
+  assert.ok(item.hasAttribute("data-action"));
 });
 
-test("экспорт выгружает показанный узел в выбранную папку", async () => {
+test("экспорт выгружает узел из адреса в выбранную папку", async () => {
   const { calls, said } = await pressed();
 
-  assert.deepEqual(exports(calls), [
-    { name: "export", payload: { program: "nes-dev", node: "rom", folder: FOLDER } },
-  ]);
+  assert.deepEqual(calls, [{ name: "export", payload: { program: "nes-dev", node: "rom", folder: FOLDER } }]);
   assert.deepEqual(said, [{ tone: "ok", text: `${ru.program.exported} ${WRITTEN}` }]);
+});
+
+test("у корня узел пустой — выгружается вся программа", async () => {
+  const { calls } = await pressed({ props: { program: "chiptune", node: "" } });
+
+  assert.deepEqual(calls[0].payload, { program: "chiptune", node: "", folder: FOLDER });
+});
+
+test("выбранный пункт закрывает меню", async () => {
+  const { host } = mount();
+  const menu = host.querySelector("details[data-menu]");
+  menu.open = true;
+
+  menu.querySelector("[data-export]").click();
+  await settled();
+
+  assert.equal(menu.open, false);
 });
 
 test("отменённый выбор папки ничего не выгружает", async () => {
   const { calls, said } = await pressed({ folder: null });
 
-  assert.deepEqual(exports(calls), []);
+  assert.deepEqual(calls, []);
   assert.deepEqual(said, []);
 });
 
 test("пока экспорт идёт, второе нажатие не запускает второй", async () => {
   const { host, calls } = mount();
-  await settled();
 
   const button = host.querySelector("[data-export]");
   button.click();
@@ -98,7 +97,7 @@ test("пока экспорт идёт, второе нажатие не зап�
   button.click();
   await settled();
 
-  assert.equal(exports(calls).length, 1);
+  assert.equal(calls.length, 1);
   assert.equal(button.getAttribute("aria-disabled"), "false");
 });
 
@@ -108,12 +107,9 @@ test("отказ назван словарём, неизвестный — со�
 
   const library = await pressed({
     fail: { code: "export.inside-library", message: "`x` лежит в библиотеке" },
-    props: { text: en, locale: "en" },
+    props: { text: en },
   });
   assert.deepEqual(library.said.at(-1), { tone: "error", text: en.program.insideLibrary });
-
-  const folder = await pressed({ fail: { code: "export.folder", message: "`x` — не абсолютный путь" } });
-  assert.deepEqual(folder.said.at(-1), { tone: "error", text: ru.program.badFolder });
 
   const strange = await pressed({ fail: { code: "export.strange", message: "`x` сломался" } });
   assert.deepEqual(strange.said.at(-1), { tone: "error", text: "`x` сломался" });

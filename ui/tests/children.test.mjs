@@ -43,6 +43,7 @@ const ROOT = {
     { id: "art", title: "Графика", hours: span(4, 6), ready: true, summary: { passed: 0, total: 0, skipped: 0 } },
   ],
   summary: { passed: 1, total: 2, skipped: 1 },
+  sources: { books: [], pages: [] },
 };
 
 function mount(text, locale) {

@@ -45,6 +45,7 @@ const ROOT = {
     { id: "sound", title: "Звук", hours: span(6, 10), ready: false, summary: null },
   ],
   summary: { passed: 1, total: 2, skipped: 0 },
+  sources: { books: [], pages: [] },
 };
 
 const MARKED = {

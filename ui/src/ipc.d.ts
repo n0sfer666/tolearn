@@ -203,6 +203,24 @@ export type NodeOut = {
   stages: StageRowView[];
   children: RowView[];
   summary: SummaryView;
+  sources: SourcesView;
+};
+
+export type SourcesView = {
+  books: BookView[];
+  pages: PageView[];
+};
+
+export type BookView = {
+  title: string;
+  authors: string[];
+  chapter: string;
+};
+
+export type PageView = {
+  title: string;
+  url: string;
+  checked_at: string;
 };
 
 export type StageRowView = {

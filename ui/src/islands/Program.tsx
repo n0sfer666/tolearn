@@ -1,15 +1,16 @@
 import { Show, createSignal, onMount } from "solid-js";
 
 import Empty from "../components/reading/Empty";
-import Export from "../components/reading/Export";
+import Here from "../components/reading/Here";
 import Mark from "../components/reading/Mark";
 import Rows from "../components/reading/Rows";
+import Sources from "../components/reading/Sources";
 import Subtree from "../components/reading/Subtree";
 import Trail from "../components/reading/Trail";
 import type { Dictionary } from "../i18n/ru";
-import type { NodeOut } from "../ipc";
+import type { NodeOut, StageRowView } from "../ipc";
 import { hours } from "../lib/hours";
-import { pickFolder, quiet } from "../lib/ipc";
+import { quiet } from "../lib/ipc";
 import type { Transport } from "../lib/ipc";
 import { nodeHref, stageHref } from "../lib/links";
 import { name } from "../lib/name";
@@ -23,7 +24,6 @@ interface Props {
   program?: string;
   node?: string;
   call?: Transport;
-  pick?: () => Promise<string | null>;
 }
 
 export default function Program(props: Props) {
@@ -62,6 +62,8 @@ export default function Program(props: Props) {
       href: nodeHref(props.locale, out.program, crumb.uuid),
       title: crumb.title,
     }));
+  const next = (out: NodeOut) => out.stages.find((row) => row.ready && row.status !== "passed")?.id;
+  const stage = (out: NodeOut, row: StageRowView) => stageHref(props.locale, out.program, out.uuid, row.id);
 
   return (
     <Show
@@ -78,45 +80,41 @@ export default function Program(props: Props) {
             <Trail label={props.text.program.trail} crumbs={crumbs(out())} />
             <h2 data-node-title>{out().title}</h2>
           </Show>
-          <p data-goal>
-            <strong>{props.text.program.goal}:</strong> {out().goal}
-          </p>
-          <p data-level>
-            <strong>{props.text.program.level}:</strong> {out().level}
-          </p>
-          <p data-node-hours>
-            <strong>{props.text.program.span}:</strong> {hours(out().hours, props.text.program.hours)}
-          </p>
-          <Show when={out().summary.total > 0}>
-            <p data-summary>
-              <strong>{props.text.program.progress}:</strong> {summary(props.text.program.summary, out().summary)}
+          <div data-chips>
+            <p data-node-hours>
+              <strong>{props.text.program.span}:</strong> {hours(out().hours, props.text.program.hours)}
             </p>
-          </Show>
-          <Export
-            text={props.text}
-            program={out().program}
-            node={out().uuid}
-            call={call()}
-            pick={props.pick ?? pickFolder}
-          />
+            <Show when={out().summary.total > 0}>
+              <p data-summary>
+                <strong>{props.text.program.progress}:</strong> {summary(props.text.program.summary, out().summary)}
+              </p>
+            </Show>
+          </div>
 
           <Show when={out().stages.length > 0}>
             <h2>{props.text.program.stages}</h2>
-            <ol data-stages>
+            <ol data-stages data-route>
               <Rows
                 kind="stage"
                 rows={out().stages}
-                href={(row) => stageHref(props.locale, out().program, out().uuid, row.id)}
+                href={(row) => stage(out(), row)}
                 pending={props.text.program.pending}
                 unit={props.text.program.hours}
-                mark={(row) => <Mark text={props.text.program} row={row} />}
+                mark={(row) => (
+                  <>
+                    <Mark text={props.text.program} row={row} />
+                    <Show when={row.id === next(out())}>
+                      <Here here={props.text.program.here} resume={props.text.program.resume} href={stage(out(), row)} />
+                    </Show>
+                  </>
+                )}
               />
             </ol>
           </Show>
 
           <Show when={out().children.length > 0}>
             <h2>{props.text.program.children}</h2>
-            <ul data-children>
+            <ul data-children data-route>
               <Rows
                 kind="child"
                 rows={out().children}
@@ -127,6 +125,18 @@ export default function Program(props: Props) {
               />
             </ul>
           </Show>
+
+          <div data-facts>
+            <div>
+              <p data-goal>
+                <strong>{props.text.program.goal}:</strong> {out().goal}
+              </p>
+              <p data-level>
+                <strong>{props.text.program.level}:</strong> {out().level}
+              </p>
+            </div>
+            <Sources text={props.text.program} locale={props.locale} view={out().sources} />
+          </div>
         </article>
       )}
     </Show>

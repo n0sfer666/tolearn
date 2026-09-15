@@ -2,7 +2,7 @@ use tolearn_core::state::State;
 
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
-use crate::ipc::reading::{CrumbView, NodeIn, NodeOut};
+use crate::ipc::reading::{BookView, CrumbView, NodeIn, NodeOut, PageView, SourcesView};
 use crate::ipc::shelf;
 
 pub fn run(context: &Context, input: &NodeIn) -> Result<NodeOut, IpcError> {
@@ -28,5 +28,27 @@ pub fn run(context: &Context, input: &NodeIn) -> Result<NodeOut, IpcError> {
         stages: shelf::stages(branch.tree, &state),
         children: shelf::children(branch.tree, &state),
         summary: shelf::summary(branch.tree, &state),
+        sources: SourcesView {
+            books: program
+                .sources
+                .books
+                .iter()
+                .map(|book| BookView {
+                    title: book.title.clone(),
+                    authors: book.authors.clone(),
+                    chapter: book.chapter.clone(),
+                })
+                .collect(),
+            pages: program
+                .sources
+                .pages
+                .iter()
+                .map(|page| PageView {
+                    title: page.title.clone(),
+                    url: page.url.clone(),
+                    checked_at: page.checked_at.clone(),
+                })
+                .collect(),
+        },
     })
 }

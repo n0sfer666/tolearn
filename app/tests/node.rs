@@ -154,3 +154,49 @@ fn a_generated_subprogram_carries_the_summary_of_its_subtree() {
     assert_eq!(ids(&tools["children"], "id"), [ROM]);
     assert_eq!(tools["children"][0]["summary"], skipped);
 }
+
+#[test]
+fn a_node_carries_its_own_sources() {
+    let chiptune = Shelf::new("sources-root");
+    chiptune.shelved("examples/chiptune");
+    let nes = Shelf::new("sources-nested");
+    nes.shelved("fixtures/v2/valid/nes-dev");
+
+    let root = chiptune
+        .ask("node", json!({ "program": CHIPTUNE, "node": "" }))
+        .unwrap();
+    let tools = nes
+        .ask("node", json!({ "program": NES_DEV, "node": TOOLS }))
+        .unwrap();
+    let rom = nes
+        .ask("node", json!({ "program": NES_DEV, "node": ROM }))
+        .unwrap();
+
+    assert_eq!(
+        root["sources"],
+        json!({
+            "books": [{
+                "title": "Game Sound: An Introduction to the History, Theory, and Practice of Video Game Music and Sound Design",
+                "authors": ["Karen Collins"],
+                "chapter": "2. Push Start Button: The Rise of Video Games",
+            }],
+            "pages": [{
+                "title": "NESdev Wiki: APU",
+                "url": "https://www.nesdev.org/wiki/APU",
+                "checked_at": "2026-09-11",
+            }],
+        })
+    );
+    assert_eq!(tools["sources"], json!({ "books": [], "pages": [] }));
+    assert_eq!(
+        rom["sources"],
+        json!({
+            "books": [],
+            "pages": [{
+                "title": "cc65 Documentation Overview",
+                "url": "https://cc65.github.io/doc/",
+                "checked_at": "2026-09-11",
+            }],
+        })
+    );
+}

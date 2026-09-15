@@ -54,6 +54,21 @@ dto!(NodeOut {
     stages: Vec<StageRowView>,
     children: Vec<RowView>,
     summary: SummaryView,
+    sources: SourcesView,
+});
+dto!(SourcesView {
+    books: Vec<BookView>,
+    pages: Vec<PageView>,
+});
+dto!(BookView {
+    title: String,
+    authors: Vec<String>,
+    chapter: String,
+});
+dto!(PageView {
+    title: String,
+    url: String,
+    checked_at: String,
 });
 dto!(StageRowView {
     id: String,
@@ -141,6 +156,9 @@ pub fn shapes() -> Vec<Shape> {
         ImportPackageOut::shape(),
         NodeIn::shape(),
         NodeOut::shape(),
+        SourcesView::shape(),
+        BookView::shape(),
+        PageView::shape(),
         StageRowView::shape(),
         SummaryView::shape(),
         CrumbView::shape(),

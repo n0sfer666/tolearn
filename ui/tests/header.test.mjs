@@ -136,6 +136,23 @@ test("«Новая программа» — действие шапки библ
   }
 });
 
+test("меню программы — действие шапки экрана программы: кнопка, а за ней экспорт в слое ⌘K", async () => {
+  for (const { at, locale, screen, html } of await screens()) {
+    const menu = header(html).querySelector("details[data-menu]");
+
+    if (screen !== "/program/") {
+      assert.ok(menu === null, `${at}: меню программы в чужой шапке`);
+      continue;
+    }
+    assert.ok(menu !== null, `${at}: в шапке нет меню программы`);
+    assert.equal(menu.querySelector(":scope > summary").getAttribute("aria-label"), TEXT[locale].program.menu, at);
+    assert.ok(menu.closest("nav") === null, `${at}: меню попало в пункты разделов`);
+    const exported = menu.querySelector("[data-export]");
+    assert.ok(exported !== null, `${at}: в меню нет экспорта`);
+    assert.ok(exported.hasAttribute("data-action"), `${at}: экспорт выпал из слоя ⌘K`);
+  }
+});
+
 test("тема и язык — только в настройках: ни в шапке, ни на библиотеке, ни на стартовом экране", async () => {
   for (const { at, html } of await built()) {
     const own = at.match(/^\/(ru|en)\//)?.[1];

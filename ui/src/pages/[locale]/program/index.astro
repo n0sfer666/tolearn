@@ -1,6 +1,7 @@
 ---
 import { LOCALES, localeOf, strings } from "../../../i18n";
 import Program from "../../../islands/Program";
+import ProgramMenu from "../../../islands/ProgramMenu";
 import Base from "../../../layouts/Base.astro";
 
 export function getStaticPaths() {
@@ -12,6 +13,7 @@ const text = strings(locale);
 ---
 
 <Base locale={locale} title={text.nav.program} back={{ href: "/", text: text.nav.library }}>
+  <ProgramMenu slot="action" client:load text={text} />
   <section id="program" aria-label={text.nav.program}>
     <Program client:load text={text} locale={locale} />
   </section>
