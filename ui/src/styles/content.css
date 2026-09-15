@@ -65,11 +65,28 @@ dd {
 }
 
 progress {
+  appearance: none;
   inline-size: 100%;
   block-size: var(--spacing-2);
+  overflow: hidden;
   border: none;
   border-radius: var(--radius-sm);
-  accent-color: var(--color-accent);
+  background: var(--color-bg-subtle);
+}
+
+progress::-webkit-progress-bar {
+  border-radius: inherit;
+  background: var(--color-bg-subtle);
+}
+
+progress::-webkit-progress-value {
+  border-radius: inherit;
+  background: var(--color-accent);
+}
+
+progress::-moz-progress-bar {
+  border-radius: inherit;
+  background: var(--color-accent);
 }
 
 time,

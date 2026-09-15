@@ -114,7 +114,50 @@ test("слэш внутри поля ввода печатается, а не п
   assert.equal(event.defaultPrevented, false);
 });
 
-test("на экране без фильтра слэш молчит", () => {
+function clicks(selector) {
+  const link = document.querySelector(selector);
+  const seen = [];
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    seen.push(link.getAttribute("href"));
+  });
+  return seen;
+}
+
+const SEARCH = `<nav><a href="/ru/search/" data-search>Поиск</a></nav>`;
+
+test("на экране без фильтра слэш ведёт в поиск по ссылке шапки", () => {
+  screen(`<header><a href="/ru/" data-back>Назад</a>${SEARCH}</header><main><p>нечего фильтровать</p></main>`);
+  const seen = clicks("[data-search]");
+
+  const event = press("/");
+
+  assert.deepEqual(seen, ["/ru/search/"]);
+  assert.equal(event.defaultPrevented, true);
+});
+
+test("на экране со списком слэш ставит курсор в фильтр, а не уходит в поиск", () => {
+  screen(`<header>${SEARCH}</header><main><input data-filter /></main>`);
+  const seen = clicks("[data-search]");
+
+  press("/");
+
+  assert.ok(document.activeElement === document.querySelector("[data-filter]"), "курсор не в фильтре");
+  assert.deepEqual(seen, []);
+});
+
+test("на экране поиска слэш ставит курсор в поле запроса", () => {
+  screen(`<header>${SEARCH}</header><main><input type="search" data-query /></main>`);
+  const seen = clicks("[data-search]");
+
+  const event = press("/");
+
+  assert.ok(document.activeElement === document.querySelector("[data-query]"), "курсор не в поле запроса");
+  assert.deepEqual(seen, []);
+  assert.equal(event.defaultPrevented, true);
+});
+
+test("без фильтра и ссылки поиска слэш молчит", () => {
   screen(`<header><a href="/ru/" data-back>Назад</a></header><main><p>нечего фильтровать</p></main>`);
 
   const event = press("/");

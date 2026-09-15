@@ -50,11 +50,6 @@ li[data-program] p[data-meta] > * + *::before {
   margin-inline-end: var(--spacing-2);
 }
 
-li[data-program] progress {
-  inline-size: 100%;
-  accent-color: var(--color-accent);
-}
-
 li[data-program] p[data-unread] {
   color: var(--color-warning);
 }

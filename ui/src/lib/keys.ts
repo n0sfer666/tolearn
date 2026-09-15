@@ -17,11 +17,17 @@ function editing(node: EventTarget | null): node is HTMLElement {
   return node instanceof HTMLElement && EDITABLE.has(node.tagName);
 }
 
-function focusFilter(doc: Document, event: KeyboardEvent): void {
-  const field = doc.querySelector("[data-filter]");
-  if (!(field instanceof HTMLElement)) return;
+function seek(doc: Document, event: KeyboardEvent): void {
+  const field = doc.querySelector("[data-filter], [data-query]");
+  const search = doc.querySelector("[data-search]");
+  if (field instanceof HTMLElement) {
+    event.preventDefault();
+    field.focus();
+    return;
+  }
+  if (!(search instanceof HTMLElement)) return;
   event.preventDefault();
-  field.focus();
+  search.click();
 }
 
 function collapse(doc: Document): boolean {
@@ -64,7 +70,7 @@ export function bind(doc: Document): void {
       event.preventDefault();
       summon();
     }
-    if (pressed(event, "filter") && !editing(event.target)) focusFilter(doc, event);
+    if (pressed(event, "filter") && !editing(event.target)) seek(doc, event);
     if (pressed(event, "up")) up(doc, event);
   });
 }
