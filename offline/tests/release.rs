@@ -95,3 +95,21 @@ fn отпущенное_не_возвращается_после_переотк�
 
     assert_eq!(store.sweep().unwrap(), vec!["https://a.test/x".to_string()]);
 }
+
+#[test]
+fn вернувшийся_uuid_не_воскрешает_старые_привязки() {
+    let root = root("revived");
+    let mut store = Store::open(&root, 1).unwrap();
+    store
+        .put("https://a.test/old", "same", &fetched(b"0123456789"), 10)
+        .unwrap();
+    store.protect("same", true).unwrap();
+    store.release("same").unwrap();
+
+    store.protect("same", true).unwrap();
+
+    assert_eq!(
+        store.sweep().unwrap(),
+        vec!["https://a.test/old".to_string()]
+    );
+}
