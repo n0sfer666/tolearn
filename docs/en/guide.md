@@ -68,7 +68,7 @@ inside any program folder.
 
 ## Deleting
 
-The "Delete program" item in the ⋯ menu on the program screen asks for a
+The "Move to trash…" item in the ⋯ menu on the program screen asks for a
 confirmation and moves to the system trash the program itself
 (`programs/<uuid>/`) first, then its state and page cache — and with them the
 whole model request log: the log is shared by every program and lives in
