@@ -7,6 +7,7 @@ import { generation } from "../../lib/generation";
 import type { Listen, Transport } from "../../lib/ipc";
 import { EXAMINING } from "../../lib/jobs";
 import { regain } from "../../lib/regain";
+import { graded, score } from "../../lib/scored";
 import { toast } from "../../lib/toast";
 import Progress from "../generate/Progress";
 import Refusal from "../generate/Refusal";
@@ -35,11 +36,8 @@ export default function Exam(props: Props) {
     () => toast("error", props.text.stage.unsaved),
   );
   const typed = (ask: AskView) => store.typed(ask.id) ?? ask.draft;
-  const graded = () => props.questions.some((ask) => ask.result !== null);
-  const score = () =>
-    props.text.stage.score
-      .replace("{n}", String(props.questions.filter((ask) => ask.result === "ok").length))
-      .replace("{m}", String(props.questions.length));
+  const marked = () => graded(props.questions);
+  const total = () => score(props.text.stage.score, props.questions);
   const answers = () => props.questions.map((ask) => ({ id: ask.id, text: typed(ask) }));
 
   const submit = async () => {
@@ -61,8 +59,8 @@ export default function Exam(props: Props) {
     <Show when={props.questions.length > 0}>
       <section data-questions>
         <h3>{props.text.stage.questions}</h3>
-        <Show when={graded()}>
-          <p data-score>{score()}</p>
+        <Show when={marked()}>
+          <p data-score>{total()}</p>
         </Show>
         <ol>
           <For each={props.questions}>

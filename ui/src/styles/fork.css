@@ -1,0 +1,87 @@
+[data-studio] > section[data-ahead] {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+li[data-variant] {
+  align-content: start;
+}
+
+li[data-variant] > span[data-place] {
+  flex: 0 0 100%;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+li[data-variant][data-picked] {
+  box-shadow: 0 0 0 var(--focus-ring) var(--color-border-strong);
+}
+
+section[data-outcome] > p[data-verdict] {
+  margin-block: 0 var(--spacing-3);
+  font-weight: 600;
+}
+
+section[data-outcome] > p[data-stage-title] {
+  margin-block: 0 var(--spacing-1);
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+section[data-outcome] > h3 {
+  margin-block: 0 var(--spacing-2);
+  font-size: var(--font-size-md);
+}
+
+ul[data-missed] {
+  display: grid;
+  gap: var(--spacing-1);
+  margin: 0 0 var(--spacing-4);
+  padding: 0;
+  list-style: none;
+}
+
+ul[data-missed] > li {
+  max-width: none;
+  margin: 0;
+  padding-inline-start: var(--spacing-4);
+  border-inline-start: var(--focus-ring) solid var(--color-warning);
+  font-size: var(--font-size-sm);
+}
+
+section[data-outcome] > :is(p[data-clarified], p[data-ticked]) {
+  margin-block: 0 var(--spacing-1);
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+ol[data-route] > li[data-slot] > span[data-row-title] {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+ol[data-route] > li[data-slot]::before {
+  border-color: var(--color-accent);
+  border-style: dashed;
+  background: var(--color-accent-bg);
+}
+
+section[data-ahead] > p[data-onward] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-1) var(--spacing-3);
+  max-width: none;
+  margin: 0;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-inline-start: var(--focus-ring) dashed var(--color-accent);
+}
+
+section[data-ahead] > p[data-onward] > span[data-row-title] {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+section[data-ahead] > p[data-onward] > span[data-place] {
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}

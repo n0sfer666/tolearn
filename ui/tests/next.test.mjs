@@ -1,59 +1,16 @@
 import assert from "node:assert/strict";
-import test, { before } from "node:test";
+import test from "node:test";
 
-import { island } from "../scripts/island.mjs";
 import { en } from "../src/i18n/en.ts";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled, toasts } from "./support/dom.mjs";
-import { began, deferred, heard, named, press, refusal, rejected, sequence, transport } from "./support/generation.mjs";
+import { settled } from "./support/dom.mjs";
+import { began, deferred, named, press, refusal, rejected, sequence } from "./support/generation.mjs";
+import { FORK, forkScreen } from "./support/next.mjs";
 
-let Next;
-let render;
-let window;
+const { screen, mount } = forkScreen();
 
-before(
-  async () => {
-    window = browser("https://tolearn.local/ru/next/?program=chip&node=rom&stage=voices");
-    globalThis.location = window.location;
-    ({ default: Next } = await island("Next"));
-    ({ render } = await import("solid-js/web"));
-  },
-  { timeout: 300_000 },
-);
-
-const span = (min, max) => ({ min, max });
-const FORK = {
-  variants: [
-    { id: "noise", title: "Шумовой канал", hours: span(2, 3), why: "Без шума нет барабанов", recommended: true },
-    { id: "dpcm", title: "Сэмплы DPCM", hours: span(3, 5), why: "Живые барабаны", recommended: false },
-  ],
-};
 const CANCELLED = refusal("generate.cancelled", "отменено");
-const focused = () => window.document.activeElement;
-
-function mount(options = {}) {
-  const host = window.document.createElement("div");
-  window.document.body.append(host);
-  const gone = [];
-  const { calls, call } = transport({
-    fork: FORK,
-    take_next: { node: "rom", stage: "dpcm" },
-    cancel_generation: { cancelled: true },
-    ...options.answers,
-  });
-  const said = toasts(window);
-  const { steps, emit } = heard();
-  const props = {
-    text: options.text ?? ru,
-    locale: options.locale ?? "ru",
-    call,
-    steps,
-    go: (href) => gone.push(href),
-    ...options.props,
-  };
-  const dispose = render(() => Next(props), host);
-  return { host, calls, said, gone, dispose, emit };
-}
+const focused = () => screen.window.document.activeElement;
 
 test("развилка берёт этап из адреса и отмечает рекомендованный вариант", async () => {
   const { host, calls } = mount();
