@@ -35,6 +35,11 @@ export default function Exam(props: Props) {
     () => toast("error", props.text.stage.unsaved),
   );
   const typed = (ask: AskView) => store.typed(ask.id) ?? ask.draft;
+  const graded = () => props.questions.some((ask) => ask.result !== null);
+  const score = () =>
+    props.text.stage.score
+      .replace("{n}", String(props.questions.filter((ask) => ask.result === "ok").length))
+      .replace("{m}", String(props.questions.length));
   const answers = () => props.questions.map((ask) => ({ id: ask.id, text: typed(ask) }));
 
   const submit = async () => {
@@ -56,6 +61,9 @@ export default function Exam(props: Props) {
     <Show when={props.questions.length > 0}>
       <section data-questions>
         <h3>{props.text.stage.questions}</h3>
+        <Show when={graded()}>
+          <p data-score>{score()}</p>
+        </Show>
         <ol>
           <For each={props.questions}>
             {(ask) => (

@@ -301,6 +301,7 @@ export type AskView = {
   text: string;
   result: string | null;
   missed: string[];
+  answer: string | null;
   draft: string;
 };
 

@@ -31,6 +31,7 @@ li[data-broken] p,
 figcaption,
 p[data-workdir] > [data-unset],
 ul[data-claims] :is([data-command], [data-expect]),
+p[data-score],
 div[data-output] > span {
   margin: 0;
   color: var(--color-fg-muted);
@@ -159,6 +160,10 @@ li[data-question] > ul[data-missed] {
 
 li[data-question] > label {
   margin-block: var(--spacing-2);
+}
+
+li[data-question] > details[data-mirror] {
+  margin-block-start: var(--spacing-2);
 }
 
 :is(div[data-examination], details[data-copypaste]) {

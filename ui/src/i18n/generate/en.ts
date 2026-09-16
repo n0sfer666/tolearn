@@ -36,6 +36,7 @@ export const generate: Dictionary["generate"] = {
   regenerated: "Stage regenerated",
   unread: "The stage was regenerated but could not be shown — open it again.",
   skip: "Skip the check",
+  fork: "To the fork",
   tools: "Stage actions",
   variants: "Where next",
   variantsLead: "Pick the next stage — the recommended one is marked.",

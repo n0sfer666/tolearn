@@ -15,7 +15,7 @@ interface Props {
 }
 
 export default function Skip(props: Props) {
-  const href = () => nextHref(props.locale, props.at.program, props.at.node, props.at.stage);
+  const href = () => nextHref(props.locale, props.at);
   const [busy, setBusy] = createSignal(false);
 
   const skip = async (event: MouseEvent) => {

@@ -88,7 +88,7 @@ fn practice_and_questions_are_readable_without_the_answers() {
     );
     assert_eq!(ids(&stage["questions"], "id"), ["q1", "q2", "q3", "q4"]);
     for question in stage["questions"].as_array().unwrap() {
-        assert!(question.get("answer").is_none(), "{question}");
+        assert_eq!(question["answer"], Value::Null, "{question}");
         assert!(!question["text"].as_str().unwrap().is_empty());
     }
 }

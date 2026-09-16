@@ -1,3 +1,5 @@
+import type { StageIn } from "../ipc";
+
 function place(program: string, node: string): URLSearchParams {
   const params = new URLSearchParams({ program });
   if (node !== "" && node !== program) params.set("node", node);
@@ -18,8 +20,8 @@ export function stageHref(locale: string, program: string, node: string, stage: 
   return staged("stage", locale, program, node, stage);
 }
 
-export function nextHref(locale: string, program: string, node: string, stage: string): string {
-  return staged("next", locale, program, node, stage);
+export function nextHref(locale: string, at: StageIn): string {
+  return staged("next", locale, at.program, at.node, at.stage);
 }
 
 export function go(href: string): void {

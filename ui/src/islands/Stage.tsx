@@ -4,6 +4,7 @@ import Regenerate from "../components/generate/Regenerate";
 import Body from "../components/reading/Body";
 import Empty from "../components/reading/Empty";
 import Exam from "../components/reading/Exam";
+import Fork from "../components/reading/Fork";
 import Orphans from "../components/reading/Orphans";
 import Practice from "../components/reading/Practice";
 import Skip from "../components/reading/Skip";
@@ -167,6 +168,7 @@ export default function Stage(props: Props) {
           <footer data-stage-end>
             <nav data-tools aria-label={props.text.generate.tools}>
               <Skip text={props.text} locale={props.locale} call={call()} at={at(out())} go={props.go} />
+              <Fork text={props.text} locale={props.locale} at={at(out())} go={props.go} />
             </nav>
             <Regenerate
               text={props.text}

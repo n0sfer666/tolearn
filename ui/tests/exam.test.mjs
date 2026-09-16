@@ -24,6 +24,20 @@ const GRADED = {
   ],
 };
 
+const MIRRORED = {
+  ...OUT,
+  questions: [
+    { ...OUT.questions[0], draft: "Пять", result: "ok", answer: "Пять: два пульса, треугольник, шум и DPCM" },
+    {
+      ...OUT.questions[1],
+      draft: "Разная",
+      result: "miss",
+      missed: ["форма волны"],
+      answer: "Пульс держит скважность, треугольник — ступенчатая волна",
+    },
+  ],
+};
+
 const field = (host, id) => host.querySelector(`#${id} textarea[data-answer]`);
 const pause = () => new Promise((resolve) => setTimeout(resolve, 450));
 
@@ -171,4 +185,40 @@ test("отказ проверки называет причину, ответы 
   assert.equal(field(host, "q2").value, "Форма");
   assert.equal(field(host, "q2").readOnly, false);
   assert.equal(named(calls, "stage").length, 1, "этап перечитан после отказа");
+});
+
+test("эталонов нет в DOM, пока нет вердикта", async () => {
+  const { host } = sit();
+  await settled();
+
+  assert.equal(host.querySelector("[data-questions] [data-mirror]"), null);
+  assert.ok(!host.querySelector("[data-questions]").textContent.includes("DPCM"));
+});
+
+test("у незачтённого вопроса эталон раскрыт, у зачтённого — под кнопкой", async () => {
+  const { host } = sit({ out: MIRRORED });
+  await settled();
+
+  const passed = host.querySelector("#q1 [data-mirror]");
+  const failed = host.querySelector("#q2 [data-mirror]");
+  assert.equal(passed.open, false);
+  assert.equal(failed.open, true);
+  assert.match(passed.querySelector("summary").textContent, new RegExp(ru.stage.mirror));
+  assert.match(passed.textContent, /DPCM/);
+  assert.match(failed.textContent, /ступенчатая волна/);
+  assert.match(host.querySelector("#q2 [data-missed]").textContent, /форма волны/);
+});
+
+test("итог зачёта — засчитано N из M", async () => {
+  const { host } = sit({ out: MIRRORED });
+  await settled();
+
+  assert.equal(host.querySelector("[data-score]").textContent, "засчитано 1 из 2");
+});
+
+test("до вердикта итога нет", async () => {
+  const { host } = sit();
+  await settled();
+
+  assert.equal(host.querySelector("[data-score]"), null);
 });

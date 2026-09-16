@@ -100,3 +100,44 @@ fn незачтённое_последней_попытки_стоит_у_сво
         (json!("miss"), json!(["формула таймера", "частота NTSC"]))
     );
 }
+
+#[test]
+fn эталон_приходит_только_у_вопроса_с_вердиктом() {
+    let shelf = Shelf::new("mirror");
+    shelf.shelved("examples/chiptune");
+
+    let fresh = stage(&shelf);
+    for question in fresh["questions"].as_array().unwrap() {
+        assert_eq!(question["answer"], Value::Null, "{question}");
+    }
+
+    sat(
+        &shelf,
+        "2026-09-14",
+        vec![
+            row("q1", Grade::Ok, &[]),
+            row("q2", Grade::Miss, &["весь ответ"]),
+        ],
+    );
+
+    let after = stage(&shelf);
+    let questions = after["questions"].as_array().unwrap();
+    let answered = |id: &str| {
+        questions
+            .iter()
+            .find(|question| question["id"] == json!(id))
+            .unwrap()["answer"]
+            .clone()
+    };
+    assert!(
+        answered("q1").as_str().unwrap().contains("Два импульсных"),
+        "{}",
+        answered("q1")
+    );
+    assert!(
+        answered("q2").as_str().unwrap().contains("перевёрнутая"),
+        "{}",
+        answered("q2")
+    );
+    assert_eq!(answered("q3"), Value::Null);
+}

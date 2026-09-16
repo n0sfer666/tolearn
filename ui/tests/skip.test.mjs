@@ -73,3 +73,15 @@ test("пропуск не записался — тост, этап остаёт
   assert.deepEqual(said.at(-1), { tone: "error", text: ru.stage.unskipped });
   assert.equal(host.querySelector("[data-next]").getAttribute("aria-busy"), "false");
 });
+
+test("«К развилке» ведёт на развилку и ничего не пишет", async () => {
+  const { host, calls, went } = skipping(() => ({ skipped: true }));
+  await settled();
+
+  press(host, "[data-fork]");
+  await settled();
+
+  assert.deepEqual(named(calls, "skip"), []);
+  assert.deepEqual(went, [NEXT]);
+  assert.equal(host.querySelector("[data-fork]").textContent, ru.generate.fork);
+});

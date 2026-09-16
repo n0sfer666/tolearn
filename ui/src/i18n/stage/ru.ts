@@ -29,6 +29,8 @@ export const stage = {
   partial: "зачтено частично",
   miss: "не зачтено",
   missed: "Упущено",
+  mirror: "Эталонный ответ",
+  score: "засчитано {n} из {m}",
   answer: "Ваш ответ",
   submit: "Сдать",
   passed: "Зачёт сдан",
