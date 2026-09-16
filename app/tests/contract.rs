@@ -8,7 +8,7 @@
 mod support;
 
 fn context() -> Context {
-    Context::new(&std::env::temp_dir().join(format!("tolearn-contract-{}", std::process::id())))
+    Context::new(&support::scratch::named("contract"))
 }
 
 use std::collections::BTreeSet;

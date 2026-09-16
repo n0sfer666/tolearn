@@ -6,12 +6,7 @@ use tolearn_core::program;
 use super::root;
 
 pub fn scratch(name: &str) -> PathBuf {
-    let directory = std::env::temp_dir().join(format!("tolearn-{name}-{}", std::process::id()));
-    if directory.exists() {
-        fs::remove_dir_all(&directory).unwrap();
-    }
-    fs::create_dir_all(&directory).unwrap();
-    directory
+    super::scratch::made(name)
 }
 
 pub fn uuid_of(relative: &str) -> String {

@@ -17,11 +17,7 @@ use tolearn_offline::store::{Fetched, Store};
 const URL: &str = "https://docs.ollama.com/faq";
 
 fn context(name: &str) -> (Context, PathBuf) {
-    let data = std::env::temp_dir().join(format!("tolearn-offline-{name}-{}", std::process::id()));
-    if data.exists() {
-        std::fs::remove_dir_all(&data).unwrap();
-    }
-    std::fs::create_dir_all(&data).unwrap();
+    let data = support::scratch::made(&format!("offline-{name}"));
     (Context::new(&data), data.join("offline"))
 }
 

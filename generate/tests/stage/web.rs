@@ -63,8 +63,7 @@ pub struct Bench {
 
 impl Bench {
     pub fn new(name: &str) -> Self {
-        let dir = std::env::temp_dir().join(format!("tolearn-stage-{name}-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&dir);
+        let dir = crate::support::scratch::named(&format!("stage-{name}"));
         let store = Store::open(&dir.join("cache"), BUDGET).unwrap();
         Self { dir, store }
     }

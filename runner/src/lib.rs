@@ -1,3 +1,7 @@
+#[cfg(test)]
+#[path = "../../tests-support/scratch.rs"]
+mod scratch;
+
 mod beat;
 mod drain;
 mod error;

@@ -62,9 +62,7 @@ mod tests {
     use super::inlined;
 
     fn corner(name: &str) -> std::path::PathBuf {
-        let corner =
-            std::env::temp_dir().join(format!("tolearn-inline-{name}-{}", std::process::id()));
-        std::fs::create_dir_all(&corner).unwrap();
+        let corner = crate::scratch::made(&format!("inline-{name}"));
         std::fs::write(corner.join("scheme.png"), b"PNGBYTES").unwrap();
         corner
     }

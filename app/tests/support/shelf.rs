@@ -22,10 +22,7 @@ pub struct Shelf {
 
 impl Shelf {
     pub fn new(name: &str) -> Self {
-        let top = std::env::temp_dir().join(format!("tolearn-shelf-{name}-{}", std::process::id()));
-        if top.exists() {
-            std::fs::remove_dir_all(&top).unwrap();
-        }
+        let top = super::scratch::named(&format!("shelf-{name}"));
         let data = top.join("data");
         let incoming = top.join("incoming");
         std::fs::create_dir_all(&data).unwrap();

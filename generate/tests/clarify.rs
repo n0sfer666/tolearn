@@ -69,9 +69,7 @@ fn doubt<'a>(
 }
 
 fn scratch(name: &str) -> PathBuf {
-    let path = std::env::temp_dir().join(format!("tolearn-clarify-{name}-{}", std::process::id()));
-    let _ = std::fs::remove_dir_all(&path);
-    path
+    support::scratch::named(&format!("clarify-{name}"))
 }
 
 #[test]

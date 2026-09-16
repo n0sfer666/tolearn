@@ -1,8 +1,11 @@
+#[path = "../../tests-support/scratch.rs"]
+mod scratch;
+
 use tolearn_core::places::places;
 
 #[test]
 fn настройки_лежат_в_конфиге_а_хранилище_в_данных() {
-    let root = std::env::temp_dir().join(format!("tolearn-places-{}", std::process::id()));
+    let root = scratch::named("places");
 
     let made = places(&root);
 

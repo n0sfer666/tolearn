@@ -4,6 +4,9 @@
     reason = "generate gate: a panic here is the report"
 )]
 
+#[path = "../../tests-support/scratch.rs"]
+mod scratch;
+
 use std::path::PathBuf;
 
 use tolearn_core::block::{self, Kind};
@@ -46,9 +49,7 @@ impl Drop for Scratch {
 }
 
 fn image(name: &str, commons: &Commons, query: &str) -> Outcome<Illustration> {
-    let dir =
-        Scratch(std::env::temp_dir().join(format!("tolearn-images-{name}-{}", std::process::id())));
-    let _ = std::fs::remove_dir_all(&dir.0);
+    let dir = Scratch(scratch::named(&format!("images-{name}")));
     let mut store = Store::open(&dir.0.join("cache"), 1024).unwrap();
     Sources::new(commons, &AsFetched, &mut store, &dir.0, PROGRAM, 1_000).image(query, CAPTION)
 }

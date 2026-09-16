@@ -33,13 +33,10 @@ struct Case {
 }
 
 fn case(up: bool, answers: &[&str]) -> Case {
-    let data = std::env::temp_dir().join(format!(
-        "tolearn-plan-ipc-{}-{}",
-        std::process::id(),
+    let data = support::scratch::made(&format!(
+        "plan-ipc-{}",
         CASES.fetch_add(1, Ordering::Relaxed)
     ));
-    let _ = std::fs::remove_dir_all(&data);
-    std::fs::create_dir_all(&data).unwrap();
     let answers: Vec<String> = answers.iter().map(|name| answer(name)).collect();
     let model = speaking(move |_, turn| answers[turn.min(answers.len() - 1)].clone());
     let vault: Arc<dyn Vault> = Arc::new(Remembered::default());

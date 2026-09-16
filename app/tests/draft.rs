@@ -37,10 +37,7 @@ fn команды_новой_программы_не_повторяют_имен
 
 #[test]
 fn черновик_генерации_v1_приложение_не_читает_и_не_удаляет() {
-    let data = std::env::temp_dir().join(format!("tolearn-draft-kept-{}", std::process::id()));
-    if data.exists() {
-        std::fs::remove_dir_all(&data).unwrap();
-    }
+    let data = support::scratch::named("draft-kept");
     let draft = data.join("draft");
     std::fs::create_dir_all(draft.join("bundle/topics")).unwrap();
     std::fs::write(draft.join("job.json"), br#"{"subject":"Rust","done":2}"#).unwrap();

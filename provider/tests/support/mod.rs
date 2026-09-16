@@ -6,6 +6,9 @@
 )]
 #![allow(dead_code, reason = "each test binary takes its own share of helpers")]
 
+#[path = "../../../tests-support/scratch.rs"]
+pub mod scratch;
+
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpListener;
 use std::sync::{Arc, Mutex, PoisonError};

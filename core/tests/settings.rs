@@ -4,18 +4,15 @@
     reason = "settings gate: a panic here is the report"
 )]
 
+#[path = "../../tests-support/scratch.rs"]
+mod scratch;
+
 use std::path::{Path, PathBuf};
 
 use tolearn_core::settings::{Locale, Settings, Theme};
 
 fn scratch(name: &str) -> PathBuf {
-    let directory =
-        std::env::temp_dir().join(format!("tolearn-settings-{name}-{}", std::process::id()));
-    if directory.exists() {
-        std::fs::remove_dir_all(&directory).unwrap();
-    }
-    std::fs::create_dir_all(&directory).unwrap();
-    directory
+    scratch::made(&format!("settings-{name}"))
 }
 
 fn kept(directory: &Path, settings: &Settings) -> Settings {

@@ -1,3 +1,6 @@
+#[path = "../../../tests-support/scratch.rs"]
+mod scratch;
+
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -14,13 +17,7 @@ pub const SLEEP: &str = "sleep 30";
 pub const SLEEP: &str = "ping -n 31 127.0.0.1 >nul";
 
 pub fn scratch(name: &str) -> PathBuf {
-    let directory =
-        std::env::temp_dir().join(format!("tolearn-spawn-{name}-{}", std::process::id()));
-    if directory.exists() {
-        std::fs::remove_dir_all(&directory).unwrap();
-    }
-    std::fs::create_dir_all(&directory).unwrap();
-    directory
+    scratch::made(&format!("spawn-{name}"))
 }
 
 pub fn args(script: &str) -> Vec<String> {

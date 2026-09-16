@@ -1,3 +1,6 @@
+#[path = "../../../tests-support/scratch.rs"]
+pub mod scratch;
+
 use std::cell::RefCell;
 
 use tolearn_generate::Model;

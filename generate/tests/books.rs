@@ -4,6 +4,9 @@
     reason = "generate gate: a panic here is the report"
 )]
 
+#[path = "../../tests-support/scratch.rs"]
+mod scratch;
+
 use std::cell::Cell;
 use std::path::{Path, PathBuf};
 
@@ -49,9 +52,7 @@ impl Drop for Scratch {
 }
 
 fn scratch(name: &str) -> Scratch {
-    let path = std::env::temp_dir().join(format!("tolearn-books-{name}-{}", std::process::id()));
-    let _ = std::fs::remove_dir_all(&path);
-    Scratch(path)
+    Scratch(scratch::named(&format!("books-{name}")))
 }
 
 fn book(library: &Library, data: &Path, at: i64, wanted: &Wanted) -> Outcome<Book> {

@@ -5,6 +5,9 @@
     reason = "provider gate: a panic here is the report"
 )]
 
+#[path = "../../tests-support/scratch.rs"]
+mod scratch;
+
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -16,13 +19,10 @@ use tolearn_provider::{
 static FILES: AtomicUsize = AtomicUsize::new(0);
 
 fn path(name: &str) -> PathBuf {
-    let directory = std::env::temp_dir().join(format!(
-        "tolearn-provider-{name}-{}-{}",
-        std::process::id(),
+    let directory = scratch::made(&format!(
+        "provider-{name}-{}",
         FILES.fetch_add(1, Ordering::Relaxed)
     ));
-    let _ = std::fs::remove_dir_all(&directory);
-    std::fs::create_dir_all(&directory).unwrap();
     directory.join("provider.yaml")
 }
 

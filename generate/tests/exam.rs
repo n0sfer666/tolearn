@@ -58,9 +58,7 @@ fn paper<'a>(stage: &'a Stage, answers: &'a BTreeMap<String, String>) -> Paper<'
 }
 
 fn scratch(name: &str) -> PathBuf {
-    let path = std::env::temp_dir().join(format!("tolearn-exam-{name}-{}", std::process::id()));
-    let _ = std::fs::remove_dir_all(&path);
-    path
+    support::scratch::named(&format!("exam-{name}"))
 }
 
 fn written(data: &Path) -> Vec<Record> {

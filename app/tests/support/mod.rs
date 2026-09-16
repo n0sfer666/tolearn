@@ -6,6 +6,9 @@
 )]
 #![allow(dead_code, reason = "опоры нужны не каждому тест-бинарнику")]
 
+#[path = "../../../tests-support/scratch.rs"]
+pub mod scratch;
+
 pub mod planner;
 pub mod shelf;
 pub mod speaking;

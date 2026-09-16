@@ -102,10 +102,7 @@ mod tests {
     fn planted(name: &str, mode: u32) -> (PathBuf, PathBuf) {
         use std::os::unix::fs::PermissionsExt;
 
-        let home = std::env::temp_dir().join(format!(
-            "tolearn-path-{name}-{}-{mode:o}",
-            std::process::id()
-        ));
+        let home = crate::scratch::named(&format!("path-{name}-{mode:o}"));
         let bin = home.join(".local").join("bin");
         std::fs::create_dir_all(&bin).unwrap();
         let file = bin.join(HARNESS);
@@ -178,8 +175,7 @@ mod tests {
 
     #[test]
     fn a_harness_that_is_nowhere_leaves_the_search_to_the_platform() {
-        let home =
-            std::env::temp_dir().join(format!("tolearn-path-nowhere-{}", std::process::id()));
+        let home = crate::scratch::named("path-nowhere");
 
         assert_eq!(
             candidates(HARNESS, &enriched(GUI, home.to_str())),

@@ -3,6 +3,9 @@
     reason = "every test binary takes its own part of the shared support module"
 )]
 
+#[path = "../../../tests-support/scratch.rs"]
+pub mod scratch;
+
 pub mod archives;
 pub mod packages;
 pub mod pictures;

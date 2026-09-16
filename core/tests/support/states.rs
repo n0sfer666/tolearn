@@ -8,13 +8,7 @@ use tolearn_core::state::{
 pub const PROGRAM: &str = "3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84";
 
 pub fn scratch(name: &str) -> PathBuf {
-    let directory =
-        std::env::temp_dir().join(format!("tolearn-state-{name}-{}", std::process::id()));
-    if directory.exists() {
-        std::fs::remove_dir_all(&directory).unwrap();
-    }
-    std::fs::create_dir_all(&directory).unwrap();
-    directory
+    super::scratch::made(&format!("state-{name}"))
 }
 
 pub fn file(data: &Path) -> PathBuf {

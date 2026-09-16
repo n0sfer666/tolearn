@@ -6,6 +6,9 @@
 )]
 #![allow(dead_code, reason = "опоры нужны не каждому тест-бинарнику")]
 
+#[path = "../../../tests-support/scratch.rs"]
+mod rooms;
+
 pub mod answers;
 pub mod locked;
 pub mod log;
@@ -44,12 +47,10 @@ pub struct Desk {
 
 impl Desk {
     pub fn new(model: &Speaking) -> Self {
-        let root = std::env::temp_dir().join(format!(
-            "tolearn-cli-generating-{}-{}",
-            std::process::id(),
+        let root = rooms::named(&format!(
+            "cli-generating-{}",
             DESKS.fetch_add(1, Ordering::Relaxed)
         ));
-        let _ = std::fs::remove_dir_all(&root);
         let config = root.join("config");
         std::fs::create_dir_all(&config).unwrap();
         provided(&model.endpoint)

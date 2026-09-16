@@ -5,14 +5,15 @@
     reason = "offline gate: a panic here is the report"
 )]
 
+#[path = "../../tests-support/scratch.rs"]
+mod scratch;
+
 use std::path::{Path, PathBuf};
 
 use tolearn_offline::store::{Checked, Fetched, Store};
 
 fn root(name: &str) -> PathBuf {
-    let path = std::env::temp_dir().join(format!("tolearn-migrate-{name}-{}", std::process::id()));
-    let _ = std::fs::remove_dir_all(&path);
-    path
+    scratch::named(&format!("migrate-{name}"))
 }
 
 fn fetched(bytes: &[u8]) -> Fetched<'_> {

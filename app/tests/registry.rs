@@ -13,7 +13,7 @@ use tolearn_app::ipc::{Context, call};
 
 #[test]
 fn импорт_и_реестр_v1_убраны() {
-    let context = Context::new(&std::env::temp_dir().join("tolearn-registry-gone"));
+    let context = Context::new(&support::scratch::named("registry-gone"));
     for name in ["import", "programs"] {
         let payload = json!({ "path": "/nowhere", "today": "2026-09-12" });
 
@@ -25,10 +25,7 @@ fn импорт_и_реестр_v1_убраны() {
 
 #[test]
 fn реестр_и_распакованные_бандлы_v1_приложение_не_читает_и_не_удаляет() {
-    let data = std::env::temp_dir().join(format!("tolearn-registry-kept-{}", std::process::id()));
-    if data.exists() {
-        std::fs::remove_dir_all(&data).unwrap();
-    }
+    let data = support::scratch::named("registry-kept");
     let unpacked = data.join("unpacked/rust-base");
     std::fs::create_dir_all(unpacked.join("topics")).unwrap();
     std::fs::write(

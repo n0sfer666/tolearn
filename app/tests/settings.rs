@@ -5,6 +5,9 @@
     reason = "app gate: a panic here is the report"
 )]
 
+#[path = "../../tests-support/scratch.rs"]
+mod scratch;
+
 use serde_json::{Value, json};
 use tolearn_app::ipc::{Context, IpcError, call};
 
@@ -13,12 +16,7 @@ struct Case {
 }
 
 fn case(name: &str) -> Case {
-    let data = std::env::temp_dir().join(format!(
-        "tolearn-settings-ipc-{name}-{}",
-        std::process::id()
-    ));
-    let _ = std::fs::remove_dir_all(&data);
-    std::fs::create_dir_all(&data).unwrap();
+    let data = scratch::made(&format!("settings-ipc-{name}"));
     Case {
         context: Context::new(&data),
     }

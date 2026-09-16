@@ -51,9 +51,7 @@ fn ollama(endpoint: String) -> Provider {
 }
 
 fn pid_file() -> PathBuf {
-    let pid = std::env::temp_dir().join(format!("tolearn-linger-{}.pid", std::process::id()));
-    let _ = std::fs::remove_file(&pid);
-    pid
+    support::scratch::made("linger").join("harness.pid")
 }
 
 #[test]

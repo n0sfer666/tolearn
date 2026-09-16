@@ -5,18 +5,15 @@
     reason = "app gate: a panic here is the report"
 )]
 
+#[path = "../../tests-support/scratch.rs"]
+mod scratch;
+
 use std::path::{Path, PathBuf};
 
 use tolearn_app::ipc::layout::{Places, migrate};
 
 fn home(name: &str) -> PathBuf {
-    let directory =
-        std::env::temp_dir().join(format!("tolearn-layout-{name}-{}", std::process::id()));
-    if directory.exists() {
-        std::fs::remove_dir_all(&directory).unwrap();
-    }
-    std::fs::create_dir_all(&directory).unwrap();
-    directory
+    scratch::made(&format!("layout-{name}"))
 }
 
 fn old(root: &Path) -> PathBuf {

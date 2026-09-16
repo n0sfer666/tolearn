@@ -23,7 +23,7 @@ struct Layer {
 
 const SHELL_MARKERS: &[&str] = &["tauri", "wry", "webkit", "objc"];
 const WEBVIEW_MARKERS: &[&str] = &["tauri", "wry", "webkit"];
-const NON_CRATE_DIRS: &[&str] = &["ui", "docs", "examples", "fixtures"];
+const NON_CRATE_DIRS: &[&str] = &["ui", "docs", "examples", "fixtures", "tests-support"];
 const INHERITED_FIELDS: &[&str] = &[
     "version",
     "edition",

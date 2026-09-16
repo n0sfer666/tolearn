@@ -29,13 +29,10 @@ pub struct Case {
 
 impl Case {
     pub fn new(up: bool, model: Speaking) -> Self {
-        let data = std::env::temp_dir().join(format!(
-            "tolearn-start-ipc-{}-{}",
-            std::process::id(),
+        let data = super::scratch::made(&format!(
+            "start-ipc-{}",
             CASES.fetch_add(1, Ordering::Relaxed)
         ));
-        let _ = std::fs::remove_dir_all(&data);
-        std::fs::create_dir_all(&data).unwrap();
         let heard = Heard::default();
         let seen = Arc::clone(&heard);
         let tools = Tools {

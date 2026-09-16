@@ -27,13 +27,10 @@ struct Case {
 }
 
 fn case(name: &str) -> Case {
-    let data = std::env::temp_dir().join(format!(
-        "tolearn-provider-ipc-{name}-{}-{}",
-        std::process::id(),
+    let data = support::scratch::made(&format!(
+        "provider-ipc-{name}-{}",
         CASES.fetch_add(1, Ordering::Relaxed)
     ));
-    let _ = std::fs::remove_dir_all(&data);
-    std::fs::create_dir_all(&data).unwrap();
     let vault = Arc::new(Remembered::default());
     Case {
         context: Context::with_vault(&data, Arc::clone(&vault) as Arc<dyn Vault>),
