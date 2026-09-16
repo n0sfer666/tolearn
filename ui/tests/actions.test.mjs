@@ -27,7 +27,7 @@ before(
 const SCREEN = `<header class="bar">
     <a href="/ru/" data-back>Библиотека</a>
     <h1>Программа</h1>
-    <nav><a href="/ru/search/" data-search>Поиск</a><a href="/ru/settings/" data-settings>Настройки</a></nav>
+    <nav><a href="/ru/" data-library>Библиотека</a><a href="/ru/search/" data-search>Поиск</a><a href="/ru/settings/" data-settings>Настройки</a></nav>
   </header>
   <main>
     <input data-filter />
@@ -101,6 +101,13 @@ test("слой — диалог с именем, поле управляет с�
   assert.equal(query.getAttribute("role"), "combobox");
   assert.equal(query.getAttribute("aria-controls"), list.id);
   assert.equal(query.getAttribute("aria-activedescendant"), document.querySelector("[aria-selected='true']").id);
+});
+
+test("пункт шапки не повторяет крошку, ведущую туда же", async () => {
+  await summon(document.body);
+
+  assert.deepEqual(offers().filter((label) => label === "Библиотека"), ["Библиотека"]);
+  assert.equal(document.querySelectorAll('body > header a[href="/ru/"]').length, 2);
 });
 
 test("текущий пункт шапки в слой не попадает", async () => {

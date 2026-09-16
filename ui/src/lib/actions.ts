@@ -15,13 +15,17 @@ export function summon(): void {
 }
 
 export function offered(doc: Document): Offer[] {
-  const seen = new Set<Element>();
+  const seen = new Set<string>();
   const found: Offer[] = [];
 
   for (const source of SOURCES) {
     for (const element of doc.querySelectorAll(source)) {
-      if (seen.has(element) || !available(element)) continue;
-      seen.add(element);
+      if (!available(element)) continue;
+      const aim = aimed(element, doc);
+      if (aim !== null) {
+        if (seen.has(aim)) continue;
+        seen.add(aim);
+      }
       const label = labelled(element);
       if (label !== "") found.push({ label, element });
     }
@@ -37,6 +41,11 @@ export function narrowed(offers: readonly Offer[], query: string): Offer[] {
 
 function available(element: Element): element is HTMLElement {
   return element instanceof HTMLElement && !element.matches(UNAVAILABLE) && element.closest(CONCEALED) === null;
+}
+
+function aimed(element: HTMLElement, doc: Document): string | null {
+  const href = element.getAttribute("href");
+  return href === null ? null : new URL(href, doc.baseURI).href;
 }
 
 function labelled(element: HTMLElement): string {
