@@ -14,7 +14,7 @@ pub fn run(context: &Context, input: &StartProgramIn) -> Result<StartProgramOut,
     told("уровень", &input.level)?;
     let request = asked(context, &input.request, &input.level)?;
     let plan = taken(&input.plan)?;
-    let claim = context.running().claim()?;
+    let claim = context.running().claim(None)?;
     let model = voiced(context, KIND, claim.stop().clone())?;
     let reach = context.reach()?;
     let online = online(reach.as_ref(), &model).map_err(refused)?;

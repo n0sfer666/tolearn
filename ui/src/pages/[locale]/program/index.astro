@@ -13,7 +13,7 @@ const text = strings(locale);
 ---
 
 <Base locale={locale} title={text.nav.program} back={{ href: "/", text: text.nav.library }}>
-  <ProgramMenu slot="action" client:load text={text} />
+  <ProgramMenu slot="action" client:load text={text} locale={locale} />
   <section id="program" aria-label={text.nav.program}>
     <Program client:load text={text} locale={locale} />
   </section>

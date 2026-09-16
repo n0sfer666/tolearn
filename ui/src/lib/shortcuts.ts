@@ -16,6 +16,7 @@ export const SHORTCUTS = [
   { id: "next", scope: "layer", key: "ArrowDown", label: "↓" },
   { id: "run", scope: "layer", key: "Enter", label: "Enter" },
   { id: "close", scope: "layer", key: "Escape", label: "Esc" },
+  { id: "cycle", scope: "layer", key: "Tab", label: "Tab" },
 ] as const satisfies readonly Shortcut[];
 
 export type ShortcutId = (typeof SHORTCUTS)[number]["id"];

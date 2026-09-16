@@ -13,7 +13,7 @@ const KIND: &str = "Следующий этап";
 
 pub fn run(context: &Context, input: &TakeNextIn) -> Result<TakeNextOut, IpcError> {
     let after = after(&input.program, &input.node, &input.stage);
-    let claim = context.running().claim()?;
+    let claim = context.running().claim(Some(&input.program))?;
     let model = voiced(context, KIND, claim.stop().clone())?;
     let reach = context.reach()?;
     let online = online(reach.as_ref(), &model).map_err(refused)?;

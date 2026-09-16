@@ -15,7 +15,7 @@ pub fn run(context: &Context, input: &ForkIn) -> Result<ForkOut, IpcError> {
     if let Some(fork) = fork::known(context.data(), &after).map_err(refused)? {
         return Ok(view(&fork));
     }
-    let claim = context.running().claim()?;
+    let claim = context.running().claim(Some(&input.program))?;
     let model = voiced(context, KIND, claim.stop().clone())?;
     let reach = context.reach()?;
     let online = online(reach.as_ref(), &model).map_err(refused)?;

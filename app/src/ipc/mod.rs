@@ -39,7 +39,7 @@ pub use context::{Context, Net, of};
 pub use contract::{Descriptor, NAMES, call, descriptors};
 pub use error::IpcError;
 pub use ledger::Ledger;
-pub use running::{Claim, Running};
+pub use running::{Claim, Erasing, Running};
 pub use shape::{Field, Shape};
 pub use started::{GenerationStep, STEP_EVENT};
 pub use tools::{Brush, Fetcher, Herald, Renderer, Tools};

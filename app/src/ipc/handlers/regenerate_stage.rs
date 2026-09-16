@@ -12,7 +12,7 @@ const KIND: &str = "Перегенерация этапа";
 
 pub fn run(context: &Context, input: &RegenerateStageIn) -> Result<RegenerateStageOut, IpcError> {
     let at = after(&input.program, &input.node, &input.stage);
-    let claim = context.running().claim()?;
+    let claim = context.running().claim(Some(&input.program))?;
     let model = voiced(context, KIND, claim.stop().clone())?;
     let reach = context.reach()?;
     let online = online(reach.as_ref(), &model).map_err(refused)?;

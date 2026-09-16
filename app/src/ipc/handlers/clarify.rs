@@ -34,7 +34,7 @@ pub fn run(context: &Context, input: &ClarifyIn) -> Result<ClarificationsOut, Ip
         None => Vec::new(),
     };
     let question = Some(input.question.trim()).filter(|question| !question.is_empty());
-    let claim = context.running().claim()?;
+    let claim = context.running().claim(Some(&input.program))?;
     let model = voiced(context, KIND, claim.stop().clone())?;
     let online = if model.remote() {
         let reach = context.reach()?;

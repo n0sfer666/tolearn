@@ -11,6 +11,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use record::Answer;
 
+pub const ROOM: &str = "llm-log";
 pub const KEEP: usize = 20;
 
 static TURNS: AtomicUsize = AtomicUsize::new(0);

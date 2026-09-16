@@ -1,3 +1,4 @@
+pub mod discard;
 pub mod gestures;
 mod hidden;
 pub mod ipc;

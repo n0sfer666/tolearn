@@ -58,6 +58,7 @@ commands! {
     speech_stop(types::SpeechStopIn) -> types::SpeechStopOut,
     library(reading::LibraryIn) -> reading::LibraryOut,
     import_package(reading::ImportPackageIn) -> reading::ImportPackageOut,
+    delete_program(reading::DeleteProgramIn) -> reading::DeleteProgramOut,
     node(reading::NodeIn) -> reading::NodeOut,
     stage(reading::StageIn) -> reading::StageOut,
     plan_program(planned::PlanProgramIn) -> planned::PlanOut,

@@ -119,6 +119,10 @@ impl Store {
         self.index.protect(program, protected)
     }
 
+    pub fn release(&mut self, program: &str) -> Result<(), StoreError> {
+        self.index.release(program)
+    }
+
     pub fn size(&self) -> Result<u64, StoreError> {
         self.index.size()
     }

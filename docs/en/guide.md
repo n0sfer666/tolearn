@@ -66,6 +66,18 @@ the button, it writes straight into `<folder>` with no nested folder named after
 the program, so `<folder>` must be empty or not exist yet. It never writes
 inside any program folder.
 
+## Deleting
+
+The "Delete program" item in the ⋯ menu on the program screen asks for a
+confirmation and moves to the system trash the program itself
+(`programs/<uuid>/`) first, then its state and page cache — and with them the
+whole model request log: the log is shared by every program and lives in
+`llm-log/`. Until the trash is emptied, the system can put all of it back. A
+subprogram cannot be deleted on its own: the whole program goes at once. While
+this program is being generated the deletion refuses; while it is being deleted
+no new generation of it starts. If the trash refuses part of it, the app refuses
+too and lists what stayed on disk.
+
 ## Generating from a terminal
 
 `tolearn new "<request>" --level <level> --out <folder>` builds the program map

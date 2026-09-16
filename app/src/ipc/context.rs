@@ -8,6 +8,8 @@ use tolearn_generate::ledger::Tally;
 use tolearn_offline::reach::{Ping, Reach};
 use tolearn_provider::{Keychain, Vault};
 
+use crate::discard::{Bin, Trash};
+
 use super::error::IpcError;
 use super::layout;
 use super::ledger::Ledger;
@@ -27,6 +29,7 @@ pub struct Context {
     tools: Tools,
     running: Running,
     ledger: Ledger,
+    bin: Arc<dyn Bin>,
 }
 
 impl Context {
@@ -44,6 +47,7 @@ impl Context {
             tools: Tools::default(),
             running: Running::default(),
             ledger: Ledger::default(),
+            bin: Arc::new(Trash::new()),
         }
     }
 
@@ -62,6 +66,7 @@ impl Context {
             tools: Tools::default(),
             running: Running::default(),
             ledger: Ledger::default(),
+            bin: Arc::new(Trash::new()),
         }
     }
 
@@ -83,6 +88,15 @@ impl Context {
     pub fn with_ledger(mut self, ledger: Ledger) -> Self {
         self.ledger = ledger;
         self
+    }
+
+    pub fn with_bin(mut self, bin: Arc<dyn Bin>) -> Self {
+        self.bin = bin;
+        self
+    }
+
+    pub fn bin(&self) -> &dyn Bin {
+        self.bin.as_ref()
     }
 
     pub fn reach(&self) -> Result<Net, IpcError> {
@@ -135,7 +149,7 @@ impl Context {
     }
 
     pub fn llm_log(&self) -> PathBuf {
-        self.data.join("llm-log")
+        self.data.join(crate::journal::ROOM)
     }
 
     pub fn library(&self) -> Library {

@@ -187,6 +187,14 @@ export type ImportPackageOut = {
   copy_of: string | null;
 };
 
+export type DeleteProgramIn = {
+  program: string;
+};
+
+export type DeleteProgramOut = {
+  title: string;
+};
+
 export type NodeIn = {
   program: string;
   node: string;
@@ -534,6 +542,7 @@ export type Commands = {
   speech_stop: { input: SpeechStopIn; output: SpeechStopOut };
   library: { input: LibraryIn; output: LibraryOut };
   import_package: { input: ImportPackageIn; output: ImportPackageOut };
+  delete_program: { input: DeleteProgramIn; output: DeleteProgramOut };
   node: { input: NodeIn; output: NodeOut };
   stage: { input: StageIn; output: StageOut };
   plan_program: { input: PlanProgramIn; output: PlanOut };

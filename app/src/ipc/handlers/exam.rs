@@ -19,7 +19,7 @@ pub fn run(context: &Context, input: &ExamIn) -> Result<ExamOut, IpcError> {
     let branch = shelf::branch(&tree, &input.node)?;
     let stage = staged(branch.tree, &input.stage)?;
     let answers = answered(stage, &input.answers)?;
-    let claim = context.running().claim()?;
+    let claim = context.running().claim(Some(&input.program))?;
     let model = voiced(context, KIND, claim.stop().clone())?;
     let online = if model.remote() {
         let reach = context.reach()?;

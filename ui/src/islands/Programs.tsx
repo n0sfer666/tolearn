@@ -29,6 +29,12 @@ function refusals(text: Words): ReadonlyMap<string, string> {
   ]);
 }
 
+function removed(text: Words): void {
+  const title = query("deleted");
+  if (title === "") return;
+  toast("ok", `${text.deleted}: ${title}`);
+}
+
 function announce(text: Words, done: ImportPackageOut): void {
   if (done.copy_of === null) toast("ok", `${text.imported}: ${done.title}`);
   else toast("info", `${text.copied}: ${done.title}`);
@@ -70,6 +76,7 @@ export default function Programs(props: Props) {
 
   onMount(() => {
     toast("error", query("refused"));
+    removed(props.text);
     void list();
     (props.drops ?? listen)((paths) => {
       const [first] = paths;

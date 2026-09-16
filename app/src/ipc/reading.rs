@@ -39,6 +39,9 @@ dto!(ImportPackageOut {
     copy_of: Option<String>,
 });
 
+dto!(DeleteProgramIn { program: String });
+dto!(DeleteProgramOut { title: String });
+
 dto!(NodeIn {
     program: String,
     node: String,
@@ -154,6 +157,8 @@ pub fn shapes() -> Vec<Shape> {
         RowView::shape(),
         ImportPackageIn::shape(),
         ImportPackageOut::shape(),
+        DeleteProgramIn::shape(),
+        DeleteProgramOut::shape(),
         NodeIn::shape(),
         NodeOut::shape(),
         SourcesView::shape(),

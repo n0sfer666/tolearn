@@ -2,6 +2,7 @@ pub mod answer;
 pub mod cancel_generation;
 pub mod check_claim;
 pub mod clarify;
+pub mod delete_program;
 pub mod exam;
 pub mod exam_paste;
 pub mod exam_prompt;

@@ -6,4 +6,5 @@ export const shortcuts = {
   next: "Next action in the list, from the last one to the first.",
   run: "Run the chosen action.",
   close: "Close the layer and return focus to where it was. Closes the “?” hint the same way.",
+  cycle: "Move to the next button of the confirmation, from the last one to the first; with Shift, backwards. Focus never leaves the layer.",
 };

@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
@@ -6,6 +7,7 @@ use serde_json::{Value, json};
 use tolearn_app::ipc::{Context, IpcError, call};
 use tolearn_core::package;
 
+use super::bucket::Bucket;
 use super::repository;
 
 pub const CHIPTUNE: &str = "3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84";
@@ -18,19 +20,30 @@ pub struct Shelf {
     pub context: Context,
     pub data: PathBuf,
     pub incoming: PathBuf,
+    pub bucket: Bucket,
 }
 
 impl Shelf {
     pub fn new(name: &str) -> Self {
+        Self::binned(name, None)
+    }
+
+    pub fn jammed(name: &str, mark: &str) -> Self {
+        Self::binned(name, Some(mark))
+    }
+
+    fn binned(name: &str, jam: Option<&str>) -> Self {
         let top = super::scratch::named(&format!("shelf-{name}"));
         let data = top.join("data");
         let incoming = top.join("incoming");
         std::fs::create_dir_all(&data).unwrap();
         std::fs::create_dir_all(&incoming).unwrap();
+        let bucket = Bucket::new(&top.join("bin"), jam);
         Self {
-            context: Context::new(&data),
+            context: Context::new(&data).with_bin(Arc::new(bucket.clone())),
             data,
             incoming,
+            bucket,
         }
     }
 

@@ -4,7 +4,7 @@ import test from "node:test";
 import { ru } from "../src/i18n/ru.ts";
 import { settled } from "./support/dom.mjs";
 import { named, refusal } from "./support/generation.mjs";
-import { CHIPTUNE, SHELF, programsScreen } from "./support/programs.mjs";
+import { CHIPTUNE, NES, SHELF, programsScreen } from "./support/programs.mjs";
 
 const { mount } = programsScreen();
 
@@ -99,4 +99,20 @@ test("отменённый выбор файла ничего не импорт�
   await settled();
 
   assert.equal(named(calls, "import_package").length, 0);
+});
+
+test("после удаления библиотека называет удалённую программу", async () => {
+  globalThis.location = { search: `?${new URLSearchParams({ deleted: NES.title })}` };
+  const { said } = mount();
+  await settled();
+  delete globalThis.location;
+
+  assert.deepEqual(said.at(0), { tone: "ok", text: `${ru.programs.deleted}: ${NES.title}` });
+});
+
+test("без метки удаления библиотека молчит", async () => {
+  const { said } = mount();
+  await settled();
+
+  assert.deepEqual(said, []);
 });

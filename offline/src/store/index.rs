@@ -169,6 +169,14 @@ impl Index {
         Ok(held)
     }
 
+    pub(super) fn release(&mut self, program: &str) -> Result<(), StoreError> {
+        let write = self.db.transaction()?;
+        write.execute("delete from holders where program = ?1", params![program])?;
+        write.execute("delete from programs where program = ?1", params![program])?;
+        write.commit()?;
+        Ok(())
+    }
+
     pub(super) fn forget(&mut self, url: &str, hash: &str) -> Result<(), StoreError> {
         let write = self.db.transaction()?;
         write.execute("delete from urls where url = ?1", params![url])?;
