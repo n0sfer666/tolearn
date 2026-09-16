@@ -14,13 +14,13 @@ export default function Room(props: Props) {
       {(kept) => (
         <>
           <p data-journal-room>
-            {props.text.provider.journalKept} {kept().records} · {kept().room}
+            {props.text.journal.kept} {kept().records} · {kept().room}
           </p>
           <button type="button" data-journal-open onClick={() => props.log.ask(true, false)}>
-            {props.text.provider.journalOpen}
+            {props.text.journal.open}
           </button>
           <button type="button" data-journal-clear onClick={() => props.log.ask(false, true)}>
-            {props.text.provider.journalClear}
+            {props.text.journal.clear}
           </button>
         </>
       )}

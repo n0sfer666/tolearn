@@ -31,8 +31,8 @@ The short version of how to use the app. For installation see
 | Program | the goal, the map, stages and subprograms |
 | Stage | the stage text, practice and questions with an answer field: "Submit" hands the answers to the model, "Submit through another chat" copies the prompt into any chat and takes its reply, and each question shows its result and what was missed; "Skip the check" marks the stage passed without an exam and leads to the fork; "Regenerate the stage" explains it differently, the old text stays until the end |
 | What next | the choices for the next stage as cards: hours, the place on the map and what the choice continues, the recommended one marked and first; the finished stage's result beside them, the map with the choice in its slot below; a choice creates the stage and opens it |
-| Search | across the stages of every program in the library; a hit opens the stage at the right spot |
-| Settings | language, LLM provider, disk budget |
+| Search | across the stages of every program in the library; `/` puts the cursor in the field, a hit names its program and opens the stage at the right spot |
+| Settings | the LLM provider and models, the disk budget, the request log, language and theme |
 | Help | how learning works, the keys, where to keep notes, and where the previous version's data lives |
 
 ## Where your data lives

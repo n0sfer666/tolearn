@@ -54,11 +54,35 @@ ul[data-hits] {
   margin-block-start: var(--spacing-4);
 }
 
-li[data-hit] [data-snippet] {
+li[data-hit] :is([data-where], [data-snippet]) {
   flex: 0 0 100%;
+  max-width: none;
   margin: 0;
   color: var(--color-fg-muted);
   font-size: var(--font-size-sm);
+}
+
+li[data-hit] [data-program] + [data-node]::before {
+  content: "›" / "";
+  margin-inline: var(--spacing-2);
+}
+
+p[data-found] {
+  margin-block: var(--spacing-4) 0;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+section[data-card] {
+  margin: 0;
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-raised);
+}
+
+section[data-card] > h2 {
+  margin-block-start: 0;
 }
 
 li[data-checkpoint] {
@@ -95,35 +119,4 @@ li[data-question] > [data-dictate] {
 
 article[data-stage] {
   margin-block-end: var(--spacing-6);
-}
-
-.grid {
-  display: grid;
-  gap: var(--spacing-4);
-}
-
-.grid astro-island,
-.grid [data-cards] {
-  display: contents;
-}
-
-.grid > :is(section, article),
-.grid > astro-island > :is(section, article),
-.grid [data-cards] > section {
-  margin: 0;
-  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-raised);
-}
-
-.grid [data-cards] > p {
-  grid-column: 1 / -1;
-  margin: 0;
-}
-
-@media (min-width: 1024px) {
-  .grid {
-    grid-template-columns: 1fr 1fr;
-  }
 }

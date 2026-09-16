@@ -108,6 +108,14 @@ export const en: Dictionary = {
     failed: "The search failed",
     stage: "stage",
     block: "excerpt",
+    found: "Found: {n}",
+    shown: "Showing the first {n}",
+  },
+  journal: {
+    title: "Request log",
+    kept: "Records in the log:",
+    open: "Open the folder",
+    clear: "Clear the log",
   },
   settings: {
     lead: "Changes take effect at once, no restart needed.",
@@ -172,9 +180,6 @@ export const en: Dictionary = {
     journal: "Keep a log of requests",
     journalLead:
       "The prompt and the model's answer are written to files on this machine — you can see what went out and what came back. The last 20 requests are kept.",
-    journalKept: "Records in the log:",
-    journalOpen: "Open the folder",
-    journalClear: "Clear the log",
     save: "Save",
     check: "Check",
     probe: "Trial request",

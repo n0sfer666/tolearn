@@ -563,16 +563,21 @@ test("неизвестный код отказа не оставляет экр�
   assert.deepEqual(said.at(-1), { tone: "error", text: ru.provider.failed });
 });
 
-test("журнал выключен по умолчанию и показывает счётчик с путём", async () => {
-  const { host, logs } = mount({ records: 3 });
+test("журнал выключен по умолчанию", async () => {
+  const { host, logs } = mount();
   await settled();
 
   assert.equal(host.querySelector("[data-journal]").checked, false);
-  assert.deepEqual(logs, [{ open: false, clear: false }]);
-  assert.equal(
-    host.querySelector("[data-journal-room]").textContent,
-    `${ru.provider.journalKept} 3 · /данные/llm-log`,
-  );
+  assert.deepEqual(logs, [], "карточка провайдера сама читает журнал");
+});
+
+test("провайдер и модели стоят одной карточкой", async () => {
+  const { host } = mount();
+  await settled();
+
+  assert.equal(host.querySelectorAll('[data-card="provider"]').length, 1);
+  assert.ok(host.querySelector('[data-card="provider"] [data-journal]') !== null, "галочка ушла от кнопки «Сохранить»");
+  assert.ok(host.querySelector('[data-card="provider"] [data-save]') !== null);
 });
 
 test("галочка журнала уходит в сохранение провайдера", async () => {
@@ -585,34 +590,6 @@ test("галочка журнала уходит в сохранение про�
   await settled();
 
   assert.equal(calls.at(-1).payload.save.journal, true);
-});
-
-test("очистка журнала обнуляет счётчик", async () => {
-  const { host, logs } = mount({ records: 7 });
-  await settled();
-
-  host.querySelector("[data-journal-clear]").click();
-  await settled();
-
-  assert.deepEqual(logs.at(-1), { open: false, clear: true });
-  assert.equal(
-    host.querySelector("[data-journal-room]").textContent,
-    `${ru.provider.journalKept} 0 · /данные/llm-log`,
-  );
-});
-
-test("открытие папки журнала не трогает записи", async () => {
-  const { host, logs } = mount({ records: 2 });
-  await settled();
-
-  host.querySelector("[data-journal-open]").click();
-  await settled();
-
-  assert.deepEqual(logs.at(-1), { open: true, clear: false });
-  assert.equal(
-    host.querySelector("[data-journal-room]").textContent,
-    `${ru.provider.journalKept} 2 · /данные/llm-log`,
-  );
 });
 
 test("расхождение советов показано плашкой с разницей", async () => {

@@ -1,8 +1,8 @@
+export { named } from "./calls.mjs";
 export const refusal = (code, message) => ({ code, message });
 export const rejected = (failure) => () => Promise.reject(failure);
 export const held = () => new Promise(() => {});
 export const press = (host, selector) => host.querySelector(selector).click();
-export const named = (calls, name) => calls.filter((made) => made.name === name);
 export const began = (step, round = 0, of = 0) => ({ step, state: "began", round, of });
 
 export function deferred() {

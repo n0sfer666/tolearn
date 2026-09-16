@@ -1,9 +1,14 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import test, { before } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
 import { browser, settled, toasts } from "./support/dom.mjs";
+
+const UI = fileURLToPath(new URL("..", import.meta.url));
 
 let Settings;
 let render;
@@ -193,4 +198,32 @@ test("отказ ядра виден на экране", async () => {
   await settled();
 
   assert.deepEqual(said, [{ tone: "error", text: ru.settings.failed }]);
+});
+
+test("бюджет, язык и тема стоят отдельными карточками", async () => {
+  const { host } = mount();
+  await settled();
+
+  assert.deepEqual(
+    [...host.querySelectorAll("[data-card]")].map((card) => card.dataset.card),
+    ["budget", "language", "theme"],
+  );
+});
+
+test("экран настроек делит колонки: провайдер слева, остальное справа", () => {
+  const page = readFileSync(path.join(UI, "src/pages/[locale]/settings/index.astro"), "utf8");
+  const left = page.indexOf("data-studio-ask");
+  const right = page.indexOf("data-studio-side");
+  const end = page.indexOf("</section>", right);
+
+  assert.equal(left > 0 && right > left && end > right, true, "колонок на странице нет");
+
+  const ask = page.slice(left, right);
+  const side = page.slice(right, end);
+
+  assert.match(ask, /<Provider\b/);
+  assert.equal(/<Ledger\b|<Settings\b/.test(ask), false, "правая колонка попала в левую");
+  assert.equal(/<Provider\b/.test(side), false, "провайдер попал в правую колонку");
+  assert.match(side, /<Ledger\b[\s\S]*<Settings\b/);
+  assert.match(page, /data-studio\b/);
 });

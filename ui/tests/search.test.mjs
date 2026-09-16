@@ -4,6 +4,7 @@ import test, { before } from "node:test";
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
 import { browser, settled, toasts } from "./support/dom.mjs";
+import { named } from "./support/calls.mjs";
 
 let Search;
 let render;
@@ -44,12 +45,21 @@ const BLOCK = {
   snippet: "Файл nes.cfg говорит ld65, куда в ROM класть каждый сегмент.",
 };
 
+const SHELVES = [
+  { uuid: CHIPTUNE, title: "Chiptune: музыка звукового чипа NES" },
+  { uuid: NES_DEV, title: "Разработка под NES" },
+];
+
 function mount(options = {}) {
   const host = document.createElement("div");
   document.body.append(host);
   const calls = [];
   const call = (name, payload) => {
     calls.push({ name, payload });
+    if (name === "library") {
+      if (options.unlisted === true) return Promise.reject({ code: "library.unreadable", message: "нет" });
+      return Promise.resolve({ programs: options.shelves ?? SHELVES, refused: [] });
+    }
     if (options.refuse === true) {
       return Promise.reject({ code: "search.unreadable", message: "нет" });
     }
@@ -75,8 +85,9 @@ test("экран ничего не ищет до запроса", async () => {
   const { host, calls } = mount();
   await settled();
 
-  assert.equal(calls.length, 0);
+  assert.deepEqual(calls, [], "экран сходил в ядро до запроса");
   assert.equal(hits(host).length, 0);
+  assert.equal(host.querySelector("[data-found]"), null, "счётчик нарисован до запроса");
 });
 
 test("запрос уходит в ядро без программы: ищется вся библиотека", async () => {
@@ -84,7 +95,7 @@ test("запрос уходит в ядро без программы: ищет�
   ask(host, "голоса");
   await settled();
 
-  assert.deepEqual(calls[0], { name: "search", payload: { query: "голоса", limit: 20 } });
+  assert.deepEqual(named(calls, "search")[0], { name: "search", payload: { query: "голоса", limit: 20 } });
 });
 
 test("находка этапа ведёт на экран этапа корня без узла и якоря", async () => {
@@ -100,7 +111,8 @@ test("находка этапа ведёт на экран этапа корня
   );
   assert.equal(stage.querySelector("a").textContent, "Голоса чипа");
   assert.equal(stage.querySelector("[data-kind]").textContent, ru.search.stage);
-  assert.equal(stage.querySelector("[data-node]").textContent, STAGE.node_title);
+  assert.equal(stage.querySelector("[data-program]").textContent, "Chiptune: музыка звукового чипа NES");
+  assert.equal(stage.querySelector("[data-node]") === null, true, "корень назван дважды");
   assert.equal(stage.querySelector("[data-snippet]") === null, true, "пустой фрагмент нарисован");
 });
 
@@ -116,6 +128,7 @@ test("находка фрагмента ведёт на этап дочерне�
     `/ru/stage/?program=${NES_DEV}&node=${ROM}&stage=linker#e3fd4291`,
   );
   assert.equal(block.querySelector("[data-kind]").textContent, ru.search.block);
+  assert.equal(block.querySelector("[data-program]").textContent, "Разработка под NES");
   assert.equal(block.querySelector("[data-node]").textContent, "Первый ROM в cc65");
   assert.equal(block.querySelector("[data-snippet]").textContent, BLOCK.snippet);
 });
@@ -136,4 +149,71 @@ test("отказ ядра показан, а не проглочен", async () 
   assert.deepEqual(said.at(-1), { tone: "error", text: ru.search.failed });
   assert.equal(hits(host).length, 0);
   assert.equal(host.querySelector("[data-nothing]") === null, true, "отказ выдан за пустую выдачу");
+});
+
+test("счёт находок стоит над списком", async () => {
+  const { host } = mount();
+  ask(host, "голоса");
+  await settled();
+
+  const found = host.querySelector("[data-found]");
+  const list = host.querySelector("[data-hits]");
+  assert.equal(found.textContent, ru.search.found.replace("{n}", "2"));
+  assert.equal(
+    (found.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0,
+    true,
+    "счёт оказался под списком",
+  );
+  assert.equal(host.querySelector("[data-tally]").getAttribute("aria-live"), "polite");
+});
+
+test("полная выдача названа усечением, а не всем найденным", async () => {
+  const { host } = mount({ hits: Array.from({ length: 20 }, () => STAGE) });
+  ask(host, "чип");
+  await settled();
+
+  assert.equal(host.querySelector("[data-found]").textContent, ru.search.shown.replace("{n}", "20"));
+});
+
+test("библиотека читается на первом запросе, а не при открытии экрана", async () => {
+  const { host, calls } = mount();
+  await settled();
+
+  assert.deepEqual(calls, []);
+
+  ask(host, "голоса");
+  await settled();
+
+  assert.equal(named(calls, "library").length, 1);
+});
+
+test("библиотека читается один раз, а не на каждый запрос", async () => {
+  const { host, calls } = mount();
+  ask(host, "голоса");
+  await settled();
+  ask(host, "ROM");
+  await settled();
+
+  assert.equal(named(calls, "library").length, 1);
+  assert.equal(named(calls, "search").length, 2);
+});
+
+test("незнакомая программа оставляет находку без подписи корня", async () => {
+  const { host } = mount({ shelves: [] });
+  ask(host, "голоса");
+  await settled();
+
+  const [stage] = hits(host);
+  assert.equal(stage.querySelector("[data-program]"), null, "имя корня взято из воздуха");
+  assert.equal(stage.querySelector("[data-node]").textContent, STAGE.node_title);
+});
+
+test("отказ библиотеки не ломает поиск и не кричит", async () => {
+  const { host, said } = mount({ unlisted: true });
+  ask(host, "ROM");
+  await settled();
+
+  assert.equal(hits(host).length, 2);
+  assert.equal(hits(host)[1].querySelector("[data-node]").textContent, "Первый ROM в cc65");
+  assert.deepEqual(said, [], "подпись корня поднята до отказа поиска");
 });

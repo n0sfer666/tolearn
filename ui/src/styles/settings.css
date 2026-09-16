@@ -1,0 +1,10 @@
+[data-settings] :is([data-studio-ask], [data-studio-side]) {
+  display: grid;
+  align-content: start;
+  gap: var(--spacing-4);
+}
+
+[data-settings] astro-island,
+[data-settings] [data-cards] {
+  display: contents;
+}

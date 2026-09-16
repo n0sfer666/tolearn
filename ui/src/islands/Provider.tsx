@@ -4,7 +4,7 @@ import Apis from "../components/settings/Apis";
 import Drift from "../components/settings/Drift";
 import HarnessFields from "../components/settings/HarnessFields";
 import HttpFields from "../components/settings/HttpFields";
-import Journal from "../components/settings/Journal";
+import Keeping from "../components/settings/Keeping";
 import KeyField from "../components/settings/KeyField";
 import Kinds from "../components/settings/Kinds";
 import Models from "../components/settings/Models";
@@ -134,7 +134,7 @@ export default function Provider(props: Props) {
   return (
     <Show when={draft()}>
       {(current) => (
-        <article>
+        <section data-card="provider">
           <h2>{props.text.provider.title}</h2>
           <p>{props.text.provider.lead}</p>
 
@@ -206,12 +206,7 @@ export default function Provider(props: Props) {
             </Show>
           </Show>
 
-          <Journal
-            text={props.text}
-            call={call()}
-            on={current().journal}
-            onToggle={(journal) => change({ journal })}
-          />
+          <Keeping text={props.text} on={current().journal} onToggle={(journal) => change({ journal })} />
 
           <button type="button" data-save disabled={busy()} onClick={() => send(false, false, false)}>
             {props.text.provider.save}
@@ -239,7 +234,7 @@ export default function Provider(props: Props) {
           <Show when={probed()}>
             {(said) => <p data-probed>{answered(said(), props.text)}</p>}
           </Show>
-        </article>
+        </section>
       )}
     </Show>
   );

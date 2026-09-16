@@ -67,30 +67,12 @@ export default function Settings(props: Props) {
     <Show when={view()}>
       {(current) => (
         <article data-cards>
-          <section>
-            <h2>{props.text.settings.theme}</h2>
-            <nav aria-label={props.text.theme.switch}>
-              <For each={THEMES}>
-                {(choice) => (
-                  <button
-                    type="button"
-                    data-theme-choice={choice}
-                    aria-pressed={current().theme === choice}
-                    onClick={() => void store({ theme: choice })}
-                  >
-                    {props.text.theme[choice]}
-                  </button>
-                )}
-              </For>
-            </nav>
-          </section>
-
-          <section>
+          <section data-card="budget">
             <h2>{props.text.settings.budget}</h2>
             <Budget text={props.text} value={current().disk_budget_mb} onPick={onBudget} />
           </section>
 
-          <section>
+          <section data-card="language">
             <h2>{props.text.settings.language}</h2>
             <nav aria-label={props.text.language.switch}>
               <For each={LOCALES}>
@@ -105,6 +87,23 @@ export default function Settings(props: Props) {
                   >
                     {props.text.language[other]}
                   </a>
+                )}
+              </For>
+            </nav>
+          </section>
+          <section data-card="theme">
+            <h2>{props.text.settings.theme}</h2>
+            <nav aria-label={props.text.theme.switch}>
+              <For each={THEMES}>
+                {(choice) => (
+                  <button
+                    type="button"
+                    data-theme-choice={choice}
+                    aria-pressed={current().theme === choice}
+                    onClick={() => void store({ theme: choice })}
+                  >
+                    {props.text.theme[choice]}
+                  </button>
                 )}
               </For>
             </nav>
