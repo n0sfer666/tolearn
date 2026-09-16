@@ -23,6 +23,18 @@ export const PLAN = {
   hours: span(9, 13),
 };
 export const REVISED = { plan: { ...PLAN.plan, title: "Чиптюн без трекера" }, hours: span(5, 7) };
+export const SPLIT = {
+  plan: {
+    ...PLAN.plan,
+    stages: [],
+    children: [
+      { title: "Трекер и паттерны", goal: "Собрать первый паттерн", hours: span(40, 60) },
+      { title: "Сведение", goal: "Свести трек", hours: span(50, 90) },
+    ],
+  },
+  hours: span(90, 150),
+};
+export const LOG = "/tmp/tolearn/llm";
 export const STARTED = { program: "chip", node: "chip", stage: "tracker" };
 
 export function fill(host, selector, value) {
@@ -54,6 +66,7 @@ export function newScreen() {
       revise_plan: REVISED,
       start_program: STARTED,
       cancel_generation: { cancelled: true },
+      llm_log: (payload) => Promise.resolve({ room: LOG, records: payload.clear ? 0 : 3 }),
       ...options.answers,
     });
     const said = toasts(screen.window);

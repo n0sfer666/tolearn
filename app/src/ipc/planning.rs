@@ -1,5 +1,6 @@
 use tolearn_core::Hours;
 use tolearn_core::program::{StageRow, Volatility};
+use tolearn_core::settings::Locale;
 use tolearn_generate::ledger::{Record, Tally};
 use tolearn_generate::plan::{Part, Plan, Request};
 use tolearn_generate::{GenerateError, Online, Step, online, stepped};
@@ -9,7 +10,6 @@ use super::context::Context;
 use super::error::IpcError;
 use super::planned::{PlanOut, PlanPartView, PlanStageView, PlanView};
 use super::provider::{denied, failed};
-use super::settings::stored;
 use super::types::Span;
 use super::voiced::Voiced;
 use crate::journal::Journal;
@@ -18,18 +18,16 @@ pub fn drawn(
     context: &Context,
     kind: &'static str,
     step: Step,
-    request: &str,
-    level: &str,
+    request: &Request,
     keep: fn(&Tally, Vec<Record>),
     draw: impl FnOnce(&Online<'_>, &Request) -> Result<Plan, GenerateError>,
 ) -> Result<PlanOut, IpcError> {
-    let request = asked(context, request, level)?;
     let model = voiced(context, kind, Stop::default())?;
     let reach = context.reach()?;
     let online = online(reach.as_ref(), &model).map_err(refused)?;
     let ticket = context.book().ticket();
     let progress = context.tools().progress();
-    let drawn = stepped(progress.as_ref(), step, || draw(&online, &request));
+    let drawn = stepped(progress.as_ref(), step, || draw(&online, request));
     let spent = online.tally().take();
     let plan = match drawn {
         Ok(plan) => {
@@ -47,11 +45,17 @@ pub fn drawn(
     })
 }
 
-pub fn asked(context: &Context, request: &str, level: &str) -> Result<Request, IpcError> {
+pub fn asked(request: &str, level: &str, locale: &str) -> Result<Request, IpcError> {
+    let tongue = Locale::parse(locale).ok_or_else(|| {
+        IpcError::new(
+            "plan.unknown-value",
+            format!("`{locale}` — не язык программы"),
+        )
+    })?;
     Ok(Request {
         request: told("запрос", request)?,
         level: level.trim().to_owned(),
-        locale: stored(context)?.locale.label().to_owned(),
+        locale: tongue.label().to_owned(),
     })
 }
 

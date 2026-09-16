@@ -75,7 +75,7 @@ fn карта_и_её_переделка_называют_свой_шаг() {
     let case = Case::new(true, told(vec![flat()[0].clone(); 2]));
     let plan = case.plan();
 
-    let wish = json!({ "request": REQUEST, "level": LEVEL, "plan": plan, "wish": "Короче" });
+    let wish = json!({ "request": REQUEST, "level": LEVEL, "locale": "ru", "plan": plan, "wish": "Короче" });
     call(&case.context, "revise_plan", &wish).unwrap();
 
     assert_eq!(case.steps(), paired(&["plan", "revise"]));

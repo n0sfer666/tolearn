@@ -65,10 +65,14 @@ fn answer(name: &str) -> String {
 }
 
 fn plan(case: &Case, request: &str) -> Result<Value, IpcError> {
+    spoken(case, request, "ru")
+}
+
+fn spoken(case: &Case, request: &str, locale: &str) -> Result<Value, IpcError> {
     call(
         &case.context,
         "plan_program",
-        &json!({ "request": request, "level": "Нот не знаю" }),
+        &json!({ "request": request, "level": "Нот не знаю", "locale": locale }),
     )
 }
 
@@ -76,7 +80,7 @@ fn revise(case: &Case, plan: &Value, wish: &str) -> Result<Value, IpcError> {
     call(
         &case.context,
         "revise_plan",
-        &json!({ "request": "Хочу писать чиптюн", "level": "Нот не знаю", "plan": plan, "wish": wish }),
+        &json!({ "request": "Хочу писать чиптюн", "level": "Нот не знаю", "locale": "ru", "plan": plan, "wish": wish }),
     )
 }
 
@@ -172,4 +176,25 @@ fn карта_без_починки_отказывает_списком_нару
         refused.message
     );
     assert_eq!(case.model.heard().len(), 4);
+}
+
+#[test]
+fn язык_карты_приходит_из_запроса_а_не_из_настроек() {
+    let case = case(true, &["flat.txt"]);
+
+    spoken(&case, "Хочу писать чиптюн", "en").unwrap();
+
+    let heard = case.model.heard();
+    assert!(heard[0].contains("Язык программы: en"), "{}", heard[0]);
+}
+
+#[test]
+fn незнакомый_язык_карты_отказывает_до_модели() {
+    let case = case(true, &["flat.txt"]);
+
+    let refused = spoken(&case, "Хочу писать чиптюн", "de").unwrap_err();
+
+    assert_eq!(refused.code, "plan.unknown-value");
+    assert!(refused.message.contains("de"), "{}", refused.message);
+    assert!(case.model.heard().is_empty());
 }

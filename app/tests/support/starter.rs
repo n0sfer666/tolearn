@@ -69,7 +69,7 @@ impl Case {
         let drawn = call(
             &self.context,
             "plan_program",
-            &json!({ "request": REQUEST, "level": LEVEL }),
+            &json!({ "request": REQUEST, "level": LEVEL, "locale": "ru" }),
         );
         drawn.unwrap()["plan"].clone()
     }
@@ -109,7 +109,7 @@ impl Drop for Case {
 }
 
 pub fn started(plan: &Value, level: &str) -> Value {
-    json!({ "request": REQUEST, "level": level, "plan": plan })
+    json!({ "request": REQUEST, "level": level, "locale": "ru", "plan": plan })
 }
 
 fn fixture(path: &str) -> String {

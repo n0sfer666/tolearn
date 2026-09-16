@@ -24,7 +24,7 @@ test("без запроса или уровня карту не просят и 
   fill(host, "[data-level]", LEVEL);
   press(host, "[data-plan]");
   await settled();
-  assert.deepEqual(named(calls, "plan_program")[0].payload, { request: REQUEST, level: LEVEL });
+  assert.deepEqual(named(calls, "plan_program")[0].payload, { request: REQUEST, level: LEVEL, locale: "ru" });
 });
 
 test("тот же отказ второй раз заново встаёт в фокус", async () => {
@@ -70,7 +70,7 @@ test("«Изменить запрос» переделывает карту по
   await settled();
 
   const [first, second] = named(calls, "revise_plan").map((made) => made.payload);
-  assert.deepEqual(first, { request: REQUEST, level: LEVEL, plan: PLAN.plan, wish: "без трекера" });
+  assert.deepEqual(first, { request: REQUEST, level: LEVEL, locale: "ru", plan: PLAN.plan, wish: "без трекера" });
   assert.deepEqual(second.plan, REVISED.plan);
   assert.equal(second.wish, "короче");
   assert.match(host.querySelector("[data-plan-map] h2").textContent, /без трекера/);
@@ -82,7 +82,12 @@ test("«Начать» строит программу по показанной
   press(host, "[data-start]");
   await settled();
 
-  assert.deepEqual(named(calls, "start_program")[0].payload, { request: REQUEST, level: LEVEL, plan: PLAN.plan });
+  assert.deepEqual(named(calls, "start_program")[0].payload, {
+    request: REQUEST,
+    level: LEVEL,
+    locale: "ru",
+    plan: PLAN.plan,
+  });
   assert.deepEqual(gone, ["/ru/stage/?program=chip&stage=tracker"]);
 
   const bare = await planned({ answers: { start_program: { program: "chip", node: "", stage: "" } } });
@@ -93,7 +98,8 @@ test("«Начать» строит программу по показанной
 
 test("английский экран говорит по-английски и открывает английский этап", async () => {
   const { host, gone } = await planned({ text: en, locale: "en" });
-  assert.equal(host.querySelector("[data-start]").textContent, en.generate.start);
+  const first = en.generate.startFirst.replace("{stage}", PLAN.plan.stages[0].title);
+  assert.equal(host.querySelector("[data-start]").textContent, first);
   press(host, "[data-start]");
   await settled();
 

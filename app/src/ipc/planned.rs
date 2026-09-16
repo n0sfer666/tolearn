@@ -5,10 +5,12 @@ use super::types::Span;
 dto!(PlanProgramIn {
     request: String,
     level: String,
+    locale: String,
 });
 dto!(RevisePlanIn {
     request: String,
     level: String,
+    locale: String,
     plan: PlanView,
     wish: String,
 });

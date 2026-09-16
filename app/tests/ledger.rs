@@ -25,7 +25,7 @@ fn answers(plans: usize) -> Vec<String> {
 }
 
 fn revised(case: &Case, plan: &Value) -> Value {
-    let wish = json!({ "request": REQUEST, "level": LEVEL, "plan": plan, "wish": "Короче" });
+    let wish = json!({ "request": REQUEST, "level": LEVEL, "locale": "ru", "plan": plan, "wish": "Короче" });
     call(&case.context, "revise_plan", &wish).unwrap()["plan"].clone()
 }
 
@@ -85,7 +85,7 @@ fn отказ_новой_карты_дописывает_накопленное_
     let empty = call(
         &case.context,
         "plan_program",
-        &json!({ "request": " ", "level": LEVEL }),
+        &json!({ "request": " ", "level": LEVEL, "locale": "ru" }),
     );
     assert_eq!(empty.unwrap_err().code, "plan.empty");
     assert_eq!(case.context.ledger().records(), kept);
@@ -93,7 +93,7 @@ fn отказ_новой_карты_дописывает_накопленное_
     let broken = call(
         &case.context,
         "plan_program",
-        &json!({ "request": REQUEST, "level": LEVEL }),
+        &json!({ "request": REQUEST, "level": LEVEL, "locale": "ru" }),
     );
     assert!(broken.is_err());
     let records = case.context.ledger().records();

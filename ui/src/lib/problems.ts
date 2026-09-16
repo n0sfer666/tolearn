@@ -12,6 +12,7 @@ export function problems(text: Dictionary): ReadonlyMap<string, string> {
     ["provider.model-missing", text.provider.modelMissing],
     ["provider.vault", text.provider.vault],
     ["provider.unknown-value", text.provider.unknownValue],
+    ["plan.unknown-value", text.generate.unknownValue],
     ["harness.not-found", text.provider.notFound],
     ["harness.failed", text.provider.harnessFailed],
     ["harness.timeout", text.provider.timedOut],

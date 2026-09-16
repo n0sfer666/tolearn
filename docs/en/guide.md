@@ -8,9 +8,11 @@ The short version of how to use the app. For installation see
 ## Getting started
 
 1. In the library press "New program", describe what you want to learn and what
-   you come with, and press "Draw the map". Refine the map with a wish as many
-   times as you like; "Start" creates the program with its first stage and opens
-   it. Generation needs the network and a model provider from Settings.
+   you come with, pick the language of the program and press "Draw the map". The
+   language of the program is not the language of the interface: you can read the
+   app in English and get the program in Russian. Refine the map with a wish as
+   many times as you like; "Start" creates the program with its first stage and
+   opens it. Generation needs the network and a model provider from Settings.
 2. Or take a ready program — a `.tolearn` file. You can build one from a program
    folder with `tolearn pack`, for example from
    [`examples/chiptune`](../../examples/chiptune); the CLI is built from source

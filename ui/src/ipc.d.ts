@@ -319,11 +319,13 @@ export type ExportOut = {
 export type PlanProgramIn = {
   request: string;
   level: string;
+  locale: string;
 };
 
 export type RevisePlanIn = {
   request: string;
   level: string;
+  locale: string;
   plan: PlanView;
   wish: string;
 };
@@ -357,6 +359,7 @@ export type PlanPartView = {
 export type StartProgramIn = {
   request: string;
   level: string;
+  locale: string;
   plan: PlanView;
 };
 

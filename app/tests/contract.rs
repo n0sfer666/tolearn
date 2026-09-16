@@ -75,6 +75,22 @@ fn типы_для_ui_совпадают_с_файлом_в_репозитори
 }
 
 #[test]
+fn бюджет_программы_в_ui_совпадает_с_правилом_ядра() {
+    let file = repository().join("ui/src/lib/hours.ts");
+    let written =
+        std::fs::read_to_string(&file).expect("ui/src/lib/hours.ts должен лежать в репозитории");
+
+    assert!(
+        written.contains(&format!(
+            "export const BUDGET = {};",
+            tolearn_generate::plan::MAX_HOURS
+        )),
+        "правило {} ч из `generate::plan::MAX_HOURS` разошлось с `BUDGET` в ui/src/lib/hours.ts",
+        tolearn_generate::plan::MAX_HOURS
+    );
+}
+
+#[test]
 fn каждый_тип_поля_объявлен() {
     let shapes = tolearn_app::ipc::shapes();
     let known: BTreeSet<&str> = shapes

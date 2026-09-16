@@ -12,7 +12,7 @@ const KIND: &str = "Этап программы";
 
 pub fn run(context: &Context, input: &StartProgramIn) -> Result<StartProgramOut, IpcError> {
     told("уровень", &input.level)?;
-    let request = asked(context, &input.request, &input.level)?;
+    let request = asked(&input.request, &input.level, &input.locale)?;
     let plan = taken(&input.plan)?;
     let claim = context.running().claim(None)?;
     let model = voiced(context, KIND, claim.stop().clone())?;

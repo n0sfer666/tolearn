@@ -7,6 +7,7 @@ pub const STEP_EVENT: &str = "generation-step";
 dto!(StartProgramIn {
     request: String,
     level: String,
+    locale: String,
     plan: PlanView,
 });
 dto!(StartProgramOut {
