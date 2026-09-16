@@ -11,7 +11,7 @@ interface Props {
 export default function Picture(props: Props) {
   const alt = () => (props.block.kind === "diagram" ? props.text.stage.diagram : props.block.text);
   return (
-    <figure id={props.block.id} data-block={props.block.kind}>
+    <figure id={props.block.id} data-block={props.block.kind} tabindex="0">
       <Show when={props.block.src}>{(src) => <img src={src()} alt={alt()} />}</Show>
       <Show when={props.block.license}>
         {(license) => (

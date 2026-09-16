@@ -14,6 +14,7 @@ use serde_json::{Value, json};
 use support::planner::{Net, provider};
 use support::starter::{Case, LEVEL, flat, told};
 use tolearn_app::ipc::{Context, IpcError, call};
+use tolearn_generate::clarify::FRAGMENT_CHARS;
 use tolearn_generate::ledger;
 
 fn begun(extra: &[&str]) -> (Case, String) {
@@ -50,8 +51,20 @@ fn asked(
     question: &str,
     chain: Option<u32>,
 ) -> Result<Value, IpcError> {
+    picked(context, program, block, None, question, chain)
+}
+
+fn picked(
+    context: &Context,
+    program: &str,
+    block: &str,
+    fragment: Option<&str>,
+    question: &str,
+    chain: Option<u32>,
+) -> Result<Value, IpcError> {
     let mut input = at(program);
     input["block"] = json!(block);
+    input["fragment"] = json!(fragment);
     input["question"] = json!(question);
     input["chain"] = json!(chain);
     call(context, "clarify", &input)
@@ -95,6 +108,7 @@ fn уточнение_уходит_одним_запросом_и_ложится
         "chain": 0,
         "block": id,
         "excerpt": excerpt,
+        "fragment": null,
         "turns": [{ "asked": null, "answer": "Пульс — это волна.\n\n> Врезка" }],
         "clear": false,
     }]);
@@ -240,4 +254,74 @@ fn пустое_объяснение_отказывает_и_не_трогает
 
     assert_eq!(refused.code, "provider.bad-answer");
     assert_eq!(std::fs::read(state(&case, &program)).unwrap(), before);
+}
+
+#[test]
+fn выделенный_фрагмент_уходит_в_промпт_ложится_во_врезку_и_держится_за_цепочкой() {
+    let (case, program) = begun(&["Первое.", "Второе."]);
+    let paragraph = block(&case.context, &program, "paragraph");
+    let id = paragraph["id"].as_str().unwrap();
+
+    let result = picked(
+        &case.context,
+        &program,
+        id,
+        Some("  скважность  "),
+        "",
+        None,
+    )
+    .unwrap();
+
+    assert_eq!(result["clarifications"][0]["fragment"], json!("скважность"));
+    let first = case.model.heard().last().unwrap().clone();
+    assert!(
+        first.contains("Ученик выделил вот это место: скважность"),
+        "{first}"
+    );
+    let written = std::fs::read_to_string(state(&case, &program)).unwrap();
+    assert!(written.contains("fragment: скважность"), "{written}");
+
+    let followed = picked(&case.context, &program, id, None, "А проще?", Some(0)).unwrap();
+
+    assert_eq!(
+        followed["clarifications"][0]["fragment"],
+        json!("скважность")
+    );
+    let again = case.model.heard().last().unwrap().clone();
+    assert!(
+        again.contains("Ученик выделил вот это место: скважность"),
+        "{again}"
+    );
+}
+
+#[test]
+fn пустой_фрагмент_не_пишется_и_не_попадает_в_промпт() {
+    let (case, program) = begun(&["Объяснение."]);
+    let id = block(&case.context, &program, "paragraph")["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+
+    let result = picked(&case.context, &program, &id, Some("   "), "", None).unwrap();
+
+    assert_eq!(result["clarifications"][0]["fragment"], Value::Null);
+    let prompt = case.model.heard().last().unwrap().clone();
+    assert!(!prompt.contains("Ученик выделил"), "{prompt}");
+}
+
+#[test]
+fn длинный_фрагмент_режется_по_потолку_до_записи_в_состояние() {
+    let (case, program) = begun(&["Объяснение."]);
+    let id = block(&case.context, &program, "paragraph")["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let long = "я".repeat(FRAGMENT_CHARS + 500);
+
+    let result = picked(&case.context, &program, &id, Some(&long), "", None).unwrap();
+
+    let kept = result["clarifications"][0]["fragment"].as_str().unwrap();
+    assert_eq!(kept.chars().count(), FRAGMENT_CHARS);
+    let written = std::fs::read_to_string(state(&case, &program)).unwrap();
+    assert!(written.contains(kept), "{written}");
 }

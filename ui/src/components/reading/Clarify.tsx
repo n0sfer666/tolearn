@@ -1,10 +1,11 @@
-import { For, Show, createSignal } from "solid-js";
+import { For, Show } from "solid-js";
 
 import type { Dictionary } from "../../i18n/ru";
 import type { BlockView, ClarificationView, StageIn } from "../../ipc";
 import { generation } from "../../lib/generation";
 import type { Listen, Transport } from "../../lib/ipc";
 import { CLARIFYING } from "../../lib/jobs";
+import type { Aim } from "../../lib/picked";
 import Progress from "../generate/Progress";
 import Refusal from "../generate/Refusal";
 import type { Copier, Words } from "../rich/Snip";
@@ -20,19 +21,21 @@ interface Props {
   at: StageIn;
   block: BlockView;
   chains: ClarificationView[];
+  aim: Aim | null;
   voice: Voice;
   words: Words;
   copy?: Copier;
+  close: () => void;
   changed: (clarifications: ClarificationView[]) => void;
 }
 
 export default function Clarify(props: Props) {
   const work = generation(props.text, () => props.call, props.listen);
-  const [asking, setAsking] = createSignal(false);
+  const aimed = () => (props.aim?.block === props.block.id ? props.aim : null);
 
-  const ask = async (chain: number | null, question: string): Promise<boolean> => {
+  const ask = async (chain: number | null, question: string, fragment: string | null): Promise<boolean> => {
     const out = await work.run(
-      () => props.call("clarify", { ...props.at, block: props.block.id, question, chain }),
+      () => props.call("clarify", { ...props.at, block: props.block.id, question, chain, fragment }),
       CLARIFYING,
     );
     if (out === null) return false;
@@ -40,8 +43,8 @@ export default function Clarify(props: Props) {
     return true;
   };
 
-  const opened = async (question: string) => {
-    if (await ask(null, question)) setAsking(false);
+  const opened = async (fragment: string, question: string) => {
+    if (await ask(null, question, fragment === "" ? null : fragment)) props.close();
   };
 
   return (
@@ -57,27 +60,23 @@ export default function Clarify(props: Props) {
             words={props.words}
             copy={props.copy}
             locked={work.running()}
-            ask={ask}
+            ask={(chain, question) => ask(chain, question, null)}
             changed={props.changed}
           />
         )}
       </For>
-      <Show
-        when={asking()}
-        fallback={
-          <button type="button" data-clarify-open disabled={work.running()} onClick={() => setAsking(true)}>
-            {props.text.stage.clarify}
-          </button>
-        }
-      >
-        <Asking
-          text={props.text}
-          voice={props.voice}
-          field={`block:${props.block.id}`}
-          locked={work.running()}
-          send={(question) => void opened(question)}
-          cancel={() => setAsking(false)}
-        />
+      <Show when={aimed()}>
+        {(pick) => (
+          <Asking
+            text={props.text}
+            voice={props.voice}
+            field={`block:${props.block.id}`}
+            fragment={pick().fragment}
+            locked={work.running()}
+            send={(question) => void opened(pick().fragment, question)}
+            cancel={props.close}
+          />
+        )}
       </Show>
       <Show when={work.running()}>
         <Progress text={props.text} work={work} />

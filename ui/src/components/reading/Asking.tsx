@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { Show, createSignal } from "solid-js";
 
 import type { Dictionary } from "../../i18n/ru";
 import Dictate from "./Dictate";
@@ -8,6 +8,7 @@ interface Props {
   text: Dictionary;
   voice: Voice;
   field: string;
+  fragment?: string;
   locked: boolean;
   send: (question: string) => void;
   cancel: () => void;
@@ -21,6 +22,7 @@ export default function Asking(props: Props) {
 
   return (
     <div data-asking>
+      <Show when={props.fragment}>{(fragment) => <blockquote data-fragment>{fragment()}</blockquote>}</Show>
       <label>
         {props.text.stage.clarifyQuestion}
         <textarea

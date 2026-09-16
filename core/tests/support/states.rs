@@ -32,6 +32,7 @@ pub fn full() -> State {
             stage: key(PROGRAM, "voices"),
             block: owned("1a2b3c4d"),
             excerpt: owned("Звуковой чип NES"),
+            fragment: Some(owned("скважность")),
             turns: vec![
                 Turn {
                     asked: Some(owned("Что такое скважность?")),
@@ -48,6 +49,7 @@ pub fn full() -> State {
             stage: key(PROGRAM, "envelope"),
             block: owned("5e6f7a8b-2"),
             excerpt: owned("Громкость спадает"),
+            fragment: None,
             turns: vec![Turn {
                 asked: None,
                 answer: owned("Каждый кадр счётчик уменьшает громкость на единицу."),

@@ -52,6 +52,7 @@ export const stage = {
   manual: "clipboard unavailable — select the text and copy it by hand",
   snip: "Copy",
   clarify: "Clarify",
+  clarifyBlock: "Clarify block",
   clarifyQuestion: "What exactly is unclear — optional",
   clarifyAsk: "Ask",
   clarifyCancel: "Cancel",

@@ -61,6 +61,7 @@ pub struct Clarification {
     pub stage: String,
     pub block: String,
     pub excerpt: String,
+    pub fragment: Option<String>,
     pub turns: Vec<Turn>,
     pub clear: bool,
 }

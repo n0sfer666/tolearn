@@ -22,7 +22,7 @@ export default function Block(props: Props) {
   return (
     <Switch
       fallback={
-        <div id={props.block.id} data-block={props.block.kind}>
+        <div id={props.block.id} data-block={props.block.kind} tabindex="0">
           {said()}
         </div>
       }
@@ -33,12 +33,12 @@ export default function Block(props: Props) {
         </h3>
       </Match>
       <Match when={props.block.kind === "callout"}>
-        <aside id={props.block.id} data-block="callout">
+        <aside id={props.block.id} data-block="callout" tabindex="0">
           {said()}
         </aside>
       </Match>
       <Match when={props.block.kind === "code"}>
-        <pre id={props.block.id} data-block="code" data-lang={props.block.lang ?? undefined} data-rich-code>
+        <pre id={props.block.id} data-block="code" data-lang={props.block.lang ?? undefined} data-rich-code tabindex="0">
           <Snip text={props.block.text} words={props.words} copy={props.copy} />
         </pre>
       </Match>

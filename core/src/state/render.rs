@@ -70,13 +70,17 @@ fn answered(answered: &Answered) -> Yaml<'_> {
 }
 
 fn clarification(clarification: &Clarification) -> Yaml<'_> {
-    map([
+    let mut entries = vec![
         ("stage", text(&clarification.stage)),
         ("block", text(&clarification.block)),
         ("excerpt", text(&clarification.excerpt)),
-        ("turns", list(clarification.turns.iter().map(turn))),
-        ("clear", flag(clarification.clear)),
-    ])
+    ];
+    if let Some(fragment) = &clarification.fragment {
+        entries.push(("fragment", text(fragment)));
+    }
+    entries.push(("turns", list(clarification.turns.iter().map(turn))));
+    entries.push(("clear", flag(clarification.clear)));
+    map(entries)
 }
 
 fn turn(turn: &Turn) -> Yaml<'_> {

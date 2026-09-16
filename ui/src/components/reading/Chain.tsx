@@ -22,6 +22,14 @@ interface Props {
   changed: (clarifications: ClarificationView[]) => void;
 }
 
+const TITLE_CHARS = 80;
+
+function titled(fragment: string | null, fallback: string): string {
+  if (fragment === null) return fallback;
+  const short = [...fragment].slice(0, TITLE_CHARS).join("");
+  return short === fragment ? `«${fragment}»` : `«${short}…»`;
+}
+
 export default function Chain(props: Props) {
   const [asking, setAsking] = createSignal(false);
   const place = () => ({ ...props.at, chain: props.chain.chain });
@@ -35,7 +43,7 @@ export default function Chain(props: Props) {
 
   return (
     <details data-chain open={!props.chain.clear}>
-      <summary>{props.text.stage.clarified}</summary>
+      <summary>{titled(props.chain.fragment, props.text.stage.clarified)}</summary>
       <Turns text={props.text} turns={props.chain.turns} words={props.words} copy={props.copy} />
       <Show when={!props.chain.clear}>
         <Show

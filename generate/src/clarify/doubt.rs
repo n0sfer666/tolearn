@@ -9,6 +9,7 @@ pub struct Doubt<'a> {
     pub node: &'a str,
     pub place: Place<'a>,
     pub block: &'a Block,
+    pub fragment: Option<&'a str>,
     pub chain: &'a [Turn],
     pub question: Option<&'a str>,
 }

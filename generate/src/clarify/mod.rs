@@ -11,8 +11,9 @@ use crate::gate::Online;
 use crate::ledger;
 use crate::step::Step;
 
-pub const CLARIFY_PROMPT_CHARS: usize = 18_000;
+pub const CLARIFY_PROMPT_CHARS: usize = 19_000;
 pub const BLOCK_CHARS: usize = 4_000;
+pub const FRAGMENT_CHARS: usize = 1_000;
 pub const CHAIN_CHARS: usize = 6_000;
 pub const QUESTION_CHARS: usize = 1_000;
 pub const ANSWER_CHARS: usize = 1_500;

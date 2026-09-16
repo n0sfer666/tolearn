@@ -23,7 +23,7 @@ test("практика читается целиком, запуск стоит 
   assert.ok(host.querySelector("#a1 [data-run]"));
   assert.equal(
     host.querySelectorAll(
-      "button:not([data-snip], [data-regenerate], [data-run], [data-choose], [data-exam], [data-prompt], [data-apply], [data-clarify-open])",
+      "button:not([data-snip], [data-regenerate], [data-run], [data-choose], [data-exam], [data-prompt], [data-apply])",
     ).length,
     0,
     "появилась лишняя кнопка",

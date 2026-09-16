@@ -5,6 +5,7 @@ import { ru } from "../src/i18n/ru.ts";
 import { spliced } from "../src/lib/dictation.ts";
 import { settled, toasts } from "./support/dom.mjs";
 import { heard, named, press, refusal, rejected } from "./support/generation.mjs";
+import { selects } from "./support/pick.mjs";
 import { OUT, stageScreen } from "./support/stage.mjs";
 
 const { screen, mount } = stageScreen();
@@ -16,6 +17,13 @@ const rounds = async (times = 4) => {
   for (let round = 0; round < times; round += 1) await settled();
 };
 const pause = () => new Promise((resolve) => setTimeout(resolve, 450));
+
+const clarifying = async (host) => {
+  selects(screen.window).focus(host, "p1");
+  await settled();
+  press(host, "[data-pick='p1']");
+  await settled();
+};
 
 function open(options = {}) {
   const said = toasts(screen.window);
@@ -57,8 +65,7 @@ test("вставка встаёт в позицию курсора с одним
 test("в базовой сборке кнопки диктовки нет ни у одного поля", async () => {
   const { host, probes } = open({ speech: { available: false } });
   await rounds();
-  press(host, "[data-clarify='p1'] [data-clarify-open]");
-  await settled();
+  await clarifying(host);
 
   assert.deepEqual(probes, [{ program: "chip" }]);
   assert.ok(host.querySelector("[data-questions] textarea[data-answer]") !== null, "поля ответа нет");
@@ -77,10 +84,10 @@ test("запись, оставшаяся от прошлой страницы, �
 });
 
 test("в сборке с речью кнопка стоит у ответа зачёта, у вопроса и у продолжения цепочки", async () => {
-  const chain = { chain: 0, block: "p1", excerpt: "Чип держит", turns: [{ asked: null, answer: "Иначе" }], clear: false };
+  const chain = { chain: 0, block: "p1", excerpt: "Чип держит", fragment: null, turns: [{ asked: null, answer: "Иначе" }], clear: false };
   const { host } = open({ out: { ...OUT, clarifications: [chain] } });
   await rounds();
-  press(host, "[data-clarify='p1'] [data-clarify-open]");
+  await clarifying(host);
   press(host, "[data-clarify='p1'] [data-chain] [data-no]");
   await settled();
 
@@ -121,8 +128,7 @@ test("надиктованный вопрос к «Уточнить» уходи
   const clarify = () => ({ clarifications: [] });
   const { host, calls } = open({ replies: { clarify, speech_stop: () => ({ text: "пять?" }) } });
   await rounds();
-  press(host, "[data-clarify='p1'] [data-clarify-open]");
-  await settled();
+  await clarifying(host);
   write(host.querySelector("[data-clarify='p1'] textarea[data-doubt]"), "Почему");
 
   await dictated(host, "[data-clarify='p1'] [data-asking]");
@@ -164,8 +170,7 @@ test("пустое распознавание говорит об этом и н
 test("закрытое поле вопроса выключает микрофон", async () => {
   const { host, calls } = open();
   await rounds();
-  press(host, "[data-clarify='p1'] [data-clarify-open]");
-  await settled();
+  await clarifying(host);
   press(host, "[data-clarify='p1'] [data-asking] [data-dictate]");
   await rounds();
 

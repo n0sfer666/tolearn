@@ -36,12 +36,14 @@ impl State {
         stage: &str,
         block: &str,
         excerpt: &str,
+        fragment: Option<&str>,
         turn: Turn,
     ) -> usize {
         self.clarifications.push(Clarification {
             stage: key(node, stage),
             block: block.to_owned(),
             excerpt: excerpt.to_owned(),
+            fragment: fragment.map(str::to_owned),
             turns: vec![turn],
             clear: false,
         });

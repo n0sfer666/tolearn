@@ -164,3 +164,19 @@ li[data-question] > label {
 :is(div[data-examination], details[data-copypaste]) {
   margin-block-start: var(--spacing-3);
 }
+
+button[data-pick] {
+  position: fixed;
+  z-index: var(--z-popover);
+  border-color: var(--color-border-strong);
+  transform: translate(-50%, calc(-100% - var(--spacing-2)));
+}
+
+button[data-pick][data-below] {
+  transform: translate(-50%, var(--spacing-2));
+}
+
+[data-stage-body] [data-block]:focus-visible {
+  outline: var(--focus-ring) solid var(--color-accent);
+  outline-offset: var(--spacing-1);
+}

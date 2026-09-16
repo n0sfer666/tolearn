@@ -52,6 +52,7 @@ export const stage = {
   manual: "буфер недоступен — выделите текст и скопируйте вручную",
   snip: "Скопировать",
   clarify: "Уточнить",
+  clarifyBlock: "Уточнить блок",
   clarifyQuestion: "Что именно неясно — можно не писать",
   clarifyAsk: "Спросить",
   clarifyCancel: "Отмена",

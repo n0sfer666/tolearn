@@ -45,6 +45,7 @@ clarifications:
   - stage: 3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84/voices
     block: 1a2b3c4d
     excerpt: Звуковой чип NES
+    fragment: скважность
     turns:
       - asked: Что такое скважность?
         answer: "Доля периода, когда сигнал высокий."

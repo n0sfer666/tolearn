@@ -33,6 +33,7 @@ pub fn views(state: &State, node: &str, stage: &str) -> Vec<ClarificationView> {
                 chain: u32::try_from(index).ok()?,
                 block: chain.block.clone(),
                 excerpt: chain.excerpt.clone(),
+                fragment: chain.fragment.clone(),
                 turns: chain
                     .turns
                     .iter()

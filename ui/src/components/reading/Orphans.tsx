@@ -29,6 +29,7 @@ export default function Orphans(props: Props) {
           <For each={props.chains}>
             {(chain) => (
               <li data-orphan={chain.chain}>
+                <Show when={chain.fragment}>{(fragment) => <blockquote data-fragment>{fragment()}</blockquote>}</Show>
                 <blockquote data-excerpt>{chain.excerpt}</blockquote>
                 <Turns text={props.text} turns={chain.turns} words={props.words} copy={props.copy} />
                 <button type="button" data-unclarify onClick={() => void removed(chain.chain)}>

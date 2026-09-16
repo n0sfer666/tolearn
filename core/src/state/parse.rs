@@ -63,6 +63,7 @@ fn clarification(node: &Reader<'_>) -> Result<Clarification, ParseError> {
         stage: node.field("stage")?.text()?,
         block: node.field("block")?.text()?,
         excerpt: node.field("excerpt")?.text()?,
+        fragment: optional(node, "fragment", Reader::text)?,
         turns: node.field("turns")?.list(turn)?,
         clear: node.field("clear")?.flag()?,
     })

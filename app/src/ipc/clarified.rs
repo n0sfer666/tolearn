@@ -6,6 +6,7 @@ dto!(ClarifyIn {
     node: String,
     stage: String,
     block: String,
+    fragment: Option<String>,
     question: String,
     chain: Option<u32>,
 });
@@ -22,6 +23,7 @@ dto!(ClarificationView {
     chain: u32,
     block: String,
     excerpt: String,
+    fragment: Option<String>,
     turns: Vec<TurnView>,
     clear: bool,
 });

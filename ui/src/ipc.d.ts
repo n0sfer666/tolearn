@@ -503,6 +503,7 @@ export type ClarifyIn = {
   node: string;
   stage: string;
   block: string;
+  fragment: string | null;
   question: string;
   chain: number | null;
 };
@@ -522,6 +523,7 @@ export type ClarificationView = {
   chain: number;
   block: string;
   excerpt: string;
+  fragment: string | null;
   turns: TurnView[];
   clear: boolean;
 };

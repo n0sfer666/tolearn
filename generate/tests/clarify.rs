@@ -16,7 +16,8 @@ use tolearn_core::program::{self, Program, StageRow};
 use tolearn_core::stage::{self, Stage};
 use tolearn_core::state::Turn;
 use tolearn_generate::clarify::{
-    self, ANSWER_CHARS, BLOCK_CHARS, CHAIN_CHARS, CLARIFY_PROMPT_CHARS, Doubt, QUESTION_CHARS,
+    self, ANSWER_CHARS, BLOCK_CHARS, CHAIN_CHARS, CLARIFY_PROMPT_CHARS, Doubt, FRAGMENT_CHARS,
+    QUESTION_CHARS,
 };
 use tolearn_generate::ledger;
 use tolearn_generate::plan::MAX_STAGES;
@@ -27,6 +28,7 @@ const PROGRAM: &str = "3f6c2a1e-8b4d-4c7a-9e21-5d0f7b3a6c84";
 const NODE: &str = "9d1e7b40-2c6a-4f8e-b3d5-71a0c4e2f9b6";
 const AT: i64 = 1_789_000_000;
 const EARLIER: &str = "Прежние объяснения этого фрагмента";
+const PICKED: &str = "Ученик выделил вот это место:";
 
 fn chiptune() -> Program {
     program::parse(&std::fs::read_to_string("../examples/chiptune/program.yaml").unwrap()).unwrap()
@@ -63,8 +65,16 @@ fn doubt<'a>(
         node: NODE,
         place: Place::find(program, "voices").unwrap(),
         block,
+        fragment: None,
         chain,
         question,
+    }
+}
+
+fn picked<'a>(program: &'a Program, block: &'a Block, fragment: &'a str) -> Doubt<'a> {
+    Doubt {
+        fragment: Some(fragment),
+        ..doubt(program, block, &[], None)
     }
 }
 
@@ -89,6 +99,37 @@ fn the_prompt_carries_the_block_its_place_level_and_locale() {
     assert!(prompt.contains("Без заголовков, картинок, схем и ссылок"));
     assert!(!prompt.contains(EARLIER));
     assert!(!prompt.contains("Вопрос ученика"));
+    assert!(!prompt.contains(PICKED));
+}
+
+#[test]
+fn a_picked_fragment_stands_apart_before_the_block() {
+    let program = chiptune();
+    let stage = voices();
+    let block = paragraph(&stage);
+
+    let prompt = clarify::prompt(&picked(&program, block, "скважность"));
+
+    let fragment = prompt.find(PICKED).unwrap();
+    let whole = prompt.find("Непонятный фрагмент этапа:").unwrap();
+    assert!(fragment < whole, "{prompt}");
+    assert!(prompt.contains(&format!("{PICKED} скважность")));
+    assert!(prompt.contains(&block.text));
+}
+
+#[test]
+fn a_picked_fragment_is_cut_to_its_ceiling() {
+    let program = chiptune();
+    let stage = voices();
+
+    let prompt = clarify::prompt(&picked(
+        &program,
+        paragraph(&stage),
+        &"ф".repeat(FRAGMENT_CHARS + 500),
+    ));
+
+    assert!(prompt.contains(&"ф".repeat(FRAGMENT_CHARS)));
+    assert!(!prompt.contains(&"ф".repeat(FRAGMENT_CHARS + 1)));
 }
 
 #[test]
@@ -152,8 +193,13 @@ fn the_prompt_fits_its_ceiling_with_the_fullest_map_block_chain_and_question() {
     block.text = "я".repeat(10_000);
     let chain = [turn(Some(&"в".repeat(3_000)), &"о".repeat(9_000))];
     let question = "ж".repeat(5_000);
+    let fragment = "ф".repeat(5_000);
 
-    let prompt = clarify::prompt(&doubt(&program, &block, &chain, Some(&question)));
+    let full = Doubt {
+        fragment: Some(&fragment),
+        ..doubt(&program, &block, &chain, Some(&question))
+    };
+    let prompt = clarify::prompt(&full);
     let size = prompt.chars().count();
 
     assert!(
@@ -164,6 +210,7 @@ fn the_prompt_fits_its_ceiling_with_the_fullest_map_block_chain_and_question() {
     assert!(!prompt.contains(&"я".repeat(BLOCK_CHARS + 1)));
     assert!(prompt.contains(&"ж".repeat(QUESTION_CHARS)));
     assert!(!prompt.contains(&"ж".repeat(QUESTION_CHARS + 1)));
+    assert!(prompt.contains(&"ф".repeat(FRAGMENT_CHARS)));
 }
 
 #[test]
@@ -172,11 +219,12 @@ fn the_limits_are_pinned() {
         [
             CLARIFY_PROMPT_CHARS,
             BLOCK_CHARS,
+            FRAGMENT_CHARS,
             CHAIN_CHARS,
             QUESTION_CHARS,
             ANSWER_CHARS
         ],
-        [18_000, 4_000, 6_000, 1_000, 1_500]
+        [19_000, 4_000, 1_000, 6_000, 1_000, 1_500]
     );
 }
 
