@@ -25,6 +25,8 @@ if [ ! -d ui/dist ]; then
     pnpm -C ui build
 fi
 
+sh "$root/scripts/target-size.sh" || printf 'вес target не измерен\n' >&2
+
 total=$(wc -l <"$list" | tr -d ' ')
 step=0
 

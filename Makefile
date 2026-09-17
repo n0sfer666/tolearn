@@ -1,10 +1,15 @@
-.PHONY: dev install install-speech stand
+.PHONY: dev install install-speech stand clean-target
+
+DAYS ?= 7
 
 dev:
 	sh scripts/check.sh
 
 stand:
 	sh scripts/stand.sh
+
+clean-target:
+	sh scripts/clean-target.sh $(DAYS)
 
 install:
 	sh scripts/install-macos.sh
