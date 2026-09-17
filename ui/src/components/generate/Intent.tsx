@@ -23,7 +23,7 @@ export default function Intent(props: Props) {
           data-request
           rows="3"
           required
-          readOnly={props.locked}
+          readOnly={props.locked || undefined}
           value={props.request}
           onInput={(event) => props.setRequest(event.currentTarget.value)}
         />
@@ -34,7 +34,7 @@ export default function Intent(props: Props) {
           data-level
           rows="2"
           required
-          readOnly={props.locked}
+          readOnly={props.locked || undefined}
           value={props.level}
           onInput={(event) => props.setLevel(event.currentTarget.value)}
         />

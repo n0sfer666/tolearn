@@ -122,6 +122,40 @@ test("остров поиска гидратируется поверх собр
   assert.ok(host.querySelector("[data-query]") !== null, "поле поиска не появилось");
 });
 
+const BOOLEAN = /\s(readonly|disabled|required|hidden|checked|multiple|selected|open|inert|autofocus)="false"/;
+
+test("в собранных страницах нет булевых атрибутов со значением «false»", async () => {
+  for (const file of await pages()) {
+    const found = readFileSync(file, "utf8").match(BOOLEAN);
+
+    assert.equal(found, null, `${route(file)}: ${found?.[0].trim()} — браузер читает это как включённый атрибут`);
+  }
+});
+
+test("поле запроса на собранной странице принимает ввод", async () => {
+  const { document, location } = browser("https://tolearn.local/ru/new/");
+  globalThis.location = location;
+  document.body.innerHTML = readFileSync(path.join(DIST, "ru/new/index.html"), "utf8");
+  const host = document.querySelector('astro-island[component-url*="/New."]');
+  globalThis._$HY = { events: [], completed: new WeakSet(), r: {} };
+  const { default: New } = await hydratable("New");
+  const { default: renderer } = await import("@astrojs/solid-js/client.js");
+
+  const field = () => document.querySelector("[data-request]");
+  assert.equal(field().readOnly, false, "поле только для чтения ещё до гидрации");
+
+  renderer(host)(New, { text: ru, locale: "ru" }, {}, { client: "load" });
+  await settled();
+
+  assert.equal(field().readOnly, false, "гидрация оставила поле только для чтения");
+
+  field().value = "как писать музыку для NES";
+  field().dispatchEvent(new document.defaultView.Event("input", { bubbles: true }));
+  await settled();
+
+  assert.equal(field().value, "как писать музыку для NES");
+});
+
 function faced(source) {
   return [...source.matchAll(/@font-face\s*{([^}]*)}/g)].flatMap(([, body]) =>
     [...body.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/g)].map(([, url]) => url),
