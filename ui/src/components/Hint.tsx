@@ -11,7 +11,6 @@ interface Props {
 const PINNED_SECONDS = 10;
 
 export default function Hint(props: Props) {
-  const [over, setOver] = createSignal(false);
   const [pinned, setPinned] = createSignal(false);
   let timer: ReturnType<typeof setTimeout> | undefined;
   let opener: HTMLButtonElement | undefined;
@@ -55,8 +54,6 @@ export default function Hint(props: Props) {
 
   onCleanup(unpin);
 
-  const shown = () => over() || pinned();
-
   return (
     <>
       <button
@@ -64,14 +61,12 @@ export default function Hint(props: Props) {
         data-hint-open
         ref={opener}
         aria-label={props.label}
-        aria-expanded={shown()}
-        onMouseEnter={() => setOver(true)}
-        onMouseLeave={() => setOver(false)}
+        aria-expanded={pinned()}
         onClick={() => (pinned() ? unpin() : pin())}
       >
         ?
       </button>
-      <Show when={shown()}>
+      <Show when={pinned()}>
         <span data-hint-body role="tooltip" ref={body}>
           {props.children}
         </span>

@@ -208,15 +208,19 @@ export default function Provider(props: Props) {
 
           <Keeping text={props.text} on={current().journal} onToggle={(journal) => change({ journal })} />
 
-          <button type="button" data-save disabled={busy()} onClick={() => send(false, false, false)}>
-            {props.text.provider.save}
-          </button>
-          <button type="button" data-check disabled={busy()} onClick={() => send(true, false, false)}>
-            {props.text.provider.check}
-          </button>
-          <button type="button" data-probe disabled={busy()} onClick={() => send(false, true, false)}>
-            {props.text.provider.probe}
-          </button>
+          <div data-doing>
+            <button type="button" data-save disabled={busy()} onClick={() => send(false, false, false)}>
+              {props.text.provider.save}
+            </button>
+            <div class="row">
+              <button type="button" data-check disabled={busy()} onClick={() => send(true, false, false)}>
+                {props.text.provider.check}
+              </button>
+              <button type="button" data-probe disabled={busy()} onClick={() => send(false, true, false)}>
+                {props.text.provider.probe}
+              </button>
+            </div>
+          </div>
 
           <Show when={busy()}>
             <p data-working>{props.text.provider.working}</p>

@@ -11,7 +11,7 @@ const { mount } = programsScreen();
 test("выбор файла и перетаскивание дают один импорт", async () => {
   const picked = mount();
   await settled();
-  picked.host.querySelector("[data-pick]").click();
+  picked.host.querySelector("[data-import]").click();
   await settled();
 
   const dropped = mount();
@@ -28,7 +28,7 @@ test("выбор файла и перетаскивание дают один и
 test("удачный импорт называет программу и перечитывает библиотеку", async () => {
   const { host, calls, said } = mount();
   await settled();
-  host.querySelector("[data-pick]").click();
+  host.querySelector("[data-import]").click();
   await settled();
 
   assert.equal(named(calls, "library").length, 2, "библиотека не перечитана");
@@ -39,7 +39,7 @@ test("удачный импорт называет программу и пер�
 test("копия уже импортированной программы приходит уведомлением", async () => {
   const { host, said } = mount({ imported: { uuid: "copy", title: SHELF.title, copy_of: CHIPTUNE } });
   await settled();
-  host.querySelector("[data-pick]").click();
+  host.querySelector("[data-import]").click();
   await settled();
 
   assert.equal(said.at(-1).tone, "info");
@@ -50,7 +50,7 @@ test("копия уже импортированной программы при
 test("программа v1 получает ответ «не открывается», а не ошибку разбора", async () => {
   const { host, calls, said } = mount({ fail: refusal("package.v1", "программы v1 не открываются") });
   await settled();
-  host.querySelector("[data-pick]").click();
+  host.querySelector("[data-import]").click();
   await settled();
 
   const refused = host.querySelector("[data-refused]");
@@ -69,7 +69,7 @@ test("папка программы и чужой файл получают св
   for (const [fail, reason] of cases) {
     const { host, dispose } = mount({ fail });
     await settled();
-    host.querySelector("[data-pick]").click();
+    host.querySelector("[data-import]").click();
     await settled();
 
     assert.ok(host.querySelector("[data-refused]").textContent.includes(reason), fail.code);
@@ -80,13 +80,13 @@ test("папка программы и чужой файл получают св
 test("пока импорт идёт, второй запуск не начинается", async () => {
   const { host, calls, drop } = mount({ hold: true });
   await settled();
-  host.querySelector("[data-pick]").click();
+  host.querySelector("[data-import]").click();
   await settled();
   drop(["/incoming/second.tolearn"]);
-  host.querySelector("[data-pick]").click();
+  host.querySelector("[data-import]").click();
   await settled();
 
-  const button = host.querySelector("[data-pick]");
+  const button = host.querySelector("[data-import]");
   assert.equal(named(calls, "import_package").length, 1, "импорт запущен дважды");
   assert.equal(button.disabled, false, "выключенная кнопка сбросит фокус");
   assert.equal(button.getAttribute("aria-disabled"), "true");
@@ -95,7 +95,7 @@ test("пока импорт идёт, второй запуск не начин�
 test("отменённый выбор файла ничего не импортирует", async () => {
   const { host, calls } = mount({ pick: () => Promise.resolve(null) });
   await settled();
-  host.querySelector("[data-pick]").click();
+  host.querySelector("[data-import]").click();
   await settled();
 
   assert.equal(named(calls, "import_package").length, 0);

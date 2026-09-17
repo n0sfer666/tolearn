@@ -15,13 +15,9 @@ const text = strings(locale);
 
 <Base locale={locale} title={text.nav.settings} back={{ href: "/", text: text.nav.library }}>
   <p>{text.settings.lead}</p>
-  <section data-studio data-settings aria-label={text.nav.settings}>
-    <div data-studio-ask>
-      <Provider text={text} locale={locale} client:load />
-    </div>
-    <div data-studio-side>
-      <Ledger text={text} client:load />
-      <Settings text={text} locale={locale} client:load />
-    </div>
+  <section data-settings aria-label={text.nav.settings}>
+    <Provider text={text} locale={locale} client:load />
+    <Ledger text={text} client:load />
+    <Settings text={text} locale={locale} client:load />
   </section>
 </Base>

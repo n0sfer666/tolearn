@@ -210,20 +210,18 @@ test("бюджет, язык и тема стоят отдельными кар�
   );
 });
 
-test("экран настроек делит колонки: провайдер слева, остальное справа", () => {
+test("экран настроек стоит одной колонкой в любую ширину", () => {
   const page = readFileSync(path.join(UI, "src/pages/[locale]/settings/index.astro"), "utf8");
-  const left = page.indexOf("data-studio-ask");
-  const right = page.indexOf("data-studio-side");
-  const end = page.indexOf("</section>", right);
+  const section = page.slice(page.indexOf("<section data-settings"), page.indexOf("</section>"));
 
-  assert.equal(left > 0 && right > left && end > right, true, "колонок на странице нет");
+  assert.equal(/data-studio/.test(page), false, "экран остался на сетке студии");
+  assert.deepEqual(
+    [...section.matchAll(/<(Provider|Ledger|Settings)\b/g)].map((found) => found[1]),
+    ["Provider", "Ledger", "Settings"],
+  );
 
-  const ask = page.slice(left, right);
-  const side = page.slice(right, end);
-
-  assert.match(ask, /<Provider\b/);
-  assert.equal(/<Ledger\b|<Settings\b/.test(ask), false, "правая колонка попала в левую");
-  assert.equal(/<Provider\b/.test(side), false, "провайдер попал в правую колонку");
-  assert.match(side, /<Ledger\b[\s\S]*<Settings\b/);
-  assert.match(page, /data-studio\b/);
+  const css = readFileSync(path.join(UI, "src/styles/settings.css"), "utf8");
+  assert.match(css, /\[data-settings\] \{[^}]*display: grid/);
+  assert.equal(/grid-template-columns/.test(css), false, "в настройках снова две колонки");
+  assert.equal(/@media/.test(css), false, "колонки настроек зависят от ширины");
 });

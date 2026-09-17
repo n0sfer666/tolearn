@@ -86,6 +86,10 @@
   gap: var(--spacing-2) var(--spacing-3);
 }
 
+.row :where(button) + :where(button) {
+  margin-inline-start: 0;
+}
+
 .page input[type="search"] {
   display: block;
   margin-block: var(--spacing-4);

@@ -125,7 +125,7 @@ export default function Programs(props: Props) {
 
       <div class="intake">
         <p>{props.text.drop}</p>
-        <button type="button" data-pick data-action onClick={() => void take()} aria-disabled={busy()}>
+        <button type="button" data-import data-action onClick={() => void take()} aria-disabled={busy()}>
           {busy() ? props.text.importing : props.text.choose}
         </button>
       </div>

@@ -55,10 +55,8 @@ li[data-program] p[data-unread] {
 }
 
 .intake {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  justify-items: center;
   gap: var(--spacing-3);
   margin-block-start: var(--spacing-6);
   padding: var(--spacing-6);

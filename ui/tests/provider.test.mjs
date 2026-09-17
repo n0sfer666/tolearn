@@ -1,9 +1,14 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import test, { before } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
 import { browser, settled, toasts } from "./support/dom.mjs";
+
+const UI = fileURLToPath(new URL("..", import.meta.url));
 
 let Provider;
 let render;
@@ -667,4 +672,23 @@ test("после разрешения расхождения плашка гас
   await settled();
 
   assert.equal(host.querySelector("[data-drift]"), null);
+});
+
+test("«Сохранить» стоит своей строкой, «Проверить» и «Пробный запрос» — парой под ней", async () => {
+  const { host } = mount();
+  await settled();
+
+  const doing = host.querySelector("[data-doing]");
+  assert.notEqual(doing, null, "кнопки провайдера идут лестницей, без своей группы");
+
+  const [first, second] = [...doing.children];
+  assert.equal(first.dataset.save, "", "«Сохранить» не открывает группу");
+  assert.equal(second.classList.contains("row"), true, "проверки не собраны в строку");
+  assert.deepEqual(
+    [...second.children].map((button) => button.getAttributeNames().find((name) => name.startsWith("data-"))),
+    ["data-check", "data-probe"],
+  );
+
+  const css = readFileSync(path.join(UI, "src/styles/layout.css"), "utf8");
+  assert.match(css, /\.row :where\(button\) \+ :where\(button\) \{\s*margin-inline-start: 0/);
 });

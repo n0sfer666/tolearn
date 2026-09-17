@@ -1,8 +1,13 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import test, { after, before } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { island } from "../scripts/island.mjs";
 import { browser, settled } from "./support/dom.mjs";
+
+const UI = fileURLToPath(new URL("..", import.meta.url));
 
 let Hint;
 let render;
@@ -47,7 +52,7 @@ function key(name) {
 
 const escape = () => key("Escape");
 
-test("подсказка живёт под мышью и уходит вместе с ней", async () => {
+test("наведение подсказку не открывает — поле не уезжает из-под курсора", async () => {
   const host = mount();
   await settled();
 
@@ -55,27 +60,36 @@ test("подсказка живёт под мышью и уходит вмест
   point(open(host), "mouseenter");
   await settled();
 
-  assert.match(body(host).textContent, /аргументы/);
-  assert.equal(open(host).getAttribute("aria-expanded"), "true");
-
-  point(open(host), "mouseleave");
-  await settled();
-  assert.equal(body(host), null);
+  assert.equal(body(host), null, "подсказка открылась по наведению");
+  assert.equal(open(host).getAttribute("aria-expanded"), "false");
 });
 
-test("клик держит подсказку после ухода мыши и гасит её сам", async () => {
+test("клик открывает подсказку и гасит её сам", async () => {
   const host = mount(0.05);
   await settled();
 
-  point(open(host), "mouseenter");
   open(host).click();
-  point(open(host), "mouseleave");
   await settled();
 
-  assert.notEqual(body(host), null);
+  assert.match(body(host).textContent, /аргументы/);
+  assert.equal(open(host).getAttribute("aria-expanded"), "true");
 
   await after_ms(120);
   assert.equal(body(host), null);
+});
+
+test("подсказка лежит поверх содержимого, а не в потоке формы", () => {
+  const css = readFileSync(path.join(UI, "src/styles/hint.css"), "utf8");
+  const body = css.slice(css.indexOf("span[data-hint-body] {"));
+  const rules = body.slice(0, body.indexOf("}"));
+
+  assert.match(rules, /position: absolute/);
+  assert.match(rules, /z-index: var\(--z-popover\)/);
+  assert.match(rules, /overflow-y: auto/);
+  assert.equal(/flex: 1 0 100%/.test(rules), false, "подсказка осталась элементом потока");
+
+  const label = css.slice(0, css.indexOf("button[data-hint-open]"));
+  assert.match(label, /position: relative/, "у подписи нет своей системы координат");
 });
 
 test("повторный клик закрывает подсказку сразу", async () => {

@@ -1,9 +1,14 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { ru } from "../src/i18n/ru.ts";
 import { settled } from "./support/dom.mjs";
 import { BROKEN, CHIPTUNE, NES, SHELF, programsScreen } from "./support/programs.mjs";
+
+const UI = fileURLToPath(new URL("..", import.meta.url));
 
 const { mount } = programsScreen();
 
@@ -27,7 +32,7 @@ test("пустая библиотека показывает только имп
   const { host } = mount({ listing: [] });
   await settled();
 
-  assert.ok(host.querySelector("[data-pick]") !== null, "импорт пропал");
+  assert.ok(host.querySelector("[data-import]") !== null, "импорт пропал");
   assert.ok(host.querySelector("[data-filter]") === null, "фильтр над пустой библиотекой");
   assert.ok(host.querySelector("h2, h3, ul") === null, "заголовок или список в пустой библиотеке");
   assert.equal(host.querySelectorAll("p").length, host.querySelectorAll(".intake p").length, "подпись вне зоны импорта");
@@ -93,4 +98,27 @@ test("ссылка на программу ведёт на её экран те�
   await settled();
 
   assert.equal(host.querySelector("li[data-program] a").getAttribute("href"), `/en/program/?program=${CHIPTUNE}`);
+});
+
+test("кнопка импорта стоит внутри зоны, под подписью", async () => {
+  const { host } = mount({ listing: [] });
+  await settled();
+
+  const zone = host.querySelector(".intake");
+  const button = zone.querySelector("[data-import]");
+  const FOLLOWING = 4;
+  assert.equal(button.parentElement, zone, "кнопка импорта ушла из зоны");
+  assert.ok(
+    (zone.querySelector("p").compareDocumentPosition(button) & FOLLOWING) !== 0,
+    "кнопка стоит выше подписи",
+  );
+
+  const css = readFileSync(path.join(UI, "src/styles/library.css"), "utf8");
+  const zoned = css.slice(css.indexOf(".intake {"));
+  const rules = zoned.slice(0, zoned.indexOf("}"));
+  assert.match(rules, /display: grid/);
+  assert.match(rules, /justify-items: center/);
+
+  const reading = readFileSync(path.join(UI, "src/styles/reading.css"), "utf8");
+  assert.equal(/\[data-import\]/.test(reading), false, "кнопка импорта снова ловит стиль всплывающей");
 });

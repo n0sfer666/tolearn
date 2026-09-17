@@ -1,5 +1,6 @@
 span[data-args-label],
 span[data-endpoint-label] {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -23,8 +24,13 @@ button[data-hint-open] {
 }
 
 span[data-hint-body] {
+  position: absolute;
+  z-index: var(--z-popover);
+  inset-inline: 0;
+  inset-block-start: calc(100% + var(--spacing-1));
   display: block;
-  flex: 1 0 100%;
+  max-block-size: 16rem;
+  overflow-y: auto;
   padding: var(--spacing-3);
   border: var(--border-width) solid var(--color-border-strong);
   border-radius: var(--radius-md);
