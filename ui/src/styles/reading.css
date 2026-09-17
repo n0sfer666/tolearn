@@ -74,10 +74,21 @@ figure[data-block] {
   margin: 0;
 }
 
+figure[data-block] button[data-zoom-open] {
+  display: block;
+  max-inline-size: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
 figure[data-block] img {
   max-inline-size: 100%;
+  max-block-size: 60vh;
   block-size: auto;
   border-radius: var(--radius-md);
+  object-fit: contain;
 }
 
 figure[data-block="diagram"] img {

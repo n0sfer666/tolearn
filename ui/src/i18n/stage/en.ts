@@ -3,6 +3,8 @@ export const stage = {
   absent: "No such stage, or it is not generated yet — start from the program list:",
   foreign: "The stage refers to a file outside the program — start from the program list:",
   diagram: "Diagram",
+  expand: "Expand",
+  shut: "Close",
   practice: "Practice",
   deliverable: "Deliverable",
   workdir: "Practice folder",
