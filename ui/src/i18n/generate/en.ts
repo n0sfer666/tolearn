@@ -22,6 +22,7 @@ export const generate: Dictionary["generate"] = {
   over: "The map runs over {h} h — ask for a shorter one",
   working: "Generating…",
   cancel: "Cancel",
+  patience: "The model is still answering. A big request takes a few minutes — wait it out or cancel.",
   cancelled: "Generation cancelled",
   cancelling: "Stopping the generation…",
   late: "Too late to cancel: the stage is being saved.",

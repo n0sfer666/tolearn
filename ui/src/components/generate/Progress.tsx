@@ -1,7 +1,11 @@
+import { Show } from "solid-js";
+
 import type { Dictionary } from "../../i18n/ru";
+import { clocked } from "../../lib/clocked";
 import type { Generation } from "../../lib/generation";
 import { grab } from "../../lib/grab";
-import { stepped } from "../../lib/stepped";
+
+const PATIENCE = 60_000;
 
 interface Props {
   text: Dictionary;
@@ -9,12 +13,13 @@ interface Props {
 }
 
 export default function Progress(props: Props) {
-  const said = () =>
-    props.work.cancelling() ? props.text.generate.cancelling : stepped(props.work.step(), props.text);
-
   return (
     <div data-progress role="status">
-      <p data-step>{said()}</p>
+      <p data-said>
+        <span data-spin aria-hidden="true" />
+        <span data-step>{props.work.said()}</span>
+        <span data-elapsed>{clocked(props.work.spent(), props.text)}</span>
+      </p>
       <button
         type="button"
         data-cancel
@@ -24,6 +29,9 @@ export default function Progress(props: Props) {
       >
         {props.text.generate.cancel}
       </button>
+      <Show when={props.work.spent() >= PATIENCE}>
+        <p data-patience>{props.text.generate.patience}</p>
+      </Show>
     </div>
   );
 }

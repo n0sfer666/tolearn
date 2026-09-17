@@ -150,7 +150,7 @@ export default function New(props: Props) {
         <Refusal text={props.text} locale={props.locale} refused={work.refused()} />
       </div>
       <div data-studio-side>
-        <Steps text={props.text} seen={clock.seen} />
+        <Steps text={props.text} seen={clock.seen} work={work} />
         <Tabs keys={TABS} label={named} current={tab()} pick={setTab} />
         <Show when={tab() === MAP} fallback={<LogTab text={props.text} log={kept} />}>
           <Show when={drawn()} keyed>

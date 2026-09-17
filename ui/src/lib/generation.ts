@@ -5,8 +5,10 @@ import type { Dictionary } from "../i18n/ru";
 import type { CancelGenerationOut, GenerationStep } from "../ipc";
 import type { Listen, Transport } from "./ipc";
 import type { Job } from "./jobs";
+import { elapsed } from "./elapsed";
 import { refusal } from "./refusal";
 import type { Refused } from "./refusal";
+import { stepped } from "./stepped";
 import { coded, explain, toast } from "./toast";
 
 type Outcome<TDone> = { ok: true; done: TDone } | { ok: false; failure: unknown };
@@ -15,6 +17,8 @@ export type Ending = "done" | "halted" | "refused";
 
 export interface Generation {
   step: Accessor<GenerationStep | null>;
+  said: Accessor<string>;
+  spent: Accessor<number>;
   running: Accessor<boolean>;
   cancelling: Accessor<boolean>;
   ended: Accessor<Ending | null>;
@@ -41,6 +45,8 @@ export function generation(text: Dictionary, call: () => Transport, listen: List
   const [cancelling, setCancelling] = createSignal(false);
   const [ended, setEnded] = createSignal<Ending | null>(null);
   const [refused, setRefused] = createSignal<Refused | null>(null);
+  const [since, setSince] = createSignal<number | null>(null);
+  const spent = elapsed(since);
   let round = 0;
   let job = IDLE;
 
@@ -55,6 +61,7 @@ export function generation(text: Dictionary, call: () => Transport, listen: List
     setRunning(false);
     setCancelling(false);
     setStep(null);
+    setSince(null);
   };
 
   const halt = () => {
@@ -74,6 +81,7 @@ export function generation(text: Dictionary, call: () => Transport, listen: List
     setRefused(null);
     setEnded(null);
     setStep(null);
+    setSince(Date.now());
     setRunning(true);
     const outcome = await settle(work);
     if (mine !== round) return null;
@@ -119,8 +127,9 @@ export function generation(text: Dictionary, call: () => Transport, listen: List
     );
   };
 
+  const said = () => (cancelling() ? text.generate.cancelling : stepped(step(), text));
   const calm = () => ended() === "done" || ended() === "halted";
   const refuse = (reason: string) => setRefused({ reason, settings: false, failed: false });
 
-  return { step, running, cancelling, ended, calm, refused, refuse, run, cancel };
+  return { step, said, spent, running, cancelling, ended, calm, refused, refuse, run, cancel };
 }

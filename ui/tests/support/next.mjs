@@ -1,4 +1,4 @@
-import { before } from "node:test";
+import { after, before } from "node:test";
 
 import { island } from "../../scripts/island.mjs";
 import { ru } from "../../src/i18n/ru.ts";
@@ -55,6 +55,10 @@ export const STAGE = {
 };
 
 export function forkScreen() {
+  const alive = [];
+  after(() => {
+    for (const dispose of alive) dispose();
+  });
   const screen = { window: null };
   let Next;
   let render;
@@ -92,6 +96,7 @@ export function forkScreen() {
       ...options.props,
     };
     const dispose = render(() => Next(props), host);
+    alive.push(dispose);
     return { host, calls, said, gone, dispose, emit };
   };
 

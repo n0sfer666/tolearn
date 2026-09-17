@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test, { before } from "node:test";
+import test, { after, before } from "node:test";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
@@ -46,6 +46,11 @@ const OUT = {
 };
 const AGAIN = { ...OUT, blocks: [paragraph("Новый текст этапа")] };
 const focused = () => window.document.activeElement;
+const alive = [];
+
+after(() => {
+  for (const dispose of alive) dispose();
+});
 
 function mount(options = {}) {
   const host = window.document.createElement("div");
@@ -61,6 +66,7 @@ function mount(options = {}) {
   const said = toasts(window);
   const { steps, emit } = heard();
   const dispose = render(() => Stage({ text: ru, locale: "ru", call, steps }), host);
+  alive.push(dispose);
   return { host, calls, said, dispose, emit };
 }
 

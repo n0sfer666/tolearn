@@ -11,9 +11,51 @@
   background: var(--color-accent-bg);
 }
 
+[data-progress] [data-said] {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: 0;
+}
+
 [data-progress] [data-step] {
   flex: 1 1 auto;
+}
+
+[data-progress] [data-patience] {
+  flex: 1 1 100%;
+  max-width: none;
   margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+[data-spin] {
+  flex: 0 0 auto;
+  align-self: center;
+  inline-size: 0.75em;
+  block-size: 0.75em;
+  border: 0.15em solid var(--color-accent);
+  border-block-start-color: transparent;
+  border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-spin] {
+    animation: spin calc(var(--duration) * 6) linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    rotate: 1turn;
+  }
+}
+
+[data-elapsed] {
+  color: var(--color-fg-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 [data-intent],
@@ -150,12 +192,17 @@ li[data-mark] {
   font-size: var(--font-size-sm);
 }
 
-li[data-mark] > span:first-child {
+li[data-mark] > [data-label] {
   flex: 1 1 auto;
 }
 
-li[data-mark][data-done] > span:first-child {
+li[data-mark][data-done] > [data-label],
+li[data-mark][data-busy] > [data-label] {
   color: var(--color-fg);
+}
+
+li[data-mark] [data-at] {
+  font-variant-numeric: tabular-nums;
 }
 
 [data-tabs] {

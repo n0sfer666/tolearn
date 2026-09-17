@@ -140,3 +140,21 @@ test("ушедший экран отписывается от шагов ген�
   dispose();
   assert.equal(stops(), 1);
 });
+
+test("ожидание карты сразу даёт индикатор, счётчик и текущую отметку в работе", async () => {
+  const { host, emit } = await planned({ answers: { plan_program: held } });
+
+  const progress = host.querySelector("[data-progress]");
+  assert.ok(progress.querySelector("[data-spin]") !== null, "в ожидании нет живого индикатора");
+  assert.equal(progress.querySelector("[data-elapsed]").textContent, "0 с");
+  assert.equal(host.querySelector("[data-mark][data-busy]").dataset.mark, "reach");
+
+  emit(began("plan"));
+  await settled();
+
+  const busy = host.querySelector("[data-mark][data-busy]");
+  assert.equal(busy.dataset.mark, "drawn", "в работе отмечена не текущая отметка");
+  assert.equal(busy.querySelector("[data-label]").textContent, ru.generate.stepPlan);
+  assert.ok(busy.querySelector("[data-elapsed]") !== null, "у текущей отметки нет счётчика");
+  assert.equal(step(host), ru.generate.stepPlan);
+});

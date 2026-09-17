@@ -1,4 +1,4 @@
-import { before } from "node:test";
+import { after, before } from "node:test";
 
 import { island } from "../../scripts/island.mjs";
 import { ru } from "../../src/i18n/ru.ts";
@@ -45,6 +45,10 @@ export function fill(host, selector, value) {
 
 export function newScreen() {
   const screen = { window: null };
+  const alive = [];
+  after(() => {
+    for (const dispose of alive) dispose();
+  });
   let New;
   let render;
 
@@ -73,6 +77,7 @@ export function newScreen() {
     const { steps, emit, stops } = heard();
     const props = { text: options.text ?? ru, locale: options.locale ?? "ru", call, steps, go: (href) => gone.push(href) };
     const dispose = render(() => New(props), host);
+    alive.push(dispose);
     return { host, calls, said, gone, dispose, emit, stops };
   };
 
