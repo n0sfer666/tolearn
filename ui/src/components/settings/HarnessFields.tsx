@@ -70,7 +70,7 @@ export default function HarnessFields(props: Props) {
       <label>
         <span data-args-label>
           {props.text.provider.args}
-          <Hint label={props.hints.open}>
+          <Hint label={props.hints.open} shut={props.hints.shut}>
             <ArgsHint text={props.text} hints={props.hints} preset={props.value.id} />
           </Hint>
         </span>

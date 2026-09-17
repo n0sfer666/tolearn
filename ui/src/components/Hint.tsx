@@ -1,58 +1,26 @@
-import { type JSX, Show, createSignal, onCleanup } from "solid-js";
+import { type JSX, Show, createSignal } from "solid-js";
+import { Portal } from "solid-js/web";
 
-import { pressed } from "../lib/shortcuts";
+import { grab } from "../lib/grab";
+import { layered } from "../lib/layered";
 
 interface Props {
   label: string;
-  seconds?: number;
+  shut: string;
   children: JSX.Element;
 }
 
-const PINNED_SECONDS = 10;
-
 export default function Hint(props: Props) {
-  const [pinned, setPinned] = createSignal(false);
-  let timer: ReturnType<typeof setTimeout> | undefined;
+  const [open, setOpen] = createSignal(false);
   let opener: HTMLButtonElement | undefined;
-  let body: HTMLElement | undefined;
+  let box: HTMLDivElement | undefined;
 
-  const forget = () => {
-    if (timer !== undefined) clearTimeout(timer);
-    timer = undefined;
+  const close = () => {
+    setOpen(false);
+    opener?.focus();
   };
 
-  const inside = (target: EventTarget | null) => {
-    if (!(target instanceof Node)) return false;
-    return opener?.contains(target) === true || body?.contains(target) === true;
-  };
-
-  const aside = (event: Event) => {
-    if (inside(event.target)) return;
-    unpin();
-  };
-
-  const escaped = (event: KeyboardEvent) => {
-    if (!pressed(event, "close")) return;
-    event.stopPropagation();
-    unpin();
-  };
-
-  const unpin = () => {
-    forget();
-    document.removeEventListener("pointerdown", aside);
-    document.removeEventListener("keydown", escaped, true);
-    setPinned(false);
-  };
-
-  const pin = () => {
-    forget();
-    setPinned(true);
-    document.addEventListener("pointerdown", aside);
-    document.addEventListener("keydown", escaped, true);
-    timer = setTimeout(unpin, (props.seconds ?? PINNED_SECONDS) * 1000);
-  };
-
-  onCleanup(unpin);
+  const layer = layered(() => box, close, "button, [data-hint-body]");
 
   return (
     <>
@@ -61,15 +29,38 @@ export default function Hint(props: Props) {
         data-hint-open
         ref={opener}
         aria-label={props.label}
-        aria-expanded={pinned()}
-        onClick={() => (pinned() ? unpin() : pin())}
+        aria-expanded={open()}
+        onClick={() => (open() ? close() : setOpen(true))}
       >
         ?
       </button>
-      <Show when={pinned()}>
-        <span data-hint-body role="tooltip" ref={body}>
-          {props.children}
-        </span>
+      <Show when={open()}>
+        <Portal>
+          <div data-hint-back onClick={layer.aside}>
+            <div
+              data-hint
+              role="dialog"
+              aria-modal="true"
+              aria-label={props.label}
+              ref={box}
+              on:keydown={layer.keyed}
+              onFocusOut={layer.held}
+            >
+              <button
+                type="button"
+                data-hint-close
+                ref={grab}
+                aria-label={props.shut}
+                onClick={close}
+              >
+                ×
+              </button>
+              <div data-hint-body tabindex="0">
+                {props.children}
+              </div>
+            </div>
+          </div>
+        </Portal>
       </Show>
     </>
   );

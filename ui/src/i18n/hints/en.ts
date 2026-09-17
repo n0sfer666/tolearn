@@ -2,6 +2,7 @@ import type { Hints } from "./shape";
 
 export const hints: Hints = {
   open: "Hint",
+  shut: "Close",
   advice: "Recommended:",
   apply: "Fill in the recommended ones",
   own: "There is no recommendation for your own command — see its own help (--help).",

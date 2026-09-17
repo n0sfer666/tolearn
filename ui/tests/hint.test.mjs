@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import test, { after, before } from "node:test";
+import test, { after, before, beforeEach } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { island } from "../scripts/island.mjs";
@@ -13,153 +13,172 @@ let Hint;
 let render;
 let document;
 
-before(async () => {
-  ({ document } = browser("https://tolearn.local/ru/settings/"));
-  ({ default: Hint } = await island("Hint", "src/components"));
-  ({ render } = await import("solid-js/web"));
-}, { timeout: 300_000 });
+before(
+  async () => {
+    ({ document } = browser("https://tolearn.local/ru/settings/"));
+    ({ default: Hint } = await island("Hint", "src/components"));
+    ({ render } = await import("solid-js/web"));
+  },
+  { timeout: 300_000 },
+);
 
 const alive = [];
 
-after(() => {
-  for (const dispose of alive) dispose();
+const dropped = () => {
+  for (const dispose of alive.splice(0)) dispose();
+};
+
+beforeEach(() => {
+  dropped();
+  document.body.innerHTML = "";
 });
 
-function mount(seconds) {
+after(dropped);
+
+function mount() {
   const host = document.createElement("div");
   document.body.append(host);
   const dispose = render(
-    () => Hint({ label: "Подсказка", seconds, children: "как передавать аргументы" }),
+    () => Hint({ label: "Подсказка", shut: "Закрыть", children: "как передавать аргументы" }),
     host,
   );
   alive.push(dispose);
   return host;
 }
 
-const open = (host) => host.querySelector("[data-hint-open]");
-const body = (host) => host.querySelector("[data-hint-body]");
-const point = (button, kind) => button.dispatchEvent(new document.defaultView.Event(kind));
-const after_ms = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const opener = (host) => host.querySelector("[data-hint-open]");
+const layer = () => document.querySelector("[data-hint]");
+const body = () => document.querySelector("[data-hint-body]");
+const closer = () => document.querySelector("[data-hint-close]");
+const shade = () => document.querySelector("[data-hint-back]");
 
-const pressed = (node, kind) =>
-  node.dispatchEvent(new document.defaultView.Event(kind, { bubbles: true }));
+const point = (node, kind) => node.dispatchEvent(new document.defaultView.Event(kind));
+const waited = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function key(name) {
-  const event = new document.defaultView.Event("keydown", { bubbles: true });
-  Object.defineProperty(event, "key", { value: name });
-  document.body.dispatchEvent(event);
+function key(node, name, shifted = false) {
+  const event = new document.defaultView.KeyboardEvent("keydown", {
+    key: name,
+    shiftKey: shifted,
+    bubbles: true,
+    cancelable: true,
+  });
+  node.dispatchEvent(event);
+  return event;
 }
 
-const escape = () => key("Escape");
+function clicked(node) {
+  node.dispatchEvent(new document.defaultView.MouseEvent("click", { bubbles: true }));
+}
+
+async function opened() {
+  const host = mount();
+  await settled();
+  opener(host).click();
+  await settled();
+  return host;
+}
 
 test("наведение подсказку не открывает — поле не уезжает из-под курсора", async () => {
   const host = mount();
   await settled();
 
-  assert.equal(body(host), null);
-  point(open(host), "mouseenter");
+  assert.equal(layer(), null);
+  point(opener(host), "mouseenter");
   await settled();
 
-  assert.equal(body(host), null, "подсказка открылась по наведению");
-  assert.equal(open(host).getAttribute("aria-expanded"), "false");
+  assert.equal(layer(), null, "подсказка открылась по наведению");
+  assert.equal(opener(host).getAttribute("aria-expanded"), "false");
 });
 
-test("клик открывает подсказку и гасит её сам", async () => {
-  const host = mount(0.05);
-  await settled();
+test("клик открывает подсказку модалкой с фокусом на крестике", async () => {
+  const host = await opened();
 
-  open(host).click();
-  await settled();
-
-  assert.match(body(host).textContent, /аргументы/);
-  assert.equal(open(host).getAttribute("aria-expanded"), "true");
-
-  await after_ms(120);
-  assert.equal(body(host), null);
+  assert.equal(layer().getAttribute("role"), "dialog");
+  assert.equal(layer().getAttribute("aria-modal"), "true");
+  assert.equal(layer().getAttribute("aria-label"), "Подсказка");
+  assert.match(body().textContent, /аргументы/);
+  assert.equal(document.activeElement, closer());
+  assert.equal(opener(host).getAttribute("aria-expanded"), "true");
 });
 
-test("подсказка лежит поверх содержимого, а не в потоке формы", () => {
-  const css = readFileSync(path.join(UI, "src/styles/hint.css"), "utf8");
-  const body = css.slice(css.indexOf("span[data-hint-body] {"));
-  const rules = body.slice(0, body.indexOf("}"));
+test("подсказка не гаснет сама — таймера у неё нет", async () => {
+  await opened();
 
-  assert.match(rules, /position: absolute/);
-  assert.match(rules, /z-index: var\(--z-popover\)/);
-  assert.match(rules, /overflow-y: auto/);
-  assert.equal(/flex: 1 0 100%/.test(rules), false, "подсказка осталась элементом потока");
+  await waited(120);
 
-  const label = css.slice(0, css.indexOf("button[data-hint-open]"));
-  assert.match(label, /position: relative/, "у подписи нет своей системы координат");
+  assert.notEqual(layer(), null, "подсказка закрылась без участия человека");
 });
 
-test("повторный клик закрывает подсказку сразу", async () => {
-  const host = mount(60);
+test("крестик закрывает подсказку и возвращает фокус на «?»", async () => {
+  const host = await opened();
+
+  clicked(closer());
   await settled();
 
-  open(host).click();
-  await settled();
-  assert.notEqual(body(host), null);
-
-  open(host).click();
-  await settled();
-  assert.equal(body(host), null);
+  assert.equal(layer(), null);
+  assert.equal(document.activeElement, opener(host));
 });
 
 test("Esc закрывает подсказку и не доходит до экрана", async () => {
-  const host = mount(60);
-  await settled();
-
+  const host = await opened();
   const heard = [];
   const listen = () => heard.push("escape");
   document.addEventListener("keydown", listen);
 
-  open(host).click();
+  key(closer(), "Escape");
   await settled();
-  assert.notEqual(body(host), null);
 
-  escape();
-  await settled();
-  assert.equal(body(host), null);
+  assert.equal(layer(), null);
   assert.deepEqual(heard, []);
-
-  escape();
+  assert.equal(document.activeElement, opener(host));
   document.removeEventListener("keydown", listen);
-  assert.deepEqual(heard, ["escape"]);
 });
 
-test("другая клавиша закреплённую подсказку не закрывает", async () => {
-  const host = mount(60);
-  await settled();
+test("Tab ходит по слою и подсказку не закрывает", async () => {
+  await opened();
 
-  open(host).click();
-  await settled();
-  key("Tab");
-  await settled();
-
-  assert.ok(body(host) !== null, "подсказка закрылась не от Esc");
-  escape();
+  key(closer(), "Tab");
+  assert.equal(document.activeElement, body());
+  key(body(), "Tab");
+  assert.equal(document.activeElement, closer());
+  key(closer(), "Tab", true);
+  assert.equal(document.activeElement, body());
+  assert.notEqual(layer(), null, "подсказка закрылась не от Esc");
 });
 
-test("клик мимо закрывает подсказку, клик внутри — нет", async () => {
-  const host = mount(60);
-  await settled();
+test("клик по затемнению закрывает подсказку, клик по самой подсказке — нет", async () => {
+  await opened();
 
-  open(host).click();
+  clicked(body());
   await settled();
+  assert.notEqual(layer(), null);
 
-  pressed(body(host), "pointerdown");
+  clicked(shade());
   await settled();
-  assert.notEqual(body(host), null);
-
-  pressed(document.body, "pointerdown");
-  await settled();
-  assert.equal(body(host), null);
+  assert.equal(layer(), null);
 });
 
-test("кнопка подписана для чтения с экрана", async () => {
-  const host = mount();
-  await settled();
+test("подсказка лежит поверх экрана и прокручивается внутри себя", () => {
+  const css = readFileSync(path.join(UI, "src/styles/hint.css"), "utf8");
+  const rules = (selector) => {
+    const from = css.slice(css.indexOf(`${selector} {`));
+    return from.slice(0, from.indexOf("}"));
+  };
 
-  assert.equal(open(host).getAttribute("aria-label"), "Подсказка");
-  assert.equal(open(host).getAttribute("type"), "button");
+  const back = rules("[data-hint-back]");
+  assert.match(back, /position: fixed/);
+  assert.match(back, /z-index: var\(--z-overlay\)/);
+
+  const inner = rules("div[data-hint-body]");
+  assert.match(inner, /overflow-y: auto/);
+  assert.match(inner, /max-block-size: \d+vh/, "предел высоты в процентах не разрешится");
+});
+
+test("кнопка и крестик подписаны для чтения с экрана", async () => {
+  const host = await opened();
+
+  assert.equal(opener(host).getAttribute("aria-label"), "Подсказка");
+  assert.equal(opener(host).getAttribute("type"), "button");
+  assert.equal(closer().getAttribute("type"), "button");
+  assert.match(closer().getAttribute("aria-label") ?? closer().textContent, /Закрыть/);
 });

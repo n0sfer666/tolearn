@@ -4,6 +4,10 @@
   box-sizing: border-box;
 }
 
+html:has([data-hint-back], [data-zoom-back], [data-confirm-back]) {
+  overflow: hidden;
+}
+
 body {
   margin: 0;
   background: var(--color-bg);

@@ -158,12 +158,14 @@ textarea[data-note] {
 }
 
 button[data-hint-open],
+button[data-hint-close],
 button[data-snip],
 button[data-toast-close] {
   position: relative;
 }
 
 button[data-hint-open]::after,
+button[data-hint-close]::after,
 button[data-snip]::after,
 button[data-toast-close]::after,
 summary::after {

@@ -1,8 +1,13 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import test, { before, beforeEach } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { island } from "../scripts/island.mjs";
 import { browser, settled } from "./support/dom.mjs";
+
+const UI = fileURLToPath(new URL("..", import.meta.url));
 
 let layered;
 let window;
@@ -130,4 +135,15 @@ test("прочие клавиши слой не перехватывает", () 
 
   assert.deepEqual(shut, []);
   assert.equal(event.defaultPrevented, false);
+});
+
+test("страница под открытым слоем не прокручивается", () => {
+  const css = readFileSync(path.join(UI, "src/styles/base.css"), "utf8");
+  const from = css.slice(css.indexOf("html:has("));
+  const rule = from.slice(0, from.indexOf("}"));
+
+  for (const shade of ["[data-hint-back]", "[data-zoom-back]", "[data-confirm-back]"]) {
+    assert.ok(rule.includes(shade), `${shade} не запирает прокрутку страницы`);
+  }
+  assert.match(rule, /overflow: hidden/);
 });

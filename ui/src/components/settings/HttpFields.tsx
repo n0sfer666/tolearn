@@ -23,7 +23,7 @@ export default function HttpFields(props: Props) {
       <label>
         <span data-endpoint-label>
           {props.text.provider.endpoint}
-          <Hint label={props.hints.open}>
+          <Hint label={props.hints.open} shut={props.hints.shut}>
             <HintLines lines={props.local ? props.hints.local : props.hints.remote} />
           </Hint>
         </span>
