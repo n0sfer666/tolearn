@@ -7,7 +7,7 @@ import { localized } from "../../i18n";
 import type { Dictionary } from "../../i18n/ru";
 import { grab } from "../../lib/grab";
 import type { Transport } from "../../lib/ipc";
-import { pressed } from "../../lib/shortcuts";
+import { layered } from "../../lib/layered";
 import { coded, explain, toast } from "../../lib/toast";
 import { told } from "../../lib/told";
 
@@ -28,7 +28,7 @@ export default function Delete(props: Props): JSX.Element {
   const [asking, setAsking] = createSignal(false);
   const [busy, setBusy] = createSignal(false);
   const [name, setName] = createSignal("");
-  let layer: HTMLDivElement | undefined;
+  let box: HTMLDivElement | undefined;
 
   const refusals = () =>
     new Map([
@@ -44,8 +44,6 @@ export default function Delete(props: Props): JSX.Element {
     const known = told(failure, refusals()) || props.text.program.deleteFailed;
     return coded(failure) === "delete.left" ? `${known} ${explain(failure)}` : known;
   };
-
-  const stops = (): HTMLElement[] => [...(layer?.querySelectorAll<HTMLElement>("button") ?? [])];
 
   const asked = async (): Promise<string> => {
     const out = await props.call("node", { program: props.program, node: "" });
@@ -79,26 +77,7 @@ export default function Delete(props: Props): JSX.Element {
     }
   };
 
-  const keyed = (event: KeyboardEvent) => {
-    event.stopPropagation();
-    if (pressed(event, "close")) {
-      event.preventDefault();
-      close();
-      return;
-    }
-    if (!pressed(event, "cycle")) return;
-    const row = stops();
-    if (row.length === 0) return;
-    const at = row.findIndex((stop) => stop === document.activeElement);
-    event.preventDefault();
-    row[(at + (event.shiftKey ? -1 : 1) + row.length) % row.length]?.focus();
-  };
-
-  const held = (event: FocusEvent) => {
-    const next = event.relatedTarget;
-    if (next instanceof Node && layer?.contains(next) === true) return;
-    queueMicrotask(() => stops()[0]?.focus());
-  };
+  const layer = layered(() => box, close);
 
   return (
     <>
@@ -113,9 +92,9 @@ export default function Delete(props: Props): JSX.Element {
               role="dialog"
               aria-modal="true"
               aria-labelledby={HEADING}
-              ref={layer}
-              on:keydown={keyed}
-              onFocusOut={held}
+              ref={box}
+              on:keydown={layer.keyed}
+              onFocusOut={layer.held}
             >
               <h2 id={HEADING}>{props.text.program.deleteAsk.replace("{name}", name())}</h2>
               <p>{props.text.program.deleteGoes}</p>
