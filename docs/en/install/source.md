@@ -66,6 +66,13 @@ destination, pass it as the script's second argument:
 the target asks you to quit it and stops. The speech variant is
 `make install-speech` (it needs the submodule and the weights, see below).
 
+Before the build the script clears what an interrupted run left behind: a
+half-finished `target/release/bundle/macos/rw.*.dmg` that stayed mounted breaks
+the packaging step with a bare "error running bundle_dmg.sh".
+`scripts/detach-stale-dmg.sh` detaches that image and removes its file; a mounted
+image of someone else (a `/Volumes/dmg.*` from another directory) is left alone
+and only reported.
+
 ## The speech variant
 
 It needs the whisper.cpp submodule and the model weights — the weights file is not

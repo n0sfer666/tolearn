@@ -35,6 +35,8 @@ if pgrep -x tolearn-desktop >/dev/null 2>&1; then
     exit 1
 fi
 
+sh "$root/scripts/detach-stale-dmg.sh"
+
 echo "== сборка $product"
 (cd "$root/app" && cargo tauri build "$@")
 
