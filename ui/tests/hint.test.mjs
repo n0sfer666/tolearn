@@ -1,13 +1,9 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import test, { after, before, beforeEach } from "node:test";
-import { fileURLToPath } from "node:url";
 
 import { island } from "../scripts/island.mjs";
 import { browser, settled } from "./support/dom.mjs";
-
-const UI = fileURLToPath(new URL("..", import.meta.url));
+import { rule } from "./support/styles.mjs";
 
 let Hint;
 let render;
@@ -159,17 +155,11 @@ test("клик по затемнению закрывает подсказку, 
 });
 
 test("подсказка лежит поверх экрана и прокручивается внутри себя", () => {
-  const css = readFileSync(path.join(UI, "src/styles/hint.css"), "utf8");
-  const rules = (selector) => {
-    const from = css.slice(css.indexOf(`${selector} {`));
-    return from.slice(0, from.indexOf("}"));
-  };
-
-  const back = rules("[data-hint-back]");
+  const back = rule("hint.css", "[data-hint-back]");
   assert.match(back, /position: fixed/);
   assert.match(back, /z-index: var\(--z-overlay\)/);
 
-  const inner = rules("div[data-hint-body]");
+  const inner = rule("hint.css", "div[data-hint-body]");
   assert.match(inner, /overflow-y: auto/);
   assert.match(inner, /max-block-size: \d+vh/, "предел высоты в процентах не разрешится");
 });

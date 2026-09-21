@@ -8,7 +8,9 @@ import { fileURLToPath } from "node:url";
 import { DIST, pages, route } from "../scripts/budget.mjs";
 import { en } from "../src/i18n/en.ts";
 import { ru } from "../src/i18n/ru.ts";
+import { declarations } from "../scripts/css.mjs";
 import { browser } from "./support/dom.mjs";
+import { rule, rules } from "./support/styles.mjs";
 
 const UI = fileURLToPath(new URL("..", import.meta.url));
 const TEXT = { ru, en };
@@ -166,6 +168,22 @@ test("тема и язык — только в настройках: ни в ш�
     assert.doesNotMatch(html, /data-theme-choice|data-locale=/, `${at}: переключатель в разметке`);
     for (const other of ["ru", "en"].filter((locale) => locale !== own)) {
       assert.doesNotMatch(html, new RegExp(`<a[^>]*href="/${other}/`), `${at}: ссылка в другой язык`);
+    }
+  }
+});
+
+test("пункты разделов переносятся, а не выпирают за узкий экран", () => {
+  assert.match(
+    rule("layout.css", ".bar-nav"),
+    /flex-wrap:\s*wrap/,
+    "строка разделов не переносится и на 360 px вылезает за экран",
+  );
+
+  for (const block of rules(".bar-nav")) {
+    for (const { property, value } of declarations(block.body)) {
+      if (property !== "flex-wrap") continue;
+      const where = block.media === null ? block.file : `${block.file} @media ${block.media}`;
+      assert.equal(value, "wrap", `${where}: «${block.selector}» отменяет перенос пунктов`);
     }
   }
 });

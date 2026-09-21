@@ -1,14 +1,11 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import test, { after, before } from "node:test";
-import { fileURLToPath } from "node:url";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
 import { browser, settled } from "./support/dom.mjs";
+import { rule } from "./support/styles.mjs";
 
-const UI = fileURLToPath(new URL("..", import.meta.url));
 const SVG = "data:image/svg+xml;base64,PHN2Zy8+";
 
 let Picture;
@@ -63,15 +60,8 @@ function key(name, node, shifted = false) {
   (node ?? document.body).dispatchEvent(event);
 }
 
-const rules = (file, selector) => {
-  const css = readFileSync(path.join(UI, "src/styles", file), "utf8");
-  const at = css.indexOf(`${selector} {`);
-  assert.notEqual(at, -1, `правила ${selector} нет в ${file}`);
-  return css.slice(at, css.indexOf("}", at));
-};
-
 test("картинка в тексте не выше доли экрана и держит пропорции", () => {
-  const body = rules("reading.css", "figure[data-block] img");
+  const body = rule("reading.css", "figure[data-block] img");
 
   assert.match(body, /max-inline-size: 100%/);
   assert.match(body, /max-block-size: 60vh/, "высота картинки в тексте не ограничена");
@@ -97,8 +87,8 @@ test("клик по картинке разворачивает её слоем 
 });
 
 test("в слое картинка идёт натуральным размером со скроллом по обеим осям", () => {
-  const box = rules("zoom.css", "[data-zoom-scroll]");
-  const drawing = rules("zoom.css", "[data-zoom-scroll] img");
+  const box = rule("zoom.css", "[data-zoom-scroll]");
+  const drawing = rule("zoom.css", "[data-zoom-scroll] img");
 
   assert.match(box, /overflow: auto/, "большую картинку в слое не прокрутить");
   assert.match(
@@ -109,7 +99,7 @@ test("в слое картинка идёт натуральным размер�
   assert.match(drawing, /max-inline-size: none/, "слой ужимает картинку так же, как текст");
   assert.match(drawing, /max-block-size: none/);
 
-  const shade = rules("zoom.css", "[data-zoom-back]");
+  const shade = rule("zoom.css", "[data-zoom-back]");
   assert.match(shade, /position: fixed/);
   assert.match(shade, /z-index: var\(--z-overlay\)/);
 });
