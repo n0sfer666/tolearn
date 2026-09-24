@@ -96,6 +96,12 @@ fn practice(draft: &Draft, place: &Place<'_>, flaws: &mut Vec<Flaw>) {
                 check.id
             )));
         }
+        if check.check.as_deref().is_some_and(homeward) {
+            flaws.push(Flaw::Practice(format!(
+                "у пункта {} в проверке ~ или $HOME: команда выполняется в папке практики, пути к файлам ученика — относительные, без ~ и $HOME",
+                check.id
+            )));
+        }
     }
     let tools = distinct(&draft.tools);
     if place.first() && tools.len() != FIRST_STAGE_TOOLS {
@@ -121,6 +127,24 @@ fn questions(stage: &Stage, flaws: &mut Vec<Flaw>) {
             )));
         }
     }
+}
+
+fn homeward(command: &str) -> bool {
+    let words: Vec<&str> = command
+        .split(|letter: char| letter.is_whitespace() || "\"'=:;|&()<>`{,".contains(letter))
+        .filter(|word| !word.is_empty())
+        .collect();
+    variable(command, "$HOME")
+        || variable(command, "${HOME")
+        || words.iter().any(|word| word.starts_with("~/"))
+        || words.windows(2).any(|pair| pair == ["cd", "~"])
+}
+
+fn variable(command: &str, name: &str) -> bool {
+    command.match_indices(name).any(|(at, _)| {
+        !command[at + name.len()..]
+            .starts_with(|letter: char| letter.is_ascii_alphanumeric() || letter == '_')
+    })
 }
 
 fn distinct(names: &[String]) -> BTreeSet<&str> {

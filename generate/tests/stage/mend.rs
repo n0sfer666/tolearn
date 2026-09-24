@@ -101,3 +101,59 @@ fn the_first_stage_takes_exactly_one_tool() {
     assert!(run.result.is_ok());
     assert_eq!(run.prompts.len(), 1);
 }
+
+#[test]
+fn a_check_that_leaves_the_practice_folder_goes_to_repair() {
+    let stage = fine();
+    for (label, command) in [
+        ("mend-tilde", "file ~/voices.ftm"),
+        ("mend-home", "file $HOME/voices.ftm"),
+        ("mend-braced-home", "file \"${HOME}/voices.ftm\""),
+        ("mend-home-default", "ls ${HOME:-/tmp}/voices.ftm"),
+        ("mend-redirect", "cat <~/voices.ftm"),
+        ("mend-assigned", "x=~/voices.ftm; file $x"),
+        ("mend-substituted", "file $(cat ~/where)"),
+        ("mend-braces", "ls {~/a,~/b}"),
+        ("mend-cd", "cd ~ && ls"),
+        ("mend-tool", "test -x ~/.cargo/bin/rustc"),
+    ] {
+        let mut broken = stage.clone();
+        broken["practice"]["acceptance"][0]["check"] = json!(command);
+        let mended = json!({"practice": stage["practice"].clone()});
+        let run = compose(label, &chiptune(), "voices", &[broken, mended]);
+
+        assert_eq!(drafted(&run.result.unwrap()), ids(&stage), "{label}");
+        let repair = &run.prompts[1];
+        assert!(
+            repair.contains("у пункта a1 в проверке ~ или $HOME"),
+            "{label}"
+        );
+        assert!(repair.contains("без ~ и $HOME"), "{label}");
+    }
+
+    for (label, command) in [
+        ("mend-applications", "ls -d /Applications/Furnace.app"),
+        ("mend-awk", "awk '$1 ~ /ok/' voices.ftm"),
+        ("mend-regex", "[[ $(cat out.txt) =~ ^ok ]]"),
+        ("mend-fence", "grep -c '~~~' notes.md"),
+        ("mend-revision", "git show HEAD~1"),
+        ("mend-query", "curl \"https://a.test/?q=~a\""),
+        ("mend-brew", "ls $HOMEBREW_PREFIX/bin"),
+    ] {
+        let mut outside = stage.clone();
+        outside["practice"]["acceptance"][0]["check"] = json!(command);
+        let run = compose(label, &chiptune(), "voices", &[outside]);
+        assert!(run.result.is_ok(), "{label}");
+        assert_eq!(run.prompts.len(), 1, "{label}");
+    }
+}
+
+#[test]
+fn the_prompt_places_the_learner_files_in_the_practice_folder() {
+    let run = compose("mend-workdir-rule", &chiptune(), "voices", &[fine()]);
+
+    let prompt = &run.prompts[0];
+    assert!(prompt.contains("check выполняется в папке практики"));
+    assert!(prompt.contains("~ и $HOME в check не пишутся вовсе"));
+    assert!(prompt.contains("expect требует только того, что прямо сказано в task"));
+}
