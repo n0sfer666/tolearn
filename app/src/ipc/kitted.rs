@@ -22,7 +22,7 @@ pub fn kitted<T>(
     let source = tools.fetcher()?;
     let renderer = tools.rendering();
     let painter = tools.painting();
-    let progress = tools.progress();
+    let progress = context.progress();
     work(Kit {
         online,
         source: source.as_ref(),

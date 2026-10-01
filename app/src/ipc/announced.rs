@@ -11,12 +11,16 @@ impl Announced {
     }
 
     fn tell(&self, state: &str, step: Step) {
-        (self.0)(GenerationStep {
-            step: step.label().to_owned(),
-            state: state.to_owned(),
-            round: round(step),
-            of: limit(step),
-        });
+        (self.0)(told(state, step));
+    }
+}
+
+pub fn told(state: &str, step: Step) -> GenerationStep {
+    GenerationStep {
+        step: step.label().to_owned(),
+        state: state.to_owned(),
+        round: round(step),
+        of: limit(step),
     }
 }
 

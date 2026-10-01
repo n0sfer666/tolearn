@@ -71,27 +71,35 @@ test("опоздавшая отмена говорит «уже нельзя», 
   assert.ok(!said.some((seen) => seen.text === ru.generate.cancelled), "показано «отменено»");
 });
 
-test("отмена карты генерацию не трогает и возвращает фокус на «Составить карту»", async () => {
-  const { host, calls, said } = await planned({ answers: { plan_program: held } });
+test("отмена карты ждёт её отказа на бэкенде и возвращает фокус на «Составить карту»", async () => {
+  const plan = deferred();
+  const { host, calls, said } = await planned({ answers: { plan_program: plan.answer } });
   press(host, "[data-cancel]");
   await settled();
 
-  assert.equal(named(calls, "cancel_generation").length, 0);
+  assert.equal(named(calls, "cancel_generation").length, 1);
+  assert.equal(host.querySelector("[data-step]").textContent, ru.generate.cancelling);
+  plan.reject(CANCELLED);
+  await settled();
   assert.equal(host.querySelector("[data-request]").value, REQUEST);
   assert.ok(host.querySelector("[data-plan-map]") === null);
   assert.deepEqual(said.at(-1), { tone: "info", text: ru.generate.cancelled });
   assert.ok(focused() === host.querySelector("[data-plan]"), "фокус не на «Составить карту»");
 });
 
-test("отмена правки карты оставляет прежнюю карту и фокус на «Изменить запрос»", async () => {
-  const { host, calls } = await planned({ answers: { revise_plan: held } });
+test("отмена правки карты ждёт её отказа и оставляет прежнюю карту и фокус на «Изменить запрос»", async () => {
+  const revise = deferred();
+  const { host, calls } = await planned({ answers: { revise_plan: revise.answer } });
   fill(host, "[data-wish]", "короче");
   press(host, "[data-revise]");
   await settled();
   press(host, "[data-cancel]");
   await settled();
 
-  assert.equal(named(calls, "cancel_generation").length, 0);
+  assert.equal(named(calls, "cancel_generation").length, 1);
+  assert.equal(host.querySelector("[data-step]").textContent, ru.generate.cancelling);
+  revise.reject(CANCELLED);
+  await settled();
   assert.match(host.querySelector("[data-plan-map] h2").textContent, /Чиптюн с нуля/);
   assert.ok(focused() === host.querySelector("[data-revise]"), "фокус не на «Изменить запрос»");
 });

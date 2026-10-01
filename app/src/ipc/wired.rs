@@ -7,6 +7,7 @@ use crate::prerender::{Settling, Webview};
 
 use super::context::Context;
 use super::error::IpcError;
+use super::generating::{GenerationStateOut, STATE_EVENT};
 use super::ledger::Ledger;
 use super::running::Running;
 use super::started::{GenerationStep, STEP_EVENT};
@@ -26,6 +27,14 @@ pub fn wired(app: &AppHandle, context: Context) -> Result<Context, IpcError> {
         .with_tools(tools)
         .with_running(managed::<Running>(app)?)
         .with_ledger(managed::<Ledger>(app)?))
+}
+
+pub fn heralded(app: &AppHandle) -> Result<(), IpcError> {
+    let crier = app.clone();
+    managed::<Running>(app)?.herald(Arc::new(move |state: GenerationStateOut| {
+        let _ = crier.emit(STATE_EVENT, state);
+    }));
+    Ok(())
 }
 
 fn managed<T: Clone + Send + Sync + 'static>(app: &AppHandle) -> Result<T, IpcError> {

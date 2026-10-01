@@ -14,11 +14,12 @@ pub fn run(context: &Context, input: &DeleteProgramIn) -> Result<DeleteProgramOu
         Ok(tree) => tree,
         Err(absent) => return Err(inner(&library, &input.program).unwrap_or_else(|| absent.into())),
     };
-    let _erasing = context.running().erasing(&input.program)?;
+    let erasing = context.running().erasing(&input.program)?;
     let uuids: Vec<String> = tree.uuids().into_iter().collect();
     checked(&library, &input.program, &uuids)?;
     released(context, &uuids).map_err(unbound)?;
     discard::discard(context.bin(), context.data(), &input.program, &uuids).map_err(left)?;
+    erasing.gone();
     Ok(DeleteProgramOut {
         title: tree.program.title.clone(),
     })

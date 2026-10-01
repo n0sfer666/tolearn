@@ -4,8 +4,8 @@ export interface Job {
   steps: ReadonlySet<string>;
 }
 
-export const PLANNING: Job = { claims: false, seals: false, steps: new Set(["plan"]) };
-export const REVISING: Job = { claims: false, seals: false, steps: new Set(["revise"]) };
+export const PLANNING: Job = { claims: true, seals: false, steps: new Set(["plan"]) };
+export const REVISING: Job = { claims: true, seals: false, steps: new Set(["revise"]) };
 export const FORKING: Job = { claims: true, seals: false, steps: new Set(["fork"]) };
 export const EXAMINING: Job = { claims: true, seals: false, steps: new Set(["exam"]) };
 export const CLARIFYING: Job = { claims: true, seals: false, steps: new Set(["clarify"]) };

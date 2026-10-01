@@ -8,6 +8,8 @@ pub mod exam_paste;
 pub mod exam_prompt;
 pub mod export;
 pub mod fork;
+pub mod generation_seen;
+pub mod generation_state;
 pub mod import_package;
 pub mod library;
 pub mod llm_log;

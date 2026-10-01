@@ -19,6 +19,7 @@ pub fn run() -> Result<(), tauri::Error> {
         .manage(ipc::Ledger::default())
         .setup(|app| {
             gestures::enable(app)?;
+            ipc::heralded(app.handle())?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![ipc::contract::command])

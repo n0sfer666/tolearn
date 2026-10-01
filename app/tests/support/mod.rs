@@ -10,6 +10,7 @@
 pub mod scratch;
 
 pub mod bucket;
+pub mod held;
 pub mod planner;
 pub mod shelf;
 pub mod speaking;

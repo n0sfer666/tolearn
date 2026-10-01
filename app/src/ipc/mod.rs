@@ -10,12 +10,15 @@ mod examined;
 mod examining;
 mod forked;
 mod forking;
+mod generated;
+mod generating;
 mod handlers;
 mod kitted;
 mod lapsed;
 pub mod layout;
 mod ledger;
 mod picture;
+mod placed;
 mod planned;
 mod planning;
 mod practice;
@@ -38,9 +41,15 @@ mod wired;
 pub use context::{Context, Net, of};
 pub use contract::{Descriptor, NAMES, call, descriptors};
 pub use error::IpcError;
+pub use generated::generated;
+pub use generating::{
+    GenerationOutcome, GenerationStateOut, GenerationWork, ReadyStage, RefusalView, STATE_EVENT,
+    StepMark,
+};
 pub use ledger::Ledger;
-pub use running::{Claim, Erasing, Running};
+pub use running::{Claim, Crier, Erasing, Finale, Hold, Running};
 pub use shape::{Field, Shape};
 pub use started::{GenerationStep, STEP_EVENT};
 pub use tools::{Brush, Fetcher, Herald, Renderer, Tools};
 pub use types::shapes;
+pub use wired::heralded;

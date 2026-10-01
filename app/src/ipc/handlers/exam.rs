@@ -9,6 +9,7 @@ use crate::ipc::error::IpcError;
 use crate::ipc::examined::{ExamIn, ExamOut};
 use crate::ipc::examining::{answered, paper, staged};
 use crate::ipc::planning::{refused, voiced};
+use crate::ipc::running::Hold;
 use crate::ipc::shelf;
 
 const KIND: &str = "Зачёт";
@@ -19,7 +20,7 @@ pub fn run(context: &Context, input: &ExamIn) -> Result<ExamOut, IpcError> {
     let branch = shelf::branch(&tree, &input.node)?;
     let stage = staged(branch.tree, &input.stage)?;
     let answers = answered(stage, &input.answers)?;
-    let claim = context.running().claim(Some(&input.program))?;
+    let claim = context.running().claim(Hold::Exam(input.program.clone()))?;
     let model = voiced(context, KIND, claim.stop().clone())?;
     let online = if model.remote() {
         let reach = context.reach()?;
@@ -29,7 +30,7 @@ pub fn run(context: &Context, input: &ExamIn) -> Result<ExamOut, IpcError> {
     };
     let sheet = paper(&tree.program.uuid, branch.tree, stage, &answers);
     let at = now();
-    let progress = context.tools().progress();
+    let progress = context.progress();
     let sat = stepped(progress.as_ref(), Step::Exam, || {
         exam::sit(&online, context.data(), &sheet, at)
     })

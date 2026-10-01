@@ -5,6 +5,7 @@ use super::context::Context;
 use super::error::IpcError;
 use super::examined;
 use super::forked;
+use super::generating;
 use super::handlers;
 use super::planned;
 use super::practiced;
@@ -65,6 +66,8 @@ commands! {
     revise_plan(planned::RevisePlanIn) -> planned::PlanOut,
     start_program(started::StartProgramIn) -> started::StartProgramOut,
     cancel_generation(started::CancelGenerationIn) -> started::CancelGenerationOut,
+    generation_state(generating::GenerationStateIn) -> generating::GenerationStateOut,
+    generation_seen(generating::GenerationStateIn) -> generating::GenerationStateOut,
     fork(forked::ForkIn) -> forked::ForkOut,
     take_next(forked::TakeNextIn) -> forked::TakeNextOut,
     regenerate_stage(regenerated::RegenerateStageIn) -> regenerated::RegenerateStageOut,

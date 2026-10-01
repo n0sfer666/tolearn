@@ -10,6 +10,7 @@ use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
 use crate::ipc::examining::staged;
 use crate::ipc::planning::{refused, voiced};
+use crate::ipc::running::Hold;
 use crate::ipc::shelf;
 
 const KIND: &str = "Уточнение";
@@ -44,7 +45,9 @@ pub fn run(context: &Context, input: &ClarifyIn) -> Result<ClarificationsOut, Ip
         None => (Vec::new(), picked(input.fragment.as_deref())),
     };
     let question = said(Some(&input.question));
-    let claim = context.running().claim(Some(&input.program))?;
+    let claim = context
+        .running()
+        .claim(Hold::Clarify(input.program.clone()))?;
     let model = voiced(context, KIND, claim.stop().clone())?;
     let online = if model.remote() {
         let reach = context.reach()?;
@@ -68,7 +71,7 @@ pub fn run(context: &Context, input: &ClarifyIn) -> Result<ClarificationsOut, Ip
         question: question.as_deref(),
     };
     let at = now();
-    let progress = context.tools().progress();
+    let progress = context.progress();
     let answer = stepped(progress.as_ref(), Step::Clarify, || {
         clarify::clarify(&online, context.data(), &doubt, at)
     })

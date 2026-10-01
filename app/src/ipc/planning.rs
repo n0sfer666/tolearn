@@ -8,41 +8,52 @@ use tolearn_provider::{Provider, Stop};
 
 use super::context::Context;
 use super::error::IpcError;
+use super::generated::generated;
+use super::generating::GenerationWork;
 use super::planned::{PlanOut, PlanPartView, PlanStageView, PlanView};
 use super::provider::{denied, failed};
+use super::running::Finale;
 use super::types::Span;
 use super::voiced::Voiced;
 use crate::journal::Journal;
 
 pub fn drawn(
     context: &Context,
+    work: GenerationWork,
     kind: &'static str,
     step: Step,
     request: &Request,
     keep: fn(&Tally, Vec<Record>),
     draw: impl FnOnce(&Online<'_>, &Request) -> Result<Plan, GenerateError>,
 ) -> Result<PlanOut, IpcError> {
-    let model = voiced(context, kind, Stop::default())?;
-    let reach = context.reach()?;
-    let online = online(reach.as_ref(), &model).map_err(refused)?;
-    let ticket = context.book().ticket();
-    let progress = context.tools().progress();
-    let drawn = stepped(progress.as_ref(), step, || draw(&online, request));
-    let spent = online.tally().take();
-    let plan = match drawn {
-        Ok(plan) => {
-            context.book().settle(ticket, spent, keep);
-            plan
-        }
-        Err(error) => {
-            context.ledger().extend(spent);
-            return Err(refused(error));
-        }
-    };
-    Ok(PlanOut {
-        hours: span(plan.hours()),
-        plan: view(&plan),
-    })
+    generated(
+        context,
+        work,
+        |stop| {
+            let model = voiced(context, kind, stop.clone())?;
+            let reach = context.reach()?;
+            let online = online(reach.as_ref(), &model).map_err(refused)?;
+            let ticket = context.book().ticket();
+            let progress = context.progress();
+            let drawn = stepped(progress.as_ref(), step, || draw(&online, request));
+            let spent = online.tally().take();
+            let plan = match drawn {
+                Ok(plan) => {
+                    context.book().settle(ticket, spent, keep);
+                    plan
+                }
+                Err(error) => {
+                    context.ledger().extend(spent);
+                    return Err(refused(error));
+                }
+            };
+            Ok(PlanOut {
+                hours: span(plan.hours()),
+                plan: view(&plan),
+            })
+        },
+        |out| Finale::Plan(out.clone()),
+    )
 }
 
 pub fn asked(request: &str, level: &str, locale: &str) -> Result<Request, IpcError> {

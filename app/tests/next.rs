@@ -11,7 +11,7 @@ use std::sync::Arc;
 
 use serde_json::{Value, json};
 use support::planner::Net;
-use support::starter::{Case, LEVEL, flat, told};
+use support::starter::{Case, LEVEL, REQUEST, flat, told};
 use tolearn_app::ipc::{Context, IpcError, call};
 use tolearn_core::library::Library;
 
@@ -45,6 +45,10 @@ fn taken(context: &Context, program: &str, choice: u32) -> Result<Value, IpcErro
     )
 }
 
+fn outcome(context: &Context) -> Value {
+    call(context, "generation_state", &json!({})).unwrap()["outcome"].clone()
+}
+
 fn offline(case: &Case) -> Context {
     case.context.clone().with_reach(Arc::new(Net(false)))
 }
@@ -56,7 +60,25 @@ fn развилка_предлагает_следующий_этап_и_выбр
     let before = case.steps().len();
 
     let fork = forked(&case.context, &program).unwrap();
+    let waiting = outcome(&case.context);
     let taken = taken(&case.context, &program, 1).unwrap();
+    let ready = outcome(&case.context);
+
+    assert_eq!(waiting["work"]["kind"], json!("fork"));
+    assert_eq!(waiting["work"]["program"], json!(program));
+    assert_eq!(waiting["fork"], fork);
+    assert_eq!(ready["work"]["kind"], json!("next"));
+    assert_eq!(ready["work"]["stage"], json!("tracker"));
+    assert_eq!(
+        ready["stage"],
+        json!({ "program": program, "node": program, "stage": "noise" })
+    );
+    for work in [&waiting["work"], &ready["work"]] {
+        assert_eq!(work["request"], json!(REQUEST));
+        assert_eq!(work["level"], json!(LEVEL));
+        assert_eq!(work["locale"], json!("ru"));
+        assert_eq!(work["node"], json!(program));
+    }
 
     let variants = fork["variants"].as_array().unwrap();
     assert_eq!(variants.len(), 2);

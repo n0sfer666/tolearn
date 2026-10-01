@@ -1,7 +1,7 @@
 // Сгенерировано из контракта IPC: `cargo run -p tolearn-app --example ipc-types`.
 // Руками не править — тест `типы_для_ui_совпадают_с_файлом_в_репозитории` сверяет байты.
 
-export type IpcError = { code: string; message: string };
+export type IpcError = { code: string; message: string; held?: string };
 
 export type Span = {
   min: number;
@@ -383,6 +383,54 @@ export type GenerationStep = {
   of: number;
 };
 
+export type GenerationStateIn = {
+};
+
+export type GenerationStateOut = {
+  work: GenerationWork | null;
+  outcome: GenerationOutcome | null;
+};
+
+export type GenerationWork = {
+  kind: string;
+  program: string;
+  node: string;
+  stage: string;
+  request: string;
+  level: string;
+  locale: string;
+  plan: PlanView | null;
+  wish: string;
+  began: number;
+  marks: StepMark[];
+};
+
+export type StepMark = {
+  step: GenerationStep;
+  at: number;
+};
+
+export type GenerationOutcome = {
+  work: GenerationWork;
+  stage: ReadyStage | null;
+  fork: ForkOut | null;
+  plan: PlanOut | null;
+  refusal: RefusalView | null;
+  seen: boolean;
+  ended: number;
+};
+
+export type ReadyStage = {
+  program: string;
+  node: string;
+  stage: string;
+};
+
+export type RefusalView = {
+  code: string;
+  message: string;
+};
+
 export type ForkIn = {
   program: string;
   node: string;
@@ -555,6 +603,8 @@ export type Commands = {
   revise_plan: { input: RevisePlanIn; output: PlanOut };
   start_program: { input: StartProgramIn; output: StartProgramOut };
   cancel_generation: { input: CancelGenerationIn; output: CancelGenerationOut };
+  generation_state: { input: GenerationStateIn; output: GenerationStateOut };
+  generation_seen: { input: GenerationStateIn; output: GenerationStateOut };
   fork: { input: ForkIn; output: ForkOut };
   take_next: { input: TakeNextIn; output: TakeNextOut };
   regenerate_stage: { input: RegenerateStageIn; output: RegenerateStageOut };

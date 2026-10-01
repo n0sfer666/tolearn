@@ -14,7 +14,7 @@ use serde_json::{Value, json};
 use support::bucket::Bucket;
 use support::shelf::{NES_DEV, Shelf, TOOLS};
 use tolearn_app::discard::Bin;
-use tolearn_app::ipc::{IpcError, Running};
+use tolearn_app::ipc::{GenerationWork, Hold, IpcError, Running};
 use tolearn_app::journal::{self, ROOM};
 use tolearn_core::library::PROGRAMS;
 use tolearn_core::state::STATE;
@@ -43,6 +43,10 @@ fn remove(shelf: &Shelf, program: &str) -> Result<Value, IpcError> {
     shelf.ask("delete_program", json!({ "program": program }))
 }
 
+fn regenerating(program: &str) -> Hold {
+    Hold::generation(GenerationWork::placed("regenerate", program, "", "tracker"))
+}
+
 fn kept(shelf: &Shelf, room: &str, uuid: &str) -> bool {
     shelf.data.join(room).join(uuid).exists()
 }
@@ -56,7 +60,7 @@ struct Racer {
 
 impl Bin for Racer {
     fn discard(&self, path: &Path) -> Result<(), String> {
-        let tried = match self.running.claim(Some(NES_DEV)) {
+        let tried = match self.running.claim(regenerating(NES_DEV)) {
             Ok(_) => "генерация началась".to_owned(),
             Err(refusal) => refusal.code,
         };
@@ -142,7 +146,7 @@ fn генерация_этой_же_программы_запрещает_уда
     let mut shelf = Shelf::new("delete-busy");
     shelf.context = shelf.context.clone().with_running(running.clone());
     stocked(&shelf);
-    let _claim = running.claim(Some(NES_DEV)).unwrap();
+    let _claim = running.claim(regenerating(NES_DEV)).unwrap();
 
     let refusal = remove(&shelf, NES_DEV).unwrap_err();
 
@@ -158,7 +162,7 @@ fn генерация_чужой_программы_удалению_не_меш
     let mut shelf = Shelf::new("delete-busy-elsewhere");
     shelf.context = shelf.context.clone().with_running(running.clone());
     stocked(&shelf);
-    let _claim = running.claim(Some(OTHER)).unwrap();
+    let _claim = running.claim(regenerating(OTHER)).unwrap();
 
     remove(&shelf, NES_DEV).unwrap();
 
@@ -190,5 +194,5 @@ fn пока_идёт_удаление_генерация_этой_програм
         tried.iter().all(|code| code == "generate.erased"),
         "{tried:?}"
     );
-    assert!(running.claim(Some(NES_DEV)).is_ok());
+    assert!(running.claim(regenerating(NES_DEV)).is_ok());
 }

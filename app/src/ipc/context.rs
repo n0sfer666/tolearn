@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use tauri::Manager;
 use tolearn_core::library::Library;
-use tolearn_generate::REACH_TIMEOUT_SECS;
 use tolearn_generate::ledger::Tally;
+use tolearn_generate::{Progress, REACH_TIMEOUT_SECS};
 use tolearn_offline::reach::{Ping, Reach};
 use tolearn_provider::{Keychain, Vault};
 
@@ -13,7 +13,7 @@ use crate::discard::{Bin, Trash};
 use super::error::IpcError;
 use super::layout;
 use super::ledger::Ledger;
-use super::running::Running;
+use super::running::{Marked, Running};
 use super::tools::Tools;
 use super::wired::wired;
 
@@ -114,6 +114,10 @@ impl Context {
 
     pub fn running(&self) -> &Running {
         &self.running
+    }
+
+    pub fn progress(&self) -> Box<dyn Progress> {
+        Box::new(Marked::new(self.running.clone(), self.tools.progress()))
     }
 
     pub fn ledger(&self) -> &Tally {

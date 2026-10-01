@@ -4,6 +4,8 @@ use std::fmt;
 pub struct IpcError {
     pub code: String,
     pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub held: Option<String>,
 }
 
 impl IpcError {
@@ -11,7 +13,13 @@ impl IpcError {
         Self {
             code: code.to_owned(),
             message,
+            held: None,
         }
+    }
+
+    pub fn holding(mut self, by: &str) -> Self {
+        self.held = Some(by.to_owned());
+        self
     }
 
     pub fn unknown_command(name: &str) -> Self {

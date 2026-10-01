@@ -6,7 +6,7 @@ const HEAD: &str = "\
 // Сгенерировано из контракта IPC: `cargo run -p tolearn-app --example ipc-types`.
 // Руками не править — тест `типы_для_ui_совпадают_с_файлом_в_репозитории` сверяет байты.
 
-export type IpcError = { code: string; message: string };
+export type IpcError = { code: string; message: string; held?: string };
 ";
 
 pub fn emit() -> String {
