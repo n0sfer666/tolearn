@@ -4,7 +4,19 @@ import test, { after, before } from "node:test";
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
 import { browser, settled, toasts } from "./support/dom.mjs";
-import { deferred, heard, named, press, refusal, rejected, sequence, transport } from "./support/generation.mjs";
+import {
+  QUIET,
+  deferred,
+  ending,
+  heard,
+  job,
+  named,
+  press,
+  refusal,
+  rejected,
+  sequence,
+  transport,
+} from "./support/generation.mjs";
 
 let Stage;
 let render;
@@ -61,13 +73,16 @@ function mount(options = {}) {
     regenerate_stage: { stage: "voices" },
     cancel_generation: { cancelled: true },
     speech_state: { available: false, listening: false, language: "ru" },
+    generation_state: QUIET,
+    generation_seen: QUIET,
     ...options.answers,
   });
   const said = toasts(window);
   const { steps, emit } = heard();
-  const dispose = render(() => Stage({ text: ru, locale: "ru", call, steps }), host);
+  const watched = heard();
+  const dispose = render(() => Stage({ text: ru, locale: "ru", call, steps, watch: watched.steps }), host);
   alive.push(dispose);
-  return { host, calls, said, dispose, emit };
+  return { host, calls, said, dispose, emit, tell: watched.emit };
 }
 
 const body = (host) => host.querySelector("[data-stage-body]").textContent;
@@ -149,4 +164,30 @@ test("отказ перегенерации называет причину и �
   assert.match(refused.textContent, /модель не справилась с правкой/);
   assert.equal(refused.querySelector("[data-to-settings]").getAttribute("href"), "/ru/settings/");
   assert.match(body(host), /Прежний текст этапа/);
+});
+
+test("идущая перегенерация этого этапа показывает ход в подвале и подменяет текст по готовности", async () => {
+  const again = job("regenerate");
+  const { host, calls, said, tell } = mount({ answers: { generation_state: { work: again, outcome: null } } });
+  await settled();
+  await settled();
+
+  assert.equal(host.querySelector("[data-stage-end] [data-progress] [data-leave]").textContent, ru.generate.leaveRegenerate);
+  assert.ok(host.querySelector("[data-regenerate]") === null, "перегенерацию можно запустить второй раз");
+  assert.equal(named(calls, "regenerate_stage").length, 0);
+
+  tell({ work: null, outcome: ending(again, { stage: { program: "chip", node: "rom", stage: "voices" } }) });
+  await settled();
+  await settled();
+  assert.match(body(host), /Новый текст этапа/);
+  assert.deepEqual(said.at(-1), { tone: "ok", text: ru.generate.regenerated });
+});
+
+test("перегенерация другого этапа подвал не занимает", async () => {
+  const { host } = mount({ answers: { generation_state: { work: job("regenerate", { stage: "pulse" }), outcome: null } } });
+  await settled();
+  await settled();
+
+  assert.ok(host.querySelector("[data-regenerate]") !== null);
+  assert.ok(host.querySelector("[data-stage-end] [data-progress]") === null);
 });

@@ -222,3 +222,17 @@ test("до вердикта итога нет", async () => {
 
   assert.equal(host.querySelector("[data-score]"), null);
 });
+
+test("«Сдать» во время генерации говорит, где её ход, ответы остаются в полях", async () => {
+  const busy = rejected({ ...refusal("generate.busy", "занято"), held: "generation" });
+  const { host } = sit({ replies: { exam: busy } });
+  await settled();
+
+  type(host, "q2", "Форма");
+  press(host, "[data-exam]");
+  await settled();
+  await settled();
+
+  assert.match(host.querySelector("[data-refused]").textContent, new RegExp(ru.generate.busyGeneration));
+  assert.equal(field(host, "q2").value, "Форма");
+});

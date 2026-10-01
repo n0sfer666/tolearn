@@ -3,7 +3,7 @@ import { after, before } from "node:test";
 import { island } from "../../scripts/island.mjs";
 import { ru } from "../../src/i18n/ru.ts";
 import { browser, settled, toasts } from "./dom.mjs";
-import { heard, press, transport } from "./generation.mjs";
+import { QUIET, heard, press, transport } from "./generation.mjs";
 
 export const REQUEST = "Хочу писать чиптюн";
 export const LEVEL = "Нот не знаю";
@@ -70,15 +70,25 @@ export function newScreen() {
       revise_plan: REVISED,
       start_program: STARTED,
       cancel_generation: { cancelled: true },
+      generation_state: QUIET,
+      generation_seen: QUIET,
       llm_log: (payload) => Promise.resolve({ room: LOG, records: payload.clear ? 0 : 3 }),
       ...options.answers,
     });
     const said = toasts(screen.window);
     const { steps, emit, stops } = heard();
-    const props = { text: options.text ?? ru, locale: options.locale ?? "ru", call, steps, go: (href) => gone.push(href) };
+    const watched = heard();
+    const props = {
+      text: options.text ?? ru,
+      locale: options.locale ?? "ru",
+      call,
+      steps,
+      watch: watched.steps,
+      go: (href) => gone.push(href),
+    };
     const dispose = render(() => New(props), host);
     alive.push(dispose);
-    return { host, calls, said, gone, dispose, emit, stops };
+    return { host, calls, said, gone, dispose, emit, stops, tell: watched.emit };
   };
 
   const planned = async (options = {}) => {

@@ -3,6 +3,7 @@ import { after, before } from "node:test";
 import { island } from "../../scripts/island.mjs";
 import { ru } from "../../src/i18n/ru.ts";
 import { browser } from "./dom.mjs";
+import { QUIET, heard } from "./generation.mjs";
 
 export const SVG = "data:image/svg+xml;base64,PHN2Zy8+";
 export const PNG = "data:image/png;base64,iVBORw0KGgo=";
@@ -79,6 +80,7 @@ export function stageScreen() {
     const picks = [];
     const probes = [];
     const call = (name, payload) => {
+      if (name === "generation_state") return Promise.resolve(options.generation ?? QUIET);
       if (name === "speech_state") {
         probes.push(payload);
         return Promise.resolve({ available: false, listening: false, language: "ru", ...options.speech });
@@ -93,10 +95,12 @@ export function stageScreen() {
       picks.push(true);
       return Promise.resolve(options.folder ?? null);
     };
+    const watched = heard();
     const props = {
       text: options.text ?? ru,
       locale: "ru",
       call,
+      watch: watched.steps,
       pick,
       program: "chip",
       node: "",
@@ -104,7 +108,7 @@ export function stageScreen() {
       ...options.props,
     };
     alive.push(render(() => Stage(props), host));
-    return { host, calls, picks, probes };
+    return { host, calls, picks, probes, tell: watched.emit };
   };
 
   return { screen, mount };

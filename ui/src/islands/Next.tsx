@@ -7,16 +7,20 @@ import Refusal from "../components/generate/Refusal";
 import Variants from "../components/generate/Variants";
 import Empty from "../components/reading/Empty";
 import type { Dictionary } from "../i18n/ru";
-import type { NodeOut, StageOut, VariantView } from "../ipc";
+import type { ForkOut, GenerationStateOut, GenerationWork, NodeOut, StageOut, TakeNextOut, VariantView } from "../ipc";
 import { generation } from "../lib/generation";
-import { quiet, steps } from "../lib/ipc";
-import type { Listen, Transport } from "../lib/ipc";
+import { quiet, states, steps } from "../lib/ipc";
+import type { Listen, Transport, Watch } from "../lib/ipc";
 import { BUILDING, FORKING } from "../lib/jobs";
+import { landed } from "../lib/launched";
 import { go, stageHref } from "../lib/links";
+import { ongoing } from "../lib/ongoing";
 import { query } from "../lib/query";
 import { ranked } from "../lib/ranked";
 import { regain } from "../lib/regain";
+import { resumable } from "../lib/resumable";
 import { slot } from "../lib/slot";
+import { leave } from "../lib/worded";
 
 interface Props {
   text: Dictionary;
@@ -26,12 +30,16 @@ interface Props {
   stage?: string;
   call?: Transport;
   steps?: Listen;
+  watch?: Watch;
   go?: (href: string) => void;
 }
+
+const KINDS = new Set(["fork", "next"]);
 
 export default function Next(props: Props) {
   const call = () => props.call ?? quiet;
   const work = generation(props.text, call, props.steps ?? steps);
+  const live = ongoing(call, props.watch ?? states);
   const at = () => ({
     program: props.program ?? query("program"),
     node: props.node ?? query("node"),
@@ -45,6 +53,7 @@ export default function Next(props: Props) {
   const [done, setDone] = createSignal<StageOut | null>(null);
   const [hovered, setHovered] = createSignal<number | null>(null);
   const [focused, setFocused] = createSignal(0);
+  const [kind, setKind] = createSignal("fork");
 
   const picks = createMemo(() => ranked(variants()));
   const taken = createMemo(() => slot(map(), at().stage));
@@ -68,25 +77,43 @@ export default function Next(props: Props) {
     setDone(stage.status === "fulfilled" ? stage.value : null);
   };
 
-  const open = async () => {
+  const open = async (draw: () => Promise<ForkOut> = () => call()("fork", at()), from?: GenerationWork) => {
     setOpened(true);
     setHovered(null);
     setFocused(0);
-    const found = await work.run(() => call()("fork", at()), FORKING);
+    setKind("fork");
+    const found = await work.run(draw, FORKING, from);
     if (found !== null) setVariants(found.variants);
   };
 
-  const choose = async (choice: number) => {
-    const here = at();
-    const built = await work.run(() => call()("take_next", { ...here, choice }), BUILDING);
-    if (built !== null) (props.go ?? go)(stageHref(props.locale, here.program, built.node, built.stage));
+  const build = async (draw: () => Promise<TakeNextOut>, from?: GenerationWork) => {
+    setKind("next");
+    const built = await work.run(draw, BUILDING, from);
+    if (built !== null) (props.go ?? go)(stageHref(props.locale, at().program, built.node, built.stage));
+  };
+
+  const choose = (choice: number) => build(() => call()("take_next", { ...at(), choice }));
+
+  const ours = (from: GenerationWork) =>
+    from.program === at().program && from.node === at().node && from.stage === at().stage;
+
+  const resume = (state: GenerationStateOut) => {
+    const built = state.work === null ? state.outcome : null;
+    if (built?.stage && built.work.kind === "next" && ours(built.work)) {
+      return void (props.go ?? go)(landed(props.locale, built.stage));
+    }
+    const from = resumable(state, KINDS, ours);
+    if (from === null) return void open();
+    if (from.kind === "fork") return void open(() => live.ended(from, (outcome) => outcome.fork), from);
+    setOpened(true);
+    void build(() => live.ended(from, (outcome) => outcome.stage), from);
   };
 
   onMount(() => {
     const here = at();
     if (here.program !== "" && here.stage !== "") {
       void read();
-      void open();
+      void live.known.then(resume);
       return;
     }
     setMissing(true);
@@ -104,7 +131,7 @@ export default function Next(props: Props) {
           <h2>{props.text.generate.variants}</h2>
           <p>{props.text.generate.variantsLead}</p>
           <Show when={work.running()}>
-            <Progress text={props.text} work={work} />
+            <Progress text={props.text} work={work} hint={leave(kind(), props.text)} />
           </Show>
           <Show when={idle() && picks().length > 0}>
             <Variants

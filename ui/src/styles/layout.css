@@ -60,6 +60,45 @@
   font-size: var(--font-size-sm);
 }
 
+[data-ongoing],
+[data-ongoing-done] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-2);
+  min-width: 0;
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+
+[data-ongoing] [data-ongoing-link] {
+  display: inline-flex;
+  gap: var(--spacing-2);
+  color: var(--color-fg);
+}
+
+[data-ongoing] [data-elapsed] {
+  color: var(--color-fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.bar[data-folded] [data-ongoing-cancel] {
+  display: none;
+}
+
+button[data-ongoing-close] {
+  min-height: 0;
+  padding: 0 var(--spacing-1);
+  border: 0;
+  background: none;
+  color: var(--color-fg-muted);
+  cursor: pointer;
+}
+
+button[data-ongoing-close]:hover {
+  color: var(--color-fg);
+}
+
 .page {
   width: 100%;
   max-width: calc(var(--width-page) + var(--spacing-6) * 2);

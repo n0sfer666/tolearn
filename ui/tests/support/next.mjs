@@ -3,7 +3,7 @@ import { after, before } from "node:test";
 import { island } from "../../scripts/island.mjs";
 import { ru } from "../../src/i18n/ru.ts";
 import { browser, toasts } from "./dom.mjs";
-import { heard, transport } from "./generation.mjs";
+import { QUIET, heard, transport } from "./generation.mjs";
 
 const span = (min, max) => ({ min, max });
 
@@ -83,21 +83,25 @@ export function forkScreen() {
       stage: STAGE,
       take_next: { node: "rom", stage: "dpcm" },
       cancel_generation: { cancelled: true },
+      generation_state: QUIET,
+      generation_seen: QUIET,
       ...options.answers,
     });
     const said = toasts(screen.window);
     const { steps, emit } = heard();
+    const watched = heard();
     const props = {
       text: options.text ?? ru,
       locale: options.locale ?? "ru",
       call,
       steps,
+      watch: watched.steps,
       go: (href) => gone.push(href),
       ...options.props,
     };
     const dispose = render(() => Next(props), host);
     alive.push(dispose);
-    return { host, calls, said, gone, dispose, emit };
+    return { host, calls, said, gone, dispose, emit, tell: watched.emit };
   };
 
   const focus = (host, selector) => {

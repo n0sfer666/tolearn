@@ -129,7 +129,10 @@ test("без этапа в адресе развилку не открывают
 
   assert.match(host.querySelector("[data-empty]").textContent, new RegExp(ru.generate.none));
   assert.ok(!host.textContent.includes(ru.generate.variants), "заголовок развилки над пустым экраном");
-  assert.deepEqual(calls, []);
+  assert.deepEqual(
+    calls.map(({ name }) => name).filter((name) => name !== "generation_state"),
+    [],
+  );
 });
 
 test("английская развилка говорит по-английски и открывает английский этап", async () => {

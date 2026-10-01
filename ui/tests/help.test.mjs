@@ -28,7 +28,7 @@ const LEGACY = [
   "~/.local/share/tolearn/offline/",
   "~/.local/share/tolearn/search-*",
 ];
-const LAYOUT = /^(Actions|Toasts)\./;
+const LAYOUT = /^(Actions|Ongoing|Toasts)\./;
 const COMPARED = /\bevent\.(?:key|code)(?:\.toLowerCase\(\))?\s*[!=]==?\s*["'`]/;
 
 before(() => {

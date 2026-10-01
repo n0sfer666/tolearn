@@ -160,7 +160,8 @@ textarea[data-note] {
 button[data-hint-open],
 button[data-hint-close],
 button[data-snip],
-button[data-toast-close] {
+button[data-toast-close],
+button[data-ongoing-close] {
   position: relative;
 }
 
@@ -168,6 +169,7 @@ button[data-hint-open]::after,
 button[data-hint-close]::after,
 button[data-snip]::after,
 button[data-toast-close]::after,
+button[data-ongoing-close]::after,
 summary::after {
   content: "";
   position: absolute;

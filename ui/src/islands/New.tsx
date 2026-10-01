@@ -1,4 +1,4 @@
-import { Show, createEffect, createSignal } from "solid-js";
+import { Show, createEffect, createSignal, onMount } from "solid-js";
 
 import Intent from "../components/generate/Intent";
 import LogTab from "../components/generate/Log";
@@ -9,56 +9,43 @@ import Refusal from "../components/generate/Refusal";
 import Steps from "../components/generate/Steps";
 import Tabs from "../components/generate/Tabs";
 import type { Dictionary } from "../i18n/ru";
-import type { PlanOut, StartProgramOut } from "../ipc";
+import type { GenerationStateOut, GenerationWork, PlanOut, ReadyStage } from "../ipc";
+import { stale } from "../lib/drawn";
+import type { Asked, Drawn } from "../lib/drawn";
 import { generation } from "../lib/generation";
-import { quiet, steps } from "../lib/ipc";
-import type { Listen, Transport } from "../lib/ipc";
-import { BUILDING, PLANNING, REVISING } from "../lib/jobs";
+import { quiet, states, steps } from "../lib/ipc";
+import type { Listen, Transport, Watch } from "../lib/ipc";
+import { BUILDING, PLANNING, REVISING, jobOf } from "../lib/jobs";
 import type { Job } from "../lib/jobs";
-import { go, nodeHref, stageHref } from "../lib/links";
+import { landed } from "../lib/launched";
+import { go } from "../lib/links";
 import { log } from "../lib/log";
 import { marks } from "../lib/marks";
+import { ongoing } from "../lib/ongoing";
+import { planned } from "../lib/planned";
 import { regain } from "../lib/regain";
+import { resumable } from "../lib/resumable";
+import { track } from "../lib/track";
+import { leave } from "../lib/worded";
 
 interface Props {
   text: Dictionary;
   locale: string;
   call?: Transport;
   steps?: Listen;
+  watch?: Watch;
   go?: (href: string) => void;
 }
 
 const MAP = "map";
 const LOG = "log";
 const TABS = [MAP, LOG];
-
-interface Asked {
-  request: string;
-  level: string;
-  locale: string;
-}
-
-interface Drawn {
-  want: Asked;
-  out: PlanOut;
-}
-
-function opened(locale: string, done: StartProgramOut): string {
-  if (done.stage === "") return nodeHref(locale, done.program);
-  return stageHref(locale, done.program, done.node, done.stage);
-}
-
-function track(text: Dictionary) {
-  return [
-    { key: "asked", label: text.generate.markAsked },
-    { key: "reach", label: text.generate.markReach },
-    { key: "drawn", label: text.generate.markDrawn },
-  ];
-}
+const KINDS = new Set(["plan", "revise", "start"]);
 
 export default function New(props: Props) {
   const call = () => props.call ?? quiet;
   const work = generation(props.text, call, props.steps ?? steps);
+  const live = ongoing(call, props.watch ?? states);
   const clock = marks();
   const kept = log(props.text, call);
 
@@ -68,6 +55,7 @@ export default function New(props: Props) {
   const [wish, setWish] = createSignal("");
   const [drawn, setDrawn] = createSignal<Drawn | null>(null);
   const [tab, setTab] = createSignal(MAP);
+  const [kind, setKind] = createSignal("plan");
   let pressed = "";
 
   const asked = (): Asked => ({ request: request().trim(), level: level().trim(), locale: tongue() });
@@ -81,10 +69,12 @@ export default function New(props: Props) {
     if (work.step() !== null) clock.hit("reach");
   });
 
-  const traced = async (job: Job, draw: () => Promise<PlanOut>): Promise<PlanOut | null> => {
-    clock.start(track(props.text));
+  const traced = async (job: Job, draw: () => Promise<PlanOut>, from?: GenerationWork): Promise<PlanOut | null> => {
+    clock.start(track(props.text), from?.began);
     clock.note("asked");
-    const done = await work.run(draw, job);
+    const reach = from?.marks[0]?.at;
+    if (reach !== undefined) clock.hit("reach", reach);
+    const done = await work.run(draw, job, from);
     kept.ask(false, false);
     if (done === null) return null;
     clock.note("reach");
@@ -99,6 +89,7 @@ export default function New(props: Props) {
       return;
     }
     pressed = "plan";
+    setKind("plan");
     const done = await traced(PLANNING, () => call()("plan_program", want));
     if (done !== null) setDrawn({ want, out: done });
   };
@@ -111,19 +102,48 @@ export default function New(props: Props) {
     }
     const want = asked();
     pressed = "revise";
+    setKind("revise");
     const done = await traced(REVISING, () => call()("revise_plan", { ...want, plan: shown.out.plan, wish: change }));
     if (done === null) return;
     setDrawn({ want, out: done });
     setWish("");
   };
 
-  const start = async (shown: Drawn) => {
+  const build = async (draw: () => Promise<ReadyStage>, from?: GenerationWork) => {
     pressed = "start";
+    setKind("start");
     clock.start([]);
-    const done = await work.run(() => call()("start_program", { ...shown.want, plan: shown.out.plan }), BUILDING);
+    const done = await work.run(draw, BUILDING, from);
     kept.ask(false, false);
-    if (done !== null) (props.go ?? go)(opened(props.locale, done));
+    if (done !== null) (props.go ?? go)(landed(props.locale, done));
   };
+
+  const start = (shown: Drawn) => build(() => call()("start_program", { ...shown.want, plan: shown.out.plan }));
+
+  const redraw = async (from: GenerationWork, running: boolean) => {
+    pressed = from.kind;
+    setKind(from.kind);
+    const draw = () => live.ended(from, (outcome) => outcome.plan);
+    const job = jobOf(from.kind);
+    const done = running ? await traced(job, draw, from) : await work.run(draw, job, from);
+    if (done === null) return;
+    setDrawn({ want: asked(), out: done });
+    setWish("");
+  };
+
+  const restore = (state: GenerationStateOut) => {
+    const from = resumable(state, KINDS);
+    if (from === null || work.running()) return;
+    setRequest(from.request);
+    setLevel(from.level);
+    setTongue(from.locale);
+    setWish(from.wish);
+    if (from.plan !== null) setDrawn({ want: asked(), out: planned(from.plan) });
+    if (from.kind === "start") void build(() => live.ended(from, (outcome) => outcome.stage), from);
+    else void redraw(from, state.work !== null);
+  };
+
+  onMount(() => void live.known.then(restore));
 
   const begin = () => (
     <button type="button" data-plan ref={back("plan")} onClick={() => void plan()}>
@@ -144,8 +164,8 @@ export default function New(props: Props) {
           setLevel={setLevel}
           setLocale={setTongue}
         />
-        <Show when={!work.running()} fallback={<Progress text={props.text} work={work} />}>
-          <Show when={drawn() === null}>{begin()}</Show>
+        <Show when={!work.running()} fallback={<Progress text={props.text} work={work} hint={leave(kind(), props.text)} />}>
+          <Show when={stale(asked(), drawn())}>{begin()}</Show>
         </Show>
         <Refusal text={props.text} locale={props.locale} refused={work.refused()} />
       </div>

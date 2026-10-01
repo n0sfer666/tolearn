@@ -10,6 +10,7 @@ const PATIENCE = 60_000;
 interface Props {
   text: Dictionary;
   work: Generation;
+  hint?: string;
 }
 
 export default function Progress(props: Props) {
@@ -20,6 +21,7 @@ export default function Progress(props: Props) {
         <span data-step>{props.work.said()}</span>
         <span data-elapsed>{clocked(props.work.spent(), props.text)}</span>
       </p>
+      <Show when={props.hint}>{(hint) => <p data-leave>{hint()}</p>}</Show>
       <button
         type="button"
         data-cancel

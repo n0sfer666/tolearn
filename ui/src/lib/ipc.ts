@@ -1,4 +1,4 @@
-import type { CommandName, Commands, GenerationStep } from "../ipc";
+import type { CommandName, Commands, GenerationStateOut, GenerationStep } from "../ipc";
 import { explain, toast } from "./toast";
 
 export type Transport = <Name extends CommandName>(
@@ -6,7 +6,11 @@ export type Transport = <Name extends CommandName>(
   payload: Commands[Name]["input"],
 ) => Promise<Commands[Name]["output"]>;
 
-export type Listen = (handler: (step: GenerationStep) => void) => () => void;
+export type Heard<T> = (handler: (payload: T) => void) => () => void;
+
+export type Listen = Heard<GenerationStep>;
+
+export type Watch = Heard<GenerationStateOut>;
 
 const BRIDGE = "http://127.0.0.1:4319";
 
@@ -29,16 +33,22 @@ export const quiet: Transport = async (name, payload) => {
   return invoke("command", { name, payload });
 };
 
-const heard = async (handler: (step: GenerationStep) => void): Promise<() => void> => {
+const heard = async <T>(event: string, handler: (payload: T) => void): Promise<() => void> => {
   const { listen } = await import("@tauri-apps/api/event");
-  return listen<GenerationStep>("generation-step", (event) => handler(event.payload));
+  return listen<T>(event, (got) => handler(got.payload));
 };
 
-export const steps: Listen = (handler) => {
-  if (!shell()) return () => undefined;
-  const held = heard(handler).catch(() => () => undefined);
-  return () => void held.then((stop) => stop());
-};
+const tuned =
+  <T>(event: string): Heard<T> =>
+  (handler) => {
+    if (!shell()) return () => undefined;
+    const held = heard(event, handler).catch(() => () => undefined);
+    return () => void held.then((stop) => stop());
+  };
+
+export const steps: Listen = tuned("generation-step");
+
+export const states: Watch = tuned("generation-state");
 
 export const transport: Transport = async (name, payload) => {
   try {

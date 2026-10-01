@@ -15,8 +15,8 @@ import type { Copier, Words } from "../components/rich/Snip";
 import type { Dictionary } from "../i18n/ru";
 import type { ClarificationView, StageIn, StageOut } from "../ipc";
 import { reveal } from "../lib/anchor";
-import { pickFolder, quiet, steps } from "../lib/ipc";
-import type { Listen, Transport } from "../lib/ipc";
+import { pickFolder, quiet, states, steps } from "../lib/ipc";
+import type { Listen, Transport, Watch } from "../lib/ipc";
 import { nodeHref } from "../lib/links";
 import { name } from "../lib/name";
 import { query } from "../lib/query";
@@ -31,6 +31,7 @@ interface Props {
   stage?: string;
   call?: Transport;
   steps?: Listen;
+  watch?: Watch;
   copy?: Copier;
   pick?: () => Promise<string | null>;
   go?: (href: string) => void;
@@ -175,6 +176,7 @@ export default function Stage(props: Props) {
               locale={props.locale}
               call={call()}
               listen={props.steps ?? steps}
+              watch={props.watch ?? states}
               at={at(out())}
               done={() => void reload(props.text.generate.unread)}
             />

@@ -150,3 +150,13 @@ test("длинный фрагмент в заголовке врезки уко�
   assert.ok(summary.endsWith("…»"), summary);
   assert.ok(long.startsWith(summary.slice(1, -2)), summary);
 });
+
+test("«Уточнить» во время генерации говорит, где её ход, вопрос остаётся в поле", async () => {
+  const busy = { ...refusal("generate.busy", "занято"), held: "generation" };
+  const { host } = opened({ clarify: () => Promise.reject(busy) });
+  await settled();
+  await asked(host, "Почему пять?");
+
+  assert.ok(host.querySelector("[data-clarify='p1']").textContent.includes(ru.generate.busyGeneration));
+  assert.equal(host.querySelector("[data-clarify='p1'] textarea[data-doubt]").value, "Почему пять?");
+});

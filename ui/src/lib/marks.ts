@@ -12,9 +12,9 @@ export interface Mark extends Step {
 
 export interface Marks {
   seen: Mark[];
-  start: (track: Step[]) => void;
+  start: (track: Step[], since?: number) => void;
   note: (key: string) => void;
-  hit: (key: string) => void;
+  hit: (key: string, at?: number) => void;
 }
 
 export function marks(now: () => number = () => Date.now()): Marks {
@@ -23,10 +23,10 @@ export function marks(now: () => number = () => Date.now()): Marks {
   let order: string[] = [];
   let last = 0;
 
-  const start = (track: Step[]) => {
+  const start = (track: Step[], since = now()) => {
     stamped.clear();
     order = track.map((step) => step.key);
-    last = now();
+    last = since;
     setSeen(track.map((step) => ({ ...step, done: false, spent: null })));
   };
 
@@ -40,8 +40,7 @@ export function marks(now: () => number = () => Date.now()): Marks {
 
   const note = (key: string) => void stamp(key, null);
 
-  const hit = (key: string) => {
-    const moment = now();
+  const hit = (key: string, moment = now()) => {
     if (!stamp(key, moment - last)) return;
     last = moment;
   };

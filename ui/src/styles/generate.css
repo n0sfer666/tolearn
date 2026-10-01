@@ -23,7 +23,8 @@
   flex: 1 1 auto;
 }
 
-[data-progress] [data-patience] {
+[data-progress] [data-patience],
+[data-progress] [data-leave] {
   flex: 1 1 100%;
   max-width: none;
   margin: 0;

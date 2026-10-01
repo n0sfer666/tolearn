@@ -1,5 +1,6 @@
 ---
 import { type Locale, localized, strings } from "../i18n";
+import Ongoing from "../islands/Ongoing";
 import { entity, keep, route } from "../lib/context";
 
 interface Props {
@@ -34,6 +35,7 @@ const named = entity(route(here, locale));
     }
     <h1 class="bar-title" data-name={named}>{title}</h1>
   </div>
+  <Ongoing client:load text={text} locale={locale} folded={folded} />
   <slot name="action" />
   <nav class="bar-nav" aria-label={text.nav.sections}>
     <a href={localized("/", locale)} data-library aria-current={current("/")}>

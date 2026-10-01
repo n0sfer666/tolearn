@@ -14,9 +14,20 @@ export function elapsed(
       setSpent(0);
       return;
     }
-    setSpent(now() - began);
-    const beat = setInterval(() => setSpent(now() - began), every);
-    onCleanup(() => clearInterval(beat));
+    const tick = () => setSpent(now() - began);
+    tick();
+    let beat: ReturnType<typeof setInterval> | undefined;
+    const first = setTimeout(
+      () => {
+        tick();
+        beat = setInterval(tick, every);
+      },
+      every - ((now() - began) % every),
+    );
+    onCleanup(() => {
+      clearTimeout(first);
+      clearInterval(beat);
+    });
   });
 
   return spent;

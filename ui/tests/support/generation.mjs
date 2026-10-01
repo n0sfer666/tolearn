@@ -1,4 +1,5 @@
 export { named } from "./calls.mjs";
+export const QUIET = { work: null, outcome: null };
 export const refusal = (code, message) => ({ code, message });
 export const rejected = (failure) => () => Promise.reject(failure);
 export const held = () => new Promise(() => {});
@@ -49,3 +50,29 @@ export function sequence(...answers) {
     return answer(payload);
   };
 }
+
+export const job = (kind, extra = {}) => ({
+  kind,
+  program: "chip",
+  node: "rom",
+  stage: "voices",
+  request: "",
+  level: "",
+  locale: "ru",
+  plan: null,
+  wish: "",
+  began: Date.now(),
+  marks: [],
+  ...extra,
+});
+
+export const ending = (work, extra = {}) => ({
+  work,
+  stage: null,
+  fork: null,
+  plan: null,
+  refusal: null,
+  seen: false,
+  ended: work.began + 1,
+  ...extra,
+});
