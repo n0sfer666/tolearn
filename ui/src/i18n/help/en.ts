@@ -12,7 +12,7 @@ export const help = {
     "Tasks and questions at the end of a stage. Task checks run only inside the chosen practice folder and only when you press the button — nothing runs by itself.",
   exam: "Check or skip",
   examText:
-    "“Submit” hands your answers to the model: each question shows the verdict and what was missed. “Submit through another chat” copies the prompt into any chat with a model and takes its reply. “Skip the check” marks the stage passed without a check and goes straight to the fork — skipping never blocks the next stage.",
+    "“Submit” hands your answers to the model: each question shows the verdict, what was missed and “Added” — what the model added or corrected. “Submit through another chat” copies the prompt into any chat with a model and takes its reply. “Skip the check” marks the stage passed without a check and goes straight to the fork — skipping never blocks the next stage.",
   fork: "Fork",
   forkText:
     "The What next screen: up to three options for the next stage as cards — hours, the place on the map and how the option continues the path, one marked as recommended and placed first. The finished stage's result sits beside them and the map below shows the option in its slot. Picking one creates the stage and opens it.",

@@ -108,6 +108,7 @@ fn asked(
         text: question.text.clone(),
         result: graded.map(|row| row.result.label().to_owned()),
         missed: graded.map(|row| row.missed.clone()).unwrap_or_default(),
+        added: graded.and_then(|row| row.added.clone()),
         answer: graded.map(|_| question.answer.clone()),
         draft: drafts.get(&question.id).cloned().unwrap_or_default(),
     }

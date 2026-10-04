@@ -56,6 +56,14 @@ export default function Question(props: Props) {
           <For each={props.ask.missed}>{(line) => <li>{line}</li>}</For>
         </ul>
       </Show>
+      <Show when={props.ask.added}>
+        {(added) => (
+          <section data-added>
+            <p data-added-title>{stage().added}</p>
+            <Rich text={added()} words={props.words} copy={props.copy} />
+          </section>
+        )}
+      </Show>
       <Show when={props.ask.answer}>
         {(answer) => (
           <details data-mirror open={props.ask.result !== "ok"}>

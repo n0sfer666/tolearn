@@ -19,6 +19,7 @@ stages:
           - id: q1
             result: ok
             missed: []
+            added: DPCM проигрывает короткие сэмплы — обычно удары и голосовые вставки.
           - id: q2
             result: miss
             missed:

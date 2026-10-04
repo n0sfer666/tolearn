@@ -154,7 +154,8 @@ section[data-questions] ol {
   padding-inline-start: var(--spacing-6);
 }
 
-li[data-question] > p[data-grade] {
+li[data-question] > p[data-grade],
+li[data-question] > section[data-added] > p[data-added-title] {
   margin: 0;
   color: var(--color-fg-muted);
   font-size: var(--font-size-sm);
@@ -173,7 +174,7 @@ li[data-question] > label {
   margin-block: var(--spacing-2);
 }
 
-li[data-question] > details[data-mirror] {
+li[data-question] > :is(section[data-added], details[data-mirror]) {
   margin-block-start: var(--spacing-2);
 }
 

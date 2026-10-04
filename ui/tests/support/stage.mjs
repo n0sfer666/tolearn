@@ -46,8 +46,8 @@ export const OUT = {
     acceptance: [{ id: "a1", claim: "Гамма звучит", check: "python play.py", expect: "exit 0" }],
   },
   questions: [
-    { id: "q1", text: "Сколько каналов у чипа?", result: null, missed: [], answer: null, draft: "" },
-    { id: "q2", text: "Чем пульс отличается от треугольника?", result: null, missed: [], answer: null, draft: "" },
+    { id: "q1", text: "Сколько каналов у чипа?", result: null, missed: [], added: null, answer: null, draft: "" },
+    { id: "q2", text: "Чем пульс отличается от треугольника?", result: null, missed: [], added: null, answer: null, draft: "" },
   ],
   ticks: [],
   workdir: null,

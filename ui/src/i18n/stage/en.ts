@@ -31,6 +31,7 @@ export const stage = {
   partial: "partly passed",
   miss: "not passed",
   missed: "Missed",
+  added: "Added",
   mirror: "Reference answer",
   score: "{n} of {m} passed",
   answer: "Your answer",

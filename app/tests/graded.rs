@@ -142,3 +142,40 @@ fn эталон_приходит_только_у_вопроса_с_вердик�
     );
     assert_eq!(answered("q3"), Value::Null);
 }
+
+#[test]
+fn дополнение_последней_попытки_стоит_у_вопроса_а_перегенерация_его_прячет() {
+    let shelf = Shelf::new("added");
+    shelf.shelved("examples/chiptune");
+
+    let fresh = stage(&shelf);
+    for question in fresh["questions"].as_array().unwrap() {
+        assert_eq!(question["added"], Value::Null, "{question}");
+    }
+
+    sat(
+        &shelf,
+        "2026-10-05",
+        vec![
+            Answered {
+                added: Some("сэмплы DPCM короткие".to_owned()),
+                ..row("q1", Grade::Ok, &[])
+            },
+            row("q2", Grade::Miss, &["весь ответ"]),
+        ],
+    );
+
+    let graded = stage(&shelf)["questions"].clone();
+    assert_eq!(graded[0]["added"], json!("сэмплы DPCM короткие"));
+    assert_eq!(graded[1]["added"], Value::Null);
+    assert_eq!(graded[2]["added"], Value::Null);
+
+    State::update(&shelf.data, CHIPTUNE, |state| {
+        state.rewritten(CHIPTUNE, "voices");
+    })
+    .unwrap();
+
+    let rewritten = stage(&shelf)["questions"].clone();
+    assert_eq!(rewritten[0]["result"], Value::Null);
+    assert_eq!(rewritten[0]["added"], Value::Null);
+}
