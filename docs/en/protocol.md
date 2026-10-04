@@ -88,6 +88,7 @@ The app neither reads nor stores any other field.
 | no `stage` or `per_question`, a field of the wrong type | "the verdict could not be read" and the reason |
 | `result` other than `ok`, `partial` or `miss` | "the verdict could not be read" and the reason |
 | a question not passed has no `missed` or an empty one | "the verdict could not be read" and the reason |
+| an item in `missed` is empty or only whitespace | "the verdict could not be read" and the reason |
 | `added` is not a string | "the verdict could not be read" and the reason |
 | the questions do not match the stage's questions | which are missing, which are stray, which are graded twice |
 

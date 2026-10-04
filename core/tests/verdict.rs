@@ -157,6 +157,8 @@ fn result_из_трёх_значений_а_у_незачтённого_есть
         r#"{"id": "q1", "result": "miss", "missed": []}"#,
         r#"{"id": "q1", "result": "miss", "missed": "всё"}"#,
         r#"{"id": "q1", "result": "miss", "missed": [""]}"#,
+        r#"{"id": "q1", "result": "ok", "missed": [" "]}"#,
+        r#"{"id": "q1", "result": "miss", "missed": ["\n"]}"#,
         r#"{"id": "q1", "result": "ok", "missed": [3]}"#,
         r#""q1""#,
     ] {
@@ -165,5 +167,23 @@ fn result_из_трёх_значений_а_у_незачтённого_есть
             matches!(error, VerdictError::Shape(_)),
             "{broken}: {error:?}"
         );
+    }
+}
+
+#[test]
+fn пустой_пункт_missed_отказывает_с_причиной_про_пустоту() {
+    for blank in [r#"[""]"#, r#"[" "]"#, r#"["шум", "\n"]"#] {
+        let text = graded(&format!(
+            r#"{{"id": "q1", "result": "miss", "missed": {blank}}}, {{"id": "q2", "result": "ok"}}, {{"id": "q3", "result": "ok"}}, {{"id": "q4", "result": "ok"}}"#
+        ));
+        match refused(&text) {
+            VerdictError::Shape(reason) => {
+                assert!(
+                    reason.contains("q1") && reason.contains("пустой"),
+                    "{reason}"
+                );
+            }
+            other => panic!("{blank}: {other:?}"),
+        }
     }
 }

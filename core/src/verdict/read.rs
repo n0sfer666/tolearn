@@ -72,7 +72,10 @@ fn missed(id: &str, field: Option<&Value>) -> Result<Vec<String>, VerdictError> 
     lines
         .iter()
         .map(|line| match line {
-            Value::String(line) if !line.is_empty() => Ok(line.clone()),
+            Value::String(line) if line.trim().is_empty() => {
+                Err(shape(format!("у `{id}` в `missed` пустой пункт")))
+            }
+            Value::String(line) => Ok(line.clone()),
             _ => Err(broken()),
         })
         .collect()

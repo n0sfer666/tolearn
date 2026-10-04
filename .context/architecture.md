@@ -212,7 +212,9 @@ S37. Общие для обоих окон `on_main` и `answer` лежат в `
 - Вердикт зачёта — `tolearn_core::verdict::read(текст, &Stage)` (S134,
   [protocol.md](../docs/ru/protocol.md)): последний JSON-объект верхнего уровня
   (`verdict/block.rs`), затем `stage`, `per_question`, `result` через
-  `Grade::named`, `missed` у незачтённого и покрытие вопросов этапа; отказ —
+  `Grade::named`, `missed` у незачтённого (пункт из одних пробелов — `Shape`:
+  его не прочтёт `Reader::text`, и `state.yaml` встанет) и покрытие вопросов
+  этапа; отказ —
   `VerdictError` (`Absent`, `Stage`, `Shape`, `Questions`), частичного разбора
   нет. Применение — `State::attempt(узел, этап, Attempt)`: попытка дописывается,
   все `ok` ставят `passed: exam` (пропуск меняется, сданный зачёт дату не
