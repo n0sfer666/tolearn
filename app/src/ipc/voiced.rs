@@ -40,7 +40,8 @@ impl Voiced {
             Kind::Remote => &self.provider.remote.model,
             Kind::Harness => &self.provider.harness.id,
         };
-        (!name.is_empty()).then(|| name.clone())
+        let name = name.trim();
+        (!name.is_empty()).then(|| name.to_owned())
     }
 }
 

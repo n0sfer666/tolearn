@@ -79,6 +79,21 @@ fn поток_приходит_кусками_и_приносит_расход_�
 }
 
 #[test]
+fn пробельное_имя_модели_в_потоке_не_называет_модель() {
+    let answer = asked("unnamed", 20).expect("харнесс отвечает");
+
+    assert_eq!(answer.text, "услышал: спроси");
+    assert_eq!(answer.model, None);
+}
+
+#[test]
+fn имя_модели_в_потоке_приходит_без_отступов() {
+    let answer = asked("padded", 20).expect("харнесс отвечает");
+
+    assert_eq!(answer.model.as_deref(), Some("fake-sonnet"));
+}
+
+#[test]
 fn нулевой_расход_потока_остаётся_нулём_а_не_без_данных() {
     let answer = asked("unspent", 20).expect("харнесс отвечает");
 

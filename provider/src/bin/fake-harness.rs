@@ -17,8 +17,10 @@ fn main() -> ExitCode {
         "ansi" => println!("\u{1b}]0;title\u{7}\u{1b}[32mуслышал: {}\u{1b}[0m", heard()),
         "banner" => println!("добро пожаловать\n\nуслышал: {}", heard()),
         "silent" => {}
-        "stream" => stream(&heard(), SPENT),
-        "unspent" => stream(&heard(), UNSPENT),
+        "stream" => stream(&heard(), SPENT, "fake-sonnet"),
+        "unspent" => stream(&heard(), UNSPENT, "fake-sonnet"),
+        "unnamed" => stream(&heard(), SPENT, " "),
+        "padded" => stream(&heard(), SPENT, "  fake-sonnet "),
         "jsonish" => println!(
             "{{\"type\":\"status\",\"note\":\"работаю\"}}\nуслышал: {}",
             heard()
@@ -40,8 +42,8 @@ fn main() -> ExitCode {
     ExitCode::SUCCESS
 }
 
-fn stream(said: &str, usage: &str) {
-    println!(r#"{{"type":"system","subtype":"init","model":"fake-sonnet"}}"#);
+fn stream(said: &str, usage: &str, model: &str) {
+    println!(r#"{{"type":"system","subtype":"init","model":"{model}"}}"#);
     for piece in ["услышал", ": ", said] {
         println!(
             r#"{{"type":"stream_event","event":{{"type":"content_block_delta","delta":{{"type":"text_delta","text":"{piece}"}}}}}}"#

@@ -111,6 +111,7 @@ impl Tape {
     fn named(&mut self, model: Option<&Value>) {
         if let Some(model) = model
             .and_then(Value::as_str)
+            .map(str::trim)
             .filter(|model| !model.is_empty())
         {
             self.model = Some(model.to_owned());

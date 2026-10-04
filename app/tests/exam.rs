@@ -85,6 +85,10 @@ fn state(case: &Case, program: &str) -> PathBuf {
 fn active(context: &Context, case: &Case, kind: &str) {
     let mut saved = provider(&case.model.endpoint);
     saved["active"] = json!(kind);
+    save(context, saved);
+}
+
+fn save(context: &Context, saved: Value) {
     let input = json!({ "save": saved, "key": Value::Null, "forget": false, "check": false, "probe": false });
     call(context, "provider", &input).unwrap();
 }
@@ -207,4 +211,25 @@ fn пустой_зачёт_и_чужой_вопрос_не_зовут_модел
     assert_eq!(stray.code, "question.absent");
     assert_eq!(case.model.heard().len(), heard);
     assert!(last(&case, &program).is_none());
+}
+
+#[cfg(unix)]
+#[test]
+fn пробельный_id_харнесса_не_становится_моделью_попытки() {
+    let (case, program) = begun(&[]);
+    let mut saved = provider(&case.model.endpoint);
+    saved["active"] = json!("harness");
+    saved["harness"]["command"] = json!("sh");
+    saved["harness"]["args"] = json!(["-c", r#"cat >/dev/null; printf '%s' "$0""#, PASSED]);
+    save(&case.context, saved);
+    let config = case.data.join("provider.yaml");
+    let written = std::fs::read_to_string(&config).unwrap();
+    let blank = written.replace(r#"id: "custom""#, r#"id: " ""#);
+    assert_ne!(blank, written, "{written}");
+    std::fs::write(&config, blank).unwrap();
+
+    let result = sat(&case.context, &program, &[("q1", "Пять")]).unwrap();
+
+    assert_eq!(result, json!({ "passed": true }));
+    assert_eq!(last(&case, &program).unwrap().model, None);
 }
