@@ -79,7 +79,8 @@
       "properties": {
         "id": { "type": "string", "pattern": "^q[0-9]+$" },
         "result": { "enum": ["ok", "partial", "miss"] },
-        "missed": { "type": "array", "items": { "$ref": "#/$defs/text" } }
+        "missed": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+        "added": { "$ref": "#/$defs/text" }
       }
     },
     "clarification": {

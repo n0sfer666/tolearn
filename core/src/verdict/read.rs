@@ -48,7 +48,17 @@ fn answered(row: &Value) -> Result<Answered, VerdictError> {
         id: id.clone(),
         result,
         missed,
+        added: added(id, row.get("added"))?,
     })
+}
+
+fn added(id: &str, field: Option<&Value>) -> Result<Option<String>, VerdictError> {
+    match field {
+        None | Some(Value::Null) => Ok(None),
+        Some(Value::String(text)) if text.trim().is_empty() => Ok(None),
+        Some(Value::String(text)) => Ok(Some(text.clone())),
+        Some(_) => Err(shape(format!("у `{id}` `added` не строка"))),
+    }
 }
 
 fn missed(id: &str, field: Option<&Value>) -> Result<Vec<String>, VerdictError> {

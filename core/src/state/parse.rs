@@ -55,6 +55,7 @@ fn answered(node: &Reader<'_>) -> Result<Answered, ParseError> {
         id: node.field("id")?.text()?,
         result: node.field("result")?.choice("result", &GRADE)?,
         missed: node.field("missed")?.texts()?,
+        added: optional(node, "added", Reader::text)?,
     })
 }
 

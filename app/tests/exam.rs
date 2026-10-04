@@ -19,11 +19,13 @@ use tolearn_generate::ledger;
 
 const PASSED: &str = r#"{"stage": "tracker", "per_question": [{"id": "q1", "result": "ok"}, {"id": "q2", "result": "ok"}, {"id": "q3", "result": "ok"}]}"#;
 
+const NUMBERED: &str = r#"{"stage": "tracker", "per_question": [{"id": "q1", "result": "ok", "added": 3}, {"id": "q2", "result": "ok"}, {"id": "q3", "result": "ok"}]}"#;
+
 const GRADED: &str = r#"Разбор по вопросам.
 
 ```json
 {"stage": "tracker", "per_question": [
-  {"id": "q1", "result": "ok"},
+  {"id": "q1", "result": "ok", "added": "пятый канал — DPCM"},
   {"id": "q2", "result": "partial", "missed": ["нет регулировки громкости"]},
   {"id": "q3", "result": "miss", "missed": ["весь ответ"]}
 ]}
@@ -115,6 +117,11 @@ fn письменный_зачёт_уходит_одним_запросом_и_�
     assert_eq!(attempt.model.as_deref(), Some("llama3:8b"));
     let grades: Vec<Grade> = attempt.per_question.iter().map(|row| row.result).collect();
     assert_eq!(grades, [Grade::Ok, Grade::Partial, Grade::Miss]);
+    assert_eq!(
+        attempt.per_question[0].added.as_deref(),
+        Some("пятый канал — DPCM")
+    );
+    assert_eq!(attempt.per_question[1].added, None);
     let records = ledger::read(&ledger::path(&case.data, &program)).unwrap();
     let exam: Vec<_> = records
         .iter()
@@ -154,6 +161,21 @@ fn ответ_без_вердикта_чинится_раз_и_отказ_не_�
         .map(|record| record.round)
         .collect();
     assert_eq!(rounds, [None, Some(1)]);
+}
+
+#[test]
+fn added_не_строкой_чинится_раз_и_отказ_не_трогает_состояние() {
+    let (case, program) = begun(&[NUMBERED]);
+    drafted(&case.context, &program, "q1", "Пять каналов").unwrap();
+    let before = std::fs::read(state(&case, &program)).unwrap();
+    let heard = case.model.heard().len();
+
+    let refused = sat(&case.context, &program, &[("q1", "Пять каналов")]).unwrap_err();
+
+    assert_eq!(refused.code, "generate.verdict");
+    assert!(refused.message.contains("added"), "{}", refused.message);
+    assert_eq!(case.model.heard().len(), heard + 2);
+    assert_eq!(std::fs::read(state(&case, &program)).unwrap(), before);
 }
 
 #[test]

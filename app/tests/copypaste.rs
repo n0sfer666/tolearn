@@ -19,11 +19,13 @@ use tolearn_generate::ledger;
 
 const PASSED: &str = r#"{"stage": "tracker", "per_question": [{"id": "q1", "result": "ok"}, {"id": "q2", "result": "ok"}, {"id": "q3", "result": "ok"}]}"#;
 
+const NUMBERED: &str = r#"{"stage": "tracker", "per_question": [{"id": "q1", "result": "ok", "added": 3}, {"id": "q2", "result": "ok"}, {"id": "q3", "result": "ok"}]}"#;
+
 const GRADED: &str = r#"Вот разбор ответов.
 
 ```json
 {"stage": "tracker", "per_question": [
-  {"id": "q1", "result": "ok"},
+  {"id": "q1", "result": "ok", "added": "пятый канал — DPCM"},
   {"id": "q2", "result": "partial", "missed": ["нет регулировки громкости"]},
   {"id": "q3", "result": "miss", "missed": ["весь ответ"]}
 ]}
@@ -119,6 +121,11 @@ fn копипаст_работает_без_провайдера_и_сети() {
     assert_eq!(attempt.model, None);
     let grades: Vec<Grade> = attempt.per_question.iter().map(|row| row.result).collect();
     assert_eq!(grades, [Grade::Ok, Grade::Partial, Grade::Miss]);
+    assert_eq!(
+        attempt.per_question[0].added.as_deref(),
+        Some("пятый канал — DPCM")
+    );
+    assert_eq!(attempt.per_question[1].added, None);
     let shown = call(&offline, "stage", &at(&program)).unwrap()["questions"].clone();
     assert_eq!(shown[2]["result"], json!("miss"));
     assert_eq!(shown[2]["missed"], json!(["весь ответ"]));
@@ -146,6 +153,13 @@ fn неразобранная_вставка_называет_причину_и_
         foreign.message.contains("не в тот этап"),
         "{}",
         foreign.message
+    );
+    let numbered = pasted(&case.context, &program, NUMBERED).unwrap_err();
+    assert_eq!(numbered.code, "exam.verdict");
+    assert!(
+        numbered.message.contains("q1") && numbered.message.contains("added"),
+        "{}",
+        numbered.message
     );
     let empty = prompted(&case.context, &program, &[("q1", "  \n"), ("q2", "")]).unwrap_err();
     assert_eq!(empty.code, "exam.empty");

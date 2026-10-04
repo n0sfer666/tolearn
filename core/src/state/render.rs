@@ -62,11 +62,15 @@ fn attempt(attempt: &Attempt) -> Yaml<'_> {
 }
 
 fn answered(answered: &Answered) -> Yaml<'_> {
-    map([
+    let mut entries = vec![
         ("id", text(&answered.id)),
         ("result", text(answered.result.label())),
         ("missed", texts(&answered.missed)),
-    ])
+    ];
+    if let Some(added) = &answered.added {
+        entries.push(("added", text(added)));
+    }
+    map(entries)
 }
 
 fn clarification(clarification: &Clarification) -> Yaml<'_> {

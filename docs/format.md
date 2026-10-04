@@ -188,6 +188,7 @@
 | `stages.*.attempts[].per_question[].id` | логика | вопрос этапа |
 | `stages.*.attempts[].per_question[].result` | логика | `ok`, `partial` или `miss` |
 | `stages.*.attempts[].per_question[].missed` | рендер | что упущено в ответе; у незачтённого не пуст |
+| `stages.*.attempts[].per_question[].added` | рендер | дополнение модели к ответу; нет — поля нет ([ADR-027](adr/027-exam-by-essence.md)) |
 | `stages.*.since` | логика | сколько попыток было к последней перегенерации этапа: они к новому тексту не относятся, последней считается только более поздняя; нет — `0` |
 | `clarifications` | рендер | врезки-уточнения к блокам этапов |
 | `clarifications[].stage` | логика | этап врезки тем же ключом `<uuid узла>/<id>` |

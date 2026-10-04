@@ -20,6 +20,7 @@ fn sat(on: &str, result: Grade) -> Attempt {
             id: "q1".to_owned(),
             result,
             missed: Vec::new(),
+            added: None,
         }],
     }
 }

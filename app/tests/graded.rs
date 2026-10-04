@@ -25,6 +25,7 @@ fn row(id: &str, result: Grade, missed: &[&str]) -> Answered {
         id: id.to_owned(),
         result,
         missed: missed.iter().map(|&line| line.to_owned()).collect(),
+        added: None,
     }
 }
 

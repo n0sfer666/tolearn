@@ -54,6 +54,7 @@ pub struct Answered {
     pub id: String,
     pub result: Grade,
     pub missed: Vec<String>,
+    pub added: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

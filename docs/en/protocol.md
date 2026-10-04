@@ -57,7 +57,8 @@ another object do not count as a verdict of their own.
 {
   "stage": "voices",
   "per_question": [
-    {"id": "q1", "result": "ok"},
+    {"id": "q1", "result": "ok",
+     "added": "the fifth channel, DPCM, plays samples"},
     {"id": "q2", "result": "partial",
      "missed": ["why a 25 % and a 75 % duty cycle sound the same"]},
     {"id": "q3", "result": "miss", "missed": ["the whole answer"]}
@@ -70,7 +71,11 @@ another object do not count as a verdict of their own.
   order;
 - `result` — `ok`, `partial` or `miss`, in lower case;
 - `missed` — what the answer missed, as lines of text. Required and non-empty
-  for a question not passed (`partial`, `miss`), optional for a passed one.
+  for a question not passed (`partial`, `miss`), optional for a passed one;
+- `added` — the model's addition to the answer as one line: what is worth
+  knowing beyond what was said, or a fix for a wrong detail
+  ([ADR-027](../adr/027-exam-by-essence.md)). Optional for any `result`;
+  `null` and an empty string mean there is no addition.
 
 The app neither reads nor stores any other field.
 
@@ -83,6 +88,7 @@ The app neither reads nor stores any other field.
 | no `stage` or `per_question`, a field of the wrong type | "the verdict could not be read" and the reason |
 | `result` other than `ok`, `partial` or `miss` | "the verdict could not be read" and the reason |
 | a question not passed has no `missed` or an empty one | "the verdict could not be read" and the reason |
+| `added` is not a string | "the verdict could not be read" and the reason |
 | the questions do not match the stage's questions | which are missing, which are stray, which are graded twice |
 
 A rejected verdict is not written to the state. There is no partial parsing: a
@@ -146,6 +152,7 @@ attempts:
     per_question:
       - id: q1
         result: ok
+        added: the fifth channel, DPCM, plays samples
       - id: q2
         result: partial
         missed:
@@ -156,8 +163,8 @@ attempts:
 - `by` — how: a written exam in the app, or copypaste;
 - `model` — the model that took the exam; with copypaste the app does not know
   it, and the field is absent;
-- `per_question` — the verdict's rows in the order of the answer, `missed`
-  word for word.
+- `per_question` — the verdict's rows in the order of the answer, `missed` and
+  `added` word for word; with no addition there is no `added` field.
 
 There is no `raw` field: the state schema is closed, and `per_question` is the
 whole of the verdict the app reads. Attempts are only appended; earlier ones
