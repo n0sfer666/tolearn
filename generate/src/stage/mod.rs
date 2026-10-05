@@ -16,6 +16,7 @@ mod proposal;
 mod raw;
 mod rules;
 mod text;
+mod understanding;
 
 pub use compose::{compose, recompose};
 pub use draft::{Draft, Drafted};

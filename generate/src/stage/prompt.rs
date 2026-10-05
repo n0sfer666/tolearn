@@ -9,7 +9,7 @@ use super::gathered::{Dropped, Gathered};
 use super::place::Place;
 use super::{
     MAX_BOOKS, MAX_IMAGES, MAX_PAGES, MAX_TERMS, MAX_THEORY_CHARS, MIN_THEORY_CHARS,
-    TEXT_PROMPT_CHARS,
+    TEXT_PROMPT_CHARS, understanding::QUESTIONS,
 };
 
 const TOUCH: &str =
@@ -97,7 +97,7 @@ pub(super) fn rules(place: &Place<'_>) -> String {
          - Ученик работает в папке практики, которую выбрал сам: файлы, которые он создаёт и сдаёт, лежат в ней, так её и называй, а не домашней папкой. check выполняется в папке практики: пути к файлам ученика в нём относительные, а ~ и $HOME в check не пишутся вовсе.\n\
          - check печатает то, о чём говорит expect: вывод с ожиданием сравнивает человек. expect требует только того, что прямо сказано в task.\n\
          - {tools}\n\
-         - Вопросы проверяют понимание теории, у каждого эталонный ответ."
+         - {QUESTIONS}"
     )
 }
 
