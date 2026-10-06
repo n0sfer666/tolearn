@@ -88,8 +88,26 @@ fn system() {
                 println!("cargo::rustc-link-lib=framework={framework}");
             }
             println!("cargo::rustc-link-lib=dylib=c++");
+            if target == "macos" {
+                runtime();
+            }
         }
         "windows" => println!("cargo::rustc-link-lib=dylib=advapi32"),
         _ => println!("cargo::rustc-link-lib=dylib=stdc++"),
     }
+}
+
+fn runtime() {
+    let Some(dir) = cc::Build::new()
+        .get_compiler()
+        .to_command()
+        .arg("--print-runtime-dir")
+        .output()
+        .ok()
+        .and_then(|output| String::from_utf8(output.stdout).ok())
+    else {
+        return;
+    };
+    println!("cargo::rustc-link-search=native={}", dir.trim());
+    println!("cargo::rustc-link-lib=static=clang_rt.osx");
 }
