@@ -60,7 +60,7 @@ jobs:
       - name: build the frontend the app compiles into itself
         run: pnpm -C ui build
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
-      - run: cargo test --workspace --locked
+      - run: cargo test --workspace --locked --no-fail-fast
 
   speech:
     name: speech (${{ matrix.os }})
