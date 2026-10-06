@@ -7,10 +7,14 @@
 #[path = "../../tests-support/scratch.rs"]
 mod scratch;
 
+#[cfg(unix)]
 use std::time::Duration;
 
-use tolearn_runner::{Limits, Outcome, Stop, search, spawn};
+use tolearn_runner::search;
+#[cfg(unix)]
+use tolearn_runner::{Limits, Outcome, Stop, spawn};
 
+#[cfg(unix)]
 fn scratch(name: &str) -> std::path::PathBuf {
     scratch::made(&format!("path-{name}"))
 }
