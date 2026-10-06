@@ -71,6 +71,7 @@ fn a_removed_program_leaves_the_index() {
 fn the_index_survives_saving_and_reading() {
     let (data, library) = shelf("refresh-saved");
     retitle(&data, "Абракадабра \"в кавычках\"\\ и слэш");
+    #[cfg(unix)]
     fs::write(home(&data).join("заметка\t\u{1}\u{85}.txt"), "текст").unwrap();
     let saved = fresh(&library);
     let path = data.join("search.yaml");

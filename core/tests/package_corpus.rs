@@ -73,7 +73,9 @@ fn every_broken_package_is_refused_with_its_code_and_names_its_file() {
 
         assert_eq!(imported.code(), broken.code, "{}: {imported}", broken.name);
         assert!(
-            imported.to_string().contains(broken.names),
+            imported
+                .to_string()
+                .contains(&broken.names.replace('/', std::path::MAIN_SEPARATOR_STR)),
             "{} should name `{}`: {imported}",
             broken.name,
             broken.names

@@ -109,7 +109,8 @@ fn a_stage_that_does_not_parse_is_reported_by_its_file_and_line() {
 
     assert_eq!(error.path(), root().join(&stage));
     assert_eq!(error.line(), Some(line_of(&read(&stage), "title:")));
-    assert!(error.to_string().contains("stages/linker.yaml"), "{error}");
+    let named = "stages/linker.yaml".replace('/', std::path::MAIN_SEPARATOR_STR);
+    assert!(error.to_string().contains(&named), "{error}");
 }
 
 #[test]

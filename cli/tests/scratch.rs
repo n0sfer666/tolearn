@@ -12,6 +12,7 @@ mod scratch;
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::Path;
+#[cfg(unix)]
 use std::process::Command;
 
 const CRATES: &[&str] = &[
@@ -24,6 +25,7 @@ const SPARED: &[&str] = &[
     "tests-support/scratch.rs",
 ];
 
+#[cfg(unix)]
 #[test]
 fn a_swept_root_keeps_only_the_rooms_of_living_processes() {
     let room = scratch::made("gate-sweep");
