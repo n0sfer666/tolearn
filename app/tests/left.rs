@@ -48,6 +48,10 @@ fn remove(shelf: &Shelf, program: &str) -> Result<Value, IpcError> {
     shelf.ask("delete_program", json!({ "program": program }))
 }
 
+fn place(room: &str, uuid: &str) -> String {
+    Path::new(room).join(uuid).display().to_string()
+}
+
 fn kept(shelf: &Shelf, room: &str, uuid: &str) -> bool {
     shelf.data.join(room).join(uuid).exists()
 }
@@ -74,11 +78,11 @@ fn ранний_отказ_перечисляет_всё_что_осталось
     let refusal = remove(&shelf, NES_DEV).unwrap_err();
 
     for room in [
-        format!("{PROGRAMS}/{NES_DEV}"),
-        format!("{STATE}/{NES_DEV}"),
-        format!("{STATE}/{TOOLS}"),
-        format!("{CACHE}/{NES_DEV}"),
-        format!("{CACHE}/{TOOLS}"),
+        place(PROGRAMS, NES_DEV),
+        place(STATE, NES_DEV),
+        place(STATE, TOOLS),
+        place(CACHE, NES_DEV),
+        place(CACHE, TOOLS),
         ROOM.to_owned(),
     ] {
         assert!(refusal.message.contains(&room), "{}", refusal.message);
@@ -107,8 +111,8 @@ fn корзина_не_приняла_состояние_значит_отказ
     let refusal = remove(&shelf, NES_DEV).unwrap_err();
 
     assert_eq!(refusal.code, "delete.left");
-    assert!(refusal.message.contains(&format!("{STATE}/{NES_DEV}")));
-    assert!(refusal.message.contains(&format!("{STATE}/{TOOLS}")));
+    assert!(refusal.message.contains(&place(STATE, NES_DEV)));
+    assert!(refusal.message.contains(&place(STATE, TOOLS)));
     assert!(!kept(&shelf, PROGRAMS, NES_DEV));
     assert!(!kept(&shelf, CACHE, NES_DEV));
     assert!(kept(&shelf, STATE, NES_DEV));
