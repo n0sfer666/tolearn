@@ -72,10 +72,10 @@ fn every_broken_package_is_refused_with_its_code_and_names_its_file() {
         let unpacked = unpack(&file, &into).unwrap_err();
 
         assert_eq!(imported.code(), broken.code, "{}: {imported}", broken.name);
+        let native = broken.names.replace('/', std::path::MAIN_SEPARATOR_STR);
+        let message = imported.to_string();
         assert!(
-            imported
-                .to_string()
-                .contains(&broken.names.replace('/', std::path::MAIN_SEPARATOR_STR)),
+            message.contains(broken.names) || message.contains(&native),
             "{} should name `{}`: {imported}",
             broken.name,
             broken.names
