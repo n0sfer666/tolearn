@@ -7,6 +7,7 @@
 mod support;
 
 use std::net::TcpListener;
+#[cfg(unix)]
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
@@ -21,6 +22,7 @@ fn pressed_after(stop: &Stop, millis: u64) {
     });
 }
 
+#[cfg(unix)]
 fn pressed_once_written(stop: &Stop, pid: &Path) {
     let (stop, pid) = (stop.clone(), pid.to_path_buf());
     std::thread::spawn(move || {
@@ -32,6 +34,7 @@ fn pressed_once_written(stop: &Stop, pid: &Path) {
     });
 }
 
+#[cfg(unix)]
 fn written(pid: &Path) -> bool {
     std::fs::read_to_string(pid).is_ok_and(|text| !text.trim().is_empty())
 }
@@ -50,6 +53,7 @@ fn ollama(endpoint: String) -> Provider {
     }
 }
 
+#[cfg(unix)]
 fn pid_file() -> PathBuf {
     support::scratch::made("linger").join("harness.pid")
 }

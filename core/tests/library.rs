@@ -13,6 +13,7 @@ use tolearn_core::library::{Entry, Library, LibraryError, Refusal};
 use tolearn_core::program;
 
 const CHIPTUNE: &str = "examples/chiptune";
+#[cfg(unix)]
 const NES_DEV: &str = "fixtures/v2/valid/nes-dev";
 const TOO_DEEP: &str = "fixtures/v2/invalid/program.too-deep__four-levels";
 const MALFORMED: &str = "fixtures/v2/invalid/yaml.wrong-type__stage-title-a-list";

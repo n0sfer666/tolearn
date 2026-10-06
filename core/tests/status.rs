@@ -6,7 +6,9 @@
 
 mod support;
 
-use support::states::{PROGRAM, file, scratch};
+#[cfg(unix)]
+use support::states::file;
+use support::states::{PROGRAM, scratch};
 use tolearn_core::state::{Pass, Passed, State, Status, Summary, key};
 
 const LEAF: &str = "e4c90b7a-15f2-4d6e-8b38-0a2c6f9d1e47";
