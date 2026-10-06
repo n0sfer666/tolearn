@@ -1,0 +1,33 @@
+---
+import { type Locale, strings } from "../../i18n";
+
+interface Props {
+  locale: Locale;
+}
+
+const text = strings(Astro.props.locale).help;
+const LEGACY = [
+  "~/.config/tolearn/registry.yaml",
+  "~/.local/share/tolearn/unpacked/",
+  "~/.local/share/tolearn/history/",
+  "~/.local/share/tolearn/offline/",
+  "~/.local/share/tolearn/search-*",
+];
+---
+
+<section data-help="legacy" aria-labelledby="help-legacy">
+  <h2 id="help-legacy">{text.legacy}</h2>
+  <p>{text.legacyLead}</p>
+  <ul>
+    {
+      LEGACY.map((path) => (
+        <li>
+          <code>{path}</code>
+        </li>
+      ))
+    }
+  </ul>
+  <p>
+    {text.legacyKeep} <code>~/.local/share/tolearn/programs/</code>, <code>~/.local/share/tolearn/state/</code>.
+  </p>
+</section>

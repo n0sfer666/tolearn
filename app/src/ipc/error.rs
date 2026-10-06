@@ -1,14 +1,11 @@
 use std::fmt;
 
-use tolearn_core::progress::DocumentError;
-use tolearn_core::prompt::RenderError;
-use tolearn_core::registry::RegistryError;
-use tolearn_core::scan::ScanError;
-
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct IpcError {
     pub code: String,
     pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub held: Option<String>,
 }
 
 impl IpcError {
@@ -16,7 +13,13 @@ impl IpcError {
         Self {
             code: code.to_owned(),
             message,
+            held: None,
         }
+    }
+
+    pub fn holding(mut self, by: &str) -> Self {
+        self.held = Some(by.to_owned());
+        self
     }
 
     pub fn unknown_command(name: &str) -> Self {
@@ -28,21 +31,6 @@ impl IpcError {
 
     pub fn payload(error: &serde_json::Error) -> Self {
         Self::new("ipc.malformed-payload", error.to_string())
-    }
-
-    pub fn unknown_topic(topic: &str) -> Self {
-        Self::new("topic.unknown", format!("темы `{topic}` в бандле нет"))
-    }
-
-    pub fn unknown_version(version: u32, roadmap: &str) -> Self {
-        Self::new(
-            "history.unknown-version",
-            format!("версии {version} программы `{roadmap}` в истории нет"),
-        )
-    }
-
-    pub fn malformed_date(value: &str) -> Self {
-        Self::new("date.malformed", format!("`{value}` — не дата"))
     }
 
     pub fn unwritable(path: &std::path::Path, reason: &str) -> Self {
@@ -65,51 +53,35 @@ impl fmt::Display for IpcError {
 
 impl std::error::Error for IpcError {}
 
-impl From<tolearn_core::archive::ArchiveError> for IpcError {
-    fn from(error: tolearn_core::archive::ArchiveError) -> Self {
+impl From<tolearn_core::library::LibraryError> for IpcError {
+    fn from(error: tolearn_core::library::LibraryError) -> Self {
         Self::new(error.code(), error.to_string())
     }
 }
 
-impl From<ScanError> for IpcError {
-    fn from(error: ScanError) -> Self {
-        let code = match error {
-            ScanError::NoRoadmap { .. } => "scan.no-roadmap",
-            ScanError::Unreadable { .. } => "scan.unreadable",
-            ScanError::Malformed { .. } => "scan.malformed",
+impl From<tolearn_core::state::StateError> for IpcError {
+    fn from(error: tolearn_core::state::StateError) -> Self {
+        use tolearn_core::state::StateError as Broken;
+        let code = match &error {
+            Broken::Stray(_) => "state.stray",
+            Broken::Unreadable(_) => "state.unreadable",
+            Broken::Malformed(_) => "state.malformed",
+            Broken::Foreign(_) => "state.foreign",
+            Broken::Unwritable(_) => "state.unwritable",
         };
         Self::new(code, error.to_string())
     }
 }
 
-impl From<tolearn_core::verdict::VerdictError> for IpcError {
-    fn from(error: tolearn_core::verdict::VerdictError) -> Self {
-        use tolearn_core::verdict::VerdictError as Broken;
-        let code = match error {
-            Broken::NoJson => "verdict.no-json",
-            Broken::Malformed { .. } => "verdict.malformed",
-            Broken::Missing { .. } => "verdict.missing-field",
-            Broken::WrongTopic { .. } => "verdict.wrong-topic",
-            Broken::NoAnswers => "verdict.no-answers",
-        };
-        Self::new(code, error.to_string())
+impl From<tolearn_core::export::ExportError> for IpcError {
+    fn from(error: tolearn_core::export::ExportError) -> Self {
+        Self::new(error.code(), error.to_string())
     }
 }
 
-impl From<DocumentError> for IpcError {
-    fn from(error: DocumentError) -> Self {
-        Self::new("progress.malformed", error.to_string())
-    }
-}
-
-impl From<RenderError> for IpcError {
-    fn from(error: RenderError) -> Self {
-        let code = match error {
-            RenderError::NoPrompt => "prompt.no-prompt",
-            RenderError::Unknown { .. } => "prompt.unknown-placeholder",
-            RenderError::Unclosed { .. } => "prompt.unclosed-placeholder",
-        };
-        Self::new(code, error.to_string())
+impl From<tolearn_core::package::UnpackError> for IpcError {
+    fn from(error: tolearn_core::package::UnpackError) -> Self {
+        Self::new(error.code(), error.to_string())
     }
 }
 
@@ -125,17 +97,6 @@ impl From<tolearn_speech::SpeechError> for IpcError {
             Mute::Deaf(_) => "speech.deaf",
             Mute::Silent => "speech.silent",
             Mute::Failed(_) => "speech.failed",
-        };
-        Self::new(code, error.to_string())
-    }
-}
-
-impl From<RegistryError> for IpcError {
-    fn from(error: RegistryError) -> Self {
-        let code = match error {
-            RegistryError::Unreadable(_) => "registry.unreadable",
-            RegistryError::Malformed(_) => "registry.malformed",
-            RegistryError::Unwritable(_) => "registry.unwritable",
         };
         Self::new(code, error.to_string())
     }

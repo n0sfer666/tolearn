@@ -15,12 +15,7 @@ use tolearn_core::archive::{ArchiveError, Limits, unpack};
 const ROADMAP: &str = "id: demo\ntitle: Демо\nversion: 1\n";
 
 fn workspace(name: &str) -> PathBuf {
-    let room = std::env::temp_dir().join(format!("tolearn-archive-{name}-{}", std::process::id()));
-    if room.exists() {
-        std::fs::remove_dir_all(&room).unwrap();
-    }
-    std::fs::create_dir_all(&room).unwrap();
-    room
+    support::scratch::made(&format!("archive-{name}"))
 }
 
 fn bundle() -> Vec<Entry> {

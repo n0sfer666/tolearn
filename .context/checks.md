@@ -14,8 +14,13 @@
 | UI: токены, контраст, конвенция имён | `pnpm -C ui tokens` |
 | UI: сборка, маршруты, вес JS | `pnpm -C ui test` |
 | Экспорт: CommonMark и markdownlint | `pnpm -C ui markdown` |
-| Плагин Obsidian: типы | `pnpm -C obsidian lint` |
-| Плагин Obsidian: тесты | `pnpm -C obsidian test` |
+
+Всё это разом — `make dev`. Цель зовёт `scripts/check.sh`, а тот берёт список не
+из себя, а из [checks.json](checks.json) — того же файла, что читает
+pre-commit-хук: разъехаться им негде. Скрипт печатает `N/M` перед каждой
+проверкой, падает на первой красной и до прогона доставляет то, без чего
+проверки не поедут, — `node_modules` в `ui` и сборку `ui/dist`
+(её приложение вшивает в себя).
 
 Nushell: `and` между командами не работает как в bash — команды разделяются `;`,
 проваленная прерывает конвейер сама.
@@ -133,6 +138,39 @@ Nushell: `and` между командами не работает как в bas
 | T3 | сборка и запуск приложения, скриншот, проверка клавиатуры |
 | T4 | регрессионный тест, пиннящий дефект |
 
+## Замер токенов пресета claude (S70)
+
+Процедура — [v2-interview.md](notes/v2-interview.md#повторить-замер-харнесса), из пустого
+временного каталога. Аргументы — ровно `advised()` пресета `claude`
+(`provider/src/preset.rs`): поменялся пресет — меняется и эта команда.
+
+```nu
+"Ответь одним словом: ок" | ^claude -p --output-format stream-json --verbose --include-partial-messages --tools "" --system-prompt "Выполни инструкцию из сообщения, ответь только результатом." --setting-sources project --strict-mcp-config --settings '{"env":{"CLAUDE_CODE_DISABLE_TERMINAL_TITLE":"1"}}' | lines | each { from json } | where type == "result" | first | select total_cost_usd modelUsage | to json
+```
+
+Считать по `modelUsage`, а не по `usage`: вход вызова — сумма `inputTokens +
+cacheCreationInputTokens + cacheReadInputTokens` **по всем моделям**. `usage` видит
+только основную модель, побочные вызовы CLI в него не попадают, а вход, ушедший в
+кэш, — мимо `input_tokens`.
+
+Приёмка — 5 прогонов, каждый отдельным вызовом из своего свежего `mktemp -d`: ни в
+одном `modelUsage` нет `claude-haiku-*`, сумма ≤ 1000. Один прогон ничего не
+доказывает: побочный вызов недетерминирован.
+
+Замер 2026-09-11, `claude 2.1.268 (Claude Code)`: 5 из 5 — только `claude-opus-5`,
+**521–523 входных токена**, $0,0053 с записью кэша и $0,0004 при чтении из него.
+Цель DoD S70 — ≤ 1000, до правки (`--allowedTools` вместо `--tools`, без остальных
+флагов) было ~27 тыс.
+
+Зачем `--settings`: без него CLI в 7 прогонах из 10 добавлял вызов `claude-haiku-4-5`
+на 903 входных токена — генерацию заголовка терминала, похоже, гонку фоновой задачи
+с завершением процесса. `CLAUDE_CODE_DISABLE_TERMINAL_TITLE` её гасит; env харнессу
+приложение не передаёт, поэтому переменная едет аргументом. Шире бьёт
+`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` (заодно телеметрия и автообновление),
+`DISABLE_NON_ESSENTIAL_MODEL_CALLS` не действует. Основная модель брала 467–469 в
+утренних замерах и 523 в контрольном прогоне без флага тем же днём: сдвиг — со
+стороны CLI или сервера, не от `--settings`.
+
 ## Вес JS
 
 Бюджеты из [architecture.md](../docs/architecture.md#бюджеты) держит
@@ -143,11 +181,16 @@ Nushell: `and` между командами не работает как в bas
 
 ## Экспорт в Markdown
 
-`ui/scripts/markdown.mjs` копирует эталонный бандл во временный каталог без
-`.json`-двойников (иначе экспорт видит два `roadmap.*` и отказывается), гоняет
-`tolearn export` и проверяет результат `markdownlint-cli2` по
-`.markdownlint-cli2.jsonc` в корне. Отключены три правила: длина строки
-(`MD013`), одинаковые заголовки у разных тем (`MD024`, только среди соседей) и
+`ui/scripts/markdown.mjs` выгружает `examples/chiptune` и
+`fixtures/v2/valid/nes-dev` (с вложенными подпрограммами) командой
+`tolearn export` во временные папки и проверяет каждую страницу
+`markdownlint-cli2` по `.markdownlint-cli2.jsonc` в корне. Что ссылки между
+страницами и на картинки разрешаются, в том числе при адресах в заголовках и
+пробелах в именах ассетов, держит `core/tests/export_links.rs`; враждебный
+текст абзацев (заголовки, подчёркивания, годы, ограды, плохой `lang`) —
+`core/tests/export_hostile.rs`.
+Отключены три правила: длина строки (`MD013`), одинаковые заголовки
+(`MD024`, только среди соседей) и
 инлайновый HTML (`MD033`) — остальное чинится в генераторе, а не послаблением
 правила. Посмотреть — `pnpm -C ui markdown`, в CI это отдельный шаг job `ui`.
 
@@ -167,15 +210,52 @@ Nushell: `and` между командами не работает как в bas
 не для красоты: тест-файлы поднимают `astro build` в общий `dist/`, и два
 параллельных прогона роняют сборку друг другу.
 
-## Плагин Obsidian
+## Стенд экранов
 
-`obsidian/` — отдельный пакет, из воркспейса `ui/` не виден и своей вёрстки не
-имеет. `pnpm -C obsidian lint` — это `tsc --noEmit`; `pnpm -C obsidian test` —
-`node --test tests/*.test.mjs`, где тесты импортируют `.ts`-исходники напрямую:
-Node снимает типы сам, отдельного шага сборки для тестов не нужно.
-`pnpm -C obsidian build` собирает `main.js` через esbuild — артефакт, в git не
-кладётся. Единственный модуль с вводом-выводом — `src/host.ts`; вся остальная
-логика чистая, потому и проверяется без Obsidian.
+`make stand` (`scripts/stand.sh`, S146) поднимает связку «живое ядро +
+браузер» одной командой: мост `app/examples/bridge.rs` на `127.0.0.1:4319` и
+`astro dev` на `localhost:4321`. `XDG_CONFIG_HOME` и `XDG_DATA_HOME` смотрят в
+`$TMPDIR/tolearn-stand.*`, настоящий `<data>` стенд не видит. Программы
+chiptune и nes-dev пакуются `tolearn pack` и ставятся импортом через мост, как
+их ставит человек; состояние кладётся из `fixtures/v2/stand/`: этап начат, с
+незачтённым вопросом в попытке и врезкой уточнения, пройден со сданным зачётом
+и пройден с пропуском. Провайдера нет: генерация отказывает с причиной, чтение
+работает.
+
+Занятый 4319 или 4321 — отказ до сборки. Ctrl+C гасит мост и astro со всеми
+дочерними процессами и убирает каталог стенда. Лог astro — `ui.log` в каталоге
+стенда, мост печатает каждый вызов в терминал (`ок  stage`, `НЕТ plan_program:
+…`). Снимки — `scripts/shot.sh` из соседнего терминала
+([testing.md](testing.md#стенд-для-живой-проверки-t3)).
+
+Ожидаемый вывод после сборки:
+
+```
+стенд: /var/folders/…/T/tolearn-stand.XXXXXX
+мост: http://127.0.0.1:4319
+конфиг: /var/folders/…/T/tolearn-stand.XXXXXX/config/tolearn
+данные: /var/folders/…/T/tolearn-stand.XXXXXX/data/tolearn
+ок  import_package
+ок  import_package
+экраны:
+  библиотека        http://localhost:4321/ru/
+  программа         http://localhost:4321/ru/program/?program=3f6c2a1e-…
+  этап: начат       http://localhost:4321/ru/stage/?program=3f6c2a1e-…&stage=voices
+  развилка          http://localhost:4321/ru/next/?program=3f6c2a1e-…&stage=voices
+  ветка nes-dev     http://localhost:4321/ru/program/?program=7a1d4e90-…&node=e4c90b7a-…
+  этап: зачёт сдан  http://localhost:4321/ru/stage/?program=7a1d4e90-…&node=e4c90b7a-…&stage=first-rom
+  этап: пропущен    http://localhost:4321/ru/stage/?program=7a1d4e90-…&node=e4c90b7a-…&stage=linker
+  новая программа   http://localhost:4321/ru/new/
+  поиск             http://localhost:4321/ru/search/
+  настройки         http://localhost:4321/ru/settings/
+снимок: SHOT_THEME=dark sh scripts/shot.sh '/ru/settings/' shot.png
+Ctrl+C гасит мост и astro
+```
+
+Дальше мост печатает вызовы экранов; генерация без провайдера даёт `НЕТ
+plan_program: {"code":"provider.disabled","message":"провайдер выключен"}`.
+После Ctrl+C — `стенд погашен`, код выхода 130, ни моста, ни node, ни esbuild
+стенда в `pgrep`, порты 4319 и 4321 свободны.
 
 ## Токены
 
@@ -184,7 +264,13 @@ Node снимает типы сам, отдельного шага сборки 
 [visual-system.md](../docs/design/visual-system.md#токены) (шкала носит префикс
 семейства, семейство из одного члена отвергается, два одиночных токена с общим
 первым сегментом обязаны стать семейством), запрет хардкода в стилях приложения
-(hex, `px`, брейкпойнт кроме объявленных, `outline: none` без замены) и контраст
+(hex, `px`, брейкпойнт кроме объявленных, `outline: none` без замены; размер,
+семейство и интерлиньяж не токеном, шорткат `font`, время в движении и движение
+вне `prefers-reduced-motion: no-preference` — `typeset.mjs`; кнопка ниже
+`--tap-target` без зоны `::after` — `targets.mjs`, кнопка узнаётся по тегу в
+селекторе или по `data-*`, который в разметке несёт `a`/`button`/`summary`
+(`carriers.mjs`); шкалу, меру, длительность и
+цель касания самих токенов держит `ui/tests/typography.test.mjs`) и контраст
 WCAG — 4.5:1 для текста, 3:1 для `--color-border-strong` и `--color-focus`, на
 обеих темах и всех трёх поверхностях. `light-dark()` разбирается по веткам:
 просадка только в тёмной находится отдельным тестом. Посмотреть —
@@ -221,43 +307,235 @@ TOLEARN_WHISPER_MODEL=~/.cache/tolearn/models/ggml-small-q5_1.bin cargo test -p 
 Nushell: переменная окружения ставится через `with-env`, а не префиксом —
 `with-env {TOLEARN_WHISPER_MODEL: ...} { cargo test ... }`.
 
+## Книга из Open Library (руками, с сетью)
+
+`cargo run -p tolearn-offline --example book` ищет три книги в настоящей Open
+Library через `Web` загрузчика: по ISBN с дефисами, по названию и автору и одну
+заведомо несуществующую. Тесты `offline/tests/book.rs` работают только на
+записанных ответах `fixtures/openlibrary/`. Поэтому изменилась ли форма ответа у
+самого сервиса, покажет только этот прогон. Ожидаемый вывод, код выхода 0:
+
+```
+ISBN 978-0-262-51087-5: Structure and Interpretation of Computer Programs (SICP) — Harold Abelson, Gerald Jay Sussman, Julie Sussman — ISBN 9780262510875
+«Structure and Interpretation of Computer Programs» / Abelson: Structure and Interpretation of Computer Programs (SICP) — Harold Abelson, Gerald Jay Sussman, Julie Sussman — ISBN 9787111135104
+«qzxwvjkplmtr» / zzqxvw: не найдено
+```
+
+При сбое сети в строке запроса печатается причина, код выхода 1. Если каталог
+отдал другой первый ISBN во второй строке, это правка самого каталога, не
+дефект. «Ответила не по формату» — дефект: ответ ушёл от формы фикстур, их нужно
+переснять.
+
+## Картинка с Wikimedia Commons (руками, с сетью)
+
+`cargo run -p tolearn-offline --example commons` ищет картинку в настоящей
+Wikimedia Commons через `Web` загрузчика: по запросу, у которого есть свободный
+файл, и по заведомо пустому. Тесты `offline/tests/commons.rs` и
+`generate/tests/images.rs` работают только на записанных ответах
+`fixtures/commons/`. Поэтому изменилась ли форма ответа API, выдача миниатюр и
+требование к User-Agent, покажет только этот прогон. Ожидаемый вывод, код
+выхода 0:
+
+```
+«Turing machine»: File:Example of a Turing machine.svg — Sn KGS, CC BY-SA 4.0 — .png, 25 КБ
+«qzxwvjkplmtr zzqxvw»: не найдено
+```
+
+При сбое сети в строке запроса печатается причина, код выхода 1. Другой файл в
+первой строке — правка поисковой выдачи Commons, не дефект, если у него
+свободная лицензия, автор и вес до 400 КБ. «Ответила не по формату» — дефект:
+ответ ушёл от формы фикстур, их нужно переснять. Ответ 403 — Wikimedia
+отвергла User-Agent из `offline/src/net.rs`.
+
+## Схема Mermaid в скрытом окне (руками)
+
+`cargo run -p tolearn-app --example mermaid` поднимает приложение без видимого
+окна и рисует через `app::mermaid::Mermaid` три схемы: flowchart и sequence с
+кириллицей и одну битую. Потом рисует ещё раз с таймаутом 1 мс. Сеть не нужна:
+mermaid берётся из бинарника. Тесты `generate/tests/diagrams.rs` работают на
+заглушке, а `app/tests/mermaid.rs` проверяет только то, что отдаёт схема
+`tolearn-mermaid://`. Поэтому что WebView действительно исполняет mermaid под
+своей CSP и что его SVG проходит проверку импорта, покажет только этот прогон.
+Ожидаемый вывод, код выхода 0 (байты и время плавают):
+
+```
+     14285 байт, 1.8s, …/T/tolearn-mermaid-flowchart.svg
+ок   flowchart нарисована и прошла проверку SVG
+     22938 байт, 187ms, …/T/tolearn-mermaid-sequence.svg
+ок   sequence нарисована и прошла проверку SVG
+     Mermaid не разобрал схему: Parse error on line 3: …
+ок   битая схема осталась исходником
+ок   таймаут: схема не нарисовалась за 1 мс
+ок   окна схем закрыты
+```
+
+Нарисованные SVG остаются во временном каталоге, их можно открыть глазами.
+«Окно схемы ответило не по формату» или «окно схемы вернуло не SVG» — дефект
+`draw.js`. «SVG схемы не прошёл проверку импорта» — mermaid начал выдавать
+`foreignObject` или внешние ссылки: смотреть его настройки в
+`app/src/mermaid/page.rs`. Строка «не уложилась в минуту» и код 2 значат, что
+окно не открылось или ответ так и не пришёл.
+
 ## Голосовой ответ вживую (руками)
 
-Диктовку проверяет человек: микрофон, разрешение ОС и собственный голос из кода
-не наблюдаются. Стенд — тот же мост `app/examples/bridge.rs`, что и для прочих
-живых прогонов; каталоги подменяются через XDG, а не через `HOME` (подменённый
-`HOME` уводит кейчейн и кэш cargo).
+Кнопку диктовки у полей ответа зачёта и вопроса к «Уточнить» (S141)
+`ui/tests/dictation.test.mjs` проверяет на подставных `speech_*`: есть ли кнопка
+в обеих сборках, куда встаёт текст, что показывает отказ. Живой микрофон,
+разрешение macOS и распознанный текст — только руками по
+[generate/04-dictation.md](../docs/manual-test-cases/generate/04-dictation.md)
+в сборке `make install-speech`. Распознавание само по себе проверяют `listen` и
+`corpus` командами выше.
 
+## Цикл этапа вживую (руками, с сетью)
+
+Шаги цикла этапа — открытие, галочки и запуск проверки, письменный зачёт, зачёт
+через чужой чат, пропуск, незачтённое в промпте развилки, «Уточнить»,
+перегенерация и диктовка — автотесты держат по отдельности на подставном
+транспорте. Одним прогоном в сборке `make install-speech`, с живым провайдером,
+настоящей папкой практики, буфером обмена и микрофоном их проходит владелец по
+[generate/05-cycle.md](../docs/manual-test-cases/generate/05-cycle.md) (S142).
+
+## Генерация из CLI (руками, с сетью)
+
+`cargo test -p tolearn-cli` гоняет `tolearn new`, `tolearn next` и `tolearn ledger` через
+библиотеку на HTTP-заглушке модели и фикстурных страницах, без сети. Живой
+провайдер, время и токены шагов, отказ без сети и путь до импорта в
+приложение — руками по
+[generate/01-cli.md](../docs/manual-test-cases/generate/01-cli.md), после
+`cargo build -p tolearn-cli --release`.
+
+## Замер S128 (руками, с сетью)
+
+Два эталонных запроса на двух классах моделей: харнесс claude и локальная
+Ollama. По каждой паре — карта и первые три этапа через CLI, потом сводка
+журнала. Итог решает минимальный класс модели для урока (ADR-023, раздел
+«Модель») и сверяет оценку всей программы с 0,3–0,8 млн токенов ADR-013.
+
+**Подготовка** — из корня репозитория, в Nushell. Харнесс claude с
+рекомендованными аргументами уже сохранён в «Настройках»; локальная модель —
+самая крупная, что идёт на этой машине по таблице S63. `num_ctx` поднят до
+32 768: промпт текста доходит до 30 000 знаков, и с окном Ollama по умолчанию
+он молча обрезается.
+
+```nu
+cargo build -p tolearn-cli --release
+mkdir ~/s128
+open ~/.config/tolearn/provider.yaml | update enabled true | update active harness | to yaml | save -f ~/s128/claude.yaml
+open ~/.config/tolearn/provider.yaml | update enabled true | update active local | update local.model "<модель Ollama>" | update local.num_ctx 32768 | to yaml | save -f ~/s128/ollama.yaml
+def s128-run [model: string, name: string, request: string, level: string] {
+  let dir = $"~/s128/($model)-($name)" | path expand
+  let provider = $"~/s128/($model).yaml" | path expand
+  ./target/release/tolearn new $request --level $level --out $dir --provider $provider
+  for _ in 1..2 {
+    let choice = ./target/release/tolearn next $dir --provider $provider --json | from json | get variants | where recommended | first | get choice
+    ./target/release/tolearn next $dir --choice $choice --provider $provider
+  }
+  ./target/release/tolearn ledger $dir
+}
 ```
-let stand = (mktemp -d)
-mkdir $"($stand)/data/tolearn/dialogs/llm-agents-base"
-'{"topic":"local-runtime","fingerprint":"seed","artifact":null,"failed_checks":[],"at":0,"lines":[],"log":[{"side":"examiner","text":"Откуда взялось 9.8 GB?"}],"graded":[],"hinted":[],"followed":false,"exchanges":0,"seconds":12,"tokens":340,"verdict":null}' | save -f $"($stand)/data/tolearn/dialogs/llm-agents-base/local-runtime.json"
-cargo build -p tolearn-app --example bridge --features speech
-with-env {XDG_CONFIG_HOME: $"($stand)/config", XDG_DATA_HOME: $"($stand)/data", TOLEARN_WHISPER_MODEL: $"($env.HOME)/.cache/tolearn/models/ggml-small-q5_1.bin"} { ./target/debug/examples/bridge }
-pnpm -C ui dev
+
+**Прогон** — четыре каталога, каждый строит карту и три этапа, выбирая
+рекомендованный вариант развилки:
+
+```nu
+s128-run claude chiptune "Хочу писать чиптюн" "Нот не знаю"
+s128-run claude llm "Хочу запускать локальные LLM" "Пишу на Python, с моделями не работал"
+s128-run ollama chiptune "Хочу писать чиптюн" "Нот не знаю"
+s128-run ollama llm "Хочу запускать локальные LLM" "Пишу на Python, с моделями не работал"
 ```
 
-Подложенный диалог заменяет живого экзаменатора: без него зачёт открывается
-только через провайдера, а поля ответа на экране нет. Открыть
-`http://localhost:4321/ru/exam/dialog/?program=<путь к бандлу>&topic=local-runtime`
-и пройти по шагам:
+Отказ на любом шаге — тоже результат замера: причину записать в строку этапа, а
+продолжить с `next` вручную. Этапы лежат в
+`~/s128/<модель>-<запрос>/programs/<uuid>/stages/`, источники — в
+`program.yaml` рядом.
 
-1. Кнопка «Надиктовать» активна — вариант собран с фичей. Неактивна и рядом
-   пометка «в разработке» со ссылкой на `tolearn-with-speech` — собран базовый
-   вариант, дальше проверять нечего.
-2. Набрать в поле ответа «Веса легли в память.», нажать «Надиктовать» — система
-   спрашивает доступ к микрофону (первый раз), надпись меняется на «Закончить
-   запись».
-3. Сказать вслух фразу и нажать «Закончить запись». Ожидаемо: набранное
-   осталось, расшифровка дописана в конец через пробел, поле по-прежнему
-   правится руками. Язык — русский: `speech_state` на эталонном бандле отвечает
-   `language: "ru"` (`locale` программы), английская программа даёт `en`.
-4. Нажать «Закончить запись», ничего не сказав, — тост с причиной, поле не
-   тронуто.
+**Чек-лист по этапу:**
 
-Сама расшифровка идёт в процессе моста, поэтому разрешение на микрофон просит
-терминал, а не браузер; в собранном приложении просит приложение (`app/Info.plist`).
-Стенд убрать за собой: `rm -rf $stand`, мост и dev-сервер погасить.
+| Графа | Как проверить |
+|---|---|
+| инстр. | только у первого этапа: практика требует ровно один инструмент |
+| т+п | теория и практика про одно и то же, практика опирается на прочитанное |
+| ист. | 2–3 страницы из `sources.pages` открываются и говорят то, на что ссылается текст |
+| книги | у книги есть `chapter`, и это глава, а не вся книга и не страница |
+| схемы | блок `kind: diagram` — исходник Mermaid, строка шага «схемы» об этом сказала; схемы нет — «—» |
+| часы | `hours` строки этапа в `map` — в пределах 2–4 |
+| починка | вызовов шага `repair` в группе этапа по сводке: 0 — сошлось с первого раза, 3 — предел |
+| время, токены | «итого» группы этапа из `tolearn ledger` |
+
+| Модель | Запрос | Этап | инстр. | т+п | ист. | книги | схемы | часы | починка | время, с | токены |
+|---|---|---|---|---|---|---|---|---|---:|---:|---:|
+| claude | chiptune | 1 | | | | | | | | | |
+| claude | chiptune | 2 | — | | | | | | | | |
+| claude | chiptune | 3 | — | | | | | | | | |
+| claude | llm | 1 | | | | | | | | | |
+| claude | llm | 2 | — | | | | | | | | |
+| claude | llm | 3 | — | | | | | | | | |
+| ollama | chiptune | 1 | | | | | | | | | |
+| ollama | chiptune | 2 | — | | | | | | | | |
+| ollama | chiptune | 3 | — | | | | | | | | |
+| ollama | llm | 1 | | | | | | | | | |
+| ollama | llm | 2 | — | | | | | | | | |
+| ollama | llm | 3 | — | | | | | | | | |
+
+**Оценка всей программы.** Этапов в программе ≈ часы карты / 3: этап 2–4 ч,
+подпрограммы считаются их строками. Цена этапа — среднее по трём этапам
+прогона вместе с развилками, карта — один раз:
+
+```nu
+def s128-estimate [dir: string] {
+  let dir = $dir | path expand
+  let summary = ./target/release/tolearn ledger $dir --json | from json
+  let all = $summary.total.input + $summary.total.output
+  let plan = $summary.rows | where step == plan | each {|row| $row.input + $row.output } | math sum
+  let map = open (glob $"($dir)/programs/*/program.yaml" | first) | get map
+  let hours = $map.stages | append $map.children | get hours | each {|h| $h | math avg } | math sum
+  let stages = $hours / 3 | math ceil
+  let stage = ($all - $plan) / 3
+  {hours: $hours, stages: $stages, plan: $plan, stage: ($stage | math round), program: ($plan + $stages * $stage | math round), unknown: $summary.total.unknown}
+}
+```
+
+| Модель | Запрос | Часы карты | Этапов | Карта, ток. | Этап, ток. | Программа, ток. | В 0,3–0,8 млн |
+|---|---|---:|---:|---:|---:|---:|---|
+| claude | chiptune | | | | | | |
+| claude | llm | | | | | | |
+| ollama | chiptune | | | | | | |
+| ollama | llm | | | | | | |
+
+У харнесса вход записан без чтения кэша (ADR-024), поэтому оценка claude —
+нижняя граница; `unknown` больше нуля значит, что часть вызовов без токенов и
+оценка занижена ещё сильнее. Выход за 0,8 млн — запись о пересмотре размера
+этапа в ADR-013. Минимальный класс модели для урока — младший из двух, у
+которого все графы чек-листа без провалов, — записывается в ADR-023.
+
+## Чистка
+
+| Что | Команда |
+|---|---|
+| взвесить `target` | `sh scripts/target-size.sh` |
+| убрать старьё из `target` и кэша крейтов | `make clean-target` (порог в сутках — `make clean-target DAYS=30`) |
+
+`make dev` вызывает `scripts/target-size.sh` перед проверками: он только печатает
+размер `target` и с 10 ГБ (`TOLEARN_TARGET_LIMIT_GB`) предупреждает, что пора
+чистить. Ничего не удаляется без явной команды человека.
+
+`make clean-target` сносит все `incremental` целиком (кросс-сборка и деревья
+мутационного прогона `target/near`, `target/far` тоже) и всё старше порога в
+`deps`, `build` и `.fingerprint` — каталоги ищутся по имени, а не по позиции.
+Собранное (`target/release/bundle`, `target/debug/examples/bridge` для стенда) не
+трогается.
+
+Распакованные исходники крейтов в `$CARGO_HOME/registry/src` чистятся
+**только там, где рядом лежит архив** `.crate`: из архива исходники
+разворачиваются без сети, а без архива вернуть их может только загрузка. На этой
+машине архивы покрывают 389 каталогов из 1197 (260 МБ из 1,2 ГБ) — остальные
+скрипт считает и оставляет на месте, о чём пишет в отчёте.
+
+Скрипт отказывается работать, если в каталоге нет `CACHEDIR.TAG` (то есть это не
+дерево сборки cargo и не реестр) или если порог не целое число не меньше 1 —
+`TOLEARN_TARGET` и `CARGO_HOME` задаются руками, и опечатка не должна стоить
+чужих файлов. Удалённое из `target` вернётся само при следующей сборке, только
+она будет дольше.
 
 ## Упаковка
 
@@ -266,6 +544,25 @@ pnpm -C ui dev
 | собрать базовый установщик своей ОС | `cd app; cargo tauri build` |
 | собрать вариант с речью | `cd app; cargo tauri build --features speech --config tauri.with-speech.conf.json` |
 | взвесить собранное | `sh scripts/weigh.sh target/release/bundle base` (или `with-speech`) |
+| собрать и поставить себе | `make install` (с речью — `make install-speech`) |
+
+`make install` — только macOS: `scripts/install-macos.sh` собирает вариант,
+монтирует получившийся `.dmg` через `hdiutil` и кладёт `.app` в `/Applications`
+тем же `ditto`, что и перетаскивание в Finder. Каталог назначения — второй
+аргумент скрипта (`sh scripts/install-macos.sh base ~/Applications`), первый —
+вариант. Уже установленное приложение заменяется; запущенное — не трогается
+вовсе, скрипт просит закрыть его и выходит. Перед сборкой он зовёт
+`scripts/detach-stale-dmg.sh`: подключённый `rw.*.dmg` прошлого прогона роняет
+упаковку голым «error running bundle_dmg.sh», поэтому такой образ отключается и
+удаляется, а чужой `/Volumes/dmg.*` не из этого каталога — только объявляется в
+предупреждении. Windows и Linux ставятся своими установщиками, цели под них нет.
+
+Второй запуск (S81) проверяется руками на установленном приложении: открыть его,
+свернуть окно (`Cmd+M`), затем `open -n /Applications/tolearn.app`. Ожидается:
+вторая копия не остаётся в Dock, свёрнутое окно разворачивается и выходит
+наверх. Именно `open -n`: без флага macOS сама активирует уже запущенное
+приложение, плагин single-instance не срабатывает, и сценарий проверяет ОС, а не
+`app/src/window.rs`.
 
 `cargo tauri build` требует `cargo install tauri-cli --version 2.11.4 --locked`
 (в CI ставится джобой `package` и кладётся в кэш). Цели берёт из
@@ -290,30 +587,6 @@ whisper.cpp не собирается). Ему нужны сабмодуль `sp
 потолках 12 и 14 МБ; `-with-speech` — 187.7, 185.8 и 189.1 МБ. Числа живут на
 [странице релиза](../docs/ru/release.md), и `app/tests/release.rs` держит её в
 согласии с бюджетами и с флагом из CI.
-
-### Ссылка `tolearn://` вживую (руками)
-
-Регистрацию схемы в ОС делает установщик, поэтому из кода она не наблюдаема:
-тесты `app/tests/packaging.rs` держат только объявление, а `CFBundleURLSchemes`
-в собранном `tolearn.app` проверяется командой
-
-```
-plutil -extract CFBundleURLTypes json -o - target/release/bundle/macos/tolearn.app/Contents/Info.plist
-```
-
-Сквозной сценарий (после установки собранного пакета, приложение запущено, в
-реестре есть программа `llm-agents-base`):
-
-1. `open "tolearn://topic?roadmap=llm-agents-base&topic=local-runtime"` — окно
-   поднимается из фона и показывает тему `local-runtime`, второй копии приложения
-   не появляется.
-2. `open "tolearn://topic?roadmap=нет-такой&topic=local-runtime"` — окно
-   поднимается, показывает список программ и тост «программа `нет-такой` не в
-   реестре».
-3. То же при закрытом приложении — запускается и приезжает на ту же тему.
-
-На Windows и Linux ссылка приходит аргументом командной строки, а не событием:
-шаги те же, но команда — `start tolearn://…` и `xdg-open tolearn://…`.
 
 ## CI
 
@@ -355,9 +628,6 @@ workflow до последней кнопки не доходит.
 `типы_для_ui_совпадают_с_файлом_в_репозитории` сверяет `ui/src/ipc.d.ts` с
 генератором байт в байт, а без этой строки git на Windows выдаёт при checkout
 CRLF — и байты расходятся на каждой строке при полностью совпадающем содержании.
-Чужие репозитории этой строке не подчиняются: `рабочее_дерево_разложено` клонирует
-временный репозиторий, и `gix` раскладывает его по `core.autocrlf` машины — поэтому
-тест сверяет содержимое, приведя переводы строк, а не байты.
 
 Два теста раннера помечены `#[cfg(unix)]`: они проверяют то, чего на Windows нет —
 «убит сигналом, кода нет» (там код есть всегда) и смерть отвязанного внука вместе с

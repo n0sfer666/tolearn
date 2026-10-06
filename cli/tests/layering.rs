@@ -23,7 +23,7 @@ struct Layer {
 
 const SHELL_MARKERS: &[&str] = &["tauri", "wry", "webkit", "objc"];
 const WEBVIEW_MARKERS: &[&str] = &["tauri", "wry", "webkit"];
-const NON_CRATE_DIRS: &[&str] = &["ui", "docs", "examples", "fixtures"];
+const NON_CRATE_DIRS: &[&str] = &["ui", "docs", "examples", "fixtures", "tests-support"];
 const INHERITED_FIELDS: &[&str] = &[
     "version",
     "edition",
@@ -51,7 +51,7 @@ const LAYERS: &[Layer] = &[
     Layer {
         dir: "offline",
         package: "tolearn-offline",
-        allowed_internal: &["tolearn-core"],
+        allowed_internal: &[],
         forbidden_markers: SHELL_MARKERS,
         own_lints: false,
     },
@@ -59,6 +59,13 @@ const LAYERS: &[Layer] = &[
         dir: "provider",
         package: "tolearn-provider",
         allowed_internal: &["tolearn-core", "tolearn-runner"],
+        forbidden_markers: SHELL_MARKERS,
+        own_lints: false,
+    },
+    Layer {
+        dir: "generate",
+        package: "tolearn-generate",
+        allowed_internal: &["tolearn-core", "tolearn-offline", "tolearn-provider"],
         forbidden_markers: SHELL_MARKERS,
         own_lints: false,
     },
@@ -79,7 +86,12 @@ const LAYERS: &[Layer] = &[
     Layer {
         dir: "cli",
         package: "tolearn-cli",
-        allowed_internal: &["tolearn-core", "tolearn-runner", "tolearn-offline"],
+        allowed_internal: &[
+            "tolearn-core",
+            "tolearn-offline",
+            "tolearn-provider",
+            "tolearn-generate",
+        ],
         forbidden_markers: SHELL_MARKERS,
         own_lints: false,
     },
@@ -91,6 +103,7 @@ const LAYERS: &[Layer] = &[
             "tolearn-runner",
             "tolearn-offline",
             "tolearn-provider",
+            "tolearn-generate",
             "tolearn-gestures",
             "tolearn-speech",
         ],

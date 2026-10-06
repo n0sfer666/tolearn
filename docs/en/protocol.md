@@ -2,166 +2,180 @@
 
 [Русский](../ru/protocol.md) · **English**
 
-The app's contract. This document describes what `tolearn` does with a verdict.
+The app's contract. This document describes what `tolearn` does with a stage
+exam verdict ([ADR-026](../adr/026-learning-cycle.md)). What the **examining
+model** does is up to its prompt. What the **app** does is up to this
+document — otherwise the app's behaviour would depend on the contents of a
+program.
 
-Why it lives in the repository and not in the bundle: `examiner.md` inside a
-bundle is a file that the LLM regenerates and the user may edit. It describes what
-the **examining model** does. What the **app** does is decided by the app —
-otherwise the tracker's behaviour would depend on the contents of an imported
-folder. A disagreement between this document and a bundle's `examiner.md` is
-resolved in favour of this document; the app shows a warning on import when the
-tail of `examiner.md` describes different rules.
+The verdict arrives the same way in a written exam, when the answers go to the
+model in one request ([ADR-017](../adr/017-written-exam-only.md)), and in
+copypaste, when the same prompt is sent to someone else's chat and the answer
+is pasted back. Reading the verdict calls no model and touches no network.
 
-## The prompt boundary
+## The written exam
 
-`examiner.md` consists of two parts separated by a horizontal rule `---`:
+Under each question on the stage screen there is an answer field. The draft is
+written to the stage's state after a pause in typing, on leaving the field and
+on closing the window, so it survives a restart; an empty field removes the
+draft.
 
-- **before `---`** — the prompt for the examining model. Only this is copied;
-- **after `---`** — the "What the tracker does with the result" and "Known
-  limitation" sections. Those address the tracker and the person and never reach
-  the prompt.
+"Submit" gathers the answers together with the stage's reference `answer`s,
+the program's level and language into one prompt; a question with no answer
+goes as "no answer".
 
-The header block at the top of the file (the "copied into the bundle as
-examiner.md" mark) is cut out too: it addresses the generator.
+1. All fields empty — refused with "answer at least one question", no model is
+   called.
+2. A remote provider — an HTTP service or a CLI harness — needs the network,
+   and the app checks it before the call. A local model needs no check.
+3. One model call, and its answer is read as the verdict below. If the verdict
+   cannot be read, the model gets its answer back with the reason once and
+   repairs it. If that fails too — refused with the reason, and nothing is
+   written to the state.
+4. Every call, the repair included, is written to the request log as the
+   `exam` step.
+
+An accepted verdict becomes a `written` attempt with the model's name, and each
+question shows its result and what was missed.
+
+The exam can also be taken through any other chat, with no provider and no
+network. "Copy the prompt" puts the same prompt the model would get, with the
+person's answers, on the clipboard. The chat's whole reply goes into "Paste the
+reply" and passes the same parsing, without the repair: a refusal shows its
+reason from the "When a verdict is rejected" table and the state stays as it
+was. An accepted verdict becomes a `copypaste` attempt with no model, and
+nothing goes to the request log.
 
 ## The verdict
 
-The model's answer ends with exactly one JSON block. The app takes the **last**
-block from the pasted text — the whole answer is pasted, and demanding that a
-person dig the block out by hand guarantees mistakes.
+The app takes the **last** top-level JSON object from the answer text — inside
+a ` ```json ` fence or without one. The whole answer is pasted: demanding that
+a person dig the block out by hand guarantees mistakes. Objects nested inside
+another object do not count as a verdict of their own.
 
 ```json
 {
-  "topic_id": "...",
-  "date": "YYYY-MM-DD",
-  "model": "...",
-  "verdict": "pass|partial|fail|blocked",
-  "hinted": false,
-  "practice_accepted": true,
-  "failed_checks": [],
+  "stage": "voices",
   "per_question": [
-    {"id": "q1", "result": "ok|partial|miss", "quote": "...",
-     "missed": [], "signal_extension": false}
-  ],
-  "gaps": ["..."],
-  "calibration": "...",
-  "notes": ["..."],
-  "next_action": "proceed|retry_failed|redo_practice|split_topic",
-  "retry_after_days": 3
+    {"id": "q1", "result": "ok",
+     "added": "the fifth channel, DPCM, plays samples"},
+    {"id": "q2", "result": "partial",
+     "missed": ["why a 25 % and a 75 % duty cycle sound the same"]},
+    {"id": "q3", "result": "miss", "missed": ["the whole answer"]}
+  ]
 }
 ```
 
-Required: `topic_id`, `verdict`, `per_question`. A verdict without `per_question`
-is rejected — without a per-question breakdown it is no different from eyeballing
-a grade. A `topic_id` that does not match the open topic is rejected with an
-explicit message: that is almost always an answer pasted into the wrong topic.
+- `stage` — the `id` of the stage being examined;
+- `per_question` — exactly one row for each question of the stage, in any
+  order;
+- `result` — `ok`, `partial` or `miss`, in lower case;
+- `missed` — what the answer missed, as lines of text. Required and non-empty
+  for a question not passed (`partial`, `miss`), optional for a passed one;
+- `added` — the model's addition to the answer as one line: what is worth
+  knowing beyond what was said, or a fix for a wrong detail
+  ([ADR-027](../adr/027-exam-by-essence.md)). Optional for any `result`;
+  `null` and an empty string mean there is no addition.
 
-With other fields missing, parsing is partial: whatever is there gets applied, and
-the list of what was missing is shown.
+The app neither reads nor stores any other field.
+
+## When a verdict is rejected
+
+| Cause | What the person sees |
+|---|---|
+| the text holds no JSON object | "the text holds no JSON block with a verdict" |
+| `stage` of another stage | "the verdict of stage `…` was pasted into the wrong stage" |
+| no `stage` or `per_question`, a field of the wrong type | "the verdict could not be read" and the reason |
+| `result` other than `ok`, `partial` or `miss` | "the verdict could not be read" and the reason |
+| a question not passed has no `missed` or an empty one | "the verdict could not be read" and the reason |
+| an item in `missed` is empty or only whitespace | "the verdict could not be read" and the reason |
+| `added` is not a string | "the verdict could not be read" and the reason |
+| the questions do not match the stage's questions | which are missing, which are stray, which are graded twice |
+
+A rejected verdict is not written to the state. There is no partial parsing: a
+verdict that does not cover the whole stage cannot be told apart from
+eyeballing a grade.
 
 ## Verdict → status
 
+An accepted verdict becomes an attempt on the stage.
+
 | Verdict | Status | Also |
 |---|---|---|
-| `pass` | `passed` | `passed_at` = the date; `next_review_at` per `retention` |
-| `partial` | `in_progress` | only questions with `result != ok` go into the queue; retry after `retry_after_days` |
-| `fail` | `failed` | `gaps[]` highlighted on the analysis screen, practice is redone |
-| `blocked` | `in_progress` | **the attempt is not recorded in statistics** |
+| `ok` on every question | "passed", exam taken | `passed` — the attempt's date, by `exam` |
+| any `partial` or `miss` | "started" | the questions show what was missed |
 
-`blocked` means the exam did not take place: the required artefact was not
-produced. That is not a result, so it counts neither towards the attempt counter
-nor towards three failures in a row.
+- A failed attempt does not take "passed" away: a late failure is a reason to
+  repeat, not a loss of what was passed.
+- An exam passed after a skip changes the mark to `exam` and sets the
+  attempt's date.
+- An exam passed again does not change the date of the first pass.
+- An attempt on a stage not yet opened opens it with the attempt's date.
 
-## `next_review_at` per `retention`
+A question not passed is one whose `result` is not `ok` in the **last**
+attempt of its stage. These questions are shown on the stage screen along with
+`missed` and go into the following prompts as ADR-026 describes under "What
+the exam passes on". The "questions not passed" block is at most 1,500
+characters: when it does not fit, the questions of stages nearer the end of
+the map stay.
 
-`N` is the topic's effective revalidation period: its own `revalidate_after_days`,
-or `defaults.revalidate_after_days[volatility]` from the header when the field is
-absent. The date is computed by adding `N` calendar days to the base, and the base
-itself is not counted: `2026-05-01 + 30` is `2026-05-31`.
+Regenerating a stage changes its questions and practice, so the earlier
+attempts no longer belong to the new text: the stage entry gets `since` — the
+number of attempts at that moment — and only a later attempt counts as the
+last one. The attempts stay in the file, answer drafts and practice ticks are
+cleared, and "passed" is not taken away.
 
-| `retention` | Base | `next_review_at` | Why that base |
-|---|---|---|---|
-| `by_schedule` | `passed_at` | `passed_at + N` | it is human memory that fades, so count from the exam |
-| `by_use` | the topic's `verified_at` | `verified_at + N` | knowledge is held by practice; it is the subject that ages, not the memory |
-| `none` | — | `null` | the topic does not come back |
+## Skipping
 
-The base for `by_use` does not depend on the attempt, so the date is set for
-`passed_out` as well: the topic was passed by calibration, but the subject ages by
-`verified_at` all the same. For `by_use` the date coincides with the shelf life of
-the knowledge — the very one `stale_passed` is derived from: a topic enters the
-review queue exactly when its content stops being fresh.
+A stage can be marked passed without an exam: a person may have known the
+material already or put the check off. A skip is written as `passed.by: skip`,
+it has no attempt, and the summary counts such stages separately — "without an
+exam" — otherwise the "passed" number stops meaning anything.
 
-## Three failures in a row
-
-Three `fail` verdicts in a row on one topic is a signal that the topic is too
-large or that a prerequisite was not met. The app offers to split the topic and
-hands over ready-made request text for regeneration in `refresh` mode. It does not
-change the bundle itself.
-
-## Marking by hand
-
-Any status can be set by hand, without an exam: a person may have known the topic
-already, covered it at work, or disagreed with the model. A manual mark is
-recorded with `source: manual` and is distinguished from a passed exam in the
-statistics — otherwise the "passed" number stops meaning anything.
-
-The reverse holds too: resetting a status by hand does not erase the attempt
-history.
+"Skip the check" at the end of a stage records the skip with the day it was
+pressed, opens the stage if it was not open yet, and leads to the fork. A stage
+already passed is left alone: a passed exam stays passed and its date does not
+change. The exam can still be taken after a skip, by the rules above. A skip
+adds nothing to the fork and next-stage prompts: it has no questions not
+passed.
 
 ## The shape of an attempt
 
-An `attempts[]` element in `progress.yaml` stores the verdict verbatim plus what
-the app knows and the model does not:
+An attempt lives in `stages.<key>.attempts[]` of `state.yaml`
+([format.md](../format.md)). The verdict is stored verbatim, next to what the
+app knows and the model does not:
 
 ```yaml
 attempts:
-  - at: "2026-07-26T18:40:00+03:00"
-    source: exam            # exam | manual
-    verdict: partial
-    model: "..."
-    hinted: false
-    practice_accepted: true
-    failed_checks: []
-    per_question: [...]
-    gaps: [...]
-    calibration: "..."
-    notes: [...]
-    next_action: retry_failed
-    retry_after_days: 3
-    raw: |                  # the original JSON block as it arrived
-      {...}
+  - "on": 2026-09-14
+    by: written          # written | copypaste
+    model: claude-opus-5 # written only
+    per_question:
+      - id: q1
+        result: ok
+        added: the fifth channel, DPCM, plays samples
+      - id: q2
+        result: partial
+        missed:
+          - why a 25 % and a 75 % duty cycle sound the same
 ```
 
-`raw` is always stored. The verdict format may change in the next version of the
-protocol, and the original text is the only thing the history could then be
-rebuilt from.
+- `on` — the attempt's date;
+- `by` — how: a written exam in the app, or copypaste;
+- `model` — the model that took the exam; with copypaste the app does not know
+  it, and the field is absent;
+- `per_question` — the verdict's rows in the order of the answer, `missed` and
+  `added` word for word; with no addition there is no `added` field.
 
-## Practice and the timebox
-
-Practice runs against a timer set by the topic's `time_box_min`. The countdown
-lives in `progress.yaml` as a separate `practice` record rather than in
-`attempts[]`: an attempt only appears with an exam verdict, while the timebox
-expires earlier — sometimes across several sittings and with no exam at all.
-
-```yaml
-practice:
-  started_at: "2026-07-28T10:00:00+03:00"   # null — the timer is paused
-  spent_sec: 900                            # accumulated, not counting the current run
-  expired: true                             # the timebox has already run out
-```
-
-The countdown is restored from `started_at`, so moving between screens and
-restarting the app do not reset it. Pausing adds the elapsed time to `spent_sec`
-and clears `started_at`; a reset erases the record entirely.
-
-Expiry blocks nothing: the timer goes negative and keeps counting, and `expired`
-stays recorded even after a pause. It is a measurement, not a prohibition —
-practice time says something about the topic and the plan, but not about whether
-you may carry on.
+There is no `raw` field: the state schema is closed, and `per_question` is the
+whole of the verdict the app reads. Attempts are only appended; earlier ones
+are never rewritten or removed.
 
 ## Known limitation
 
-The prompt reduces sycophancy but does not remove it. The only thing that really
-holds the grade is executable acceptance of the practice; for theory topics a
-`pass` remains the model's judgement. The app does not fix that and does not
-pretend to — it merely keeps you from skipping the steps of the protocol.
+The prompt reduces sycophancy but does not remove it. The only thing that
+really holds the grade is executable acceptance of the practice, and the person
+ticks that off ([ADR-006](../adr/006-human-verdict.md)). For a stage's
+questions an `ok` remains the model's judgement. The app does not fix that and
+does not pretend to — it merely keeps you from skipping the steps of the
+protocol.

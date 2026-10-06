@@ -1,22 +1,35 @@
-use std::path::{Path, PathBuf};
+use std::fs;
+use std::path::{Component, Path, PathBuf};
 
-pub fn inside(bundle: &Path, target: &Path) -> bool {
-    let (Some(bundle), Some(target)) = (settled(bundle), settled(target)) else {
-        return false;
+pub fn inside(root: &Path, target: &Path) -> bool {
+    let (Some(root), Some(target)) = (settled(root), settled(target)) else {
+        return true;
     };
-    target.starts_with(&bundle)
+    target.starts_with(&root)
+}
+
+pub fn claimed(target: &Path) -> bool {
+    settled(target).is_none_or(|target| {
+        target
+            .ancestors()
+            .any(|folder| folder.join("program.yaml").exists())
+    })
 }
 
 fn settled(path: &Path) -> Option<PathBuf> {
-    if let Ok(found) = path.canonicalize() {
-        return Some(found);
+    let absolute = std::path::absolute(path).ok()?;
+    let mut settled = PathBuf::new();
+    for part in absolute.components() {
+        match part {
+            Component::ParentDir => {
+                settled.pop();
+            }
+            Component::CurDir => {}
+            other => settled.push(other),
+        }
+        if fs::symlink_metadata(&settled).is_ok() {
+            settled = settled.canonicalize().ok()?;
+        }
     }
-    let name = path.file_name()?;
-    let parent = path
-        .parent()
-        .filter(|parent| !parent.as_os_str().is_empty());
-    match parent {
-        Some(parent) => Some(parent.canonicalize().ok()?.join(name)),
-        None => Some(std::env::current_dir().ok()?.join(name)),
-    }
+    Some(settled)
 }

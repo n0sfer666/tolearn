@@ -5,6 +5,9 @@
     reason = "offline gate: a panic here is the report"
 )]
 
+#[path = "../../tests-support/scratch.rs"]
+mod scratch;
+
 use std::path::PathBuf;
 
 use rusqlite::Connection;
@@ -25,9 +28,7 @@ create table programs (program text primary key, protected integer not null);
 ";
 
 fn root(name: &str) -> PathBuf {
-    let path = std::env::temp_dir().join(format!("tolearn-keep-{name}-{}", std::process::id()));
-    let _ = std::fs::remove_dir_all(&path);
-    path
+    scratch::named(&format!("keep-{name}"))
 }
 
 fn fetched(bytes: &[u8]) -> Fetched<'_> {

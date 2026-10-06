@@ -6,7 +6,7 @@ pub fn load(source: &str, origin: &str) -> Value {
     assert_eq!(
         documents.len(),
         1,
-        "{origin}: bundle files hold exactly one YAML document"
+        "{origin}: a file holds exactly one YAML document"
     );
     convert(&documents[0], origin)
 }

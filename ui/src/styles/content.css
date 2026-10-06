@@ -12,37 +12,7 @@
   margin-block-start: var(--spacing-1);
 }
 
-[data-header] > p,
-[data-steps] {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--spacing-2);
-  max-width: none;
-}
-
-[data-steps] {
-  margin-block-start: var(--spacing-4);
-}
-
-[data-tools] {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-3);
-}
-
-[data-tools] :where(a) {
-  display: inline-flex;
-  align-items: center;
-  min-block-size: var(--tap-target);
-  padding-inline: var(--spacing-4);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-sm);
-  text-decoration: none;
-}
-
-.row :where(button) + :where(button),
-[data-steps] :where(button) + :where(button) {
+.row :where(button) + :where(button) {
   margin-inline-start: 0;
 }
 
@@ -54,6 +24,8 @@ details {
 }
 
 summary {
+  position: relative;
+  min-height: auto;
   color: var(--color-fg-muted);
   cursor: pointer;
 }
@@ -76,12 +48,45 @@ thead th {
   font-weight: normal;
 }
 
+caption {
+  padding-block-end: var(--spacing-2);
+  font-weight: bold;
+  text-align: start;
+}
+
+dt {
+  margin-block-start: var(--spacing-4);
+  font-weight: bold;
+}
+
+dd {
+  max-width: var(--measure);
+  margin: var(--spacing-1) 0 0;
+}
+
 progress {
+  appearance: none;
   inline-size: 100%;
   block-size: var(--spacing-2);
+  overflow: hidden;
   border: none;
   border-radius: var(--radius-sm);
-  accent-color: var(--color-accent);
+  background: var(--color-bg-subtle);
+}
+
+progress::-webkit-progress-bar {
+  border-radius: inherit;
+  background: var(--color-bg-subtle);
+}
+
+progress::-webkit-progress-value {
+  border-radius: inherit;
+  background: var(--color-accent);
+}
+
+progress::-moz-progress-bar {
+  border-radius: inherit;
+  background: var(--color-accent);
 }
 
 time,

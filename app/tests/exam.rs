@@ -7,153 +7,229 @@
 
 mod support;
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+use std::sync::Arc;
 
 use serde_json::{Value, json};
-use support::copied;
+use support::planner::{Net, provider};
+use support::starter::{Case, LEVEL, flat, told};
 use tolearn_app::ipc::{Context, IpcError, call};
+use tolearn_core::state::{Attempt, Grade, Sitting, State};
+use tolearn_generate::ledger;
 
-fn context() -> Context {
-    Context::new(&std::env::temp_dir().join(format!("tolearn-exam-{}", std::process::id())))
+const PASSED: &str = r#"{"stage": "tracker", "per_question": [{"id": "q1", "result": "ok"}, {"id": "q2", "result": "ok"}, {"id": "q3", "result": "ok"}]}"#;
+
+const NUMBERED: &str = r#"{"stage": "tracker", "per_question": [{"id": "q1", "result": "ok", "added": 3}, {"id": "q2", "result": "ok"}, {"id": "q3", "result": "ok"}]}"#;
+
+const GRADED: &str = r#"Разбор по вопросам.
+
+```json
+{"stage": "tracker", "per_question": [
+  {"id": "q1", "result": "ok", "added": "пятый канал — DPCM"},
+  {"id": "q2", "result": "partial", "missed": ["нет регулировки громкости"]},
+  {"id": "q3", "result": "miss", "missed": ["весь ответ"]}
+]}
+```"#;
+
+const PRAISE: &str = "Всё отлично, так держать!";
+
+fn begun(extra: &[&str]) -> (Case, String) {
+    let mut answers = flat();
+    answers.extend(extra.iter().map(|&text| text.to_owned()));
+    let case = Case::new(true, told(answers));
+    let started = case.start(&case.plan(), LEVEL).unwrap();
+    let program = started["program"].as_str().unwrap().to_owned();
+    (case, program)
 }
 
-fn bundle(name: &str) -> PathBuf {
-    copied(&format!("exam-{name}"))
+fn at(program: &str) -> Value {
+    json!({ "program": program, "node": "", "stage": "tracker" })
 }
 
-fn verdict(result: &str, extra: &str) -> String {
-    format!(
-        "Разбор ответа.\n\n```json\n{{\n  \"topic_id\": \"local-runtime\",\n  \"verdict\": \"{result}\",\n  \"per_question\": [{{ \"id\": \"q1\", \"result\": \"ok\" }}],\n  \"gaps\": [\"квантование\"]{extra}\n}}\n```\n"
+fn sat(context: &Context, program: &str, answers: &[(&str, &str)]) -> Result<Value, IpcError> {
+    let mut input = at(program);
+    input["answers"] = answers
+        .iter()
+        .map(|&(id, text)| json!({ "id": id, "text": text }))
+        .collect();
+    call(context, "exam", &input)
+}
+
+fn drafted(
+    context: &Context,
+    program: &str,
+    question: &str,
+    text: &str,
+) -> Result<Value, IpcError> {
+    let mut input = at(program);
+    input["question"] = json!(question);
+    input["text"] = json!(text);
+    call(context, "answer", &input)
+}
+
+fn questions(context: &Context, program: &str) -> Value {
+    call(context, "stage", &at(program)).unwrap()["questions"].clone()
+}
+
+fn last(case: &Case, program: &str) -> Option<Attempt> {
+    State::read(&case.data, program)
+        .unwrap()
+        .last_attempt(program, "tracker")
+        .cloned()
+}
+
+fn state(case: &Case, program: &str) -> PathBuf {
+    case.data.join("state").join(program).join("state.yaml")
+}
+
+fn active(context: &Context, case: &Case, kind: &str) {
+    let mut saved = provider(&case.model.endpoint);
+    saved["active"] = json!(kind);
+    save(context, saved);
+}
+
+fn save(context: &Context, saved: Value) {
+    let input = json!({ "save": saved, "key": Value::Null, "forget": false, "check": false, "probe": false });
+    call(context, "provider", &input).unwrap();
+}
+
+#[test]
+fn письменный_зачёт_уходит_одним_запросом_и_становится_попыткой() {
+    let (case, program) = begun(&[GRADED]);
+    drafted(&case.context, &program, "q1", "Пять каналов").unwrap();
+    let heard = case.model.heard().len();
+
+    let result = sat(
+        &case.context,
+        &program,
+        &[("q1", "Пять каналов"), ("q2", "Громкостью"), ("q3", "")],
     )
-}
+    .unwrap();
 
-fn parse(root: &Path, text: &str) -> Result<Value, IpcError> {
-    call(
-        &context(),
-        "parse_verdict",
-        &json!({
-            "bundle": root.display().to_string(),
-            "topic": "local-runtime",
-            "text": text,
-        }),
-    )
-}
-
-fn apply(root: &Path, text: &str) -> Result<Value, IpcError> {
-    call(
-        &context(),
-        "apply_verdict",
-        &json!({
-            "bundle": root.display().to_string(),
-            "topic": "local-runtime",
-            "text": text,
-            "today": "2026-07-28",
-        }),
-    )
-}
-
-fn progress(root: &Path) -> String {
-    std::fs::read_to_string(root.join("progress.yaml")).unwrap()
-}
-
-#[test]
-fn вердикт_вставляется_целиком_а_не_выдранным_json() {
-    let root = bundle("whole");
-
-    let out = parse(&root, &verdict("pass", "")).unwrap();
-
-    assert_eq!(out["result"], "pass");
-    assert_eq!(out["gaps"][0], "квантование");
-    assert_eq!(out["status"], "passed");
-}
-
-#[test]
-fn разбор_ничего_не_пишет_пока_человек_не_применил() {
-    let root = bundle("dry");
-    let before = progress(&root);
-
-    parse(&root, &verdict("pass", "")).unwrap();
-
-    assert_eq!(progress(&root), before, "разбор тронул progress.yaml");
-}
-
-#[test]
-fn применение_ставит_статус_по_протоколу() {
-    let root = bundle("apply");
-
-    let out = apply(&root, &verdict("pass", "")).unwrap();
-
-    assert_eq!(out["status"], "passed");
-    assert!(progress(&root).contains("passed"), "{}", progress(&root));
-}
-
-#[test]
-fn неполный_вердикт_называет_пропуски_но_применяется() {
-    let root = bundle("partialfields");
-    let text = "```json\n{ \"topic_id\": \"local-runtime\", \"verdict\": \"partial\", \"per_question\": [{ \"id\": \"q1\", \"result\": \"partial\" }] }\n```";
-
-    let out = parse(&root, text).unwrap();
-
-    assert!(
-        out["missing"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .any(|field| field == "gaps"),
-        "{out}"
+    assert_eq!(result, json!({ "passed": false }));
+    let prompts = case.model.heard();
+    assert_eq!(prompts.len(), heard + 1);
+    let prompt = &prompts[heard];
+    assert!(prompt.contains("Громкостью"));
+    assert!(prompt.contains("нет ответа"));
+    assert!(prompt.contains(LEVEL));
+    let steps = case.steps();
+    assert!(steps.contains(&("began".to_owned(), "exam".to_owned())));
+    assert!(steps.contains(&("ended".to_owned(), "exam".to_owned())));
+    let attempt = last(&case, &program).unwrap();
+    assert_eq!(attempt.by, Sitting::Written);
+    assert_eq!(attempt.model.as_deref(), Some("llama3:8b"));
+    let grades: Vec<Grade> = attempt.per_question.iter().map(|row| row.result).collect();
+    assert_eq!(grades, [Grade::Ok, Grade::Partial, Grade::Miss]);
+    assert_eq!(
+        attempt.per_question[0].added.as_deref(),
+        Some("пятый канал — DPCM")
     );
-    assert_eq!(out["status"], "in_progress", "{out}");
-    assert_eq!(apply(&root, text).unwrap()["status"], "in_progress");
+    assert_eq!(attempt.per_question[1].added, None);
+    let records = ledger::read(&ledger::path(&case.data, &program)).unwrap();
+    let exam: Vec<_> = records
+        .iter()
+        .filter(|record| record.step == "exam")
+        .collect();
+    assert_eq!(exam.len(), 1);
+    assert_eq!(exam[0].stage.as_deref(), Some("tracker"));
+    assert_eq!(exam[0].program.as_deref(), Some(program.as_str()));
+
+    let shown = questions(&case.context, &program);
+    assert_eq!(shown[0]["draft"], json!("Пять каналов"));
+    assert_eq!(shown[1]["result"], json!("partial"));
+    assert_eq!(shown[1]["missed"], json!(["нет регулировки громкости"]));
 }
 
 #[test]
-fn вердикт_о_чужой_теме_отвергается_до_записи() {
-    let root = bundle("foreign");
-    let before = progress(&root);
-    let text = verdict("pass", "").replace("local-runtime", "cp-gateway");
+fn ответ_без_вердикта_чинится_раз_и_отказ_не_трогает_состояние() {
+    let (case, program) = begun(&[PRAISE]);
+    drafted(&case.context, &program, "q1", "Пять каналов").unwrap();
+    let before = std::fs::read(state(&case, &program)).unwrap();
+    let heard = case.model.heard().len();
 
-    let refused = apply(&root, &text).unwrap_err();
+    let refused = sat(&case.context, &program, &[("q1", "Пять каналов")]).unwrap_err();
 
-    assert_eq!(refused.code, "verdict.wrong-topic");
-    assert_eq!(progress(&root), before);
+    assert_eq!(refused.code, "generate.verdict");
+    assert!(
+        refused.message.contains("нет JSON-блока"),
+        "{}",
+        refused.message
+    );
+    assert_eq!(case.model.heard().len(), heard + 2);
+    assert_eq!(std::fs::read(state(&case, &program)).unwrap(), before);
+    let records = ledger::read(&ledger::path(&case.data, &program)).unwrap();
+    let rounds: Vec<Option<usize>> = records
+        .iter()
+        .filter(|record| record.step == "exam")
+        .map(|record| record.round)
+        .collect();
+    assert_eq!(rounds, [None, Some(1)]);
 }
 
 #[test]
-fn ответ_без_json_отвергается_понятной_ошибкой() {
-    let root = bundle("nojson");
+fn added_не_строкой_чинится_раз_и_отказ_не_трогает_состояние() {
+    let (case, program) = begun(&[NUMBERED]);
+    drafted(&case.context, &program, "q1", "Пять каналов").unwrap();
+    let before = std::fs::read(state(&case, &program)).unwrap();
+    let heard = case.model.heard().len();
 
-    let refused = parse(&root, "Модель ответила прозой и ничего не приложила").unwrap_err();
+    let refused = sat(&case.context, &program, &[("q1", "Пять каналов")]).unwrap_err();
 
-    assert_eq!(refused.code, "verdict.no-json");
+    assert_eq!(refused.code, "generate.verdict");
+    assert!(refused.message.contains("added"), "{}", refused.message);
+    assert_eq!(case.model.heard().len(), heard + 2);
+    assert_eq!(std::fs::read(state(&case, &program)).unwrap(), before);
 }
 
 #[test]
-fn заблокированная_тема_не_идёт_в_сделанное() {
-    let root = bundle("blocked");
+fn сеть_проверяется_только_у_удалённого_провайдера() {
+    let (case, program) = begun(&[PASSED]);
+    let offline = case.context.clone().with_reach(Arc::new(Net(false)));
+    let heard = case.model.heard().len();
 
-    apply(
-        &root,
-        &verdict("blocked", ", \"next_action\": \"retry_failed\""),
-    )
-    .unwrap();
+    active(&offline, &case, "remote");
+    let refused = sat(&offline, &program, &[("q1", "Пять")]).unwrap_err();
+    assert_eq!(refused.code, "generate.offline");
+    assert_eq!(case.model.heard().len(), heard);
+    assert!(last(&case, &program).is_none());
 
-    let tally = call(
-        &context(),
-        "program",
-        &json!({ "bundle": root.display().to_string(), "today": "2026-07-28" }),
-    )
-    .unwrap();
-    assert_eq!(tally["program"]["done"], 0, "{}", tally["program"]);
+    active(&offline, &case, "local");
+    let result = sat(&offline, &program, &[("q1", "Пять")]).unwrap();
+    assert_eq!(result, json!({ "passed": true }));
+    assert!(last(&case, &program).unwrap().passes());
 }
 
 #[test]
-fn три_провала_подряд_предлагают_разделить_тему() {
-    let root = bundle("streak");
+fn пустой_зачёт_и_чужой_вопрос_не_зовут_модель() {
+    let (case, program) = begun(&[PASSED]);
+    let heard = case.model.heard().len();
 
-    let mut out = Value::Null;
-    for _ in 0..3 {
-        out = apply(&root, &verdict("fail", "")).unwrap();
-    }
+    let empty = sat(&case.context, &program, &[("q1", "  \n"), ("q2", "")]).unwrap_err();
+    assert_eq!(empty.code, "exam.empty");
+    let stray = sat(&case.context, &program, &[("q9", "Пять")]).unwrap_err();
+    assert_eq!(stray.code, "question.absent");
+    assert_eq!(case.model.heard().len(), heard);
+    assert!(last(&case, &program).is_none());
+}
 
-    assert_eq!(out["split_suggested"], true);
+#[cfg(unix)]
+#[test]
+fn пробельный_id_харнесса_не_становится_моделью_попытки() {
+    let (case, program) = begun(&[]);
+    let mut saved = provider(&case.model.endpoint);
+    saved["active"] = json!("harness");
+    saved["harness"]["command"] = json!("sh");
+    saved["harness"]["args"] = json!(["-c", r#"cat >/dev/null; printf '%s' "$0""#, PASSED]);
+    save(&case.context, saved);
+    let config = case.data.join("provider.yaml");
+    let written = std::fs::read_to_string(&config).unwrap();
+    let blank = written.replace(r#"id: "custom""#, r#"id: " ""#);
+    assert_ne!(blank, written, "{written}");
+    std::fs::write(&config, blank).unwrap();
+
+    let result = sat(&case.context, &program, &[("q1", "Пять")]).unwrap();
+
+    assert_eq!(result, json!({ "passed": true }));
+    assert_eq!(last(&case, &program).unwrap().model, None);
 }

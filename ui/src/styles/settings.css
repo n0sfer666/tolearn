@@ -1,0 +1,17 @@
+[data-settings] {
+  display: grid;
+  align-content: start;
+  gap: var(--spacing-4);
+}
+
+[data-settings] astro-island,
+[data-settings] [data-cards] {
+  display: contents;
+}
+
+[data-doing] {
+  display: grid;
+  justify-items: start;
+  gap: var(--spacing-3);
+  margin-block-start: var(--spacing-4);
+}

@@ -1,0 +1,61 @@
+#![allow(
+    clippy::unwrap_used,
+    clippy::panic,
+    reason = "runner gate: a panic here is the report"
+)]
+
+#[path = "../../tests-support/scratch.rs"]
+mod scratch;
+
+#[cfg(unix)]
+use std::time::Duration;
+
+use tolearn_runner::search;
+#[cfg(unix)]
+use tolearn_runner::{Limits, Outcome, Stop, spawn};
+
+#[cfg(unix)]
+fn scratch(name: &str) -> std::path::PathBuf {
+    scratch::made(&format!("path-{name}"))
+}
+
+#[cfg(unix)]
+#[test]
+fn the_program_inherits_the_search_it_was_found_by() {
+    let directory = scratch("inherited");
+
+    let run = spawn(
+        "sh",
+        &["-c".to_owned(), "printf %s \"$PATH\"".to_owned()],
+        &directory,
+        "",
+        Limits {
+            timeout: Duration::from_secs(10),
+            silence: None,
+            output_bytes: 64 * 1024,
+        },
+        None,
+        &Stop::default(),
+    )
+    .unwrap();
+
+    let _ = std::fs::remove_dir_all(&directory);
+    assert!(
+        matches!(run.outcome, Outcome::Finished { code: Some(0) }),
+        "{run:?}"
+    );
+    assert_eq!(run.stdout, search());
+}
+
+#[test]
+fn the_enriched_search_never_loses_what_it_inherited() {
+    let inherited = std::env::var("PATH").unwrap_or_default();
+    let found = search();
+
+    for place in inherited
+        .split(if cfg!(windows) { ';' } else { ':' })
+        .filter(|part| !part.is_empty())
+    {
+        assert!(found.contains(place), "{place} ушло из {found}");
+    }
+}

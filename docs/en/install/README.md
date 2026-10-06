@@ -33,13 +33,12 @@ per system:
 
 | What | Path |
 |---|---|
-| Settings, provider, program registry | `~/.config/tolearn` |
-| Notes, page archives, unpacked bundles, history | `~/.local/share/tolearn` |
+| Settings, provider | `~/.config/tolearn` |
+| Programs, search index | `~/.local/share/tolearn` |
 
 On Windows `~` is `C:\Users\<name>`, i.e. `C:\Users\<name>\.config\tolearn`. The
 `XDG_CONFIG_HOME` and `XDG_DATA_HOME` variables are honoured when set to an
-absolute path. The learning programs themselves stay wherever you put them: the
-app stores the path to them, not the programs.
+absolute path. Imported programs live in `~/.local/share/tolearn/programs/`.
 
 The data is tied neither to the build variant nor to the way you installed:
 switching from `tolearn` to `tolearn-with-speech`, reinstalling, and moving from an
@@ -54,6 +53,3 @@ Removing the app does not remove the data — that is a separate action:
 ```sh
 rm -rf ~/.config/tolearn ~/.local/share/tolearn
 ```
-
-Notes in external storage (an Obsidian vault or any other directory you set) live
-outside these paths and are yours to delete: the app will not touch them.

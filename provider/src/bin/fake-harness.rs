@@ -5,6 +5,8 @@ use std::time::Duration;
 const VERSION: &str = "fake-harness 1.0";
 const FLOOD_LINES: usize = 40_000;
 const STEP: Duration = Duration::from_millis(40);
+const SPENT: &str = r#"{"input_tokens":10,"cache_creation_input_tokens":4,"output_tokens":7,"cache_read_input_tokens":3}"#;
+const UNSPENT: &str = r#"{"input_tokens":0,"output_tokens":0}"#;
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -15,7 +17,10 @@ fn main() -> ExitCode {
         "ansi" => println!("\u{1b}]0;title\u{7}\u{1b}[32mуслышал: {}\u{1b}[0m", heard()),
         "banner" => println!("добро пожаловать\n\nуслышал: {}", heard()),
         "silent" => {}
-        "stream" => stream(&heard()),
+        "stream" => stream(&heard(), SPENT, "fake-sonnet"),
+        "unspent" => stream(&heard(), UNSPENT, "fake-sonnet"),
+        "unnamed" => stream(&heard(), SPENT, " "),
+        "padded" => stream(&heard(), SPENT, "  fake-sonnet "),
         "jsonish" => println!(
             "{{\"type\":\"status\",\"note\":\"работаю\"}}\nуслышал: {}",
             heard()
@@ -24,6 +29,7 @@ fn main() -> ExitCode {
         "cwd" => println!("{}", around()),
         "flood" => flood(),
         "hang" => std::thread::sleep(Duration::from_secs(30)),
+        "linger" => linger(&args[1]),
         "fail" => {
             eprintln!("не залогинен\nвыполните `fake-harness login`\nстрока три\nстрока четыре");
             return ExitCode::from(3);
@@ -36,8 +42,8 @@ fn main() -> ExitCode {
     ExitCode::SUCCESS
 }
 
-fn stream(said: &str) {
-    println!(r#"{{"type":"system","subtype":"init"}}"#);
+fn stream(said: &str, usage: &str, model: &str) {
+    println!(r#"{{"type":"system","subtype":"init","model":"{model}"}}"#);
     for piece in ["услышал", ": ", said] {
         println!(
             r#"{{"type":"stream_event","event":{{"type":"content_block_delta","delta":{{"type":"text_delta","text":"{piece}"}}}}}}"#
@@ -45,7 +51,7 @@ fn stream(said: &str) {
         std::thread::sleep(STEP);
     }
     println!(
-        r#"{{"type":"result","subtype":"success","result":"услышал: {said}","usage":{{"input_tokens":10,"output_tokens":7,"cache_read_input_tokens":3}}}}"#
+        r#"{{"type":"result","subtype":"success","result":"услышал: {said}","usage":{usage}}}"#
     );
 }
 
@@ -67,4 +73,9 @@ fn flood() {
     for line in 0..FLOOD_LINES {
         println!("строка {line} набита буквами чтобы вывод перевалил за потолок");
     }
+}
+
+fn linger(pid: &str) {
+    let _ = std::fs::write(pid, std::process::id().to_string());
+    std::thread::sleep(Duration::from_secs(30));
 }

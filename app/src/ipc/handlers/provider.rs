@@ -2,7 +2,7 @@ use tolearn_provider::{PROBE_PROMPT, Provider, check, probe};
 
 use crate::ipc::context::Context;
 use crate::ipc::error::IpcError;
-use crate::ipc::provider::{advice, denied, failed, presets, refute, taken, view};
+use crate::ipc::provider::{advice, denied, failed, outdated, presets, refute, taken, view};
 use crate::ipc::types::{CheckedView, ProbedView, ProviderIn, ProviderOut};
 use crate::journal::Journal;
 
@@ -41,6 +41,7 @@ pub fn run(context: &Context, input: &ProviderIn) -> Result<ProviderOut, IpcErro
         checked,
         probed,
         presets: presets(),
+        outdated: outdated(&provider.harness),
     })
 }
 

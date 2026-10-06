@@ -1,222 +1,176 @@
 import assert from "node:assert/strict";
-import test, { afterEach, before } from "node:test";
+import test from "node:test";
 
-import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
-import { browser, settled } from "./support/dom.mjs";
+import { settled } from "./support/dom.mjs";
+import { OUT, stageScreen } from "./support/stage.mjs";
 
-const mounted = [];
+const { mount } = stageScreen();
 
-afterEach(() => {
-  while (mounted.length > 0) mounted.pop()();
-});
-
-let Practice;
-let render;
-let document;
-
-before(
-  async () => {
-    ({ document } = browser(
-      "https://tolearn.local/ru/practice/?program=/programs/llm-agents-base&topic=local-runtime",
-    ));
-    ({ default: Practice } = await island("Practice"));
-    ({ render } = await import("solid-js/web"));
-  },
-  { timeout: 300_000 },
-);
-
-const CHECK = (id) => ({ id, claim: `утверждение ${id}`, check: `команда ${id}`, expect: `ожидание ${id}` });
-
-const OUT = {
-  id: "local-runtime",
-  title: "Локальный рантайм",
-  practice: {
-    kind: "ops",
-    tier: "P2",
-    task: "Подними модель локально",
-    deliverable: "Лог запуска с числами",
-    starting_point: null,
-    fallback: "Начни с самой маленькой модели",
-    time_box_min: 90,
-    smoke_checked: true,
-    constraints: [CHECK("c1")],
-    acceptance: [CHECK("a1"), CHECK("a2")],
-  },
-};
-
-const TIMER = {
-  spent_sec: 0,
-  left_sec: 90 * 60,
-  box_min: 90,
-  running: false,
-  expired: false,
-};
-
-function mount(options = {}) {
-  const host = document.createElement("div");
-  document.body.append(host);
-  const calls = [];
-  const call = (name, payload) => {
-    calls.push({ name, payload });
-    if (name === "topic") return Promise.resolve(OUT);
-    if (name === "practice") return Promise.resolve(TIMER);
-    if (name === "run_check") {
-      if (options.refuse) return Promise.reject(new Error("проверка не запускается"));
-      return Promise.resolve({
-        id: payload.check,
-        command: `команда ${payload.check}`,
-        expect: `ожидание ${payload.check}`,
-        code: options.code ?? 0,
-        timed_out: options.timedOut ?? false,
-        stdout: `вывод ${payload.check}`,
-        stderr: "",
-        truncated: false,
-      });
-    }
-    throw new Error(`лишняя команда ${name}`);
-  };
-  mounted.push(render(
-    () =>
-      Practice({
-        text: ru,
-        locale: "ru",
-        program: "/programs/llm-agents-base",
-        topic: "local-runtime",
-        today: "2026-07-27",
-        call,
-      }),
-    host,
-  ));
-  return { host, calls };
-}
-
-const item = (host, id) => host.querySelector(`[data-check="${id}"]`);
-
-test("экран читает тему и показывает задачу до всякого запуска", async () => {
+test("практика читается целиком, запуск стоит только у пункта с командой", async () => {
   const { host, calls } = mount();
   await settled();
 
-  assert.deepEqual(calls.map(({ name }) => name).sort(), ["practice", "topic"]);
-  assert.match(host.querySelector("[data-task]").textContent, /Подними модель локально/);
-  assert.match(host.textContent, new RegExp(ru.topic.smoke));
-});
-
-test("текст команды виден до запуска, а сам запуск не случается сам", async () => {
-  const { host, calls } = mount();
-  await settled();
-
-  assert.match(item(host, "c1").textContent, /команда c1/);
-  assert.equal(item(host, "c1").querySelector("[data-output]"), null);
+  const practice = host.querySelector("[data-practice]");
+  for (const seen of ["Сыграйте гамму", "Файл melody.nsf", "Только пульсы", "Гамма звучит", "python play.py", "exit 0"]) {
+    assert.ok(practice.textContent.includes(seen), seen);
+  }
+  assert.deepEqual(
+    [...host.querySelectorAll("[data-question]")].map((node) => node.id),
+    ["q1", "q2"],
+  );
+  assert.equal(host.querySelector("#c1 [data-run]"), null, "у пункта без команды есть кнопка");
+  assert.ok(host.querySelector("#a1 [data-run]"));
   assert.equal(
-    calls.filter(({ name }) => name === "run_check").length,
+    host.querySelectorAll(
+      "button:not([data-snip], [data-regenerate], [data-run], [data-choose], [data-exam], [data-prompt], [data-apply], [data-zoom-open])",
+    ).length,
     0,
-    "команда бандла запущена без человека",
+    "появилась лишняя кнопка",
+  );
+  assert.deepEqual(
+    calls.map((made) => made.name),
+    ["stage"],
+    "команда ушла без нажатия",
   );
 });
 
-test("ограничения и приёмка — две коллекции", async () => {
-  const { host } = mount();
-  await settled();
-
-  const constraints = host.querySelector("[data-constraints]");
-  const acceptance = host.querySelector("[data-acceptance]");
-  assert.match(constraints.textContent, /команда c1/);
-  assert.doesNotMatch(constraints.textContent, /команда a1/);
-  assert.match(acceptance.textContent, /команда a1/);
-  assert.match(acceptance.textContent, /команда a2/);
-});
-
-test("подсказка закрыта спойлером, а критерии видны сразу", async () => {
-  const { host } = mount();
-  await settled();
-
-  const hint = host.querySelector("details");
-  assert.match(hint.textContent, /самой маленькой модели/);
-  assert.equal(hint.hasAttribute("open"), false);
-  assert.equal(host.querySelector("[data-acceptance] details"), null, "приёмка под спойлером");
-});
-
-test("прогон идёт по нажатию и только у своей проверки", async () => {
-  const { host, calls } = mount();
-  await settled();
-
-  item(host, "a1").querySelector("[data-run]").click();
-  await settled();
-
-  const ran = calls.filter(({ name }) => name === "run_check");
-  assert.deepEqual(ran[0], {
-    name: "run_check",
-    payload: { bundle: "/programs/llm-agents-base", topic: "local-runtime", check: "a1" },
+test("галочка стоит по состоянию и уходит в него, ничего не запуская", async () => {
+  const { host, calls } = mount({
+    out: { ...OUT, ticks: ["c1"] },
+    replies: { tick: (payload) => ({ ticks: payload.on ? ["c1", payload.claim] : [] }) },
   });
-  assert.equal(item(host, "a2").querySelector("[data-output]"), null, "прогнана чужая проверка");
+  await settled();
+  const box = (id) => host.querySelector(`#${id} input[data-tick]`);
+  assert.equal(box("c1").checked, true);
+  assert.equal(box("a1").checked, false);
 
-  item(host, "c1").querySelector("[data-run]").click();
+  box("a1").click();
   await settled();
 
-  assert.equal(calls.filter(({ name }) => name === "run_check")[1].payload.check, "c1");
-  assert.match(item(host, "c1").querySelector("[data-output]").textContent, /вывод c1/);
+  assert.deepEqual(calls.at(-1), {
+    name: "tick",
+    payload: { program: "chip", node: "chip", stage: "voices", claim: "a1", on: true },
+  });
+  assert.equal(box("a1").checked, true);
+  assert.equal(host.querySelector("#a1 [data-output]"), null, "галочка запустила проверку");
 });
 
-test("вывод встаёт рядом с ожиданием, код возврата — подсказка", async () => {
-  const { host } = mount({ code: 1 });
+test("незаписанная галочка возвращается как была", async () => {
+  const { host } = mount({
+    replies: {
+      tick: () => {
+        throw { code: "state.unwritable", message: "нет места" };
+      },
+    },
+  });
+  await settled();
+  const box = host.querySelector("#a1 input[data-tick]");
+
+  box.click();
   await settled();
 
-  item(host, "a1").querySelector("[data-run]").click();
-  await settled();
-
-  const done = item(host, "a1");
-  assert.match(done.querySelector("[data-output]").textContent, /вывод a1/);
-  assert.match(done.querySelector("[data-expect]").textContent, /ожидание a1/);
-  assert.match(done.querySelector("[data-code]").textContent, /1/);
+  assert.equal(box.checked, false);
 });
 
-test("истёкшее время названо словом, а не пустым выводом", async () => {
-  const { host } = mount({ timedOut: true, code: null });
+test("без папки кнопка просит её выбрать и ничего не запускает", async () => {
+  const { host, calls, picks } = mount({
+    folder: "/tmp/практика",
+    replies: { workdir: (payload) => ({ workdir: payload.path }) },
+  });
+  await settled();
+  const run = host.querySelector("#a1 [data-run]");
+  assert.equal(run.textContent, ru.stage.choose);
+  assert.match(host.querySelector("[data-workdir]").textContent, new RegExp(ru.stage.unset));
+
+  run.click();
   await settled();
 
-  item(host, "a1").querySelector("[data-run]").click();
-  await settled();
-
-  assert.match(item(host, "a1").textContent, new RegExp(ru.practice.timedOut));
-});
-
-test("незапустившаяся проверка говорит об этом и не роняет экран", async () => {
-  const { host } = mount({ refuse: true });
-  await settled();
-
-  item(host, "a1").querySelector("[data-run]").click();
-  await settled();
-
-  assert.match(item(host, "a1").textContent, new RegExp(ru.practice.failed));
-  assert.ok(host.querySelector("[data-task]"), "экран уцелел");
-});
-
-test("отметку о выполнении ставит человек, а не код возврата", async () => {
-  const { host } = mount({ code: 0 });
-  await settled();
-
-  const check = item(host, "a1");
-  assert.equal(check.querySelector("[data-done]").getAttribute("aria-pressed"), "false");
-
-  check.querySelector("[data-run]").click();
-  await settled();
-  assert.equal(
-    item(host, "a1").querySelector("[data-done]").getAttribute("aria-pressed"),
-    "false",
-    "нулевой код возврата поставил отметку сам",
+  assert.equal(picks.length, 1);
+  assert.deepEqual(
+    calls.map((made) => made.name),
+    ["stage", "workdir"],
   );
-
-  item(host, "a1").querySelector("[data-done]").click();
-  await settled();
-  assert.equal(item(host, "a1").querySelector("[data-done]").getAttribute("aria-pressed"), "true");
+  assert.deepEqual(calls[1].payload, { program: "chip", path: "/tmp/практика" });
+  assert.equal(host.querySelector("[data-workdir] [data-path]").textContent, "/tmp/практика");
+  assert.equal(run.textContent, ru.stage.run);
 });
 
-test("с практики есть ход обратно на тему", async () => {
-  const { host } = mount();
+test("отменённый выбор папки ничего не пишет", async () => {
+  const { host, calls, picks } = mount();
   await settled();
 
-  const back = host.querySelector("[data-topic-link]");
-  assert.match(back.getAttribute("href"), /\/ru\/topic\/\?program=/);
-  assert.match(back.getAttribute("href"), /topic=local-runtime/);
+  host.querySelector("[data-choose]").click();
+  await settled();
+
+  assert.equal(picks.length, 1);
+  assert.deepEqual(
+    calls.map((made) => made.name),
+    ["stage"],
+  );
+  assert.equal(host.querySelector("[data-workdir] [data-path]"), null);
+});
+
+test("проверка идёт по нажатию, и вывод с кодом стоят рядом с ожиданием без вердикта", async () => {
+  const { host, calls } = mount({
+    out: { ...OUT, workdir: "/w" },
+    replies: {
+      check_claim: () => ({ outcome: "finished", code: 3, stdout: "said\n", stderr: "moaned\n", truncated: false }),
+    },
+  });
+  await settled();
+  assert.equal(host.querySelector("[data-workdir] [data-path]").textContent, "/w");
+  assert.equal(host.querySelector("[data-choose]").textContent, ru.stage.change);
+
+  host.querySelector("#a1 [data-run]").click();
+  await settled();
+
+  assert.deepEqual(calls[1], {
+    name: "check_claim",
+    payload: { program: "chip", node: "chip", stage: "voices", claim: "a1" },
+  });
+  const claim = host.querySelector("#a1");
+  assert.ok(claim.querySelector("[data-expect]"));
+  assert.equal(claim.querySelector("[data-stdout]").textContent, "said\n");
+  assert.equal(claim.querySelector("[data-stderr]").textContent, "moaned\n");
+  assert.equal(claim.querySelector("[data-code]").textContent, ru.stage.code.replace("{code}", "3"));
+  assert.equal(claim.querySelector("[data-limit]"), null);
+  assert.equal(claim.querySelector("input[data-tick]").checked, false, "приложение вынесло вердикт");
+});
+
+test("сработавший лимит и обрезанный вывод видны", async () => {
+  const { host } = mount({
+    out: { ...OUT, workdir: "/w" },
+    replies: {
+      check_claim: () => ({ outcome: "timeout", code: null, stdout: "x", stderr: "", truncated: true }),
+    },
+  });
+  await settled();
+
+  host.querySelector("#a1 [data-run]").click();
+  await settled();
+
+  const output = host.querySelector("#a1 [data-output]");
+  assert.equal(output.querySelector("[data-limit]").textContent, ru.stage.timeout);
+  assert.equal(output.querySelector("[data-truncated]").textContent, ru.stage.truncated);
+  assert.equal(output.querySelector("[data-code]"), null);
+  assert.equal(output.querySelector("[data-stderr]"), null);
+});
+
+test("исчезнувшая папка называет причину у пункта", async () => {
+  const { host } = mount({
+    out: { ...OUT, workdir: "/w" },
+    replies: {
+      check_claim: () => {
+        throw { code: "workdir.absent", message: "папки `/w` нет" };
+      },
+    },
+  });
+  await settled();
+
+  host.querySelector("#a1 [data-run]").click();
+  await settled();
+
+  assert.equal(host.querySelector("#a1 [data-failed]").textContent, ru.stage.gone);
+  assert.equal(host.querySelector("#a1 [data-output]"), null);
 });

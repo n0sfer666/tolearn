@@ -7,235 +7,157 @@
 
 mod support;
 
-use std::path::{Path, PathBuf};
+use std::fs;
 
-use tolearn_core::search::{Index, Kind};
+use support::programs::{copy_tree, scratch};
+use support::search::{CHIPTUNE, fresh, home, shelf};
+use tolearn_core::library::Library;
+use tolearn_core::search::{Hit, Index, Kind};
 
-struct Case {
-    root: PathBuf,
-    bundle: PathBuf,
-    notes: PathBuf,
+const NES_DEV: &str = "7a1d4e90-2c3b-4f58-8d6e-1b9a0c5e7f23";
+const ROM: &str = "e4c90b7a-15f2-4d6e-8b38-0a2c6f9d1e47";
+const STRANGER: &str = "0b1c2d3e-4f50-4617-8293-a4b5c6d7e8f9";
+
+fn found(name: &str, query: &str) -> Vec<Hit> {
+    let (_, library) = shelf(name);
+    fresh(&library).find(query, 10)
 }
 
-fn case(name: &str) -> Case {
-    let root = std::env::temp_dir().join(format!("tolearn-search-{name}-{}", std::process::id()));
-    let _ = std::fs::remove_dir_all(&root);
-    let bundle = root.join("bundle");
-    copy(&support::root().join("examples/llm-agents-base"), &bundle);
-    let _ = std::fs::remove_file(bundle.join("roadmap.json"));
-    let notes = root.join("notes");
-    std::fs::create_dir_all(&notes).unwrap();
-    Case {
-        root,
-        bundle,
-        notes,
+#[test]
+fn a_stage_is_found_by_its_title() {
+    let hits = found("stage", "голоса чипа");
+
+    let first = hits.first().expect("этап должен найтись");
+    assert_eq!(first.kind, Kind::Stage);
+    assert_eq!(first.program, CHIPTUNE);
+    assert_eq!(first.node, CHIPTUNE);
+    assert_eq!(first.node_title, "Chiptune: музыка звукового чипа NES");
+    assert_eq!(first.stage, "voices");
+    assert_eq!(first.title, "Голоса чипа");
+    assert_eq!(first.block, "");
+}
+
+#[test]
+fn a_block_is_found_by_its_text_and_names_its_anchor() {
+    let hits = found("block", "скважность периода");
+
+    let first = hits.first().expect("блок должен найтись");
+    assert_eq!(first.kind, Kind::Block);
+    assert_eq!(first.stage, "voices");
+    assert_eq!(first.title, "Голоса чипа");
+    assert_eq!(first.block, "937ff0f4");
+    assert!(first.snippet.contains("скважность"), "{}", first.snippet);
+}
+
+#[test]
+fn a_practice_task_block_is_found_too() {
+    let hits = found("task", "FamiStudio");
+
+    assert_eq!(hits.len(), 1, "{hits:?}");
+    assert_eq!(hits[0].block, "15bf109d");
+}
+
+#[test]
+fn a_diagram_source_is_not_searchable() {
+    assert!(found("diagram", "микшер").is_empty());
+}
+
+#[test]
+fn a_stage_of_a_child_program_leads_into_its_node() {
+    let hits = found("child", "компоновщика");
+
+    let first = hits.first().expect("этап подпрограммы должен найтись");
+    assert_eq!(first.program, NES_DEV);
+    assert_eq!(first.node, ROM);
+    assert_eq!(first.node_title, "Первый ROM в cc65");
+    assert_eq!(first.stage, "linker");
+}
+
+#[test]
+fn stage_titles_come_before_blocks_read_earlier() {
+    let hits = found("stages-first", "перв");
+
+    let first = hits.first().expect("этап должен найтись");
+    assert_eq!(
+        (first.kind, first.stage.as_str()),
+        (Kind::Stage, "first-rom")
+    );
+    assert!(hits.iter().any(|hit| hit.block == "9bc182dd"), "{hits:?}");
+}
+
+#[test]
+fn blocks_keep_reading_order() {
+    let hits = found("order", "канал");
+
+    let blocks: Vec<&str> = hits
+        .iter()
+        .filter(|hit| hit.kind == Kind::Block)
+        .map(|hit| hit.block.as_str())
+        .collect();
+    assert_eq!(blocks[..2], ["68f347b0", "874672f8"], "{blocks:?}");
+}
+
+#[test]
+fn answers_to_questions_are_not_searchable() {
+    assert!(found("answers", "перевёрнутая по амплитуде").is_empty());
+}
+
+#[test]
+fn a_query_needs_every_word_in_one_place() {
+    assert!(!found("all-words", "импульсных мелодию").is_empty());
+    assert!(found("all-words-none", "импульсных тарабарщина").is_empty());
+}
+
+#[test]
+fn an_empty_query_finds_nothing() {
+    assert!(found("empty-query", "   ").is_empty());
+}
+
+#[test]
+fn the_list_is_cut_to_the_limit() {
+    let (_, library) = shelf("limit");
+
+    assert_eq!(fresh(&library).find("канал", 2).len(), 2);
+}
+
+#[test]
+fn a_program_the_library_would_refuse_is_not_searchable() {
+    let (data, library) = shelf("refused");
+    fs::write(home(&data).join("program.yaml"), "не: [йaml").unwrap();
+    let mut index = Index::default();
+
+    let report = index.refresh(&library).unwrap();
+
+    assert_eq!(report.indexed, 2);
+    assert!(index.find("голоса чипа", 10).is_empty());
+    assert!(!index.find("компоновщика", 10).is_empty());
+}
+
+#[test]
+fn copies_outside_the_library_rules_are_skipped() {
+    let (data, library) = shelf("strays");
+    let programs = data.join("programs");
+    for name in [STRANGER, "not-a-uuid", ".staging"] {
+        copy_tree(&home(&data), &programs.join(name));
     }
-}
-
-fn copy(from: &Path, to: &Path) {
-    std::fs::create_dir_all(to).unwrap();
-    for entry in std::fs::read_dir(from).unwrap() {
-        let path = entry.unwrap().path();
-        let target = to.join(path.file_name().unwrap());
-        if path.is_dir() {
-            copy(&path, &target);
-        } else if path.extension().is_some_and(|kind| kind == "yaml") {
-            std::fs::copy(&path, &target).unwrap();
-        }
-    }
-}
-
-fn note(case: &Case, name: &str, topic: &str, body: &str) -> PathBuf {
-    let path = case.notes.join(name);
-    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-    std::fs::write(
-        &path,
-        format!("---\ntolearn:\n  roadmap: llm-agents-base\n  topic: {topic}\n---\n\n{body}\n"),
-    )
-    .unwrap();
-    path
-}
-
-fn fresh(case: &Case) -> Index {
+    fs::write(programs.join("loose.yaml"), "текст").unwrap();
     let mut index = Index::default();
-    index.refresh(&case.bundle, &case.notes).unwrap();
-    index
+
+    let report = index.refresh(&library).unwrap();
+
+    assert_eq!(report.indexed, 3);
+    let hits = index.find("голоса чипа", 10);
+    assert_eq!(hits.len(), 1, "{hits:?}");
+    assert_eq!(hits[0].program, CHIPTUNE);
 }
 
 #[test]
-fn тема_находится_по_названию() {
-    let case = case("topic");
-    let index = fresh(&case);
-
-    let hits = index.find("локальный рантайм", 10);
-
-    let first = hits.first().expect("тема должна найтись");
-    assert_eq!(first.kind, Kind::Topic);
-    assert_eq!(first.topic, "local-runtime");
-    assert_eq!(first.roadmap, "llm-agents-base");
-}
-
-#[test]
-fn материал_находится_по_заголовку() {
-    let case = case("material");
-    let index = fresh(&case);
-
-    let hits = index.find("context length ollama", 10);
-
-    let first = hits.first().expect("материал должен найтись");
-    assert_eq!(first.kind, Kind::Material);
-    assert_eq!(first.topic, "local-runtime");
-}
-
-#[test]
-fn конспект_находится_по_тексту() {
-    let case = case("note");
-    note(
-        &case,
-        "своя/заметка.md",
-        "local-runtime",
-        "Проверил на своём железе",
-    );
-    let index = fresh(&case);
-
-    let hits = index.find("своём железе", 10);
-
-    let first = hits.first().expect("конспект должен найтись");
-    assert_eq!(first.kind, Kind::Note);
-    assert_eq!(first.topic, "local-runtime");
-    assert!(first.snippet.contains("железе"), "{}", first.snippet);
-}
-
-#[test]
-fn нетронутые_файлы_не_перечитываются() {
-    let case = case("kept");
-    note(&case, "заметка.md", "local-runtime", "Первый текст");
+fn an_empty_library_finds_nothing() {
+    let library = Library::at(&scratch("search-nothing"));
     let mut index = Index::default();
-    let first = index.refresh(&case.bundle, &case.notes).unwrap();
 
-    let second = index.refresh(&case.bundle, &case.notes).unwrap();
-
-    assert_eq!(first.indexed, 8);
-    assert_eq!(second.indexed, 0);
-    assert_eq!(second.kept, first.indexed);
-    assert_eq!(second.dropped, 0);
-}
-
-#[test]
-fn правка_перечитывает_только_изменённый_файл() {
-    let case = case("changed");
-    note(&case, "заметка.md", "local-runtime", "Абракадабра первая");
-    let mut index = Index::default();
-    index.refresh(&case.bundle, &case.notes).unwrap();
-
-    note(&case, "заметка.md", "local-runtime", "Тарабарщина вторая");
-    let report = index.refresh(&case.bundle, &case.notes).unwrap();
-
-    assert_eq!(report.indexed, 1);
-    assert!(!index.find("тарабарщина", 10).is_empty());
-    assert!(index.find("абракадабра", 10).is_empty());
-}
-
-#[test]
-fn удалённый_конспект_уходит_из_индекса() {
-    let case = case("dropped");
-    let path = note(
-        &case,
-        "заметка.md",
-        "local-runtime",
-        "Уникальное слово абракадабра",
-    );
-    let mut index = Index::default();
-    index.refresh(&case.bundle, &case.notes).unwrap();
-
-    std::fs::remove_file(&path).unwrap();
-    let report = index.refresh(&case.bundle, &case.notes).unwrap();
-
-    assert_eq!(report.dropped, 1);
-    assert_eq!(report.indexed, 0);
-    assert!(index.find("абракадабра", 10).is_empty());
-}
-
-#[test]
-fn чужой_конспект_не_попадает_в_выдачу() {
-    let case = case("foreign");
-    std::fs::write(
-        case.notes.join("чужой.md"),
-        "---\ntolearn:\n  roadmap: другая-программа\n  topic: local-runtime\n---\n\nабракадабра\n",
-    )
-    .unwrap();
-    let index = fresh(&case);
-
-    assert!(index.find("абракадабра", 10).is_empty());
-}
-
-#[test]
-fn индекс_переживает_запись_и_чтение() {
-    let case = case("saved");
-    note(
-        &case,
-        "заметка.md",
-        "local-runtime",
-        "Уникальное слово абракадабра",
-    );
-    let saved = fresh(&case);
-    let path = case.root.join("search.yaml");
-    saved.save(&path).unwrap();
-
-    let mut read = Index::read(&path).unwrap();
-    let report = read.refresh(&case.bundle, &case.notes).unwrap();
+    let report = index.refresh(&library).unwrap();
 
     assert_eq!(report.indexed, 0);
-    assert_eq!(read.find("абракадабра", 10).len(), 1);
-}
-
-#[test]
-fn отсутствующий_индекс_читается_как_пустой() {
-    let case = case("absent");
-
-    let index = Index::read(&case.root.join("нет-такого.yaml")).unwrap();
-
-    assert!(index.find("рантайм", 10).is_empty());
-}
-
-#[test]
-fn запрос_требует_все_слова() {
-    let case = case("all-words");
-    note(&case, "заметка.md", "local-runtime", "абракадабра про кэш");
-    let index = fresh(&case);
-
-    assert_eq!(index.find("абракадабра кэш", 10).len(), 1);
-    assert!(index.find("абракадабра тарабарщина", 10).is_empty());
-}
-
-#[test]
-fn пустой_запрос_ничего_не_находит() {
-    let case = case("empty-query");
-    let index = fresh(&case);
-
-    assert!(index.find("   ", 10).is_empty());
-}
-
-#[test]
-fn выдача_обрезается_до_предела() {
-    let case = case("limit");
-    let index = fresh(&case);
-
-    assert_eq!(index.find("модель", 3).len(), 3);
-}
-
-#[test]
-fn битая_тема_не_валит_обход() {
-    let case = case("broken");
-    std::fs::write(case.bundle.join("topics/local-runtime.yaml"), "не: [йaml").unwrap();
-
-    let index = fresh(&case);
-
-    assert!(
-        index
-            .find("локальный рантайм", 10)
-            .iter()
-            .all(|hit| hit.topic != "local-runtime")
-    );
-    assert!(!index.find("фолбэки", 10).is_empty());
+    assert!(index.find("канал", 10).is_empty());
 }

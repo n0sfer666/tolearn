@@ -1,11 +1,13 @@
-mod digest;
+#[cfg(test)]
+#[path = "../../tests-support/scratch.rs"]
+mod scratch;
+
 mod net;
 
-pub mod fresh;
-pub mod mirror;
+pub mod book;
+pub mod commons;
+pub mod digest;
 pub mod page;
-pub mod queue;
+pub mod reach;
 pub mod reader;
-pub mod repo;
 pub mod store;
-pub mod video;

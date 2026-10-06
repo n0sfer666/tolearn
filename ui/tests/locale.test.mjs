@@ -13,11 +13,8 @@ const UI = fileURLToPath(new URL("..", import.meta.url));
 
 const DEFAULTS = {
   disk_budget_mb: 2048,
-  notes_directory: null,
   locale: "ru",
   theme: "system",
-  history_depth: 5,
-  history_share_percent: 10,
 };
 
 let chosen;

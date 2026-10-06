@@ -1,9 +1,10 @@
 import { Show, createSignal, onMount } from "solid-js";
 
 import Apis from "../components/settings/Apis";
+import Drift from "../components/settings/Drift";
 import HarnessFields from "../components/settings/HarnessFields";
 import HttpFields from "../components/settings/HttpFields";
-import Journal from "../components/settings/Journal";
+import Keeping from "../components/settings/Keeping";
 import KeyField from "../components/settings/KeyField";
 import Kinds from "../components/settings/Kinds";
 import Models from "../components/settings/Models";
@@ -12,6 +13,8 @@ import type { Dictionary } from "../i18n/ru";
 import type {
   AdviceView,
   CheckedView,
+  DriftView,
+  HarnessView,
   PresetView,
   ProbedView,
   ProviderOut,
@@ -33,23 +36,29 @@ export default function Provider(props: Props) {
   const advice = () => hints(props.locale);
 
   const [draft, setDraft] = createSignal<ProviderView | null>(null);
+  const [saved, setSaved] = createSignal<ProviderView | null>(null);
   const [stored, setStored] = createSignal(false);
   const [key, setKey] = createSignal("");
   const [presets, setPresets] = createSignal<PresetView[]>([]);
   const [checked, setChecked] = createSignal<CheckedView | null>(null);
   const [probed, setProbed] = createSignal<ProbedView | null>(null);
   const [advised, setAdvised] = createSignal<AdviceView[]>([]);
+  const [outdated, setOutdated] = createSignal<DriftView | null>(null);
   const [refusal, setRefusal] = createSignal("");
   const [busy, setBusy] = createSignal(false);
 
   const took = (answer: ProviderOut) => {
     setDraft(answer.provider);
+    setSaved(answer.provider);
     setStored(answer.has_key);
     setPresets(answer.presets);
     setAdvised(answer.advised);
     setChecked(answer.checked);
     setProbed(answer.probed);
+    setOutdated(answer.outdated);
   };
+
+  const pristine = () => JSON.stringify(draft()) === JSON.stringify(saved());
 
   onMount(() => {
     void (async () => {
@@ -101,10 +110,31 @@ export default function Provider(props: Props) {
     })();
   };
 
+  const resolve = (harness: HarnessView) => {
+    change({ harness });
+    send(false, false, false);
+  };
+
+  const update = () => {
+    const provider = draft();
+    const found = outdated();
+    if (provider === null || found === null) return;
+    const known = presets().find((one) => one.id === provider.harness.id);
+    if (known === undefined) return;
+    resolve({ ...provider.harness, args: [...known.args], dismissed_advice: null });
+  };
+
+  const keep = () => {
+    const provider = draft();
+    const found = outdated();
+    if (provider === null || found === null) return;
+    resolve({ ...provider.harness, dismissed_advice: found.fingerprint });
+  };
+
   return (
     <Show when={draft()}>
       {(current) => (
-        <article>
+        <section data-card="provider">
           <h2>{props.text.provider.title}</h2>
           <p>{props.text.provider.lead}</p>
 
@@ -171,24 +201,26 @@ export default function Provider(props: Props) {
               presets={presets()}
               onChange={(harness) => change({ harness })}
             />
+            <Show when={pristine() && outdated()}>
+              {(found) => <Drift text={props.text} found={found()} onUpdate={update} onKeep={keep} />}
+            </Show>
           </Show>
 
-          <Journal
-            text={props.text}
-            call={call()}
-            on={current().journal}
-            onToggle={(journal) => change({ journal })}
-          />
+          <Keeping text={props.text} on={current().journal} onToggle={(journal) => change({ journal })} />
 
-          <button type="button" data-save disabled={busy()} onClick={() => send(false, false, false)}>
-            {props.text.provider.save}
-          </button>
-          <button type="button" data-check disabled={busy()} onClick={() => send(true, false, false)}>
-            {props.text.provider.check}
-          </button>
-          <button type="button" data-probe disabled={busy()} onClick={() => send(false, true, false)}>
-            {props.text.provider.probe}
-          </button>
+          <div data-doing>
+            <button type="button" data-save disabled={busy()} onClick={() => send(false, false, false)}>
+              {props.text.provider.save}
+            </button>
+            <div class="row">
+              <button type="button" data-check disabled={busy()} onClick={() => send(true, false, false)}>
+                {props.text.provider.check}
+              </button>
+              <button type="button" data-probe disabled={busy()} onClick={() => send(false, true, false)}>
+                {props.text.provider.probe}
+              </button>
+            </div>
+          </div>
 
           <Show when={busy()}>
             <p data-working>{props.text.provider.working}</p>
@@ -206,7 +238,7 @@ export default function Provider(props: Props) {
           <Show when={probed()}>
             {(said) => <p data-probed>{answered(said(), props.text)}</p>}
           </Show>
-        </article>
+        </section>
       )}
     </Show>
   );

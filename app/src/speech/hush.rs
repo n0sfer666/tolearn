@@ -13,3 +13,5 @@ pub fn start() -> Result<(), SpeechError> {
 pub fn stop(_resources: &Path, _language: &str) -> Result<String, SpeechError> {
     Err(SpeechError::Off)
 }
+
+pub fn cancel() {}

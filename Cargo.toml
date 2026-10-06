@@ -1,9 +1,9 @@
 [workspace]
 resolver = "3"
-members = ["core", "runner", "offline", "provider", "cli", "app", "gestures", "speech"]
+members = ["core", "runner", "offline", "provider", "generate", "cli", "app", "gestures", "speech"]
 
 [workspace.package]
-version = "0.3.0"
+version = "0.4.0"
 edition = "2024"
 rust-version = "1.97"
 license = "GPL-3.0-or-later"
@@ -15,10 +15,9 @@ tolearn-core = { path = "core" }
 tolearn-runner = { path = "runner" }
 tolearn-offline = { path = "offline" }
 tolearn-provider = { path = "provider" }
+tolearn-generate = { path = "generate" }
 tolearn-gestures = { path = "gestures" }
 tolearn-speech = { path = "speech" }
-age = { version = "0.12", default-features = false }
-getrandom = "0.3"
 keyring = "4"
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "default-tls"] }
 jsonschema = { version = "0.49", default-features = false }
@@ -31,8 +30,6 @@ cc = "1"
 cmake = "0.1"
 cpal = "0.18"
 markup5ever_rcdom = "=0.4.0-unofficial"
-pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
-gix = { version = "0.86.0", default-features = false, features = ["blocking-network-client", "max-performance-safe", "worktree-mutation", "sha1"] }
 zip = { version = "8.6", default-features = false, features = ["deflate"] }
 tar = { version = "0.4", default-features = false }
 flate2 = { version = "1.1", default-features = false, features = ["rust_backend"] }
@@ -40,15 +37,19 @@ saphyr = "0.0.11"
 saphyr-parser = "0.0.11"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+uuid = { version = "1", default-features = false, features = ["std", "v4"] }
+quick-xml = "0.41"
 toml = "0.9"
 tauri = "2"
 tauri-build = "2"
 tauri-plugin-dialog = "2"
-tauri-plugin-deep-link = "2"
-tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
+tauri-plugin-single-instance = "2"
+trash = { version = "5", default-features = false, features = ["coinit_apartmentthreaded"] }
 
 [profile.release]
 strip = "symbols"
+lto = true
+codegen-units = 1
 
 [profile.dev]
 debug = "line-tables-only"

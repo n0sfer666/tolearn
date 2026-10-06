@@ -53,6 +53,25 @@ cargo tauri build
 Windows, `.deb` на Linux. Поставить их — как обычный установщик, по странице
 своей ОС ([macOS](macos.md), [Windows](windows.md), [Linux](linux.md)).
 
+На macOS два последних шага делает одна цель из корня репозитория:
+
+```sh
+make install
+```
+
+Она собирает тот же `.dmg`, монтирует его и копирует `tolearn.app` в
+`/Applications` — ровно то же, что вы сделали бы руками в Finder. Другой каталог
+назначения — вторым аргументом скрипта:
+`sh scripts/install-macos.sh base ~/Applications`. Запущенное приложение цель не
+трогает: попросит закрыть его и выйдет. Вариант с речью — `make install-speech`
+(ему нужны сабмодуль и веса, см. ниже).
+
+Перед сборкой скрипт снимает следы прерванного прогона: незавершённый образ
+`target/release/bundle/macos/rw.*.dmg`, оставшийся подключённым, роняет упаковку
+сообщением «error running bundle_dmg.sh» без причины. `scripts/detach-stale-dmg.sh`
+отключает такой образ и убирает его файл; подключённый чужой образ (`/Volumes/dmg.*`
+не из этого каталога) скрипт не трогает, а только предупреждает о нём.
+
 ## Вариант с распознаванием речи
 
 Ему нужны сабмодуль whisper.cpp и веса модели — файла с весами в репозитории нет,
@@ -87,22 +106,12 @@ cargo run -p tolearn-app --release --bin tolearn-desktop
 Страницы зашиваются внутрь бинарника (фича `custom-protocol`, включена по
 умолчанию); работать против dev-сервера Astro — `--no-default-features`.
 
-## CLI и плагин Obsidian
+## CLI
 
-В установщик они не входят, собираются отдельно. CLI без окна — проверить бандл,
-посмотреть темы, выгрузить Markdown:
-
-```sh
-cargo run -p tolearn-cli --release -- validate examples/llm-agents-base
-```
-
-Плагин Obsidian:
+В установщик он не входит, собирается отдельно. Без окна — собрать пакет
+`.tolearn` из каталога программы, распаковать пакет обратно, выгрузить
+программу в Markdown:
 
 ```sh
-pnpm -C obsidian install
-pnpm -C obsidian build
+cargo run -p tolearn-cli --release -- pack examples/chiptune ~/chiptune.tolearn
 ```
-
-Затем скопировать каталог `obsidian/` (нужны `main.js` и `manifest.json`) в
-`<хранилище>/.obsidian/plugins/tolearn/`. Что он умеет — в
-[notes.md](../notes.md#плагин-obsidian).

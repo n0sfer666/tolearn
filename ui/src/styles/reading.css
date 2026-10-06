@@ -1,0 +1,199 @@
+nav[data-trail] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-1) var(--spacing-2);
+  margin-block-end: var(--spacing-3);
+  font-size: var(--font-size-sm);
+}
+
+nav[data-trail] > a:not(:first-child)::before {
+  content: "/";
+  display: inline-block;
+  margin-inline-end: var(--spacing-2);
+  color: var(--color-fg-muted);
+}
+
+:is(p[data-goal], p[data-level], p[data-node-hours], p[data-summary]) {
+  margin-block: var(--spacing-1);
+}
+
+ul[data-claims] {
+  display: grid;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li:is([data-stage], [data-child]) :is([data-hours], [data-note], [data-status], [data-pass], [data-subtree]),
+li[data-broken] p,
+figcaption,
+p[data-workdir] > [data-unset],
+ul[data-claims] :is([data-command], [data-expect]),
+p[data-score],
+div[data-output] > span {
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+li[data-broken] {
+  padding: var(--spacing-3) var(--spacing-4);
+  border: var(--border-width) dashed var(--color-warning);
+  border-radius: var(--radius-md);
+}
+
+[data-stage-body],
+section[data-practice],
+section[data-questions] {
+  display: grid;
+  gap: var(--spacing-3);
+}
+
+section:is([data-practice], [data-questions]) {
+  margin-block-start: var(--spacing-8);
+}
+
+:is([data-stage-body], section[data-practice], section[data-questions]) > * {
+  margin-block: 0;
+}
+
+:is(div[data-block], aside[data-block], [data-deliverable], li[data-question]) > :first-child {
+  margin-block-start: 0;
+}
+
+:is(div[data-block], aside[data-block], [data-deliverable], li[data-question]) > :last-child {
+  margin-block-end: 0;
+}
+
+figure[data-block] {
+  display: grid;
+  justify-items: start;
+  gap: var(--spacing-2);
+  margin: 0;
+}
+
+figure[data-block] button[data-zoom-open] {
+  display: block;
+  max-inline-size: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+figure[data-block] img {
+  max-inline-size: 100%;
+  max-block-size: 60vh;
+  block-size: auto;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+}
+
+figure[data-block="diagram"] img {
+  padding: var(--spacing-2);
+  background: var(--color-bg-raised);
+  color-scheme: light;
+}
+
+figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-1) var(--spacing-3);
+}
+
+aside[data-block="callout"] {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-inline-start: var(--focus-ring) solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-bg);
+}
+
+ul[data-claims] > li,
+p[data-workdir] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-1) var(--spacing-3);
+}
+
+ul[data-claims] > li > label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--spacing-2);
+}
+
+ul[data-claims] > li > :is(div[data-output], p[data-failed]) {
+  flex-basis: 100%;
+}
+
+div[data-output] {
+  display: grid;
+  gap: var(--spacing-1);
+}
+
+div[data-output] > pre {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+div[data-output] > pre[data-stderr] {
+  border-color: var(--color-warning);
+}
+
+p[data-failed] {
+  margin: 0;
+  color: var(--color-critical);
+}
+
+section[data-questions] ol {
+  display: grid;
+  gap: var(--spacing-2);
+  margin: 0;
+  padding-inline-start: var(--spacing-6);
+}
+
+li[data-question] > p[data-grade],
+li[data-question] > section[data-added] > p[data-added-title] {
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+}
+
+li[data-question]:not([data-result="ok"]) > p[data-grade] {
+  color: var(--color-critical);
+}
+
+li[data-question] > ul[data-missed] {
+  margin: 0;
+  padding-inline-start: var(--spacing-6);
+}
+
+li[data-question] > label {
+  margin-block: var(--spacing-2);
+}
+
+li[data-question] > :is(section[data-added], details[data-mirror]) {
+  margin-block-start: var(--spacing-2);
+}
+
+:is(div[data-examination], details[data-copypaste]) {
+  margin-block-start: var(--spacing-3);
+}
+
+button[data-pick] {
+  position: fixed;
+  z-index: var(--z-popover);
+  border-color: var(--color-border-strong);
+  transform: translate(-50%, calc(-100% - var(--spacing-2)));
+}
+
+button[data-pick][data-below] {
+  transform: translate(-50%, var(--spacing-2));
+}
+
+[data-stage-body] [data-block]:focus-visible {
+  outline: var(--focus-ring) solid var(--color-accent);
+  outline-offset: var(--spacing-1);
+}

@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use super::beat::Beat;
 use super::error::RunError;
+use super::stop::Stop;
 use super::types::{Limits, Run};
 use super::{drain, group, wait};
 
@@ -36,7 +37,7 @@ pub fn run(command: &str, directory: &Path, limits: Limits) -> Result<Run, RunEr
         None,
         Arc::clone(&beat),
     );
-    let outcome = wait::until_end(&mut child, limits, &beat)?;
+    let outcome = wait::until_end(&mut child, limits, &beat, &Stop::default())?;
     let (stdout, cut_out) = drain::done(out);
     let (stderr, cut_err) = drain::done(err);
 

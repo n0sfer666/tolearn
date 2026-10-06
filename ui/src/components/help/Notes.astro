@@ -1,0 +1,33 @@
+---
+import { type Locale, strings } from "../../i18n";
+
+interface Props {
+  locale: Locale;
+}
+
+const text = strings(Astro.props.locale);
+const help = text.help;
+const apps = [
+  { name: "Obsidian", fit: help.obsidianFit, how: help.obsidianHow },
+  { name: "Joplin", fit: help.joplinFit, how: help.joplinHow },
+  { name: "Zettlr", fit: help.zettlrFit, how: help.zettlrHow },
+];
+---
+
+<section data-help="notes" aria-labelledby="help-notes">
+  <h2 id="help-notes">{help.notes}</h2>
+  <p>{help.notesLead.replace("{export}", text.program.export)}</p>
+  {
+    apps.map((app) => (
+      <article data-app={app.name.toLowerCase()}>
+        <h3>{app.name}</h3>
+        <p data-fit>
+          <strong>{help.fit}.</strong> {app.fit}
+        </p>
+        <p data-how>
+          <strong>{help.how}.</strong> {app.how}
+        </p>
+      </article>
+    ))
+  }
+</section>

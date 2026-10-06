@@ -1,13 +1,14 @@
 :root {
   color-scheme: light dark;
 
-  --font-family-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-family-text: "Literata", ui-serif, Georgia, serif;
+  --font-family-ui: "Golos Text", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-family-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
-  --font-size-sm: 0.8125rem;
+  --font-size-sm: 0.8rem;
   --font-size-md: 1rem;
   --font-size-lg: 1.25rem;
-  --font-size-xl: 1.75rem;
+  --font-size-xl: 1.5625rem;
 
   --line-height-tight: 1.25;
   --line-height-body: 1.6;
@@ -94,8 +95,4 @@
 .status-failed {
   --color-status: var(--color-critical);
   --color-status-bg: var(--color-critical-bg);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :root { --duration: 1ms; }
 }

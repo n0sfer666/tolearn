@@ -1,29 +1,34 @@
-use super::types::{Document, Source};
+use super::types::{Document, Seen, Source};
 
-pub const SCHEMA: &str = "tolearn/search/v1";
+pub const SCHEMA: &str = "tolearn/search/v2";
+pub const BUILD: &str = env!("CARGO_PKG_VERSION");
 
 pub fn text(sources: &[Source]) -> String {
-    let mut out = format!("schema: {SCHEMA}\n");
+    let mut out = format!("schema: {SCHEMA}\nbuild: {}\n", quoted(BUILD));
     if sources.is_empty() {
         out.push_str("sources: []\n");
         return out;
     }
     out.push_str("sources:\n");
     for source in sources {
-        out.push_str(&format!(
-            "  - path: {}\n",
-            quoted(&source.path.to_string_lossy())
-        ));
-        out.push_str(&format!("    roadmap: {}\n", quoted(&source.roadmap)));
-        out.push_str(&format!(
-            "    modified: {}\n",
-            quoted(&source.stamp.modified_nanos.to_string())
-        ));
-        out.push_str(&format!(
-            "    size: {}\n",
-            quoted(&source.stamp.size.to_string())
-        ));
+        out.push_str(&format!("  - program: {}\n", quoted(&source.program)));
+        out.push_str(&files(&source.files));
         out.push_str(&documents(&source.documents));
+    }
+    out
+}
+
+fn files(files: &[Seen]) -> String {
+    if files.is_empty() {
+        return "    files: []\n".to_owned();
+    }
+    let mut out = "    files:\n".to_owned();
+    for file in files {
+        out.push_str(&format!("      - name: {}\n", quoted(&file.name)));
+        let modified = file.stamp.modified_nanos.to_string();
+        out.push_str(&format!("        modified: {}\n", quoted(&modified)));
+        let size = file.stamp.size.to_string();
+        out.push_str(&format!("        size: {}\n", quoted(&size)));
     }
     out
 }
@@ -35,18 +40,35 @@ fn documents(documents: &[Document]) -> String {
     let mut out = "    documents:\n".to_owned();
     for document in documents {
         out.push_str(&format!("      - kind: {}\n", document.kind.label()));
-        out.push_str(&format!("        topic: {}\n", quoted(&document.topic)));
-        out.push_str(&format!("        title: {}\n", quoted(&document.title)));
-        out.push_str(&format!("        text: {}\n", quoted(&document.text)));
+        for (key, value) in [
+            ("node", &document.node),
+            ("node_title", &document.node_title),
+            ("stage", &document.stage),
+            ("title", &document.title),
+            ("block", &document.block),
+            ("text", &document.text),
+        ] {
+            out.push_str(&format!("        {key}: {}\n", quoted(value)));
+        }
     }
     out
 }
 
 fn quoted(value: &str) -> String {
-    let escaped = value
-        .replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\r', "\\r")
-        .replace('\n', "\\n");
-    format!("\"{escaped}\"")
+    let mut out = String::from('"');
+    for letter in value.chars() {
+        match letter {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            letter if letter.is_control() => {
+                out.push_str(&format!("\\u{:04X}", u32::from(letter)));
+            }
+            letter => out.push(letter),
+        }
+    }
+    out.push('"');
+    out
 }

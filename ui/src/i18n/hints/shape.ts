@@ -5,6 +5,7 @@ export interface Advised {
 
 export interface Hints {
   open: string;
+  shut: string;
   advice: string;
   apply: string;
   own: string;

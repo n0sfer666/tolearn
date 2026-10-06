@@ -1,5 +1,5 @@
 ---
-import { LOCALES, localeOf, strings } from "../../i18n";
+import { LOCALES, localeOf, localized, strings } from "../../i18n";
 import Programs from "../../islands/Programs";
 import Base from "../../layouts/Base.astro";
 
@@ -11,12 +11,9 @@ const locale = localeOf(Astro.params.locale);
 const text = strings(locale);
 ---
 
-<Base locale={locale} title={text.nav.programs}>
-  <section id="import">
-    <h2>{text.programs.import}</h2>
-    <p>{text.programs.importLead}</p>
-  </section>
+<Base locale={locale} title={text.nav.library}>
+  <a slot="action" href={localized("/new/", locale)} data-new data-action>{text.nav.new}</a>
   <div id="programs">
-    <Programs text={text.programs} generate={text.generate} locale={locale} client:load />
+    <Programs text={text.programs} locale={locale} client:load />
   </div>
 </Base>

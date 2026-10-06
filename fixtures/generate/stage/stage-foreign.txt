@@ -1,0 +1,7 @@
+{"blocks": [
+  {"kind": "paragraph", "text": "Скважность меняет тембр импульсного канала.", "sources": ["p1", "p9"]},
+  {"kind": "paragraph", "text": "Готовые сэмплы лежат на https://evil.test/free-samples."},
+  {"kind": "image", "text": "Осциллограмма треугольника", "image": "i7"}
+ ],
+ "practice": {"task": [{"kind": "paragraph", "text": "Запиши одну ноту."}], "deliverable": "Файл note.ftm", "constraints": [], "acceptance": []},
+ "questions": [{"text": "Что такое скважность?", "answer": "Доля периода с высоким сигналом."}]}

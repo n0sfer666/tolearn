@@ -6,12 +6,18 @@ export interface Name {
   title: string;
 }
 
-export type Kind = "program" | "topic";
+export type Kind = "program" | "stage";
 
 export function name(kind: Kind, id: string, title: string): void {
   if (id === "" || title === "" || typeof window === "undefined") return;
   keep(kind, { id, title });
   window.dispatchEvent(new CustomEvent(NAMED, { detail: { kind, id, title } }));
+}
+
+export function named(kind: Kind, id: string): string {
+  if (typeof localStorage === "undefined") return "";
+  const known = read()[kind];
+  return known !== undefined && known.id === id ? known.title : "";
 }
 
 function keep(kind: Kind, named: Name): void {

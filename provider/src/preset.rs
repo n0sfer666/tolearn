@@ -5,6 +5,7 @@ pub struct Preset {
     pub id: &'static str,
     pub command: &'static str,
     pub args: &'static [&'static str],
+    pub available: bool,
 }
 
 impl Preset {
@@ -14,6 +15,7 @@ impl Preset {
             command: self.command.to_owned(),
             args: Vec::new(),
             timeout_secs: DEFAULT_TIMEOUT_SECS,
+            dismissed_advice: None,
         }
     }
 
@@ -21,6 +23,11 @@ impl Preset {
         self.args.iter().map(|arg| (*arg).to_owned()).collect()
     }
 }
+
+pub const CLAUDE_SYSTEM_PROMPT: &str =
+    "Выполни инструкцию из сообщения, ответь только результатом.";
+
+pub const CLAUDE_SETTINGS: &str = r#"{"env":{"CLAUDE_CODE_DISABLE_TERMINAL_TITLE":"1"}}"#;
 
 pub const CLAUDE: Preset = Preset {
     id: "claude",
@@ -31,9 +38,17 @@ pub const CLAUDE: Preset = Preset {
         "stream-json",
         "--verbose",
         "--include-partial-messages",
-        "--allowedTools",
+        "--tools",
         "",
+        "--system-prompt",
+        CLAUDE_SYSTEM_PROMPT,
+        "--setting-sources",
+        "project",
+        "--strict-mcp-config",
+        "--settings",
+        CLAUDE_SETTINGS,
     ],
+    available: true,
 };
 
 pub const PRESETS: [Preset; 4] = [
@@ -42,16 +57,19 @@ pub const PRESETS: [Preset; 4] = [
         id: "opencode",
         command: "opencode",
         args: &["run"],
+        available: false,
     },
     Preset {
         id: "pi",
         command: "pi",
         args: &["-p", "--no-tools", "--no-session"],
+        available: false,
     },
     Preset {
         id: "custom",
         command: "",
         args: &[],
+        available: true,
     },
 ];
 

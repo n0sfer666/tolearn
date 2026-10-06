@@ -1,9 +1,14 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import test, { before } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { island } from "../scripts/island.mjs";
 import { ru } from "../src/i18n/ru.ts";
 import { browser, settled, toasts } from "./support/dom.mjs";
+
+const UI = fileURLToPath(new URL("..", import.meta.url));
 
 let Provider;
 let render;
@@ -30,8 +35,10 @@ const DEFAULTS = {
     temperature_tenths: 7,
   },
   remote: { endpoint: "", api: "openai", model: "", num_ctx: 0, temperature_tenths: 7 },
-  harness: { id: "claude", command: "claude", args: ["-p"], timeout_secs: 180 },
+  harness: { id: "claude", command: "claude", args: ["-p"], timeout_secs: 180, dismissed_advice: null },
 };
+
+const DRIFT = { removed: ["--allowedTools"], added: ["--strict-mcp-config"], fingerprint: "abc123" };
 
 const ADVISED = [
   {
@@ -51,11 +58,13 @@ const ADVISED = [
 ];
 
 const PRESETS = [
-  { id: "claude", command: "claude", args: ["-p"] },
-  { id: "opencode", command: "opencode", args: ["run"] },
-  { id: "pi", command: "pi", args: ["-p", "--no-tools"] },
-  { id: "custom", command: "", args: [] },
+  { id: "claude", command: "claude", args: ["-p"], available: true },
+  { id: "opencode", command: "opencode", args: ["run"], available: false },
+  { id: "pi", command: "pi", args: ["-p", "--no-tools"], available: false },
+  { id: "custom", command: "", args: [], available: true },
 ];
+
+const CUSTOM = { ...DEFAULTS.harness, id: "custom", command: "my-cli", args: ["--quiet"] };
 
 function mount(options = {}) {
   const host = document.createElement("div");
@@ -79,6 +88,7 @@ function mount(options = {}) {
         probed: null,
         presets: PRESETS,
         advised: ADVISED,
+        outdated: options.outdated ?? null,
       });
     }
     if (options.refuse !== undefined) {
@@ -94,6 +104,7 @@ function mount(options = {}) {
           : null,
       presets: PRESETS,
       advised: ADVISED,
+      outdated: null,
     });
   };
   const said = toasts(document.defaultView);
@@ -246,21 +257,64 @@ test("у внешнего сервиса выбора API нет", async () => {
   assert.equal(host.querySelector("[data-key]").value, "");
 });
 
-test("пресет харнесса подставляет команду, а поле аргументов оставляет пустым", async () => {
-  const { host, calls } = mount({ stored: { active: "harness" } });
-  await settled();
-
+function choose(host, id) {
   const preset = host.querySelector("[data-preset]");
-  preset.value = "opencode";
+  preset.value = id;
   preset.dispatchEvent(new document.defaultView.Event("change", { bubbles: true }));
+}
+
+test("пресет харнесса подставляет команду, а поле аргументов оставляет пустым", async () => {
+  const { host, calls } = mount({ stored: { active: "harness", harness: CUSTOM } });
   await settled();
 
-  assert.equal(host.querySelector("[data-command]").value, "opencode");
+  choose(host, "claude");
+  await settled();
+
+  assert.equal(host.querySelector("[data-command]").value, "claude");
   assert.equal(host.querySelector("[data-args]").value, "");
 
   host.querySelector("[data-save]").click();
   await settled();
   assert.deepEqual(calls[1].payload.save.harness.args, []);
+});
+
+test("opencode и pi выбрать нельзя, они помечены «позже»", async () => {
+  const { host } = mount({ stored: { active: "harness" } });
+  await settled();
+
+  const options = [...host.querySelectorAll("[data-preset] option")];
+  const closed = options.filter((option) => option.disabled);
+  assert.deepEqual(
+    closed.map((option) => option.value),
+    ["opencode", "pi"],
+  );
+  for (const option of options) {
+    assert.equal(option.textContent.includes(ru.provider.presetLater), option.disabled, option.value);
+  }
+});
+
+test("закрытый пресет не подставляется, даже если выбор до него дошёл", async () => {
+  const { host } = mount({ stored: { active: "harness", harness: CUSTOM } });
+  await settled();
+
+  choose(host, "pi");
+  await settled();
+
+  assert.equal(host.querySelector("[data-command]").value, "my-cli");
+  assert.equal(host.querySelector("[data-args]").value, "--quiet");
+});
+
+test("сохранённый opencode открывается как есть и сохраняется без правок", async () => {
+  const harness = { ...DEFAULTS.harness, id: "opencode", command: "opencode", args: ["run"] };
+  const { host, calls } = mount({ stored: { active: "harness", harness } });
+  await settled();
+
+  assert.equal(host.querySelector("[data-preset]").value, "opencode");
+  assert.equal(host.querySelector("[data-command]").value, "opencode");
+
+  host.querySelector("[data-save]").click();
+  await settled();
+  assert.deepEqual(calls[1].payload.save.harness, harness);
 });
 
 test("рекомендованные аргументы подставляются кнопкой, а не сами", async () => {
@@ -514,16 +568,21 @@ test("неизвестный код отказа не оставляет экр�
   assert.deepEqual(said.at(-1), { tone: "error", text: ru.provider.failed });
 });
 
-test("журнал выключен по умолчанию и показывает счётчик с путём", async () => {
-  const { host, logs } = mount({ records: 3 });
+test("журнал выключен по умолчанию", async () => {
+  const { host, logs } = mount();
   await settled();
 
   assert.equal(host.querySelector("[data-journal]").checked, false);
-  assert.deepEqual(logs, [{ open: false, clear: false }]);
-  assert.equal(
-    host.querySelector("[data-journal-room]").textContent,
-    `${ru.provider.journalKept} 3 · /данные/llm-log`,
-  );
+  assert.deepEqual(logs, [], "карточка провайдера сама читает журнал");
+});
+
+test("провайдер и модели стоят одной карточкой", async () => {
+  const { host } = mount();
+  await settled();
+
+  assert.equal(host.querySelectorAll('[data-card="provider"]').length, 1);
+  assert.ok(host.querySelector('[data-card="provider"] [data-journal]') !== null, "галочка ушла от кнопки «Сохранить»");
+  assert.ok(host.querySelector('[data-card="provider"] [data-save]') !== null);
 });
 
 test("галочка журнала уходит в сохранение провайдера", async () => {
@@ -538,30 +597,98 @@ test("галочка журнала уходит в сохранение про�
   assert.equal(calls.at(-1).payload.save.journal, true);
 });
 
-test("очистка журнала обнуляет счётчик", async () => {
-  const { host, logs } = mount({ records: 7 });
+test("расхождение советов показано плашкой с разницей", async () => {
+  const { host } = mount({ stored: { active: "harness" }, outdated: DRIFT });
   await settled();
 
-  host.querySelector("[data-journal-clear]").click();
-  await settled();
-
-  assert.deepEqual(logs.at(-1), { open: false, clear: true });
-  assert.equal(
-    host.querySelector("[data-journal-room]").textContent,
-    `${ru.provider.journalKept} 0 · /данные/llm-log`,
-  );
+  assert.equal(host.querySelector("[data-drift-title]").textContent, ru.provider.driftTitle);
+  assert.match(host.querySelector("[data-drift-removed]").textContent, /--allowedTools/);
+  assert.match(host.querySelector("[data-drift-added]").textContent, /--strict-mcp-config/);
 });
 
-test("открытие папки журнала не трогает записи", async () => {
-  const { host, logs } = mount({ records: 2 });
+test("плашки нет, пока сервер не сообщил о расхождении", async () => {
+  const { host } = mount({ stored: { active: "harness" } });
   await settled();
 
-  host.querySelector("[data-journal-open]").click();
+  assert.equal(host.querySelector("[data-drift]"), null);
+});
+
+test("кнопка обновить подставляет аргументы пресета и сохраняет их сама", async () => {
+  const { host, calls } = mount({ stored: { active: "harness" }, outdated: DRIFT });
   await settled();
 
-  assert.deepEqual(logs.at(-1), { open: true, clear: false });
-  assert.equal(
-    host.querySelector("[data-journal-room]").textContent,
-    `${ru.provider.journalKept} 2 · /данные/llm-log`,
+  host.querySelector("[data-drift-update]").click();
+  await settled();
+
+  assert.deepEqual(calls[1].payload.save.harness.args, ["-p"]);
+  assert.equal(calls[1].payload.save.harness.dismissed_advice, null);
+});
+
+test("кнопка оставить мои запоминает отпечаток совета и сохраняет его сама", async () => {
+  const { host, calls } = mount({ stored: { active: "harness" }, outdated: DRIFT });
+  await settled();
+
+  host.querySelector("[data-drift-keep]").click();
+  await settled();
+
+  assert.deepEqual(calls[1].payload.save.harness.args, DEFAULTS.harness.args);
+  assert.equal(calls[1].payload.save.harness.dismissed_advice, DRIFT.fingerprint);
+});
+
+test("пустой аргумент в разнице виден кавычками, а не пропуском", async () => {
+  const { host } = mount({ stored: { active: "harness" }, outdated: { ...DRIFT, removed: ["--tools", ""] } });
+  await settled();
+
+  assert.equal(host.querySelector("[data-drift-removed]").textContent, `${ru.provider.driftRemoved} --tools, ""`);
+});
+
+test("разошёлся только порядок — плашка говорит об этом, а не показывает пустую разницу", async () => {
+  const { host } = mount({ stored: { active: "harness" }, outdated: { ...DRIFT, removed: [], added: [] } });
+  await settled();
+
+  assert.equal(host.querySelector("[data-drift-order]").textContent, ru.provider.driftOrder);
+  assert.equal(host.querySelector("[data-drift-removed]"), null);
+  assert.equal(host.querySelector("[data-drift-added]"), null);
+});
+
+test("пока форма расходится с сохранённой, плашки нет: кнопки сохранили бы чужие правки", async () => {
+  const { host } = mount({ stored: { active: "harness" }, outdated: DRIFT });
+  await settled();
+
+  input(host, "[data-command]", "claude-beta");
+  await settled();
+  assert.ok(host.querySelector("[data-drift]") === null, "плашка видна поверх несохранённой правки");
+
+  input(host, "[data-command]", DEFAULTS.harness.command);
+  await settled();
+  assert.ok(host.querySelector("[data-drift]"), "форма снова совпала с сохранённой, а плашка не вернулась");
+});
+
+test("после разрешения расхождения плашка гаснет", async () => {
+  const { host } = mount({ stored: { active: "harness" }, outdated: DRIFT });
+  await settled();
+
+  host.querySelector("[data-drift-keep]").click();
+  await settled();
+
+  assert.equal(host.querySelector("[data-drift]"), null);
+});
+
+test("«Сохранить» стоит своей строкой, «Проверить» и «Пробный запрос» — парой под ней", async () => {
+  const { host } = mount();
+  await settled();
+
+  const doing = host.querySelector("[data-doing]");
+  assert.notEqual(doing, null, "кнопки провайдера идут лестницей, без своей группы");
+
+  const [first, second] = [...doing.children];
+  assert.equal(first.dataset.save, "", "«Сохранить» не открывает группу");
+  assert.equal(second.classList.contains("row"), true, "проверки не собраны в строку");
+  assert.deepEqual(
+    [...second.children].map((button) => button.getAttributeNames().find((name) => name.startsWith("data-"))),
+    ["data-check", "data-probe"],
   );
+
+  const css = readFileSync(path.join(UI, "src/styles/layout.css"), "utf8");
+  assert.match(css, /\.row :where\(button\) \+ :where\(button\) \{\s*margin-inline-start: 0/);
 });

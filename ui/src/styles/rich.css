@@ -58,3 +58,65 @@ button[data-snip]:hover {
 [data-rich-code]:hover {
   border-color: var(--color-border-strong);
 }
+
+[data-clarify] {
+  display: grid;
+  gap: var(--spacing-2);
+  justify-items: start;
+}
+
+[data-chain] {
+  justify-self: stretch;
+}
+
+[data-chain][open] {
+  display: grid;
+  gap: var(--spacing-2);
+}
+
+aside[data-clarified] {
+  padding: var(--spacing-3) var(--spacing-4);
+  border-inline-start: var(--focus-ring) solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-bg);
+}
+
+[data-asked] {
+  color: var(--color-fg-muted);
+}
+
+blockquote[data-fragment] {
+  margin: 0;
+  padding-inline-start: var(--spacing-3);
+  border-inline-start: var(--focus-ring) solid var(--color-accent);
+  color: var(--color-fg-muted);
+}
+
+[data-asking] {
+  display: grid;
+  gap: var(--spacing-2);
+  justify-self: stretch;
+}
+
+[data-dictate][data-listening="true"] {
+  border-color: var(--color-accent);
+  background: var(--color-accent-bg);
+}
+
+[data-orphans] > ul {
+  display: grid;
+  gap: var(--spacing-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+[data-orphan] {
+  display: grid;
+  gap: var(--spacing-2);
+  justify-items: start;
+}
+
+[data-orphan] > aside[data-clarified] {
+  justify-self: stretch;
+}

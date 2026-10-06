@@ -27,10 +27,8 @@
       });
     };
 
-    for (const kind of ["program", "topic"]) {
-      const named = known()[kind];
-      if (named) show(kind, named.id ?? "", named.title ?? "");
-    }
+    const named = known().program;
+    if (named) show("program", named.id ?? "", named.title ?? "");
 
     addEventListener("tolearn:name", (event) => {
       show(event.detail.kind, event.detail.id, event.detail.title);

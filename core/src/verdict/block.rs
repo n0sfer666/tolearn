@@ -1,55 +1,17 @@
-pub fn last(text: &str) -> Option<&str> {
-    fenced(text).or_else(|| braced(text))
-}
+use serde_json::{Deserializer, Map, Value};
 
-fn fenced(text: &str) -> Option<&str> {
+pub(super) fn last(text: &str) -> Option<Map<String, Value>> {
     let mut found = None;
-    let mut opened: Option<usize> = None;
-    let mut at = 0;
-    for line in text.split_inclusive('\n') {
-        let start = at;
-        at += line.len();
-        let head = line.trim();
-        match opened {
-            Some(from) if head.starts_with("```") => {
-                found = Some(text[from..start].trim_matches('\n'));
-                opened = None;
+    let mut from = 0;
+    while let Some(offset) = text[from..].find('{') {
+        let start = from + offset;
+        let mut values = Deserializer::from_str(&text[start..]).into_iter::<Value>();
+        match values.next() {
+            Some(Ok(Value::Object(object))) => {
+                found = Some(object);
+                from = start + values.byte_offset();
             }
-            Some(_) => {}
-            None if head.starts_with("```json") => opened = Some(at),
-            None => {}
-        }
-    }
-    found
-}
-
-fn braced(text: &str) -> Option<&str> {
-    let mut found = None;
-    let mut opened = None;
-    let mut depth = 0_usize;
-    let mut quoted = false;
-    let mut escaped = false;
-    for (at, symbol) in text.char_indices() {
-        if escaped {
-            escaped = false;
-            continue;
-        }
-        match symbol {
-            '\\' if quoted => escaped = true,
-            '"' => quoted = !quoted,
-            '{' if !quoted => {
-                if depth == 0 {
-                    opened = Some(at);
-                }
-                depth += 1;
-            }
-            '}' if !quoted && depth > 0 => {
-                depth -= 1;
-                if depth == 0 {
-                    found = opened.map(|from| &text[from..=at]);
-                }
-            }
-            _ => {}
+            _ => from = start + 1,
         }
     }
     found

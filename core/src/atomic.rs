@@ -27,7 +27,7 @@ pub fn bytes(path: &Path, data: &[u8]) -> Result<(), Error> {
     })
 }
 
-fn spill(temporary: &Path, data: &[u8]) -> Result<(), Error> {
+pub(crate) fn spill(temporary: &Path, data: &[u8]) -> Result<(), Error> {
     let mut file = File::create(temporary)?;
     file.write_all(data)?;
     file.sync_all()

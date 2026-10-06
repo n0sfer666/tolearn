@@ -7,89 +7,100 @@ The short version of how to use the app. For installation see
 
 ## Getting started
 
-1. Get a learning program. The prompts for that live in this repository:
-   [`core/assets/generate-roadmap.md`](../../core/assets/generate-roadmap.md)
-   produces the skeleton of a program, and
-   [`core/assets/generate-topic.md`](../../core/assets/generate-topic.md) produces
-   a single topic file. Paste the first one into any LLM chat, add what you want
-   to learn below it, take the resulting `roadmap.yaml` and `progress.yaml`, then
-   use the second prompt to build the topics one by one. The result is a bundle —
-   a folder with `roadmap.yaml`, `topics/*.yaml` and `examiner.md`. Example:
-   [`examples/llm-agents-base`](../../examples/llm-agents-base). There is no
-   "copy the prompt" button in the UI yet.
-2. On the home screen press "Choose folder" or "Choose archive". The app
-   validates the bundle and shows the errors, if any.
-3. Open a topic and start.
+1. In the library press "New program", describe what you want to learn and what
+   you come with, pick the language of the program and press "Draw the map". The
+   language of the program is not the language of the interface: you can read the
+   app in English and get the program in Russian. Refine the map with a wish as
+   many times as you like; "Start" creates the program with its first stage and
+   opens it. Generation needs the network and a model provider from Settings.
+2. Or take a ready program — a `.tolearn` file. You can build one from a program
+   folder with `tolearn pack`, for example from
+   [`examples/chiptune`](../../examples/chiptune); the CLI is built from source
+   ([install/source.md](install/source.md)). Drop the file onto the home screen
+   or pick it with the button: the app checks the package and names the reason
+   if it refuses it.
+3. Open the program, then a stage, and start. The next stage is created one at a
+   time: at the end of a stage "Skip the check" opens the choices of where to go
+   next.
 
 ## Screens
 
 | Screen | What for |
 |---|---|
-| Program | every topic by stage, statuses, entry point into a topic |
-| Topic | materials, practice, questions, note |
-| Practice | timer for the topic's timebox, survives a restart |
-| Exam | questions, answers and the verdict |
-| Queue | what to do now: available topics and reviews that came due |
-| Review | topics whose revalidation date has arrived |
-| Stale | topics that changed after the program was regenerated |
-| Graph | topic dependencies by layer |
-| Notes · Search | all notes and search across them |
-| Statistics | hours, statuses, history |
-| Settings | language, LLM provider, notes, encryption, offline, history |
-
-## The exam
-
-Two paths, both yours:
-
-- **Copy-paste (default).** The app assembles the prompt, you paste it into any
-  chat and paste the model's answer back. No key, no account.
-- **Provider.** Settings let you point at Ollama (local) or an OpenAI-compatible
-  endpoint with a key. The key is kept in the OS keychain.
-
-The verdict is written into your program's `progress.yaml`. Nothing else in the
-bundle is ever written to.
-
-## Notes
-
-A topic note is a plain `.md` file with a `tolearn: roadmap/topic` frontmatter.
-By default notes live in the app's data directory, but settings let you point at
-your own vault — an Obsidian folder, for instance: edits made outside are then
-picked up.
-
-Encryption (Settings → "Encryption") covers the **internal** directory: files
-become unreadable from outside and the file names give away nothing. The price is
-stated right on that screen — an external editor, picking up outside edits and
-the Obsidian plugin all stop working, and losing both the passphrase and the
-device key means losing the notes. External storage is never encrypted.
-
-## Offline
-
-A topic's materials are downloaded once and saved whole, as a single HTML file.
-After that the network is not needed: the reader shows the text from the archive.
-Nothing but an explicitly requested download ever goes online.
-
-## The Obsidian plugin
-
-It shows the program, the status of the open topic and a "time to review" mark in
-the status bar, and opens a topic in the app on command. It never writes
-anything. Point it at the app's data directory in the plugin settings. The status
-shown is the recorded one — blocking and staleness are recomputed by the app, so
-the precise answer is always there. With encryption on, the plugin sees no
-statuses and says so.
+| New program | the request and level, the map to confirm, the current generation step and "Cancel" |
+| Program | the goal, the map, stages and subprograms |
+| Stage | the stage text, practice and questions with an answer field: "Submit" hands the answers to the model, "Submit through another chat" copies the prompt into any chat and takes its reply, and each question shows its result, what was missed and "Added" — what the model added or corrected; "Skip the check" marks the stage passed without an exam and leads to the fork; "Regenerate the stage" explains it differently, the old text stays until the end |
+| What next | the choices for the next stage as cards: hours, the place on the map and what the choice continues, the recommended one marked and first; the finished stage's result beside them, the map with the choice in its slot below; a choice creates the stage and opens it |
+| Search | across the stages of every program in the library; `/` puts the cursor in the field, a hit names its program and opens the stage at the right spot |
+| Settings | the LLM provider and models, the disk budget, the request log, language and theme |
+| Help | how learning works, the keys, where to keep notes, and where the previous version's data lives |
 
 ## Where your data lives
 
-- Programs stay wherever you put them; the app remembers the path in its
-  registry.
-- Settings, the program registry and the store (default notes, page archives,
-  version history) live in `~/.config/tolearn` and `~/.local/share/tolearn`,
+- Settings live in `~/.config/tolearn` and data in `~/.local/share/tolearn`,
   identically on all three operating systems; exact paths and how to move them —
   [install/](install/README.md#where-your-data-lives).
 - Uninstalling the app does not touch your data.
+- The app keeps v2 programs in its own library, in
+  `~/.local/share/tolearn/programs/`, and the search index over them next to
+  it, in `search.yaml`: it rebuilds itself and is safe to delete. v1 program
+  data — the registry `~/.config/tolearn/registry.yaml` and, under
+  `~/.local/share/tolearn`, the
+  `unpacked/`, `history/` and `offline/` directories and the `search-*` search
+  index — is neither read nor removed by the app once it moves to v2: you can
+  delete it by hand.
 
 ## Export
 
-The "Export to Markdown" button on the program screen collects the whole program
-into one file — table of contents, topics, notes. Answers and traps make it into
-the file only for topics that were passed. The export never writes inside the
-bundle itself.
+The "Export to Markdown" button on the program screen asks for a folder and puts
+a folder named after the program into it: `index.md` with the contents by stages
+and subprograms, one page per generated stage, and the pictures next to them.
+Links are relative, so the folder opens in any Markdown editor or goes into git
+as is. On a subprogram screen only that subprogram is exported. Reference
+answers to the questions are never exported. The export never writes into a
+non-empty folder or inside the app's library. The export is assembled in a
+hidden folder next to the target, `.<name>.partial-<number>`, and renamed as a
+whole at the end; if the app crashes mid-export, that hidden folder can be
+removed by hand.
+
+From a terminal, `tolearn export <program folder> <folder>` exports too. Unlike
+the button, it writes straight into `<folder>` with no nested folder named after
+the program, so `<folder>` must be empty or not exist yet. It never writes
+inside any program folder.
+
+## Deleting
+
+The "Move to trash…" item in the ⋯ menu on the program screen asks for a
+confirmation and moves to the system trash the program itself
+(`programs/<uuid>/`) first, then its state and page cache — and with them the
+whole model request log: the log is shared by every program and lives in
+`llm-log/`. Until the trash is emptied, the system can put all of it back. A
+subprogram cannot be deleted on its own: the whole program goes at once. While
+this program is being generated the deletion refuses; while it is being deleted
+no new generation of it starts. If the trash refuses part of it, the app refuses
+too and lists what stayed on disk.
+
+## Generating from a terminal
+
+`tolearn new "<request>" --level <level> --out <folder>` builds the program map
+and its first stage into `<folder>/programs/<uuid>/`, not into the app's
+library. The model provider comes from the app's settings and a remote provider's key
+from the system keychain; another provider settings file is named with
+`--provider <file>`. Without a network the command refuses with a reason and
+never calls the model. `new` never writes into a folder that already holds a
+program, nor into the app's own data folder.
+
+While it runs, a line per step goes to standard error — time and tokens — and
+at the end the output says where the program is, which stage was built and
+which command to call next. A terminal has no window to draw diagrams in, so
+diagrams stay Mermaid source, and the "схемы" step line says so.
+
+`tolearn next <folder>` shows the fork variants after the last built stage,
+`tolearn next <folder> --choice <number>` builds the chosen one. With `--json`
+both commands print the summary as an object. `tolearn pack
+<folder>/programs/<uuid> <file>` packs the finished program, and the app
+imports it.
+
+`tolearn ledger <folder>` sums up the program's request ledger into a table:
+model calls, source checks, time and tokens per stage and step. It needs
+neither the model nor a network.

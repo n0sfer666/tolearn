@@ -1,0 +1,3 @@
+{"books": [{"title": "Unwritten Tracker Manual", "author": "Nobody", "chapter": "3. Каналы"}],
+ "pages": [{"url": "https://a.test/missing"}],
+ "images": []}

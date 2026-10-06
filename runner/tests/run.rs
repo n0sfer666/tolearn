@@ -4,19 +4,16 @@
     reason = "runner gate: a panic here is the report"
 )]
 
+#[path = "../../tests-support/scratch.rs"]
+mod scratch;
+
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
 use tolearn_runner::{Limits, Outcome, run};
 
 fn scratch(name: &str) -> PathBuf {
-    let directory =
-        std::env::temp_dir().join(format!("tolearn-runner-{name}-{}", std::process::id()));
-    if directory.exists() {
-        std::fs::remove_dir_all(&directory).unwrap();
-    }
-    std::fs::create_dir_all(&directory).unwrap();
-    directory
+    scratch::made(&format!("runner-{name}"))
 }
 
 fn limits(millis: u64) -> Limits {

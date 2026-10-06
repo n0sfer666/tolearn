@@ -1,25 +1,26 @@
-mod checks;
-mod exam;
 mod export;
-mod merge;
-mod progress;
-mod scan;
-mod validate;
+mod ledger;
+mod new;
+mod next;
+mod offered;
+mod pack;
+mod unpack;
 
 use crate::args::{Args, Command};
 use crate::error::CliError;
 use crate::out::Output;
+use crate::world::World;
 
-pub fn run(args: &Args) -> Result<Output, CliError> {
-    let root = args.bundle.as_path();
+pub fn run(
+    args: &Args,
+    world: impl FnOnce() -> Result<World, CliError>,
+) -> Result<Output, CliError> {
     match &args.command {
-        Command::Validate => validate::run(root),
-        Command::Scan => scan::run(root),
-        Command::Progress { today } => progress::run(root, today.as_deref()),
-        Command::Exam { .. } => exam::run(root, &args.command),
-        Command::Merge { was } => merge::run(root, was),
-        Command::Export { out, notes, today } => {
-            export::run(root, out.as_deref(), notes.as_deref(), today.as_deref())
-        }
+        Command::Export { source, into } => export::run(source, into),
+        Command::Pack { source, out } => pack::run(source, out),
+        Command::Unpack { source, into } => unpack::run(source, into),
+        Command::New(new) => new::run(new, world()?),
+        Command::Next(next) => next::run(next, world()?),
+        Command::Ledger { source } => ledger::run(source),
     }
 }

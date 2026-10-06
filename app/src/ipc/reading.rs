@@ -1,0 +1,181 @@
+use super::clarified::ClarificationView;
+use super::dto::dto;
+use super::shape::Shape;
+use super::types::Span;
+
+dto!(LibraryIn {});
+dto!(LibraryOut {
+    programs: Vec<ShelfView>,
+    refused: Vec<RefusedView>,
+});
+dto!(ShelfView {
+    uuid: String,
+    title: String,
+    goal: String,
+    hours: Span,
+    stages: u32,
+    subprograms: u32,
+    summary: Option<SummaryView>,
+    active: Option<String>,
+    unread: Option<String>,
+});
+dto!(RefusedView {
+    directory: String,
+    code: String,
+    message: String,
+});
+dto!(RowView {
+    id: String,
+    title: String,
+    hours: Span,
+    ready: bool,
+    summary: Option<SummaryView>,
+});
+
+dto!(ImportPackageIn { path: String });
+dto!(ImportPackageOut {
+    uuid: String,
+    title: String,
+    copy_of: Option<String>,
+});
+
+dto!(DeleteProgramIn { program: String });
+dto!(DeleteProgramOut { title: String });
+
+dto!(NodeIn {
+    program: String,
+    node: String,
+});
+dto!(NodeOut {
+    program: String,
+    uuid: String,
+    title: String,
+    goal: String,
+    level: String,
+    hours: Span,
+    trail: Vec<CrumbView>,
+    stages: Vec<StageRowView>,
+    children: Vec<RowView>,
+    summary: SummaryView,
+    sources: SourcesView,
+});
+dto!(SourcesView {
+    books: Vec<BookView>,
+    pages: Vec<PageView>,
+});
+dto!(BookView {
+    title: String,
+    authors: Vec<String>,
+    chapter: String,
+});
+dto!(PageView {
+    title: String,
+    url: String,
+    checked_at: String,
+});
+dto!(StageRowView {
+    id: String,
+    title: String,
+    hours: Span,
+    ready: bool,
+    status: String,
+    pass: Option<String>,
+});
+dto!(SummaryView {
+    passed: u32,
+    total: u32,
+    skipped: u32,
+});
+dto!(CrumbView {
+    uuid: String,
+    title: String,
+});
+
+dto!(StageIn {
+    program: String,
+    node: String,
+    stage: String,
+});
+dto!(StageOut {
+    program: String,
+    node: String,
+    node_title: String,
+    id: String,
+    title: String,
+    blocks: Vec<BlockView>,
+    practice: TaskView,
+    questions: Vec<AskView>,
+    ticks: Vec<String>,
+    workdir: Option<String>,
+    clarifications: Vec<ClarificationView>,
+});
+dto!(BlockView {
+    id: String,
+    kind: String,
+    text: String,
+    lang: Option<String>,
+    src: Option<String>,
+    license: Option<String>,
+    attribution: Option<String>,
+    source: Option<String>,
+});
+dto!(TaskView {
+    task: Vec<BlockView>,
+    deliverable: String,
+    constraints: Vec<ClaimView>,
+    acceptance: Vec<ClaimView>,
+});
+dto!(ClaimView {
+    id: String,
+    claim: String,
+    check: Option<String>,
+    expect: String,
+});
+dto!(AskView {
+    id: String,
+    text: String,
+    result: Option<String>,
+    missed: Vec<String>,
+    added: Option<String>,
+    answer: Option<String>,
+    draft: String,
+});
+dto!(ExportIn {
+    program: String,
+    node: String,
+    folder: String,
+});
+dto!(ExportOut {
+    path: String,
+    files: u64,
+});
+
+pub fn shapes() -> Vec<Shape> {
+    vec![
+        LibraryIn::shape(),
+        LibraryOut::shape(),
+        ShelfView::shape(),
+        RefusedView::shape(),
+        RowView::shape(),
+        ImportPackageIn::shape(),
+        ImportPackageOut::shape(),
+        DeleteProgramIn::shape(),
+        DeleteProgramOut::shape(),
+        NodeIn::shape(),
+        NodeOut::shape(),
+        SourcesView::shape(),
+        BookView::shape(),
+        PageView::shape(),
+        StageRowView::shape(),
+        SummaryView::shape(),
+        CrumbView::shape(),
+        StageIn::shape(),
+        StageOut::shape(),
+        BlockView::shape(),
+        TaskView::shape(),
+        ClaimView::shape(),
+        AskView::shape(),
+        ExportIn::shape(),
+        ExportOut::shape(),
+    ]
+}

@@ -1,10 +1,16 @@
-import type { CommandName, Commands } from "../ipc";
+import type { CommandName, Commands, GenerationStateOut, GenerationStep } from "../ipc";
 import { explain, toast } from "./toast";
 
 export type Transport = <Name extends CommandName>(
   name: Name,
   payload: Commands[Name]["input"],
 ) => Promise<Commands[Name]["output"]>;
+
+export type Heard<T> = (handler: (payload: T) => void) => () => void;
+
+export type Listen = Heard<GenerationStep>;
+
+export type Watch = Heard<GenerationStateOut>;
 
 const BRIDGE = "http://127.0.0.1:4319";
 
@@ -27,6 +33,23 @@ export const quiet: Transport = async (name, payload) => {
   return invoke("command", { name, payload });
 };
 
+const heard = async <T>(event: string, handler: (payload: T) => void): Promise<() => void> => {
+  const { listen } = await import("@tauri-apps/api/event");
+  return listen<T>(event, (got) => handler(got.payload));
+};
+
+const tuned =
+  <T>(event: string): Heard<T> =>
+  (handler) => {
+    if (!shell()) return () => undefined;
+    const held = heard(event, handler).catch(() => () => undefined);
+    return () => void held.then((stop) => stop());
+  };
+
+export const steps: Listen = tuned("generation-step");
+
+export const states: Watch = tuned("generation-state");
+
 export const transport: Transport = async (name, payload) => {
   try {
     return await quiet(name, payload);
@@ -36,27 +59,18 @@ export const transport: Transport = async (name, payload) => {
   }
 };
 
-export async function pick(): Promise<string | null> {
-  const { open } = await import("@tauri-apps/plugin-dialog");
-  const chosen = await open({ directory: true, multiple: false });
-  return typeof chosen === "string" ? chosen : null;
-}
-
-export async function pickArchive(): Promise<string | null> {
+export async function pickPackage(): Promise<string | null> {
   const { open } = await import("@tauri-apps/plugin-dialog");
   const chosen = await open({
     multiple: false,
-    filters: [{ name: "archive", extensions: ["zip", "gz", "tgz"] }],
+    filters: [{ name: "tolearn", extensions: ["tolearn"] }],
   });
   return typeof chosen === "string" ? chosen : null;
 }
 
-export async function pickFile(name: string): Promise<string | null> {
-  const { save } = await import("@tauri-apps/plugin-dialog");
-  const chosen = await save({
-    defaultPath: name,
-    filters: [{ name: "markdown", extensions: ["md"] }],
-  });
+export async function pickFolder(): Promise<string | null> {
+  const { open } = await import("@tauri-apps/plugin-dialog");
+  const chosen = await open({ directory: true, multiple: false });
   return typeof chosen === "string" ? chosen : null;
 }
 

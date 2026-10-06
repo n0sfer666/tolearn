@@ -8,14 +8,14 @@
 mod support;
 
 fn context() -> Context {
-    Context::new(&std::env::temp_dir().join(format!("tolearn-contract-{}", std::process::id())))
+    Context::new(&support::scratch::named("contract"))
 }
 
 use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 use serde_json::json;
-use support::{copied, repository, sources};
+use support::{repository, sources};
 use tolearn_app::ipc::{Context, NAMES, call, descriptors, typescript};
 
 #[test]
@@ -75,6 +75,22 @@ fn типы_для_ui_совпадают_с_файлом_в_репозитори
 }
 
 #[test]
+fn бюджет_программы_в_ui_совпадает_с_правилом_ядра() {
+    let file = repository().join("ui/src/lib/hours.ts");
+    let written =
+        std::fs::read_to_string(&file).expect("ui/src/lib/hours.ts должен лежать в репозитории");
+
+    assert!(
+        written.contains(&format!(
+            "export const BUDGET = {};",
+            tolearn_generate::plan::MAX_HOURS
+        )),
+        "правило {} ч из `generate::plan::MAX_HOURS` разошлось с `BUDGET` в ui/src/lib/hours.ts",
+        tolearn_generate::plan::MAX_HOURS
+    );
+}
+
+#[test]
 fn каждый_тип_поля_объявлен() {
     let shapes = tolearn_app::ipc::shapes();
     let known: BTreeSet<&str> = shapes
@@ -106,7 +122,7 @@ fn неизвестная_команда_отвечает_кодом() {
 
 #[test]
 fn битый_ввод_отвечает_кодом_а_не_паникой() {
-    let error = call(&context(), "validate", &json!({})).unwrap_err();
+    let error = call(&context(), "node", &json!({})).unwrap_err();
 
     assert_eq!(error.code, "ipc.malformed-payload");
     assert!(!error.message.is_empty());
@@ -116,12 +132,12 @@ fn битый_ввод_отвечает_кодом_а_не_паникой() {
 fn ошибка_ядра_доезжает_кодом_и_сообщением() {
     let error = call(
         &context(),
-        "validate",
-        &json!({ "bundle": "/nowhere-at-all" }),
+        "node",
+        &json!({ "program": "nowhere-at-all", "node": "" }),
     )
     .unwrap_err();
 
-    assert_eq!(error.code, "scan.no-roadmap");
+    assert_eq!(error.code, "library.absent");
     assert!(
         error.message.contains("nowhere-at-all"),
         "{}",
@@ -130,111 +146,43 @@ fn ошибка_ядра_доезжает_кодом_и_сообщением() {
 }
 
 #[test]
-fn бандл_с_двумя_форматами_читается_как_yaml() {
-    let root = repository().join("examples/llm-agents-base");
-    let out = call(&context(), "scan", &json!({ "bundle": root })).unwrap();
-
-    assert_eq!(out["format"], json!("yaml"), "{out:#}");
-}
-
-#[test]
-fn эталонный_бандл_проходит_валидацию() {
-    let root = copied("validate");
-    let out = call(&context(), "validate", &json!({ "bundle": root })).unwrap();
-
-    assert_eq!(out["ok"], json!(true), "{out:#}");
-    assert_eq!(out["violations"], json!([]));
-}
-
-#[test]
-fn бандл_с_нарушением_отвечает_нет_и_перечисляет_коды() {
-    let root = copied("broken");
-    let file = root.join("roadmap.yaml");
-    let source = std::fs::read_to_string(&file).unwrap();
-    std::fs::write(
-        &file,
-        source.replacen("est_hours: [4, 6]", "est_hours: [6, 4]", 1),
-    )
-    .unwrap();
-
-    let out = call(&context(), "validate", &json!({ "bundle": root })).unwrap();
-
-    assert_eq!(out["ok"], json!(false), "{out:#}");
-    assert_eq!(out["violations"][0]["code"], json!("bundle.hours-reversed"));
-    assert!(!out["violations"][0]["message"].as_str().unwrap().is_empty());
-}
-
-#[test]
-fn обзор_бандла_называет_формат_и_темы() {
-    let root = copied("scan");
-    let out = call(&context(), "scan", &json!({ "bundle": root })).unwrap();
-
-    assert_eq!(out["format"], json!("yaml"));
-    assert!(!out["topics"].as_array().unwrap().is_empty());
-    assert_eq!(out["broken"], json!([]));
-}
-
-#[test]
-fn сводка_считает_этапы_и_статусы() {
-    let root = copied("program");
-    let out = call(
-        &context(),
-        "program",
-        &json!({ "bundle": root, "today": "2026-07-27" }),
-    )
-    .unwrap();
-
-    assert!(out["program"]["total"].as_u64().unwrap() > 0, "{out:#}");
-    assert!(!out["stages"].as_array().unwrap().is_empty());
-    assert!(!out["topics"].as_array().unwrap().is_empty());
-}
-
-#[test]
-fn кривая_дата_отвечает_кодом() {
-    let root = copied("bad-date");
-    let error = call(
-        &context(),
-        "program",
-        &json!({ "bundle": root, "today": "вчера" }),
-    )
-    .unwrap_err();
-
-    assert_eq!(error.code, "date.malformed");
-}
-
-#[test]
-fn промпт_темы_собирается_из_шаблона() {
-    let root = copied("prompt");
-    let topics = call(&context(), "scan", &json!({ "bundle": &root })).unwrap();
-    let first = topics["topics"][0].as_str().unwrap().to_owned();
-
-    let out = call(
-        &context(),
+fn команды_экранов_изучения_v1_убраны() {
+    for name in [
+        "topic",
+        "run_check",
+        "set_status",
+        "parse_verdict",
+        "apply_verdict",
+        "review",
         "prompt",
-        &json!({ "bundle": root, "topic": first }),
-    )
-    .unwrap();
+        "examine",
+        "validate",
+        "scan",
+        "program",
+    ] {
+        let error = call(&context(), name, &json!({})).unwrap_err();
 
-    assert!(!out["text"].as_str().unwrap().is_empty());
-}
-
-#[test]
-fn неизвестная_тема_отвечает_кодом() {
-    let root = copied("unknown-topic");
-    let error = call(
-        &context(),
-        "prompt",
-        &json!({ "bundle": root, "topic": "нет-такой" }),
-    )
-    .unwrap_err();
-
-    assert_eq!(error.code, "topic.unknown");
+        assert_eq!(error.code, "ipc.unknown-command", "{name}");
+    }
 }
 
 #[test]
 fn описание_команд_держит_обе_формы() {
+    let mut bare = Vec::new();
     for descriptor in descriptors() {
-        assert!(!descriptor.input.fields.is_empty(), "{}", descriptor.name);
+        assert!(descriptor.input.name.ends_with("In"), "{}", descriptor.name);
         assert!(!descriptor.output.fields.is_empty(), "{}", descriptor.name);
+        if descriptor.input.fields.is_empty() {
+            bare.push(descriptor.name);
+        }
     }
+    assert_eq!(
+        bare,
+        [
+            "library",
+            "cancel_generation",
+            "generation_state",
+            "generation_seen"
+        ]
+    );
 }

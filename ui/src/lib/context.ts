@@ -1,26 +1,21 @@
+import type { Kind } from "./name";
+
 const KEEP: Record<string, readonly string[]> = {
-  "/program/": ["program"],
+  "/program/": ["program", "node"],
+  "/stage/": ["program", "node", "stage"],
   "/search/": ["program"],
-  "/stale/": ["program"],
-  "/stats/": ["program"],
-  "/graph/": ["program"],
-  "/topic/": ["program", "topic"],
-  "/exam/": ["program", "topic"],
-  "/review/": ["program", "topic"],
-  "/practice/": ["program", "topic"],
-  "/notes/": ["program", "topic"],
 };
 
 export function keep(href: string): readonly string[] {
   return KEEP[href] ?? [];
 }
 
-const NAMED: Record<string, "program" | "topic"> = {
+const NAMED: Record<string, Kind> = {
   "/program/": "program",
-  "/topic/": "topic",
+  "/stage/": "stage",
 };
 
-export function entity(href: string): "program" | "topic" | undefined {
+export function entity(href: string): Kind | undefined {
   return NAMED[href];
 }
 

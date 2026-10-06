@@ -31,6 +31,12 @@ export function explain(failure: unknown): string {
   return failure.message;
 }
 
+export function coded(failure: unknown): string {
+  if (typeof failure !== "object" || failure === null) return "";
+  if (!("code" in failure) || typeof failure.code !== "string") return "";
+  return failure.code;
+}
+
 function tuned(value: string): value is Tone {
   return TONES.some((tone) => tone === value);
 }

@@ -2,13 +2,14 @@ use std::io::ErrorKind;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use tolearn_runner::{Limits, Outcome, RunError, Seen, spawn};
+use tolearn_runner::{Limits, Outcome, RunError, Seen, Stop, spawn};
 
 use crate::ansi::plain;
 use crate::ask::Said;
 use crate::error::CheckError;
 use crate::scratch::Scratch;
 use crate::stream::Tape;
+use crate::tokens::Tokens;
 use crate::types::{Harness, Watch};
 
 pub const OUTPUT_BYTES: usize = 1024 * 1024;
@@ -25,11 +26,17 @@ pub fn version(harness: &Harness) -> Result<String, CheckError> {
         "",
         bounded(VERSION_TIMEOUT, None),
         None,
+        &Stop::default(),
     )?;
     Ok(first(&said).unwrap_or_else(|| first(&complained).unwrap_or_default()))
 }
 
-pub fn ask(harness: &Harness, prompt: &str, watch: Option<Watch>) -> Result<Said, CheckError> {
+pub fn ask(
+    harness: &Harness,
+    prompt: &str,
+    watch: Option<Watch>,
+    stop: &Stop,
+) -> Result<Said, CheckError> {
     let patience = Duration::from_secs(u64::from(harness.timeout_secs));
     let tape = Arc::new(Mutex::new(Tape::default()));
     let (said, _) = ran(
@@ -38,6 +45,7 @@ pub fn ask(harness: &Harness, prompt: &str, watch: Option<Watch>) -> Result<Said
         prompt,
         bounded(patience, Some(SILENCE)),
         Some(watcher(&tape, watch)),
+        stop,
     )?;
     let said = tape
         .lock()
@@ -68,7 +76,8 @@ fn plainly(text: String) -> Said {
     Said {
         text: text.trim().to_owned(),
         thinking: false,
-        tokens: None,
+        tokens: Tokens::default(),
+        model: None,
     }
 }
 
@@ -86,6 +95,7 @@ fn ran(
     input: &str,
     limits: Limits,
     seen: Option<Seen>,
+    stop: &Stop,
 ) -> Result<(String, String), CheckError> {
     let command = harness.command.trim();
     if command.is_empty() {
@@ -93,9 +103,10 @@ fn ran(
     }
     let scratch = Scratch::new().map_err(|error| CheckError::Unreachable(error.to_string()))?;
 
-    let run = spawn(command, args, scratch.path(), input, limits, seen)
+    let run = spawn(command, args, scratch.path(), input, limits, seen, stop)
         .map_err(|error| broken(command, error))?;
     match run.outcome {
+        Outcome::Stopped => Err(CheckError::Cancelled),
         Outcome::WentQuiet => Err(CheckError::WentQuiet(seconds(
             limits.silence.unwrap_or_default(),
         ))),

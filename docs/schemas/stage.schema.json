@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/n0sfer666/tolearn/blob/master/docs/schemas/stage.schema.json",
+  "title": "tolearn/stage/1",
+  "description": "Этап программы v2: stages/<id>.yaml в каталоге листа.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "title", "blocks", "practice", "questions"],
+  "properties": {
+    "schema": { "const": "tolearn/stage/1" },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "title": { "$ref": "#/$defs/line" },
+    "blocks": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/block" }
+    },
+    "practice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task", "deliverable", "constraints", "acceptance"],
+      "properties": {
+        "task": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/block" }
+        },
+        "deliverable": { "$ref": "#/$defs/text" },
+        "constraints": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/check" }
+        },
+        "acceptance": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/check" }
+        }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/question" }
+    }
+  },
+  "$defs": {
+    "line": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "text": { "type": "string", "minLength": 1 },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "text"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[0-9a-f]{8}(-([2-9]|[1-9][0-9]+))?$" },
+        "kind": { "enum": ["paragraph", "heading", "code", "callout", "diagram", "image"] },
+        "text": { "$ref": "#/$defs/text" },
+        "lang": { "type": "string", "pattern": "^[a-z][a-z0-9+#-]*$" },
+        "asset": {
+          "type": "string",
+          "pattern": "^assets/[a-z0-9]+(-[a-z0-9]+)*\\.(svg|png|jpg|webp)$"
+        },
+        "license": { "$ref": "#/$defs/line" },
+        "attribution": { "$ref": "#/$defs/line" },
+        "source": { "type": "string", "format": "uri" }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "claim", "expect"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[ac][0-9]+$" },
+        "claim": { "$ref": "#/$defs/text" },
+        "check": { "$ref": "#/$defs/text" },
+        "expect": { "$ref": "#/$defs/text" }
+      }
+    },
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "answer"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^q[0-9]+$" },
+        "text": { "$ref": "#/$defs/text" },
+        "answer": { "$ref": "#/$defs/text" }
+      }
+    }
+  }
+}

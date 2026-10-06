@@ -1,36 +1,34 @@
 use serde_json::Value;
 
-use super::yaml;
+use super::{programs, yaml};
 use crate::repo::{read, root};
 
-const REFERENCE: &str = "examples/llm-agents-base";
+const STATES: &str = "fixtures/v2/states";
+const STAND: &str = "fixtures/v2/stand";
 
 pub fn document(path: &str) -> Value {
     yaml::load(&read(path), path)
 }
 
 pub fn fixtures(set: &str, kind: &str) -> Vec<String> {
-    let relative = format!("fixtures/{set}/{kind}");
-    if root().join(&relative).is_dir() {
-        files(&relative, ".yaml")
+    listed(&format!("fixtures/v2/{set}/{kind}"))
+}
+
+pub fn listed(relative: &str) -> Vec<String> {
+    if root().join(relative).is_dir() {
+        files(relative, ".yaml")
     } else {
         Vec::new()
     }
 }
 
-fn reference(kind: &str) -> Vec<String> {
-    match kind {
-        "roadmap" => vec![format!("{REFERENCE}/roadmap.yaml")],
-        "progress" => vec![format!("{REFERENCE}/progress.yaml")],
-        "topic" => files(&format!("{REFERENCE}/topics"), ".yaml"),
-        other => panic!("unknown schema kind `{other}`"),
-    }
-}
-
 pub fn valid_documents(kind: &str) -> Vec<(String, Value)> {
-    reference(kind)
+    let paths = match kind {
+        "state" => [listed(STATES), listed(STAND)].concat(),
+        _ => programs::documents(kind),
+    };
+    paths
         .into_iter()
-        .chain(fixtures("valid", kind))
         .map(|path| {
             let document = document(&path);
             (path, document)

@@ -1,9 +1,9 @@
 ---
 import { LOCALES, localeOf, strings } from "../../../i18n";
 import Base from "../../../layouts/Base.astro";
+import Ledger from "../../../islands/Ledger";
 import Settings from "../../../islands/Settings";
 import Provider from "../../../islands/Provider";
-import Encryption from "../../../islands/Encryption";
 
 export function getStaticPaths() {
   return LOCALES.map((locale) => ({ params: { locale } }));
@@ -13,11 +13,11 @@ const locale = localeOf(Astro.params.locale);
 const text = strings(locale);
 ---
 
-<Base locale={locale} title={text.nav.settings} back={{ href: "/", text: text.nav.programs }}>
+<Base locale={locale} title={text.nav.settings} back={{ href: "/", text: text.nav.library }}>
   <p>{text.settings.lead}</p>
-  <section class="grid" aria-label={text.nav.settings}>
-    <Settings text={text} locale={locale} client:load />
+  <section data-settings aria-label={text.nav.settings}>
     <Provider text={text} locale={locale} client:load />
-    <Encryption text={text} client:load />
+    <Ledger text={text} client:load />
+    <Settings text={text} locale={locale} client:load />
   </section>
 </Base>

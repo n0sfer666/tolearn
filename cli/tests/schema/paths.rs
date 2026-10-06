@@ -28,6 +28,23 @@ const TERMINAL: [&str; 21] = [
     "dependentRequired",
 ];
 
+const ANNOTATIONS: [&str; 6] = ["$schema", "$id", "$ref", "$defs", "title", "description"];
+
+pub fn rules(schema: &Value) -> BTreeSet<String> {
+    let mut found = BTreeSet::new();
+    for (_, node) in nodes(schema) {
+        for keyword in node.as_object().into_iter().flat_map(serde_json::Map::keys) {
+            if TERMINAL.contains(&keyword.as_str()) && !ANNOTATIONS.contains(&keyword.as_str()) {
+                found.insert(keyword.clone());
+            }
+        }
+        if node.get("additionalProperties") == Some(&Value::Bool(false)) {
+            found.insert("additionalProperties".to_owned());
+        }
+    }
+    found
+}
+
 pub fn described_fields(schema: &Value) -> BTreeSet<String> {
     nodes(schema)
         .into_iter()

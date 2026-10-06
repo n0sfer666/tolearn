@@ -22,33 +22,24 @@ function mount() {
   const host = window.document.createElement("div");
   window.document.body.append(host);
   const call = (name) => {
-    if (name === "programs") return Promise.resolve({ programs: [] });
-    if (name === "provider") return Promise.resolve({ provider: { enabled: true } });
+    if (name === "library") return Promise.resolve({ programs: [], refused: [] });
     return new Promise(() => {});
   };
   return render(
     () =>
       Programs({
         text: ru.programs,
-        generate: ru.generate,
         locale: "ru",
         call,
         pick: () => Promise.resolve(null),
-        pickArchive: () => Promise.resolve(null),
         drops: () => {},
       }),
     host,
   );
 }
 
-test("ссылка на тему ведёт прямо на тему выбранного языка", () => {
-  assert.equal(
-    landing("ru", "?program=%2Fprograms%2Fbase&topic=agents"),
-    "/ru/topic/?program=%2Fprograms%2Fbase&topic=agents",
-  );
-});
-
-test("половина адреса не считается адресом темы", () => {
+test("адрес темы v1 ведёт в список программ выбранного языка", () => {
+  assert.equal(landing("ru", "?program=%2Fprograms%2Fbase&topic=agents"), "/ru/");
   assert.equal(landing("en", "?program=%2Fprograms%2Fbase"), "/en/");
   assert.equal(landing("en", "?topic=agents"), "/en/");
   assert.equal(landing("ru", ""), "/ru/");

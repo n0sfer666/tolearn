@@ -6,214 +6,184 @@
 
 mod support;
 
-use tolearn_core::progress::{NextAction, Outcome, Verdict as Result};
-use tolearn_core::topic::Topic;
-use tolearn_core::verdict::{Verdict, VerdictError, parse};
+use tolearn_core::stage::{Stage, parse};
+use tolearn_core::state::{Answered, Grade};
+use tolearn_core::verdict::{VerdictError, read};
 
-use support::bundles;
-
-const WHOLE: &str = r#"{
-  "topic_id": "question-shapes",
-  "date": "2026-07-27",
-  "model": "opus",
-  "verdict": "partial",
-  "hinted": true,
-  "practice_accepted": false,
-  "failed_checks": ["a1"],
-  "per_question": [
-    {"id": "q1", "result": "miss", "quote": "ну, зависит",
-     "missed": ["порядок обхода"], "signal_extension": false}
-  ],
-  "gaps": ["не держит порядок"],
-  "calibration": "сказал про обход",
-  "notes": ["просил подсказку"],
-  "next_action": "retry_failed",
-  "retry_after_days": 3
-}"#;
-
-fn topic() -> Topic {
-    let (_, topics) = bundles::corpus_whole();
-    topics[bundles::document(&topics, "question-shapes")].clone()
+fn voices() -> Stage {
+    parse(&support::read("examples/chiptune/stages/voices.yaml")).unwrap()
 }
 
-fn fenced(body: &str) -> String {
-    format!("Разбор ответа.\n\n```json\n{body}\n```\n")
+fn graded(rows: &str) -> String {
+    format!(r#"{{"stage": "voices", "per_question": [{rows}]}}"#)
 }
 
-fn read(text: &str) -> Verdict {
-    parse(text, &topic()).unwrap()
+const ALL_OK: &str = r#"{"id": "q1", "result": "ok"}, {"id": "q2", "result": "ok"},
+    {"id": "q3", "result": "ok"}, {"id": "q4", "result": "ok"}"#;
+
+const MIXED: &str = r#"{"id": "q1", "result": "partial", "missed": ["нет шумового канала", "{скобки}"], "quote": "пять"},
+    {"id": "q2", "result": "ok", "missed": []},
+    {"id": "q3", "result": "miss", "missed": ["формула таймера"]},
+    {"id": "q4", "result": "ok"}"#;
+
+fn refused(text: &str) -> VerdictError {
+    match read(text, &voices()) {
+        Ok(rows) => panic!("verdict accepted: {rows:?}"),
+        Err(error) => error,
+    }
 }
 
-fn fail(text: &str) -> VerdictError {
-    parse(text, &topic()).unwrap_err()
+fn row(id: &str, result: Grade, missed: &[&str]) -> Answered {
+    Answered {
+        id: id.to_owned(),
+        result,
+        missed: missed.iter().map(|&line| line.to_owned()).collect(),
+        added: None,
+    }
 }
 
 #[test]
-fn the_last_block_of_the_answer_is_the_verdict() {
-    let earlier = WHOLE.replace("\"verdict\": \"partial\"", "\"verdict\": \"fail\"");
+fn берётся_последний_json_блок_со_всем_текстом_вокруг() {
+    let text = format!(
+        "Разбор ответов {{по порядку}}.\n\n```json\n{}\n```\n\nИтог:\n\n```json\n{}\n```\nУдачи!",
+        graded(r#"{"id": "q1", "result": "miss", "missed": ["старое"]}"#),
+        graded(MIXED),
+    );
 
-    let verdict = read(&format!("{}\n{}", fenced(&earlier), fenced(WHOLE)));
+    let rows = read(&text, &voices()).unwrap();
 
-    assert_eq!(verdict.result, Result::Partial);
+    assert_eq!(
+        rows,
+        [
+            row("q1", Grade::Partial, &["нет шумового канала", "{скобки}"]),
+            row("q2", Grade::Ok, &[]),
+            row("q3", Grade::Miss, &["формула таймера"]),
+            row("q4", Grade::Ok, &[]),
+        ]
+    );
 }
 
 #[test]
-fn a_block_without_a_fence_is_still_found() {
-    let verdict = read(&format!("Разбор.\n\n{WHOLE}\n"));
+fn блок_без_ограды_и_вложенные_объекты_не_путают_разбор() {
+    let text = format!(
+        r#"Вот вердикт: {{"meta": {{"stage": "envelope"}}, "stage": "voices", "per_question": [{ALL_OK}]}} — конец."#
+    );
 
-    assert_eq!(verdict.result, Result::Partial);
+    let rows = read(&text, &voices()).unwrap();
+
+    assert_eq!(rows.len(), 4);
+    assert!(rows.iter().all(|one| one.result == Grade::Ok));
 }
 
 #[test]
-fn the_last_of_two_unfenced_blocks_wins() {
-    let earlier = WHOLE.replace("\"verdict\": \"partial\"", "\"verdict\": \"fail\"");
+fn вердикт_чужого_этапа_отказывает_как_вставленный_не_туда() {
+    let text = format!(r#"{{"stage": "envelope", "per_question": [{ALL_OK}]}}"#);
 
-    let verdict = read(&format!("Черновик.\n{earlier}\n\nИтог.\n{WHOLE}\n"));
+    let error = refused(&text);
 
-    assert_eq!(verdict.result, Result::Partial);
+    assert!(
+        matches!(&error, VerdictError::Stage { expected, found } if expected == "voices" && found == "envelope"),
+        "{error:?}"
+    );
+    assert!(error.to_string().contains("не в тот этап"), "{error}");
 }
 
 #[test]
-fn a_fenced_block_wins_over_braces_in_the_prose_after_it() {
-    let verdict = read(&format!(
-        "{}\nДальше жду {{ответа}} по практике.\n",
-        fenced(WHOLE)
+fn без_json_без_этапа_или_без_per_question_вердикта_нет() {
+    assert!(matches!(
+        refused("Молодец, всё верно!"),
+        VerdictError::Absent
     ));
-
-    assert_eq!(verdict.topic_id, "question-shapes");
+    assert!(matches!(refused("{ не json }"), VerdictError::Absent));
+    assert!(matches!(
+        refused(&format!(r#"{{"per_question": [{ALL_OK}]}}"#)),
+        VerdictError::Shape(_)
+    ));
+    assert!(matches!(
+        refused(r#"{"stage": "voices", "verdict": "pass"}"#),
+        VerdictError::Shape(_)
+    ));
+    assert!(matches!(
+        refused(r#"{"stage": "voices", "per_question": {"q1": "ok"}}"#),
+        VerdictError::Shape(_)
+    ));
+    assert!(matches!(
+        refused(r#"{"stage": "voices", "per_question": []}"#),
+        VerdictError::Questions { .. }
+    ));
 }
 
 #[test]
-fn a_text_without_any_json_is_no_verdict() {
-    let error = fail("Зачёт прошёл, всё хорошо.");
+fn per_question_покрывает_ровно_вопросы_этапа() {
+    let short = refused(&graded(
+        r#"{"id": "q1", "result": "ok"}, {"id": "q2", "result": "ok"}, {"id": "q3", "result": "ok"}"#,
+    ));
+    let extra = refused(&graded(&format!(
+        r#"{ALL_OK}, {{"id": "q9", "result": "ok"}}"#
+    )));
+    let twice = refused(&graded(&format!(
+        r#"{ALL_OK}, {{"id": "q2", "result": "ok"}}"#
+    )));
 
-    assert!(matches!(error, VerdictError::NoJson));
+    assert!(
+        matches!(&short, VerdictError::Questions { missing, stray, repeated } if missing == &["q4"] && stray.is_empty() && repeated.is_empty()),
+        "{short:?}"
+    );
+    assert!(
+        matches!(&extra, VerdictError::Questions { stray, .. } if stray == &["q9"]),
+        "{extra:?}"
+    );
+    assert!(
+        matches!(&twice, VerdictError::Questions { repeated, .. } if repeated == &["q2"]),
+        "{twice:?}"
+    );
+    assert!(short.to_string().contains("q4"), "{short}");
 }
 
 #[test]
-fn a_block_that_is_not_json_is_reported_as_malformed() {
-    let error = fail(&fenced("{\"topic_id\": \"cycle-a\", }{"));
-
-    assert!(matches!(error, VerdictError::Malformed { .. }));
-}
-
-#[test]
-fn a_verdict_without_per_question_is_rejected() {
-    let text = WHOLE.replace("\"per_question\"", "\"per_answers\"");
-
-    let error = fail(&fenced(&text));
-
-    assert!(matches!(error, VerdictError::NoAnswers));
-}
-
-#[test]
-fn a_verdict_whose_per_question_is_empty_is_rejected_as_well() {
-    let text = "{\"topic_id\": \"question-shapes\", \"verdict\": \"pass\", \"per_question\": []}";
-
-    let error = fail(&fenced(text));
-
-    assert!(matches!(error, VerdictError::NoAnswers));
-}
-
-#[test]
-fn a_verdict_about_another_topic_names_both_topics() {
-    let text = WHOLE.replace("\"question-shapes\"", "\"cycle-b\"");
-
-    let error = fail(&fenced(&text));
-
-    let VerdictError::WrongTopic { expected, found } = &error else {
-        panic!("a foreign topic is expected to be refused: {error}");
+fn result_из_трёх_значений_а_у_незачтённого_есть_missed() {
+    let rows = |first: &str| {
+        graded(&format!(
+            r#"{first}, {{"id": "q2", "result": "ok"}}, {{"id": "q3", "result": "ok"}}, {{"id": "q4", "result": "ok"}}"#
+        ))
     };
-    assert_eq!(expected, "question-shapes");
-    assert_eq!(found, "cycle-b");
-    assert!(error.to_string().contains("cycle-b"));
+
+    for broken in [
+        r#"{"id": "q1", "result": "great"}"#,
+        r#"{"id": "q1", "result": "OK"}"#,
+        r#"{"id": "q1"}"#,
+        r#"{"result": "ok"}"#,
+        r#"{"id": "q1", "result": "partial"}"#,
+        r#"{"id": "q1", "result": "miss", "missed": []}"#,
+        r#"{"id": "q1", "result": "miss", "missed": "всё"}"#,
+        r#"{"id": "q1", "result": "miss", "missed": [""]}"#,
+        r#"{"id": "q1", "result": "ok", "missed": [" "]}"#,
+        r#"{"id": "q1", "result": "miss", "missed": ["\n"]}"#,
+        r#"{"id": "q1", "result": "ok", "missed": [3]}"#,
+        r#""q1""#,
+    ] {
+        let error = refused(&rows(broken));
+        assert!(
+            matches!(error, VerdictError::Shape(_)),
+            "{broken}: {error:?}"
+        );
+    }
 }
 
 #[test]
-fn a_verdict_without_a_result_of_its_own_is_rejected() {
-    let text = WHOLE.replace("\"verdict\": \"partial\",", "");
-
-    let error = fail(&fenced(&text));
-
-    assert!(matches!(&error, VerdictError::Missing { field } if field == "verdict"));
-}
-
-#[test]
-fn a_verdict_that_names_no_topic_is_rejected() {
-    let text = WHOLE.replace("\"topic_id\": \"question-shapes\",", "");
-
-    let error = fail(&fenced(&text));
-
-    assert!(matches!(&error, VerdictError::Missing { field } if field == "topic_id"));
-}
-
-#[test]
-fn a_whole_verdict_is_read_field_by_field() {
-    let verdict = read(&fenced(WHOLE));
-
-    assert_eq!(verdict.topic_id, "question-shapes");
-    assert_eq!(verdict.result, Result::Partial);
-    assert_eq!(verdict.date.as_deref(), Some("2026-07-27"));
-    assert_eq!(verdict.model.as_deref(), Some("opus"));
-    assert!(verdict.hinted);
-    assert!(!verdict.practice_accepted);
-    assert_eq!(verdict.failed_checks, ["a1"]);
-    assert_eq!(verdict.gaps, ["не держит порядок"]);
-    assert_eq!(verdict.calibration.as_deref(), Some("сказал про обход"));
-    assert_eq!(verdict.notes, ["просил подсказку"]);
-    assert_eq!(verdict.next_action, Some(NextAction::RetryFailed));
-    assert_eq!(verdict.retry_after_days, Some(3));
-    assert!(verdict.missing.is_empty());
-}
-
-#[test]
-fn every_answer_carries_its_outcome_quote_and_missed_signals() {
-    let verdict = read(&fenced(WHOLE));
-
-    let [answer] = verdict.per_question.as_slice() else {
-        panic!("one answer is expected");
-    };
-    assert_eq!(answer.id, "q1");
-    assert_eq!(answer.outcome, Outcome::Miss);
-    assert_eq!(answer.quote.as_deref(), Some("ну, зависит"));
-    assert_eq!(answer.missed, ["порядок обхода"]);
-    assert!(!answer.signal_extension);
-}
-
-#[test]
-fn the_raw_block_is_kept_as_it_arrived() {
-    let verdict = read(&fenced(WHOLE));
-
-    assert_eq!(verdict.raw.trim(), WHOLE);
-}
-
-#[test]
-fn what_the_verdict_lacks_is_listed_and_the_rest_is_applied() {
-    let text = "{\"topic_id\": \"question-shapes\", \"verdict\": \"pass\",
-        \"per_question\": [{\"id\": \"q1\", \"result\": \"ok\"}]}";
-
-    let verdict = read(&fenced(text));
-
-    assert_eq!(verdict.result, Result::Pass);
-    assert!(verdict.missing.contains(&"date".to_owned()));
-    assert!(verdict.missing.contains(&"calibration".to_owned()));
-    assert!(verdict.missing.contains(&"next_action".to_owned()));
-    assert!(!verdict.missing.contains(&"verdict".to_owned()));
-}
-
-#[test]
-fn an_answer_to_a_question_the_topic_does_not_have_is_reported_not_refused() {
-    let text = WHOLE.replace("\"id\": \"q1\"", "\"id\": \"q9\"");
-
-    let verdict = read(&fenced(&text));
-
-    assert_eq!(verdict.unknown_questions, ["q9"]);
-    assert_eq!(verdict.per_question.len(), 1);
-}
-
-#[test]
-fn an_answer_of_a_question_the_topic_does_have_is_no_complaint() {
-    let verdict = read(&fenced(WHOLE));
-
-    assert!(verdict.unknown_questions.is_empty());
+fn пустой_пункт_missed_отказывает_с_причиной_про_пустоту() {
+    for blank in [r#"[""]"#, r#"[" "]"#, r#"["шум", "\n"]"#] {
+        let text = graded(&format!(
+            r#"{{"id": "q1", "result": "miss", "missed": {blank}}}, {{"id": "q2", "result": "ok"}}, {{"id": "q3", "result": "ok"}}, {{"id": "q4", "result": "ok"}}"#
+        ));
+        match refused(&text) {
+            VerdictError::Shape(reason) => {
+                assert!(
+                    reason.contains("q1") && reason.contains("пустой"),
+                    "{reason}"
+                );
+            }
+            other => panic!("{blank}: {other:?}"),
+        }
+    }
 }

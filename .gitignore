@@ -4,7 +4,6 @@ Cargo.lock.orig
 
 node_modules/
 dist/
-obsidian/main.js
 .astro/
 app/gen/
 app/models/
@@ -17,3 +16,4 @@ app/models/
 .claude/.verify-state.json
 .claude/.review-state.json
 .context/notes/
+.pi/

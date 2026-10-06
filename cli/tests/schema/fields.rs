@@ -2,11 +2,14 @@ use crate::repo::read;
 
 pub const ROLES: [&str; 3] = ["рендер", "логика", "игнор"];
 
-const SECTIONS: [(&str, &str); 3] = [
-    ("## roadmap.yaml", "roadmap"),
-    ("## topics/*.yaml", "topic"),
-    ("## progress.yaml", "progress"),
-];
+const LISTS: [(&str, &[(&str, &str)]); 1] = [(
+    "docs/format.md",
+    &[
+        ("## program.yaml", "program"),
+        ("## stages/*.yaml", "stage"),
+        ("## state.yaml", "state"),
+    ],
+)];
 
 pub struct Row {
     pub kind: String,
@@ -14,12 +17,27 @@ pub struct Row {
     pub role: String,
 }
 
+pub fn list_of(kind: &str) -> &'static str {
+    LISTS
+        .iter()
+        .find(|(_, sections)| sections.iter().any(|(_, listed)| *listed == kind))
+        .map(|(doc, _)| *doc)
+        .unwrap_or_else(|| panic!("no field list classifies `{kind}`"))
+}
+
 pub fn rows() -> Vec<Row> {
-    let text = read("docs/fields.md");
+    LISTS
+        .iter()
+        .flat_map(|(doc, sections)| rows_in(doc, sections))
+        .collect()
+}
+
+fn rows_in(doc: &str, sections: &[(&str, &str)]) -> Vec<Row> {
+    let text = read(doc);
     let mut kind: Option<&str> = None;
     let mut rows = Vec::new();
     for line in text.lines() {
-        if let Some(section) = SECTIONS.iter().find(|(heading, _)| line.trim() == *heading) {
+        if let Some(section) = sections.iter().find(|(heading, _)| line.trim() == *heading) {
             kind = Some(section.1);
             continue;
         }
@@ -37,7 +55,7 @@ pub fn rows() -> Vec<Row> {
             role: cells.1,
         });
     }
-    assert!(!rows.is_empty(), "docs/fields.md: no field rows found");
+    assert!(!rows.is_empty(), "{doc}: no field rows found");
     rows
 }
 

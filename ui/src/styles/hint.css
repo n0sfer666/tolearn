@@ -19,12 +19,42 @@ button[data-hint-open] {
   aspect-ratio: 1;
   color: var(--color-fg-muted);
   font-size: var(--font-size-sm);
-  line-height: 1;
+  line-height: var(--line-height-tight);
 }
 
-span[data-hint-body] {
-  display: block;
-  flex: 1 0 100%;
+[data-hint-back] {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: grid;
+  place-items: center;
+  padding: var(--spacing-4);
+  background: color-mix(in srgb, var(--color-bg) 75%, transparent);
+}
+
+[data-hint] {
+  display: grid;
+  gap: var(--spacing-2);
+  justify-items: end;
+  inline-size: min(34rem, 100%);
+  min-block-size: 0;
+}
+
+button[data-hint-close] {
+  inline-size: 2rem;
+  block-size: 2rem;
+  min-block-size: 0;
+  padding: 0;
+  border-radius: 50%;
+  aspect-ratio: 1;
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-tight);
+}
+
+div[data-hint-body] {
+  inline-size: 100%;
+  max-block-size: 70vh;
+  overflow-y: auto;
   padding: var(--spacing-3);
   border: var(--border-width) solid var(--color-border-strong);
   border-radius: var(--radius-md);
@@ -35,6 +65,7 @@ span[data-hint-body] {
   line-height: var(--line-height-body);
   white-space: normal;
 }
+
 
 span[data-hint-rules],
 span[data-hint-advised] {

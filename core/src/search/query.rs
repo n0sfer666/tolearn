@@ -1,6 +1,5 @@
-use super::types::{Document, Hit, Source};
+use super::types::{Document, Hit, Kind, Source};
 
-const TITLE_WEIGHT: u32 = 3;
 const BEFORE: usize = 30;
 const LENGTH: usize = 160;
 
@@ -15,17 +14,10 @@ pub fn hits(sources: &[Source], query: &str, limit: usize) -> Vec<Hit> {
             source
                 .documents
                 .iter()
-                .filter_map(|document| hit(&source.roadmap, document, &tokens))
+                .filter_map(|document| hit(&source.program, document, &tokens))
         })
         .collect();
-    found.sort_by(|left, right| {
-        right
-            .score
-            .cmp(&left.score)
-            .then(left.kind.cmp(&right.kind))
-            .then(left.topic.cmp(&right.topic))
-            .then(left.title.cmp(&right.title))
-    });
+    found.sort_by_key(|hit| hit.kind);
     found.truncate(limit);
     found
 }
@@ -44,25 +36,28 @@ fn lowered(text: &str) -> Vec<char> {
         .collect()
 }
 
-fn hit(roadmap: &str, document: &Document, tokens: &[Vec<char>]) -> Option<Hit> {
-    let title = lowered(&document.title);
-    let text = lowered(&document.text);
-    let mut score = 0;
-    for token in tokens {
-        match (at(&title, token), at(&text, token)) {
-            (Some(_), _) => score += TITLE_WEIGHT,
-            (None, Some(_)) => score += 1,
-            (None, None) => return None,
-        }
+fn hit(program: &str, document: &Document, tokens: &[Vec<char>]) -> Option<Hit> {
+    let matched = match document.kind {
+        Kind::Stage => &document.title,
+        Kind::Block => &document.text,
+    };
+    let lower = lowered(matched);
+    if !tokens.iter().all(|token| at(&lower, token).is_some()) {
+        return None;
     }
-
+    let snippet = match document.kind {
+        Kind::Stage => String::new(),
+        Kind::Block => snippet(&document.text, &lower, tokens),
+    };
     Some(Hit {
         kind: document.kind,
-        roadmap: roadmap.to_owned(),
-        topic: document.topic.clone(),
+        program: program.to_owned(),
+        node: document.node.clone(),
+        node_title: document.node_title.clone(),
+        stage: document.stage.clone(),
         title: document.title.clone(),
-        snippet: snippet(&document.text, &text, tokens),
-        score,
+        block: document.block.clone(),
+        snippet,
     })
 }
 

@@ -1,6 +1,6 @@
 use sha2::{Digest, Sha256};
 
-pub(crate) fn digest(bytes: &[u8]) -> String {
+pub fn digest(bytes: &[u8]) -> String {
     let mut hasher = Sha256::new();
     hasher.update(bytes);
     hasher

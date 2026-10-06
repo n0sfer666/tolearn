@@ -25,13 +25,12 @@ fn config() -> Value {
 }
 
 #[test]
-fn схема_объявлена_установщику() {
-    let schemes = config()["plugins"]["deep-link"]["desktop"]["schemes"].clone();
+fn схема_tolearn_не_объявлена() {
+    let plugins = config().get("plugins").cloned();
 
-    assert_eq!(
-        schemes,
-        serde_json::json!(["tolearn"]),
-        "установщик не узнает про `tolearn://`: схемы нет в plugins > deep-link > desktop"
+    assert!(
+        plugins.is_none_or(|value| value.get("deep-link").is_none()),
+        "ссылка `tolearn://` удалена (S81): plugins > deep-link не должно быть в конфиге"
     );
 }
 

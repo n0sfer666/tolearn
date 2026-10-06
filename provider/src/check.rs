@@ -1,5 +1,7 @@
 use std::time::{Duration, Instant};
 
+use tolearn_runner::Stop;
+
 use crate::error::CheckError;
 use crate::harness;
 use crate::models::known;
@@ -45,7 +47,7 @@ fn installed(http: &Http, checked: &Checked) -> Result<(), CheckError> {
 fn spoke(harness: &Harness) -> Result<Checked, CheckError> {
     let version = harness::version(harness)?;
     let started = Instant::now();
-    harness::ask(harness, PROMPT, None)?;
+    harness::ask(harness, PROMPT, None, &Stop::default())?;
     Ok(Checked {
         models: Vec::new(),
         version: Some(version),
@@ -56,7 +58,7 @@ fn spoke(harness: &Harness) -> Result<Checked, CheckError> {
 fn listed(http: &Http, key: Option<&str>) -> Result<Checked, CheckError> {
     let asked = http.clone();
     let key = key.map(str::to_owned);
-    apart(move || fetch(&asked, key.as_deref()))
+    apart(move || fetch(&asked, key.as_deref()), &Stop::default())
 }
 
 fn fetch(http: &Http, key: Option<&str>) -> Result<Checked, CheckError> {

@@ -1,0 +1,25 @@
+schema: tolearn/stage/1
+id: pipeline
+title: Конвейер сборки
+blocks:
+  - id: "c65a96b7"
+    kind: diagram
+    text: |-
+      flowchart LR
+        S[main.s] --> A[ca65] --> O[main.o] --> L[ld65] --> R[game.nes]
+    asset: assets/pipeline.svg
+practice:
+  task:
+    - id: "94d28faf"
+      kind: paragraph
+      text: Опишите в nes.cfg сегменты HEADER, CODE и VECTORS.
+  deliverable: Файл nes.cfg, с которым ld65 собирает ROM.
+  constraints: []
+  acceptance:
+    - id: a1
+      claim: ld65 принимает конфиг.
+      expect: Сборка проходит без предупреждений о сегментах.
+questions:
+  - id: q1
+    text: Что лежит в сегменте VECTORS?
+    answer: Адреса обработчиков NMI, RESET и IRQ.

@@ -53,6 +53,26 @@ The interface builds itself: `beforeBuildCommand` in `tauri.conf.json` runs
 Windows, `.deb` on Linux. Install them like any installer, following the page for
 your OS ([macOS](macos.md), [Windows](windows.md), [Linux](linux.md)).
 
+On macOS a single target from the repository root does both of those last steps:
+
+```sh
+make install
+```
+
+It builds the same `.dmg`, mounts it and copies `tolearn.app` into
+`/Applications` — exactly what you would do by hand in Finder. For another
+destination, pass it as the script's second argument:
+`sh scripts/install-macos.sh base ~/Applications`. A running app is left alone:
+the target asks you to quit it and stops. The speech variant is
+`make install-speech` (it needs the submodule and the weights, see below).
+
+Before the build the script clears what an interrupted run left behind: a
+half-finished `target/release/bundle/macos/rw.*.dmg` that stayed mounted breaks
+the packaging step with a bare "error running bundle_dmg.sh".
+`scripts/detach-stale-dmg.sh` detaches that image and removes its file; a mounted
+image of someone else (a `/Volumes/dmg.*` from another directory) is left alone
+and only reported.
+
 ## The speech variant
 
 It needs the whisper.cpp submodule and the model weights — the weights file is not
@@ -87,22 +107,12 @@ Such a run puts its data in the same place as an installed app
 The pages are embedded into the binary (the `custom-protocol` feature, on by
 default); to run against the Astro dev server, pass `--no-default-features`.
 
-## The CLI and the Obsidian plugin
+## The CLI
 
-Neither ships in the installer; both are built separately. The windowless CLI —
-validate a bundle, list topics, export Markdown:
-
-```sh
-cargo run -p tolearn-cli --release -- validate examples/llm-agents-base
-```
-
-The Obsidian plugin:
+It doesn't ship in the installer; it's built separately. The windowless CLI —
+pack a program folder into a `.tolearn` package, unpack a package back, export a
+program to Markdown:
 
 ```sh
-pnpm -C obsidian install
-pnpm -C obsidian build
+cargo run -p tolearn-cli --release -- pack examples/chiptune ~/chiptune.tolearn
 ```
-
-Then copy the `obsidian/` directory (`main.js` and `manifest.json` are required)
-into `<vault>/.obsidian/plugins/tolearn/`. What it does is in
-[notes.md](../notes.md#the-obsidian-plugin).

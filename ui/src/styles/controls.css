@@ -1,7 +1,11 @@
 :where(button, input, textarea, select) {
-  font-family: inherit;
+  font-family: var(--font-family-ui);
   font-size: var(--font-size-md);
   line-height: var(--line-height-tight);
+}
+
+:where(summary) {
+  font-family: var(--font-family-ui);
 }
 
 :where(button) {
@@ -23,7 +27,8 @@
   color: var(--color-accent);
 }
 
-:where(button):disabled {
+:where(button):disabled,
+:where(button)[aria-disabled="true"] {
   border-color: var(--color-border);
   color: var(--color-fg-muted);
   cursor: default;
@@ -104,16 +109,21 @@ textarea[data-note] {
 }
 
 .bar-back,
-.bar-nav a,
-nav[data-tools] a {
+.bar-nav a {
   display: inline-flex;
   align-items: center;
   border-radius: var(--radius-sm);
   text-decoration: none;
-  transition:
-    background var(--duration) var(--easing),
-    border-color var(--duration) var(--easing),
-    color var(--duration) var(--easing);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bar-back,
+  .bar-nav a {
+    transition:
+      background var(--duration) var(--easing),
+      border-color var(--duration) var(--easing),
+      color var(--duration) var(--easing);
+  }
 }
 
 .bar-back,
@@ -131,29 +141,12 @@ nav[data-tools] a {
 
 .bar-back {
   display: inline-block;
+  align-content: center;
   max-width: var(--width-crumb);
   margin-inline-start: calc(var(--spacing-3) * -1);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-nav[data-tools] a {
-  padding: var(--spacing-2) var(--spacing-4);
-  border: var(--border-width) solid var(--color-border);
-  background: var(--color-bg-raised);
-  color: var(--color-fg);
-  font-size: var(--font-size-sm);
-}
-
-nav[data-tools] a:hover {
-  border-color: var(--color-border-strong);
-  background: var(--color-bg-subtle);
-}
-
-nav[data-tools] > button {
-  margin-inline-start: auto;
-  font-size: var(--font-size-sm);
 }
 
 .bar-back::before {
@@ -162,4 +155,25 @@ nav[data-tools] > button {
 
 .bar-nav a[aria-current] {
   color: var(--color-fg);
+}
+
+button[data-hint-open],
+button[data-hint-close],
+button[data-snip],
+button[data-toast-close],
+button[data-ongoing-close] {
+  position: relative;
+}
+
+button[data-hint-open]::after,
+button[data-hint-close]::after,
+button[data-snip]::after,
+button[data-toast-close]::after,
+button[data-ongoing-close]::after,
+summary::after {
+  content: "";
+  position: absolute;
+  inset: min(0%, (100% - var(--tap-target)) / 2);
+  min-inline-size: var(--tap-target);
+  min-block-size: var(--tap-target);
 }

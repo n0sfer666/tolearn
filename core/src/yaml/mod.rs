@@ -1,16 +1,22 @@
-mod dates;
 mod duplicates;
+mod emit;
 mod error;
 mod failure;
+mod names;
 mod reader;
 
+pub use emit::dump;
 pub use error::ParseError;
 pub use failure::ParseFailure;
+pub use names::is_slug;
 pub use reader::Reader;
+
+pub(crate) use emit::{flag, list, map, number, text};
+pub(crate) use names::is_uuid;
 
 use saphyr::{LoadableYamlNode, MarkedYaml};
 
-const ONE_DOCUMENT: &str = "a bundle file holds exactly one YAML document";
+const ONE_DOCUMENT: &str = "a file holds exactly one YAML document";
 
 pub fn read<T>(
     source: &str,

@@ -27,13 +27,10 @@ struct Case {
 }
 
 fn case(name: &str) -> Case {
-    let data = std::env::temp_dir().join(format!(
-        "tolearn-provider-ipc-{name}-{}-{}",
-        std::process::id(),
+    let data = support::scratch::made(&format!(
+        "provider-ipc-{name}-{}",
         CASES.fetch_add(1, Ordering::Relaxed)
     ));
-    let _ = std::fs::remove_dir_all(&data);
-    std::fs::create_dir_all(&data).unwrap();
     let vault = Arc::new(Remembered::default());
     Case {
         context: Context::with_vault(&data, Arc::clone(&vault) as Arc<dyn Vault>),
@@ -122,11 +119,19 @@ fn реестр_харнессов_приходит_вместе_с_настро
     let answer = read(&case);
 
     let presets = answer["presets"].as_array().unwrap().clone();
-    let ids: Vec<&str> = presets
+    let open: Vec<(&str, bool)> = presets
         .iter()
-        .filter_map(|preset| preset["id"].as_str())
+        .filter_map(|preset| Some((preset["id"].as_str()?, preset["available"].as_bool()?)))
         .collect();
-    assert_eq!(ids, ["claude", "opencode", "pi", "custom"]);
+    assert_eq!(
+        open,
+        [
+            ("claude", true),
+            ("opencode", false),
+            ("pi", false),
+            ("custom", true)
+        ]
+    );
 }
 
 #[test]

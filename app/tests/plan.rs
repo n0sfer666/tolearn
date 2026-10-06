@@ -7,122 +7,194 @@
 
 mod support;
 
-use std::path::Path;
+use std::path::PathBuf;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use serde_json::{Value, json};
-use support::copied;
-use tolearn_app::ipc::{Context, call};
+use support::planner::{Net, provider};
+use support::speaking::{Speaking, speaking};
+use support::{repository, snapshot};
+use tolearn_app::ipc::{Context, IpcError, call};
+use tolearn_provider::{Remembered, Vault};
 
-const TODAY: &str = "2026-07-28";
+static CASES: AtomicUsize = AtomicUsize::new(0);
 
-fn context() -> Context {
-    let directory = std::env::temp_dir().join(format!("tolearn-plan-{}", std::process::id()));
-    std::fs::create_dir_all(&directory).unwrap();
-    Context::new(&directory)
+const WISHES: [&str; 3] = [
+    "Без теории музыки",
+    "Только Famitracker",
+    "Короче, на выходные",
+];
+
+struct Case {
+    context: Context,
+    data: PathBuf,
+    model: Speaking,
 }
 
-fn planned(bundle: &Path, today: &str) -> Value {
+fn case(up: bool, answers: &[&str]) -> Case {
+    let data = support::scratch::made(&format!(
+        "plan-ipc-{}",
+        CASES.fetch_add(1, Ordering::Relaxed)
+    ));
+    let answers: Vec<String> = answers.iter().map(|name| answer(name)).collect();
+    let model = speaking(move |_, turn| answers[turn.min(answers.len() - 1)].clone());
+    let vault: Arc<dyn Vault> = Arc::new(Remembered::default());
+    let context = Context::with_vault(&data, vault).with_reach(Arc::new(Net(up)));
     call(
-        &context(),
-        "plan",
-        &json!({ "bundle": bundle.display().to_string(), "today": today }),
-    )
-    .unwrap()
-}
-
-fn passed(bundle: &Path, topic: &str) {
-    call(
-        &context(),
-        "set_status",
+        &context,
+        "provider",
         &json!({
-            "bundle": bundle.display().to_string(),
-            "topic": topic,
-            "status": "passed",
-            "today": TODAY,
+            "save": provider(&model.endpoint),
+            "key": Value::Null,
+            "forget": false,
+            "check": false,
+            "probe": false,
         }),
     )
     .unwrap();
+    Case {
+        context,
+        data,
+        model,
+    }
 }
 
-#[test]
-fn дневная_норма_и_прогноз_считаются_из_шапки_программы() {
-    let bundle = copied("plan-budget");
-
-    let ahead = planned(&bundle, TODAY);
-
-    assert_eq!(ahead["weekly_hours"], json!(6));
-    let daily = ahead["daily_hours"].as_f64().unwrap();
-    assert!((daily - 6.0 / 7.0).abs() < 1e-9, "{ahead}");
-    let left = ahead["left"]["min"].as_f64().unwrap();
-    assert_eq!(
-        ahead["soonest"]["days"].as_u64().unwrap(),
-        (left / daily).ceil() as u64,
-        "{ahead}"
-    );
-    assert!(
-        ahead["latest"]["days"].as_u64() > ahead["soonest"]["days"].as_u64(),
-        "прогноз не интервал: {ahead}"
-    );
+fn answer(name: &str) -> String {
+    std::fs::read_to_string(repository().join("fixtures/generate/plan").join(name)).unwrap()
 }
 
-#[test]
-fn прогноз_это_две_даты_а_не_одна() {
-    let bundle = copied("plan-dates");
-
-    let ahead = planned(&bundle, TODAY);
-
-    let soonest = ahead["soonest"]["date"].as_str().unwrap();
-    let latest = ahead["latest"]["date"].as_str().unwrap();
-    assert!(soonest > TODAY, "{ahead}");
-    assert!(latest > soonest, "{ahead}");
+fn plan(case: &Case, request: &str) -> Result<Value, IpcError> {
+    spoken(case, request, "ru")
 }
 
-#[test]
-fn пройденная_тема_приближает_обе_даты() {
-    let bundle = copied("plan-passed");
-    let before = planned(&bundle, TODAY);
-
-    passed(&bundle, "local-runtime");
-
-    let after = planned(&bundle, TODAY);
-    assert!(
-        after["left"]["max"].as_u64().unwrap() < before["left"]["max"].as_u64().unwrap(),
-        "{after}"
-    );
-    assert!(
-        after["latest"]["date"].as_str().unwrap() < before["latest"]["date"].as_str().unwrap(),
-        "{after}"
-    );
-}
-
-#[test]
-fn несгенерированные_темы_названы_отдельно_и_в_интервал_не_входят() {
-    let bundle = copied("plan-unknown");
-    let ahead = planned(&bundle, TODAY);
-
-    let unknown = ahead["unknown"].as_u64().unwrap();
-    assert!(unknown > 0, "в эталоне не все темы написаны: {ahead}");
-
-    std::fs::remove_file(bundle.join("topics/local-runtime.yaml")).unwrap();
-    let shorter = planned(&bundle, TODAY);
-
-    assert_eq!(shorter["unknown"].as_u64().unwrap(), unknown + 1);
-    assert!(
-        shorter["left"]["max"].as_u64().unwrap() < ahead["left"]["max"].as_u64().unwrap(),
-        "часы ненаписанной темы попали в интервал: {shorter}"
-    );
-}
-
-#[test]
-fn кривая_дата_отвергается_до_счёта() {
-    let bundle = copied("plan-date");
-
-    let refused = call(
-        &context(),
-        "plan",
-        &json!({ "bundle": bundle.display().to_string(), "today": "вчера" }),
+fn spoken(case: &Case, request: &str, locale: &str) -> Result<Value, IpcError> {
+    call(
+        &case.context,
+        "plan_program",
+        &json!({ "request": request, "level": "Нот не знаю", "locale": locale }),
     )
-    .unwrap_err();
+}
 
-    assert_eq!(refused.code, "date.malformed");
+fn revise(case: &Case, plan: &Value, wish: &str) -> Result<Value, IpcError> {
+    call(
+        &case.context,
+        "revise_plan",
+        &json!({ "request": "Хочу писать чиптюн", "level": "Нот не знаю", "locale": "ru", "plan": plan, "wish": wish }),
+    )
+}
+
+#[test]
+fn карта_и_три_переделки_не_пишут_в_библиотеку_ни_байта() {
+    let case = case(true, &["flat.txt"]);
+    let before = snapshot(&case.data);
+
+    let mut drawn = plan(&case, "Хочу писать чиптюн").unwrap();
+    assert_eq!(drawn["plan"]["title"], json!("Чиптюн с нуля"));
+    assert_eq!(drawn["plan"]["volatility"], json!("stable"));
+    assert_eq!(drawn["hours"], json!({ "min": 19, "max": 30 }));
+    for wish in WISHES {
+        drawn = revise(&case, &drawn["plan"], wish).unwrap();
+    }
+
+    let heard = case.model.heard();
+    assert_eq!(heard.len(), 4);
+    assert!(heard[0].contains("Хочу писать чиптюн"), "{}", heard[0]);
+    for (prompt, wish) in heard[1..].iter().zip(WISHES) {
+        for asked in ["Прежняя карта", "\"first-track\"", "Нот не знаю", wish]
+        {
+            assert!(prompt.contains(asked), "{asked}: {prompt}");
+        }
+    }
+    assert!(!case.data.join("programs").exists());
+    assert_eq!(snapshot(&case.data), before);
+}
+
+#[test]
+fn большая_карта_приходит_подпрограммами_с_суммой_часов() {
+    let case = case(true, &["split.txt"]);
+
+    let drawn = plan(&case, "Хочу разобраться с локальными LLM").unwrap();
+
+    assert_eq!(drawn["plan"]["stages"], json!([]));
+    assert_eq!(
+        drawn["plan"]["children"][1],
+        json!({
+            "title": "Квантование и форматы",
+            "goal": "Выбирать формат и квантование под своё железо.",
+            "hours": { "min": 30, "max": 50 },
+        })
+    );
+    assert_eq!(drawn["hours"], json!({ "min": 170, "max": 250 }));
+}
+
+#[test]
+fn без_сети_карта_отказывает_с_причиной_и_модель_не_зовут() {
+    let case = case(false, &["flat.txt"]);
+
+    let refused = plan(&case, "Хочу писать чиптюн").unwrap_err();
+
+    assert_eq!(refused.code, "generate.offline");
+    assert!(
+        refused.message.contains("openlibrary.org"),
+        "{}",
+        refused.message
+    );
+    assert!(case.model.heard().is_empty());
+}
+
+#[test]
+fn пустой_запрос_уточнение_и_чужая_изменчивость_отказывают_до_модели() {
+    let case = case(true, &["flat.txt"]);
+
+    assert_eq!(plan(&case, "  ").unwrap_err().code, "plan.empty");
+    let drawn = plan(&case, "Хочу писать чиптюн").unwrap();
+    assert_eq!(
+        revise(&case, &drawn["plan"], " ").unwrap_err().code,
+        "plan.empty"
+    );
+    let mut odd = drawn["plan"].clone();
+    odd["volatility"] = json!("forever");
+    assert_eq!(
+        revise(&case, &odd, "Короче").unwrap_err().code,
+        "plan.unknown-value"
+    );
+
+    assert_eq!(case.model.heard().len(), 1);
+}
+
+#[test]
+fn карта_без_починки_отказывает_списком_нарушений() {
+    let case = case(true, &["broken.txt"]);
+
+    let refused = plan(&case, "Хочу писать чиптюн").unwrap_err();
+
+    assert_eq!(refused.code, "generate.unrepaired");
+    assert!(
+        refused.message.contains("«tracker» повторяется"),
+        "{}",
+        refused.message
+    );
+    assert_eq!(case.model.heard().len(), 4);
+}
+
+#[test]
+fn язык_карты_приходит_из_запроса_а_не_из_настроек() {
+    let case = case(true, &["flat.txt"]);
+
+    spoken(&case, "Хочу писать чиптюн", "en").unwrap();
+
+    let heard = case.model.heard();
+    assert!(heard[0].contains("Язык программы: en"), "{}", heard[0]);
+}
+
+#[test]
+fn незнакомый_язык_карты_отказывает_до_модели() {
+    let case = case(true, &["flat.txt"]);
+
+    let refused = spoken(&case, "Хочу писать чиптюн", "de").unwrap_err();
+
+    assert_eq!(refused.code, "plan.unknown-value");
+    assert!(refused.message.contains("de"), "{}", refused.message);
+    assert!(case.model.heard().is_empty());
 }

@@ -6,271 +6,115 @@
 
 mod support;
 
-use tolearn_core::Date;
-use tolearn_core::progress::{Progress, Status, Verdict, parse as progress};
-use tolearn_core::roadmap::Roadmap;
-use tolearn_core::status::{Statuses, effective, from_verdict, next_review_at};
-use tolearn_core::topic::Topic;
+#[cfg(unix)]
+use support::states::file;
+use support::states::{PROGRAM, scratch};
+use tolearn_core::state::{Pass, Passed, State, Status, Summary, key};
 
-use support::bundles;
-use support::read;
+const LEAF: &str = "e4c90b7a-15f2-4d6e-8b38-0a2c6f9d1e47";
 
-const CORPUS_PROGRESS: &str = "fixtures/valid/progress/corpus-program.yaml";
-
-fn day(text: &str) -> Date {
-    Date::parse(text).unwrap_or_else(|| panic!("`{text}` is no date"))
-}
-
-fn corpus() -> (Roadmap, Vec<Topic>, Progress) {
-    let (map, topics) = bundles::corpus_whole();
-    let state = progress(&read(CORPUS_PROGRESS)).unwrap();
-    (map, topics, state)
-}
-
-fn recorded(pairs: &[(&str, &str)]) -> Progress {
-    let head = "schema: learning-roadmap/progress/v1\nroadmap_id: corpus-program\ntopics:";
-    let mut source = format!("{head}{}\n", if pairs.is_empty() { " {}" } else { "" });
-    for (id, status) in pairs {
-        source.push_str(&format!(
-            "  {id}:\n    status: {status}\n    attempts: []\n    passed_at: null\n    next_review_at: null\n    gaps: []\n"
-        ));
-    }
-    progress(&source).unwrap()
-}
-
-fn of(statuses: &Statuses, id: &str) -> Status {
-    statuses
-        .get(id)
-        .unwrap_or_else(|| panic!("`{id}` has no status"))
-}
-
-fn document<'a>(topics: &'a [Topic], id: &str) -> &'a Topic {
-    &topics[bundles::document(topics, id)]
+fn pass(state: &mut State, node: &str, stage: &str, by: Pass) {
+    state.open(node, stage, "2026-09-01");
+    state.stages.get_mut(&key(node, stage)).unwrap().passed = Some(Passed {
+        on: "2026-09-02".to_owned(),
+        by,
+    });
 }
 
 #[test]
-fn a_topic_whose_dependency_is_unfinished_is_blocked() {
-    let (map, topics, state) = corpus();
+fn этап_без_записи_не_начат() {
+    let state = State::new(PROGRAM);
 
-    let statuses = effective(&map, &topics, &state, day("2026-07-27"));
-
-    assert_eq!(of(&statuses, "cycle-a"), Status::Blocked);
-    assert_eq!(of(&statuses, "cycle-b"), Status::Blocked);
+    assert_eq!(state.status(PROGRAM, "voices"), Status::Fresh);
 }
 
 #[test]
-fn a_dependency_that_is_done_opens_the_topic() {
-    let (map, topics, _) = corpus();
-    let state = recorded(&[("cycle-a", "passed"), ("cycle-b", "todo")]);
+fn первое_открытие_пишет_дату_а_повторное_её_не_меняет() {
+    let mut state = State::new(PROGRAM);
 
-    let statuses = effective(&map, &topics, &state, day("2026-07-27"));
+    assert!(state.open(PROGRAM, "voices", "2026-09-10"));
+    assert!(!state.open(PROGRAM, "voices", "2026-09-13"));
 
-    assert_eq!(of(&statuses, "cycle-b"), Status::Todo);
-}
-
-#[test]
-fn a_dependency_that_is_only_started_still_blocks() {
-    let (map, topics, _) = corpus();
-    let state = recorded(&[("cycle-a", "in_progress"), ("cycle-b", "todo")]);
-
-    let statuses = effective(&map, &topics, &state, day("2026-07-27"));
-
-    assert_eq!(of(&statuses, "cycle-b"), Status::Blocked);
-}
-
-#[test]
-fn a_dependency_whose_knowledge_went_stale_still_counts_as_done() {
-    let (map, topics, state) = corpus();
-
-    let statuses = effective(&map, &topics, &state, day("2026-07-27"));
-
-    assert_eq!(of(&statuses, "stale-knowledge"), Status::StalePassed);
-    assert_eq!(of(&statuses, "offline-edge"), Status::PassedOut);
-}
-
-#[test]
-fn a_topic_that_is_passed_is_not_blocked_by_what_it_waited_for() {
-    let (map, topics, _) = corpus();
-    let state = recorded(&[("cycle-a", "passed"), ("cycle-b", "passed")]);
-
-    let statuses = effective(&map, &topics, &state, day("2026-07-27"));
-
-    assert_eq!(of(&statuses, "cycle-a"), Status::Passed);
-}
-
-#[test]
-fn a_dependency_whose_knowledge_is_stale_opens_the_topic_all_the_same() {
-    let (map, topics, _) = corpus();
-    let state = recorded(&[("cycle-a", "passed"), ("cycle-b", "todo")]);
-
-    let statuses = effective(&map, &topics, &state, day("2028-07-27"));
-
-    assert_eq!(of(&statuses, "cycle-a"), Status::StalePassed);
-    assert_eq!(of(&statuses, "cycle-b"), Status::Todo);
-}
-
-#[test]
-fn a_blocked_mark_left_in_the_file_goes_away_with_the_dependency() {
-    let (map, topics, _) = corpus();
-    let state = recorded(&[("cycle-a", "passed"), ("cycle-b", "blocked")]);
-
-    let statuses = effective(&map, &topics, &state, day("2026-07-27"));
-
-    assert_eq!(of(&statuses, "cycle-b"), Status::Todo);
-}
-
-#[test]
-fn a_topic_the_file_says_nothing_about_starts_at_todo() {
-    let (map, topics, _) = corpus();
-    let state = recorded(&[]);
-
-    let statuses = effective(&map, &topics, &state, day("2026-07-27"));
-
-    assert_eq!(of(&statuses, "stale-knowledge"), Status::Todo);
-}
-
-#[test]
-fn every_topic_of_the_roadmap_gets_a_status_in_the_order_of_the_roadmap() {
-    let (map, topics, state) = corpus();
-
-    let statuses = effective(&map, &topics, &state, day("2026-07-27"));
-
-    let listed: Vec<&str> = statuses.iter().map(|(id, _)| id.as_str()).collect();
-    let expected: Vec<&str> = map.topics.iter().map(|entry| entry.id.as_str()).collect();
-    assert_eq!(listed, expected);
-}
-
-#[test]
-fn knowledge_goes_stale_on_the_day_its_term_runs_out() {
-    let (map, topics, _) = corpus();
-    let state = recorded(&[("stale-knowledge", "passed")]);
-
-    let fresh = effective(&map, &topics, &state, day("2026-05-30"));
-    let stale = effective(&map, &topics, &state, day("2026-05-31"));
-
-    assert_eq!(of(&fresh, "stale-knowledge"), Status::Passed);
-    assert_eq!(of(&stale, "stale-knowledge"), Status::StalePassed);
-}
-
-#[test]
-fn the_term_of_the_topic_beats_the_defaults_of_the_roadmap() {
-    let (map, topics, _) = corpus();
-    let state = recorded(&[("stale-knowledge", "passed")]);
-    let topic = document(&topics, "stale-knowledge");
-
-    assert_eq!(topic.revalidate_after_days, 30);
-    assert_eq!(map.defaults.revalidate_after_days.evolving, 365);
-
-    let statuses = effective(&map, &topics, &state, day("2026-05-31"));
-
+    assert_eq!(state.status(PROGRAM, "voices"), Status::Opened);
     assert_eq!(
-        of(&statuses, "stale-knowledge"),
-        Status::StalePassed,
-        "365 days of the header would still call it fresh"
+        state.stages[&key(PROGRAM, "voices")].opened.as_deref(),
+        Some("2026-09-10")
     );
 }
 
 #[test]
-fn a_topic_that_was_never_passed_does_not_go_stale() {
-    let (map, topics, _) = corpus();
-    let state = recorded(&[("stale-knowledge", "todo")]);
+fn пройденный_этап_помнит_способ() {
+    let mut state = State::new(PROGRAM);
 
-    let statuses = effective(&map, &topics, &state, day("2030-01-01"));
+    pass(&mut state, PROGRAM, "voices", Pass::Exam);
+    pass(&mut state, PROGRAM, "envelope", Pass::Skip);
 
-    assert_eq!(of(&statuses, "stale-knowledge"), Status::Todo);
+    assert_eq!(state.status(PROGRAM, "voices"), Status::Passed(Pass::Exam));
+    assert_eq!(
+        state.status(PROGRAM, "envelope"),
+        Status::Passed(Pass::Skip)
+    );
 }
 
 #[test]
-fn a_topic_passed_out_by_calibration_is_passed_out_whatever_the_file_says() {
-    let (map, topics, _) = corpus();
-    let state = recorded(&[("offline-edge", "todo")]);
+fn одинаковый_id_в_двух_узлах_живёт_отдельно() {
+    let mut state = State::new(PROGRAM);
 
-    assert_eq!(map.calibration.passed_out, ["offline-edge"]);
+    state.open(LEAF, "setup", "2026-09-10");
 
-    let statuses = effective(&map, &topics, &state, day("2026-07-27"));
-
-    assert_eq!(of(&statuses, "offline-edge"), Status::PassedOut);
+    assert_eq!(state.status(LEAF, "setup"), Status::Opened);
+    assert_eq!(state.status(PROGRAM, "setup"), Status::Fresh);
 }
 
 #[test]
-fn a_topic_passed_out_by_calibration_goes_stale_like_any_other() {
-    let (map, topics, _) = corpus();
-    let state = recorded(&[]);
+fn сводка_считает_переданные_этапы_и_не_видит_сирот() {
+    let mut state = State::new(PROGRAM);
+    pass(&mut state, PROGRAM, "voices", Pass::Exam);
+    pass(&mut state, PROGRAM, "envelope", Pass::Skip);
+    state.open(LEAF, "setup", "2026-09-10");
+    pass(&mut state, PROGRAM, "gone", Pass::Exam);
 
-    let statuses = effective(&map, &topics, &state, day("2026-10-18"));
+    let summary = state.summary([
+        (PROGRAM, "voices"),
+        (PROGRAM, "envelope"),
+        (LEAF, "setup"),
+        (LEAF, "linker"),
+    ]);
 
-    assert_eq!(of(&statuses, "offline-edge"), Status::StalePassed);
-}
-
-#[test]
-fn the_next_review_of_a_topic_kept_by_schedule_counts_from_the_pass() {
-    let (_, topics, _) = corpus();
-    let topic = document(&topics, "stale-knowledge");
-
-    let date = next_review_at(topic, Some(day("2026-06-01")));
-
-    assert_eq!(date.map(|date| date.to_string()), Some("2026-07-01".into()));
-}
-
-#[test]
-fn a_topic_kept_by_schedule_has_no_review_until_it_is_passed() {
-    let (_, topics, _) = corpus();
-    let topic = document(&topics, "stale-knowledge");
-
-    assert_eq!(next_review_at(topic, None), None);
-}
-
-#[test]
-fn the_next_review_of_a_topic_kept_by_use_counts_from_the_day_it_was_verified() {
-    let (_, topics, _) = corpus();
-    let topic = document(&topics, "offline-edge");
-
-    let date = next_review_at(topic, None);
-
-    assert_eq!(date.map(|date| date.to_string()), Some("2026-10-18".into()));
-}
-
-#[test]
-fn a_topic_that_does_not_come_back_has_no_next_review() {
-    let (_, topics, _) = corpus();
-    let topic = document(&topics, "question-shapes");
-
-    assert_eq!(next_review_at(topic, Some(day("2026-07-27"))), None);
-}
-
-#[test]
-fn the_verdict_table_is_covered_whole() {
-    fn expected(verdict: Verdict) -> Status {
-        match verdict {
-            Verdict::Pass => Status::Passed,
-            Verdict::Partial => Status::InProgress,
-            Verdict::Fail => Status::Failed,
-            Verdict::Blocked => Status::InProgress,
+    assert_eq!(
+        summary,
+        Summary {
+            passed: 2,
+            total: 4,
+            skipped: 1,
         }
-    }
-
-    for verdict in [
-        Verdict::Pass,
-        Verdict::Partial,
-        Verdict::Fail,
-        Verdict::Blocked,
-    ] {
-        assert_eq!(from_verdict(verdict), expected(verdict), "{verdict:?}");
-    }
+    );
 }
 
 #[test]
-fn a_day_added_to_a_date_crosses_months_and_years() {
-    assert_eq!(day("2026-05-01").plus_days(30).to_string(), "2026-05-31");
-    assert_eq!(day("2026-12-20").plus_days(30).to_string(), "2027-01-19");
-    assert_eq!(day("2024-02-28").plus_days(1).to_string(), "2024-02-29");
-    assert_eq!(day("2026-02-28").plus_days(1).to_string(), "2026-03-01");
-    assert_eq!(day("2026-01-31").plus_days(365).to_string(), "2027-01-31");
+fn правка_без_изменений_не_создаёт_файл() {
+    let data = scratch("untouched");
+
+    State::update(&data, PROGRAM, |_| ()).unwrap();
+
+    assert!(!data.join("state").exists(), "a no-op created the state");
 }
 
+#[cfg(unix)]
 #[test]
-fn dates_are_ordered_by_the_calendar() {
-    assert!(day("2026-05-31") > day("2026-05-30"));
-    assert!(day("2026-01-01") > day("2025-12-31"));
-    assert_eq!(Date::parse("2026-13-01"), None);
+fn повторное_открытие_не_переписывает_файл() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let data = scratch("reopen");
+    let open = |state: &mut State| state.open(PROGRAM, "voices", "2026-09-10");
+    assert!(State::update(&data, PROGRAM, open).unwrap());
+    let directory = file(&data).parent().unwrap().to_path_buf();
+    let before = std::fs::read(file(&data)).unwrap();
+    std::fs::set_permissions(&directory, std::fs::Permissions::from_mode(0o555)).unwrap();
+
+    let again = State::update(&data, PROGRAM, open);
+
+    std::fs::set_permissions(&directory, std::fs::Permissions::from_mode(0o755)).unwrap();
+    assert!(!again.unwrap(), "the second open reported a change");
+    assert_eq!(std::fs::read(file(&data)).unwrap(), before);
 }

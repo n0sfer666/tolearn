@@ -9,10 +9,13 @@ import path from "node:path";
 import test, { before } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { DIST, measure, pages, route, scripts } from "../scripts/budget.mjs";
+import { DIST, fonts, measure, pages, route, scripts } from "../scripts/budget.mjs";
+import { hydratable } from "../scripts/island.mjs";
+import { ru } from "../src/i18n/ru.ts";
+import { browser, settled } from "./support/dom.mjs";
 
 const UI = fileURLToPath(new URL("..", import.meta.url));
-const SCREENS = ["/", "/program/", "/topic/", "/practice/", "/notes/", "/exam/", "/exam/dialog/", "/review/", "/queue/", "/stale/", "/stats/", "/graph/", "/search/", "/settings/", "/read/", "/sweep/"];
+const SCREENS = ["/", "/program/", "/stage/", "/search/", "/settings/", "/help/", "/new/", "/next/"];
 const ROUTES = ["/", ...["ru", "en"].flatMap((locale) => SCREENS.map((screen) => `/${locale}${screen}`))];
 
 before(() => {
@@ -37,6 +40,7 @@ test("страница несёт содержимое, а не пустой к�
   for (const file of await pages()) {
     const html = readFileSync(file, "utf8");
     assert.match(html, /<h1[\s>]/, `${route(file)} без заголовка`);
+    if (route(file) === "/") continue;
     assert.match(html, /<section /, `${route(file)} без секций`);
   }
 });
@@ -72,26 +76,26 @@ test("вес JS уложен в бюджеты", async () => {
 test("гейт краснеет, когда страница выходит за бюджет", async () => {
   const dist = path.join(os.tmpdir(), `tolearn-ui-budget-${process.pid}`);
   await rm(dist, { recursive: true, force: true });
-  await mkdir(path.join(dist, "topic"), { recursive: true });
+  await mkdir(path.join(dist, "stage"), { recursive: true });
   await writeFile(path.join(dist, "big.js"), randomBytes(64 * 1024).toString("base64"));
   await writeFile(
-    path.join(dist, "topic", "index.html"),
+    path.join(dist, "stage", "index.html"),
     '<html><body><script src="/big.js"></script></body></html>',
   );
 
   const [measured] = await measure(dist);
 
-  assert.equal(measured.route, "/topic/");
-  assert.equal(measured.limit, 30 * 1024);
+  assert.equal(measured.route, "/stage/");
+  assert.equal(measured.limit, 20 * 1024);
   assert.equal(measured.ok, false, `${measured.bytes} байт прошли мимо бюджета`);
   await rm(dist, { recursive: true, force: true });
 });
 
-test("остров с состоянием собран и подключён к странице темы", async () => {
-  const topic = (await measure()).find(({ route: where }) => where === "/ru/topic/");
+test("остров с состоянием собран и подключён к странице этапа", async () => {
+  const stage = (await measure()).find(({ route: where }) => where === "/ru/stage/");
 
-  assert.ok(topic.files.length > 0, "чанки острова не попали в счёт веса");
-  assert.ok(topic.bytes > 4096, `остров весит ${topic.bytes} байт — столько не весит даже Solid`);
+  assert.ok(stage.files.length > 0, "чанки острова не попали в счёт веса");
+  assert.ok(stage.bytes > 4096, `остров весит ${stage.bytes} байт — столько не весит даже Solid`);
 });
 
 test("счётчик веса видит и подключённый файл, и встроенный код", () => {
@@ -101,4 +105,90 @@ test("счётчик веса видит и подключённый файл, �
 
   assert.deepEqual(inline, ["alert(1)"]);
   assert.deepEqual(linked, ["/a.js", "/b.js"]);
+});
+
+test("остров поиска гидратируется поверх собранной страницы, когда программа уже в адресе", async () => {
+  const { document, location } = browser("https://tolearn.local/ru/search/?program=/bundle");
+  globalThis.location = location;
+  document.body.innerHTML = readFileSync(path.join(DIST, "ru/search/index.html"), "utf8");
+  const host = document.querySelector('astro-island[component-url*="/Search."]');
+  globalThis._$HY = { events: [], completed: new WeakSet(), r: {} };
+  const { default: Search } = await hydratable("Search");
+  const { default: renderer } = await import("@astrojs/solid-js/client.js");
+
+  renderer(host)(Search, { text: ru, locale: "ru" }, {}, { client: "load" });
+  await settled();
+
+  assert.ok(host.querySelector("[data-query]") !== null, "поле поиска не появилось");
+});
+
+const BOOLEAN = /\s(readonly|disabled|required|hidden|checked|multiple|selected|open|inert|autofocus)="false"/;
+
+test("в собранных страницах нет булевых атрибутов со значением «false»", async () => {
+  for (const file of await pages()) {
+    const found = readFileSync(file, "utf8").match(BOOLEAN);
+
+    assert.equal(found, null, `${route(file)}: ${found?.[0].trim()} — браузер читает это как включённый атрибут`);
+  }
+});
+
+test("поле запроса на собранной странице принимает ввод", async () => {
+  const { document, location } = browser("https://tolearn.local/ru/new/");
+  globalThis.location = location;
+  document.body.innerHTML = readFileSync(path.join(DIST, "ru/new/index.html"), "utf8");
+  const host = document.querySelector('astro-island[component-url*="/New."]');
+  globalThis._$HY = { events: [], completed: new WeakSet(), r: {} };
+  const { default: New } = await hydratable("New");
+  const { default: renderer } = await import("@astrojs/solid-js/client.js");
+
+  const field = () => document.querySelector("[data-request]");
+  assert.equal(field().readOnly, false, "поле только для чтения ещё до гидрации");
+
+  renderer(host)(New, { text: ru, locale: "ru" }, {}, { client: "load" });
+  await settled();
+
+  assert.equal(field().readOnly, false, "гидрация оставила поле только для чтения");
+
+  field().value = "как писать музыку для NES";
+  field().dispatchEvent(new document.defaultView.Event("input", { bubbles: true }));
+  await settled();
+
+  assert.equal(field().value, "как писать музыку для NES");
+});
+
+function faced(source) {
+  return [...source.matchAll(/@font-face\s*{([^}]*)}/g)].flatMap(([, body]) =>
+    [...body.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/g)].map(([, url]) => url),
+  );
+}
+
+test("шрифты грузятся только со своего origin", async () => {
+  const urls = new Set();
+  for (const file of await files()) {
+    if (/\.(css|html)$/.test(file)) faced(readFileSync(file, "utf8")).forEach((url) => urls.add(url));
+  }
+  const built = (await fonts()).files.map((file) => `/${path.relative(DIST, file).split(path.sep).join("/")}`);
+
+  assert.ok(urls.size > 0, "в сборке нет ни одного @font-face");
+  for (const url of urls) assert.match(url, /^\/(?!\/)/, `${url} грузится не со своего origin`);
+  assert.deepEqual([...urls].sort(), built.sort());
+});
+
+test("вес шрифтов уложен в бюджет", async () => {
+  const { bytes, limit, ok } = await fonts();
+
+  assert.ok(ok, `шрифты: ${bytes} байт против бюджета ${limit}`);
+});
+
+test("гейт шрифтов краснеет, когда шрифты выходят за бюджет", async () => {
+  const dist = path.join(os.tmpdir(), `tolearn-ui-fonts-${process.pid}`);
+  await rm(dist, { recursive: true, force: true });
+  await mkdir(path.join(dist, "_astro"), { recursive: true });
+  await writeFile(path.join(dist, "_astro", "big.woff2"), randomBytes(241 * 1024));
+
+  const measured = await fonts(dist);
+
+  assert.equal(measured.limit, 240 * 1024);
+  assert.equal(measured.ok, false, `${measured.bytes} байт прошли мимо бюджета`);
+  await rm(dist, { recursive: true, force: true });
 });

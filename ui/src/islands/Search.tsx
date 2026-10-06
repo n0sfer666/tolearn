@@ -1,37 +1,47 @@
-import { For, Show, createSignal } from "solid-js";
+import { For, Show, createMemo, createSignal } from "solid-js";
 
 import type { Dictionary } from "../i18n/ru";
 import type { HitView } from "../ipc";
 import type { Locale } from "../i18n";
-import { opened } from "../lib/query";
 import { quiet } from "../lib/ipc";
+import { stageHref } from "../lib/links";
 import { toast } from "../lib/toast";
 import type { Transport } from "../lib/ipc";
+
+const LIMIT = 20;
 
 interface Props {
   text: Dictionary;
   locale: Locale;
-  program?: string;
   call?: Transport;
 }
 
 export default function Search(props: Props) {
   const call = () => props.call ?? quiet;
-  const program = () => props.program ?? opened();
-
   const [asked, setAsked] = createSignal("");
   const [hits, setHits] = createSignal<HitView[]>([]);
   const [ran, setRan] = createSignal(false);
+  const [roots, setRoots] = createSignal<ReadonlyMap<string, string>>(new Map());
+  const [listed, setListed] = createSignal(false);
 
-  const find = () => {
+  const list = () => {
+    if (listed()) return;
+    setListed(true);
     void (async () => {
       try {
-        const out = await call()("search", {
-          bundle: program(),
-          query: asked(),
-          directory: null,
-          limit: 20,
-        });
+        const out = await call()("library", {});
+        setRoots(new Map(out.programs.map((shelf) => [shelf.uuid, shelf.title])));
+      } catch {
+        setRoots(new Map());
+      }
+    })();
+  };
+
+  const find = () => {
+    list();
+    void (async () => {
+      try {
+        const out = await call()("search", { query: asked(), limit: LIMIT });
         setHits(out.hits);
         setRan(true);
       } catch {
@@ -42,62 +52,82 @@ export default function Search(props: Props) {
     })();
   };
 
-  const kind = (hit: HitView) => {
-    if (hit.kind === "note") return props.text.search.note;
-    if (hit.kind === "material") return props.text.search.material;
-    return props.text.search.topic;
+  const kind = (hit: HitView) => (hit.kind === "stage" ? props.text.search.stage : props.text.search.block);
+
+  const tally = () => {
+    const count = hits().length;
+    const template = count === LIMIT ? props.text.search.shown : props.text.search.found;
+    return template.replace("{n}", String(count));
+  };
+
+  const nested = (hit: HitView) => hit.node !== hit.program;
+
+  const where = (hit: HitView) => {
+    const program = roots().get(hit.program) ?? "";
+    return { program, node: nested(hit) || program === "" ? hit.node_title : "" };
   };
 
   const href = (hit: HitView) => {
-    const where = hit.kind === "note" ? "notes" : "topic";
-    return `/${props.locale}/${where}/?program=${encodeURIComponent(program())}&topic=${encodeURIComponent(hit.topic)}`;
+    const stage = stageHref(props.locale, hit.program, hit.node, hit.stage);
+    return hit.block === "" ? stage : `${stage}#${hit.block}`;
   };
 
   return (
-    <Show
-      when={program() !== ""}
-      fallback={
-        <p data-empty>
-          {props.text.program.none} <a href={`/${props.locale}/`}>{props.text.nav.programs}</a>
-        </p>
-      }
-    >
-      <article>
-        <form
-          class="row"
-          onSubmit={(event) => {
-            event.preventDefault();
-            find();
-          }}
-        >
-          <input
-            type="search"
-            data-query
-            autofocus
-            aria-label={props.text.search.placeholder}
-            placeholder={props.text.search.placeholder}
-            value={asked()}
-            onInput={(event) => setAsked(event.currentTarget.value)}
-          />
-          <button type="submit" data-find>
-            {props.text.search.find}
-          </button>
-        </form>
+    <article>
+      <form
+        class="row"
+        onSubmit={(event) => {
+          event.preventDefault();
+          find();
+        }}
+      >
+        <input
+          type="search"
+          data-query
+          autofocus
+          aria-label={props.text.search.placeholder}
+          placeholder={props.text.search.placeholder}
+          value={asked()}
+          onInput={(event) => setAsked(event.currentTarget.value)}
+        />
+        <button type="submit" data-find>
+          {props.text.search.find}
+        </button>
+      </form>
+      <div data-tally aria-live="polite">
+        <Show when={ran() && hits().length > 0}>
+          <p data-found>{tally()}</p>
+        </Show>
         <Show when={ran() && hits().length === 0}>
           <p data-nothing>{props.text.search.nothing}</p>
         </Show>
-        <ul data-hits>
-          <For each={hits()}>
-            {(hit) => (
+      </div>
+      <ul data-hits>
+        <For each={hits()}>
+          {(hit) => {
+            const place = createMemo(() => where(hit));
+            return (
               <li data-hit={hit.kind}>
                 <a href={href(hit)}>{hit.title}</a>
                 <span data-kind>{kind(hit)}</span>
-                <p data-snippet>{hit.snippet}</p>
+                <Show when={place().program !== "" || place().node !== ""}>
+                  <p data-where>
+                    <Show when={place().program !== ""}>
+                      <span data-program>{place().program}</span>
+                    </Show>
+                    <Show when={place().node !== ""}>
+                      <span data-node>{place().node}</span>
+                    </Show>
+                  </p>
+                </Show>
+                <Show when={hit.snippet !== ""}>
+                  <p data-snippet>{hit.snippet}</p>
+                </Show>
               </li>
-            )}
-          </For>
-        </ul>
-      </article>
-    </Show>
+            );
+          }}
+        </For>
+      </ul>
+    </article>
   );
 }

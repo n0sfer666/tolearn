@@ -1,0 +1,31 @@
+---
+import { type Locale, strings } from "../../i18n";
+
+interface Props {
+  locale: Locale;
+}
+
+const text = strings(Astro.props.locale).help;
+const terms = [
+  { term: text.map, meaning: text.mapText },
+  { term: text.stage, meaning: text.stageText },
+  { term: text.practice, meaning: text.practiceText },
+  { term: text.exam, meaning: text.examText },
+  { term: text.fork, meaning: text.forkText },
+  { term: text.subprograms, meaning: text.subprogramsText },
+];
+---
+
+<section data-help="learning" aria-labelledby="help-learning">
+  <h2 id="help-learning">{text.learning}</h2>
+  <dl>
+    {
+      terms.map(({ term, meaning }) => (
+        <Fragment>
+          <dt>{term}</dt>
+          <dd>{meaning}</dd>
+        </Fragment>
+      ))
+    }
+  </dl>
+</section>

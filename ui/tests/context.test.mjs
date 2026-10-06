@@ -43,72 +43,59 @@ function visit(route, search, remembered = null) {
   return window.document;
 }
 
-const OPEN = "?program=%2Fprograms%2Fllm-agents-base&topic=cp-gateway";
+const OPEN = "?program=nes-dev&node=rom&stage=first-rom";
 
 test("ссылка назад уносит открытую программу с собой", () => {
-  const document = visit("ru/topic", OPEN);
+  const document = visit("ru/search", "?program=nes-dev");
 
-  assert.equal(
-    document.querySelector("[data-back]").getAttribute("href"),
-    "/ru/program/?program=%2Fprograms%2Fllm-agents-base",
-  );
+  assert.equal(document.querySelector("[data-back]").getAttribute("href"), "/ru/program/?program=nes-dev");
 });
 
-test("назад с экрана практики держит и программу, и тему", () => {
-  const document = visit("ru/practice", OPEN);
+test("назад с экрана этапа возвращает в его узел программы", () => {
+  const document = visit("ru/stage", OPEN);
 
   assert.equal(
     document.querySelector("[data-back]").getAttribute("href"),
-    "/ru/topic/?program=%2Fprograms%2Fllm-agents-base&topic=cp-gateway",
+    "/ru/program/?program=nes-dev&node=rom",
   );
 });
 
 test("поиск в шапке открывается в той же программе", () => {
-  const document = visit("ru/topic", OPEN);
+  const document = visit("ru/stage", OPEN);
 
-  assert.equal(
-    document.querySelector("[data-search]").getAttribute("href"),
-    "/ru/search/?program=%2Fprograms%2Fllm-agents-base",
-  );
+  assert.equal(document.querySelector("[data-search]").getAttribute("href"), "/ru/search/?program=nes-dev");
 });
 
 test("разделы вне программы контекст не тянут", () => {
-  const document = visit("ru/topic", OPEN);
+  const document = visit("ru/stage", OPEN);
 
-  assert.equal(document.querySelector("[data-queue]").getAttribute("href"), "/ru/queue/");
   assert.equal(document.querySelector("[data-settings]").getAttribute("href"), "/ru/settings/");
 });
 
 test("шапка отмечает раздел, в котором стоишь", () => {
-  const queue = visit("ru/queue", "");
+  const settings = visit("ru/settings", "");
 
-  assert.equal(queue.querySelector("[data-queue]").getAttribute("aria-current"), "page");
-  assert.equal(queue.querySelector("[data-search]").getAttribute("aria-current"), null);
-  assert.equal(visit("ru/topic", OPEN).querySelectorAll("[aria-current]").length, 0);
+  assert.equal(settings.querySelector("[data-settings]").getAttribute("aria-current"), "page");
+  assert.equal(settings.querySelector("[data-search]").getAttribute("aria-current"), null);
+  assert.equal(visit("ru/stage", OPEN).querySelectorAll("[aria-current]").length, 0);
 });
 
 test("без контекста в адресе ссылки остаются как были", () => {
-  const document = visit("ru/topic", "");
+  const document = visit("ru/stage", "");
 
   assert.equal(document.querySelector("[data-back]").getAttribute("href"), "/ru/program/");
   assert.equal(document.querySelector("[data-search]").getAttribute("href"), "/ru/search/");
 });
 
 test("открытая программа запоминается на будущее", () => {
-  const document = visit("ru/topic", OPEN);
+  const document = visit("ru/stage", OPEN);
 
-  assert.equal(
-    document.defaultView.localStorage.getItem("tolearn.program"),
-    "/programs/llm-agents-base",
-  );
+  assert.equal(document.defaultView.localStorage.getItem("tolearn.program"), "nes-dev");
 });
 
 test("поиск из шапки открывает последнюю программу, когда адрес её не несёт", () => {
-  const document = visit("ru/queue", "", "/programs/llm-agents-base");
+  const document = visit("ru/settings", "", "nes-dev");
 
-  assert.equal(
-    document.querySelector("[data-search]").getAttribute("href"),
-    "/ru/search/?program=%2Fprograms%2Fllm-agents-base",
-  );
+  assert.equal(document.querySelector("[data-search]").getAttribute("href"), "/ru/search/?program=nes-dev");
   assert.equal(document.querySelector("[data-settings]").getAttribute("href"), "/ru/settings/");
 });

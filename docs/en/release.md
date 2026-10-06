@@ -15,7 +15,7 @@ everything else in the app, and only people who want voice should pay for it.
 Functionally the two differ by exactly one screen. In the base variant the voice
 exam is **visible and disabled**: the button is there, and next to it a line says
 the other variant is required. Everything else — programs, topics, practice,
-notes, the offline archive, the graph, export — is identical.
+export — is identical.
 
 ## Where to download
 
@@ -57,6 +57,24 @@ All six numbers are from 2026-08-18, version 0.3.0, all from the `package` job o
 a single green run. When the weight changes, so does this table: it holds the
 latest measurement, not the first one.
 
+After that measurement `@mermaid-js/tiny` 12.0.0 went into the binary (S117):
+generation uses it to draw diagrams. It is 2.9 MB uncompressed and 0.74 MB
+gzipped. The local macOS arm64 dmg from `cargo tauri build --bundles dmg` on
+2026-09-12 grew from 3,911,162 to 4,703,122 bytes, so by 791,960 bytes
+(0.76 MB). The table numbers will be updated by the next `package` run.
+
+Then the Literata and Golos Text fonts went into `ui/dist` (S147): six variable
+woff2 files, 223,504 bytes. woff2 is already compressed, and neither the asset
+compression in the binary nor the package's xz shrinks it (`xz -9e` gives
+223,584 bytes), so every installer grows by about 0.22 MB. The Linux `.deb`
+keeps about 0.2 MB below its 14 MB ceiling.
+
+The `release` profile now builds with `lto = true` and `codegen-units = 1`. The
+macOS arm64 binary went from 20,183,040 to 16,808,096 bytes, and from 5,411,104
+to 5,014,556 bytes after `xz -9e`, so about 0.38 MB less. The `.deb` is
+compressed with the same xz, so its headroom should grow to about 0.6 MB; the
+next `package` run will give the Linux x64 number.
+
 The base variant's ceilings are [budgets](../architecture.md#бюджеты) (in
 Russian), and going over one fails the build. `-with-speech` has no installer
 ceiling: its weight is set by the model weights, which have a budget of their own
@@ -67,10 +85,10 @@ bytes, inside the installer, with nothing to download afterwards.
 
 Both variants are one application with one identifier, `dev.tolearn.app`, and so:
 
-- **install exactly one.** Two installed variants fight over the `tolearn://`
-  scheme and over a single window; the OS picks the winner itself, and it will not
-  be the choice you were asked about.
-- **the data is shared and survives the switch.** Programs, progress and notes
+- **install exactly one.** Two installed variants fight over the same
+  `dev.tolearn.app` identifier and over a single window; the OS picks the
+  winner itself, and it will not be the choice you were asked about.
+- **the data is shared and survives the switch.** Programs and progress
   live outside the bundle
   ([ADR-009](../adr/009-user-data-outside-bundle.md), in Russian): remove one
   variant, install the other, nothing is lost.
@@ -78,10 +96,6 @@ Both variants are one application with one identifier, `dev.tolearn.app`, and so
 On macOS `-with-speech` requires 10.15 or newer, while the base variant makes do
 with 10.13. The bar is raised by whisper.cpp, not by the app: it is built against
 `std::filesystem`, which libc++ lacks before 10.15.
-
-The installer registers the `tolearn://` scheme itself: a link like
-`tolearn://topic?roadmap=<program>&topic=<topic>` opens that topic in the already
-running app.
 
 ## Building the variants yourself
 

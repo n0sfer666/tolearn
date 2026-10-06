@@ -15,6 +15,7 @@ pub enum Outcome {
     Finished { code: Option<i32> },
     TimedOut,
     WentQuiet,
+    Stopped,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

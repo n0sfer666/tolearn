@@ -1,190 +1,101 @@
+use std::collections::HashSet;
+use std::fs::{self, Metadata};
+use std::io::{self, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::time::UNIX_EPOCH;
 
 use super::error::SearchError;
-use super::types::{Document, Kind, Source};
-use crate::notes::{Note, Stamp};
-use crate::roadmap::{Roadmap, parse as roadmap};
-use crate::topic::{Topic, parse as topic};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Origin {
-    Topic,
-    Note,
-}
+use super::types::{Seen, Stamp};
+use crate::library::Library;
+use crate::yaml::is_uuid;
 
 #[derive(Debug, Clone)]
 pub struct Wanted {
-    pub path: PathBuf,
-    pub origin: Origin,
-    pub stamp: Stamp,
-    pub text: Option<String>,
+    pub program: String,
+    pub files: Vec<Seen>,
 }
 
-pub fn plan(bundle: &Path, notes: &Path) -> Result<(String, Vec<Wanted>), SearchError> {
-    let map = manifest(bundle)?;
-    let mut wanted = topics(bundle, &map)?;
-    walk(notes, &mut wanted)?;
-    Ok((map.id, wanted))
-}
-
-fn topics(bundle: &Path, map: &Roadmap) -> Result<Vec<Wanted>, SearchError> {
+pub fn plan(library: &Library) -> Result<Vec<Wanted>, SearchError> {
+    let root = library.root();
+    let listing = match fs::read_dir(root) {
+        Ok(listing) => listing,
+        Err(error) if error.kind() == ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(error) => return Err(unreadable(root, &error)),
+    };
     let mut wanted = Vec::new();
-    for entry in &map.topics {
-        let path = bundle.join(&entry.file);
-        if let Some(stamp) = stamp(&path)? {
+    for item in listing {
+        let path = item.map_err(|error| unreadable(root, &error))?.path();
+        let Some(program) = path.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+        if !is_uuid(program) || !path.is_dir() {
+            continue;
+        }
+        if let Ok(files) = files(&path) {
             wanted.push(Wanted {
-                path,
-                origin: Origin::Topic,
-                stamp,
-                text: None,
+                program: program.to_owned(),
+                files,
             });
         }
     }
+    wanted.sort_by(|left, right| left.program.cmp(&right.program));
     Ok(wanted)
 }
 
-pub fn kept(bundle: &Path, notes: &[Note]) -> Result<(String, Vec<Wanted>), SearchError> {
-    let map = manifest(bundle)?;
-    let mut wanted = topics(bundle, &map)?;
-    for note in notes {
-        wanted.push(Wanted {
-            path: note.path.clone(),
-            origin: Origin::Note,
-            stamp: note.stamp,
-            text: Some(crate::notes::frontmatter::render(
-                &note.roadmap,
-                &note.topic,
-                &note.body,
-            )),
-        });
+fn files(home: &Path) -> io::Result<Vec<Seen>> {
+    let mut files = Vec::new();
+    walk(home, "", &mut HashSet::new(), &mut files)?;
+    files.sort_by(|left, right| left.name.cmp(&right.name));
+    Ok(files)
+}
+
+fn walk(
+    directory: &Path,
+    prefix: &str,
+    visited: &mut HashSet<PathBuf>,
+    files: &mut Vec<Seen>,
+) -> io::Result<()> {
+    if !visited.insert(fs::canonicalize(directory)?) {
+        return Ok(());
     }
-    Ok((map.id, wanted))
-}
-
-pub fn roadmap_id(bundle: &Path) -> Result<String, SearchError> {
-    Ok(manifest(bundle)?.id)
-}
-
-pub fn source(wanted: &Wanted, roadmap: &str) -> Result<Source, SearchError> {
-    let text = match &wanted.text {
-        Some(text) => text.clone(),
-        None => read(&wanted.path)?,
-    };
-    let (owner, documents) = match wanted.origin {
-        Origin::Topic => (roadmap.to_owned(), from_topic(&text)),
-        Origin::Note => from_note(&text, roadmap),
-    };
-    Ok(Source {
-        path: wanted.path.clone(),
-        roadmap: owner,
-        stamp: wanted.stamp,
-        documents,
-    })
-}
-
-fn manifest(bundle: &Path) -> Result<Roadmap, SearchError> {
-    let (_, path) = crate::scan::manifest(bundle).map_err(SearchError::Bundle)?;
-    let source = read(&path)?;
-    roadmap(&source)
-        .map_err(|error| SearchError::Bundle(crate::scan::ScanError::Malformed { path, error }))
-}
-
-fn from_topic(text: &str) -> Vec<Document> {
-    let Ok(document) = topic(text) else {
-        return Vec::new();
-    };
-    let mut out = vec![Document {
-        kind: Kind::Topic,
-        topic: document.id.clone(),
-        title: document.title.clone(),
-        text: about(&document),
-    }];
-    out.extend(document.materials.iter().map(|material| Document {
-        kind: Kind::Material,
-        topic: document.id.clone(),
-        title: material.title.clone(),
-        text: format!("{}\n{}", material.url, material.note),
-    }));
-    out
-}
-
-fn about(document: &Topic) -> String {
-    let mut lines = document.outcomes.clone();
-    lines.extend(document.misconceptions.iter().cloned());
-    lines.extend(document.version_context.iter().cloned());
-    lines.push(document.practice.task.clone());
-    lines.push(document.exam.focus.clone());
-    lines.join("\n")
-}
-
-fn from_note(text: &str, roadmap: &str) -> (String, Vec<Document>) {
-    let Some(bound) = crate::notes::frontmatter::parse(text) else {
-        return (String::new(), Vec::new());
-    };
-    if bound.roadmap != roadmap {
-        return (String::new(), Vec::new());
-    }
-    let documents = vec![Document {
-        kind: Kind::Note,
-        topic: bound.topic.clone(),
-        title: bound.topic,
-        text: bound.body,
-    }];
-    (roadmap.to_owned(), documents)
-}
-
-fn walk(directory: &Path, wanted: &mut Vec<Wanted>) -> Result<(), SearchError> {
-    let listing = match std::fs::read_dir(directory) {
-        Ok(listing) => listing,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
-        Err(error) => return Err(unreadable(directory, &error)),
-    };
-
-    for entry in listing {
-        let path = entry.map_err(|error| unreadable(directory, &error))?.path();
-        if path.is_dir() {
-            walk(&path, wanted)?;
+    for item in fs::read_dir(directory)? {
+        let item = item?;
+        let name = item.file_name().to_string_lossy().into_owned();
+        if name.starts_with('.') {
             continue;
         }
-        if !path.extension().is_some_and(|kind| kind == "md") {
-            continue;
-        }
-        if let Some(stamp) = stamp(&path)? {
-            wanted.push(Wanted {
-                path,
-                origin: Origin::Note,
-                stamp,
-                text: None,
+        let path = item.path();
+        let data = match fs::metadata(&path) {
+            Ok(data) => data,
+            Err(error) if error.kind() == ErrorKind::NotFound => continue,
+            Err(error) => return Err(error),
+        };
+        let relative = format!("{prefix}{name}");
+        if data.is_dir() {
+            walk(&path, &format!("{relative}/"), visited, files)?;
+        } else if data.is_file() {
+            files.push(Seen {
+                name: relative,
+                stamp: stamp(&data),
             });
         }
     }
     Ok(())
 }
 
-fn stamp(path: &Path) -> Result<Option<Stamp>, SearchError> {
-    let data = match std::fs::metadata(path) {
-        Ok(data) => data,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
-        Err(error) => return Err(unreadable(path, &error)),
-    };
+fn stamp(data: &Metadata) -> Stamp {
     let modified = data
         .modified()
-        .map_err(|error| unreadable(path, &error))?
-        .duration_since(UNIX_EPOCH)
+        .ok()
+        .and_then(|time| time.duration_since(UNIX_EPOCH).ok())
         .unwrap_or_default();
-
-    Ok(Some(Stamp {
+    Stamp {
         modified_nanos: modified.as_nanos(),
         size: data.len(),
-    }))
+    }
 }
 
-fn read(path: &Path) -> Result<String, SearchError> {
-    std::fs::read_to_string(path).map_err(|error| unreadable(path, &error))
-}
-
-fn unreadable(path: &Path, error: &std::io::Error) -> SearchError {
+fn unreadable(path: &Path, error: &io::Error) -> SearchError {
     SearchError::Unreadable {
         path: path.display().to_string(),
         reason: error.to_string(),

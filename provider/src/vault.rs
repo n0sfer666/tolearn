@@ -3,6 +3,9 @@ use std::sync::{Mutex, PoisonError};
 
 use crate::error::VaultError;
 
+const SERVICE: &str = "tolearn";
+const ACCOUNT: &str = "provider";
+
 pub trait Vault: fmt::Debug + Send + Sync {
     fn store(&self, key: &str) -> Result<(), VaultError>;
 
@@ -23,6 +26,10 @@ impl Keychain {
             service: service.to_owned(),
             account: account.to_owned(),
         }
+    }
+
+    pub fn app() -> Self {
+        Self::new(SERVICE, ACCOUNT)
     }
 
     fn entry(&self) -> Result<keyring::Entry, VaultError> {

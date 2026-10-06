@@ -5,52 +5,17 @@
     reason = "cli gate: a panic here is the report"
 )]
 
+#[path = "../../../tests-support/scratch.rs"]
+mod rooms;
+
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
-pub fn reference() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .expect("рядом с cli лежит корень репозитория")
-        .join("examples/llm-agents-base")
-}
-
 pub fn scratch(name: &str) -> PathBuf {
-    let directory = std::env::temp_dir().join(format!("tolearn-cli-{name}-{}", std::process::id()));
-    if directory.exists() {
-        std::fs::remove_dir_all(&directory).unwrap();
-    }
-    std::fs::create_dir_all(&directory).unwrap();
-    directory
+    rooms::made(&format!("cli-{name}"))
 }
 
-pub fn copied(name: &str) -> PathBuf {
-    let directory = scratch(name);
-    copy(&reference(), &directory);
-    strip(&directory, "json");
-    directory
-}
-
-pub fn dual(name: &str) -> PathBuf {
-    let directory = scratch(name);
-    copy(&reference(), &directory);
-    directory
-}
-
-fn strip(directory: &Path, extension: &str) {
-    for entry in std::fs::read_dir(directory).unwrap() {
-        let path = entry.unwrap().path();
-        if path.is_dir() {
-            strip(&path, extension);
-            continue;
-        }
-        if path.extension().is_some_and(|found| found == extension) {
-            std::fs::remove_file(path).unwrap();
-        }
-    }
-}
-
-fn copy(from: &Path, to: &Path) {
+pub fn copy(from: &Path, to: &Path) {
     std::fs::create_dir_all(to).unwrap();
     for entry in std::fs::read_dir(from).unwrap() {
         let entry = entry.unwrap();

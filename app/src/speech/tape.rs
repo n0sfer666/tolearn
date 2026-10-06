@@ -37,6 +37,13 @@ pub fn stop(resources: &Path, language: &str) -> Result<String, SpeechError> {
     }
 }
 
+pub fn cancel() {
+    let taken = TAPE.lock().ok().and_then(|mut tape| tape.take());
+    if let Some(microphone) = taken {
+        let _ = microphone.stop();
+    }
+}
+
 fn seized() -> SpeechError {
     SpeechError::Failed("запись занята другим потоком".to_owned())
 }
